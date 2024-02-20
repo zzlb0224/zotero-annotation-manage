@@ -19,6 +19,7 @@
     "lint": "prettier --write . && eslint . --ext .ts --fix",
     "test": "echo \"Error: no test specified\" && exit 1",
     "release": "release-it --only-version --preReleaseId=beta",
+    "release1": "release-it",
     "update-deps": "npm update --save"
   },
   "repository": {
