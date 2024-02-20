@@ -10,7 +10,7 @@ export class Annotations {
       (event) => {
         const { reader, params, append } = event;
         const command = (label: string) =>
-          function () {
+           {
             for (const id of params.ids) {
               const annotation = reader._item
                 .getAnnotations()
