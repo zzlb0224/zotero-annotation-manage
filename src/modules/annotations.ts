@@ -9,17 +9,16 @@ export class Annotations {
       "createAnnotationContextMenu",
       (event) => {
         const { reader, params, append } = event;
-        const command = (label: string) =>
-           {
-            for (const id of params.ids) {
-              const annotation = reader._item
-                .getAnnotations()
-                .filter(function (e) {
-                  return e.key == id;
-                })[0];
-              annotation.addTag(label, 0);
-            }
-          };
+        const command = (label: string) => {
+          for (const id of params.ids) {
+            const annotation = reader._item
+              .getAnnotations()
+              .filter(function (e) {
+                return e.key == id;
+              })[0];
+            annotation.addTag(label, 0);
+          }
+        };
         for (const tag of [
           "研究目的",
           "研究假设",
