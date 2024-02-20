@@ -1,3 +1,7 @@
+# Zotero 笔记整理
+
+## 第一个功能 添加标签
+
 # Zotero Plugin Template
 
 [![zotero target version](https://img.shields.io/badge/Zotero-7-green?style=flat-square&logo=zotero&logoColor=CC2936)](https://www.zotero.org)

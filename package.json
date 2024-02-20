@@ -1,15 +1,15 @@
 {
-  "name": "zotero-addon-template",
-  "version": "1.1.1",
-  "description": "Zotero Addon Template",
+  "name": "zotero-annotation-manage",
+  "version": "0.0.1",
+  "description": "zotero-annotation-manage",
   "config": {
-    "addonName": "Zotero Addon Template",
-    "addonID": "addontemplate@euclpts.com",
-    "addonRef": "addontemplate",
-    "addonInstance": "AddonTemplate",
-    "prefsPrefix": "extensions.zotero.addontemplate",
-    "releasePage": "https://github.com/windingwind/zotero-addon-template/releases",
-    "updateJSON": "https://raw.githubusercontent.com/windingwind/zotero-addon-template/main/update.json"
+    "addonName": "zotero-annotation-manage",
+    "addonID": "annotationmanage@ucsiuniversity.edu.my",
+    "addonRef": "zoteroAnnotationManage",
+    "addonInstance": "zoteroAnnotationManage",
+    "prefsPrefix": "extensions.zotero.annotationmanage",
+    "releasePage": "https://github.com/zzlb0224/zotero-annotation-manage/releases",
+    "updateJSON": "https://raw.githubusercontent.com/zzlb0224/zotero-annotation-manage/main/update.json"
   },
   "main": "src/index.ts",
   "scripts": {

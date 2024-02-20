@@ -9,6 +9,7 @@ import { config } from "../package.json";
 import { getString, initLocale } from "./utils/locale";
 import { registerPrefsScripts } from "./modules/preferenceScript";
 import { createZToolkit } from "./utils/ztoolkit";
+import { Annotations } from "./modules/annotations";
 
 async function onStartup() {
   await Promise.all([
@@ -26,12 +27,11 @@ async function onStartup() {
 
   initLocale();
 
-  BasicExampleFactory.registerPrefs();
+  // BasicExampleFactory.registerPrefs();
 
-  BasicExampleFactory.registerNotifier();
+  // BasicExampleFactory.registerNotifier();
 
-  KeyExampleFactory.registerShortcuts();
-
+  // KeyExampleFactory.registerShortcuts();
   await onMainWindowLoad(window);
 }
 
@@ -39,56 +39,57 @@ async function onMainWindowLoad(win: Window): Promise<void> {
   // Create ztoolkit for every window
   addon.data.ztoolkit = createZToolkit();
 
-  const popupWin = new ztoolkit.ProgressWindow(config.addonName, {
-    closeOnClick: true,
-    closeTime: -1,
-  })
-    .createLine({
-      text: getString("startup-begin"),
-      type: "default",
-      progress: 0,
-    })
-    .show();
+  // const popupWin = new ztoolkit.ProgressWindow(config.addonName, {
+  //   closeOnClick: true,
+  //   closeTime: -1,
+  // })
+  //   .createLine({
+  //     text: getString("startup-begin"),
+  //     type: "default",
+  //     progress: 0,
+  //   })
+  //   .show();
 
-  await Zotero.Promise.delay(1000);
-  popupWin.changeLine({
-    progress: 30,
-    text: `[30%] ${getString("startup-begin")}`,
-  });
+  // await Zotero.Promise.delay(1000);
+  // popupWin.changeLine({
+  //   progress: 30,
+  //   text: `[30%] ${getString("startup-begin")}`,
+  // });
 
-  UIExampleFactory.registerStyleSheet();
+  // UIExampleFactory.registerStyleSheet();
 
-  UIExampleFactory.registerRightClickMenuItem();
+  // UIExampleFactory.registerRightClickMenuItem();
 
-  UIExampleFactory.registerRightClickMenuPopup();
+  // UIExampleFactory.registerRightClickMenuPopup();
 
-  UIExampleFactory.registerWindowMenuWithSeparator();
+  // UIExampleFactory.registerWindowMenuWithSeparator();
 
-  await UIExampleFactory.registerExtraColumn();
+  // await UIExampleFactory.registerExtraColumn();
 
-  await UIExampleFactory.registerExtraColumnWithCustomCell();
+  // await UIExampleFactory.registerExtraColumnWithCustomCell();
 
-  await UIExampleFactory.registerCustomItemBoxRow();
+  // await UIExampleFactory.registerCustomItemBoxRow();
 
-  UIExampleFactory.registerLibraryTabPanel();
+  // UIExampleFactory.registerLibraryTabPanel();
 
-  await UIExampleFactory.registerReaderTabPanel();
+  // await UIExampleFactory.registerReaderTabPanel();
 
-  PromptExampleFactory.registerNormalCommandExample();
+  // PromptExampleFactory.registerNormalCommandExample();
 
-  PromptExampleFactory.registerAnonymousCommandExample();
+  // PromptExampleFactory.registerAnonymousCommandExample();
 
-  PromptExampleFactory.registerConditionalCommandExample();
+  // PromptExampleFactory.registerConditionalCommandExample();
 
-  await Zotero.Promise.delay(1000);
+  // await Zotero.Promise.delay(1000);
 
-  popupWin.changeLine({
-    progress: 100,
-    text: `[100%] ${getString("startup-finish")}`,
-  });
-  popupWin.startCloseTimer(5000);
+  // popupWin.changeLine({
+  //   progress: 100,
+  //   text: `[100%] ${getString("startup-finish")}`,
+  // });
+  // popupWin.startCloseTimer(5000);
 
-  addon.hooks.onDialogEvents("dialogExample");
+  // addon.hooks.onDialogEvents("dialogExample");
+  new Annotations().initMenu();
 }
 
 async function onMainWindowUnload(win: Window): Promise<void> {

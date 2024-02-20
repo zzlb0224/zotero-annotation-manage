@@ -1,10 +1,10 @@
 {
   "addons": {
-    "addontemplate@euclpts.com": {
+    "annotationmanage@ucsiuniversity.edu.my": {
       "updates": [
         {
-          "version": "1.1.1",
-          "update_link": "https://github.com/windingwind/zotero-addon-template/releases/latest/download/zotero-addon-template.xpi",
+          "version": "0.0.1",
+          "update_link": "https://github.com/zzlb0224/zotero-annotation-manage/releases/latest/download/zotero-annotation-manage.xpi",
           "applications": {
             "zotero": {
               "strict_min_version": "6.999"
