@@ -46,13 +46,14 @@ export class Annotations {
       doc
         .getElementById(`${config.addonRef}-reader-div`)
         ?.parentElement?.remove();
-    const actions = TAGS.map((label) => ({
+    const children = TAGS.map((label) => ({
       tag: "span",
       namespace: "html",
       properties: { textContent: label },
       styles: {
         margin: "2px",
         padding: "2px",
+        fontSize:"20px"
       },
       listeners: [
         {
@@ -88,7 +89,7 @@ export class Annotations {
           marginLeft: "2px",
           justifyContent: "space-start",
         },
-        children: actions,
+        children: children,
       }),
     );
   }
@@ -96,18 +97,20 @@ export class Annotations {
     event: _ZoteroTypes.Reader.EventParams<"createAnnotationContextMenu">,
   ) {
     const { reader, params, append } = event;
-
-    const command = (label: string) =>
+    const doc = reader._iframeWindow?.document;
+    if (!doc) return;
+    const click = (label: string) =>
       function () {
-        addon.data.ztoolkit.log(label);
+        ztoolkit.log(label);
         for (const id of params.ids) {
           const annotation = reader._item.getAnnotations().filter(function (e) {
             return e.key == id;
           })[0];
-          addon.data.ztoolkit.log("增加标签", label, annotation);
+          ztoolkit.log("增加标签", label, annotation);
           annotation.addTag(label, 0);
           annotation.saveTx();
         }
+        d?.remove()
       };
     const annotations = reader._item
       .getAnnotations()
@@ -117,21 +120,31 @@ export class Annotations {
       (f) => annotations.filter((a) => !a.hasTag(f)).length > 0,
     );
     // ztoolkit.log(tags);
-
-    append({
-      label: "添加标签",
-      onCommand: () => {
-        ztoolkit.log("测试添加标签");
-        const doc = reader._iframeWindow?.document;
-        if (doc) {
-          const d = ztoolkit.UI.createElement(doc, "div", {
+    const children = tags.map((label) => ({
+      tag: "span",
+      namespace: "html",
+      properties: { textContent: label },
+      styles: {
+        margin: "2px",
+        padding: "2px",
+        fontSize: "20px",
+      },
+      listeners: [
+        {
+          type: "click",
+          listener: click(label),
+        },
+      ],
+    }));
+     const d = ztoolkit.UI.createElement(doc, "div", {
             namespace: "html",
             classList: ["toolbarButton", `${config.addonRef}-reader-div`],
             properties: {
               tabIndex: -1,
-              innerHTML: "新div",
+              // innerHTML: "新div",
             },
             styles: {
+              zIndex:"99990",
               position: "fixed",
               left: params.x + "px",
               top: params.y + "px",
@@ -140,19 +153,25 @@ export class Annotations {
               // width: "calc(100% - 4px)",
               marginLeft: "2px",
               justifyContent: "space-start",
-              background: "#fff",
-              border: "red",
+              background: "#eeeeee",
+              border: "#cc9999",
             },
+            children: children,
           });
+
+    append({
+      label: "添加标签",
+      onCommand: () => {
+        ztoolkit.log("测试添加标签"); 
           doc.body.appendChild(d);
           setTimeout(() => d.remove(), 10000);
-        }
+        
       },
     });
     // for (const tag of tags) {
     //   append({
     //     label: tag,
-    //     onCommand: command(tag),
+    //     onCommand: click(tag),
     //   });
     // }
   }
