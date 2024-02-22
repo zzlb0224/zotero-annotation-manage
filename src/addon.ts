@@ -10,15 +10,15 @@ class Addon {
     // Env type, see build.js
     env: "development" | "production";
     ztoolkit: ZToolkit;
-    // locale?: {
-    //   current: any;
-    // };
+    locale?: {
+      current: any;
+    };
     prefs?: {
       window: Window;
       columns: Array<ColumnOptions>;
       rows: Array<{ [dataKey: string]: string }>;
     };
-    // dialog?: DialogHelper;
+    dialog?: DialogHelper;
     annotations?: Annotations;
   };
   // Lifecycle hooks
