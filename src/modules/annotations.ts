@@ -36,7 +36,7 @@ export class Annotations {
     event: _ZoteroTypes.Reader.EventParams<"renderTextSelectionPopup">,
   ) {
     const { append, reader, doc, params } = event;
-    addon.data.ztoolkit.log(
+    ztoolkit.log(
       "renderTextSelectionPopup show",
       event,
       event.params.annotation.tags,
@@ -53,7 +53,7 @@ export class Annotations {
       styles: {
         margin: "2px",
         padding: "2px",
-        fontSize:"20px"
+        fontSize: "20px",
       },
       listeners: [
         {
@@ -110,7 +110,7 @@ export class Annotations {
           annotation.addTag(label, 0);
           annotation.saveTx();
         }
-        d?.remove()
+        d?.remove();
       };
     const annotations = reader._item
       .getAnnotations()
@@ -119,6 +119,7 @@ export class Annotations {
     const tags = TAGS.filter(
       (f) => annotations.filter((a) => !a.hasTag(f)).length > 0,
     );
+
     // ztoolkit.log(tags);
     const children = tags.map((label) => ({
       tag: "span",
@@ -136,43 +137,41 @@ export class Annotations {
         },
       ],
     }));
-     const d = ztoolkit.UI.createElement(doc, "div", {
-            namespace: "html",
-            classList: ["toolbarButton", `${config.addonRef}-reader-div`],
-            properties: {
-              tabIndex: -1,
-              // innerHTML: "新div",
-            },
-            styles: {
-              zIndex:"99990",
-              position: "fixed",
-              left: params.x + "px",
-              top: params.y + "px",
-              display: "flex",
-              flexWrap: "wrap",
-              // width: "calc(100% - 4px)",
-              marginLeft: "2px",
-              justifyContent: "space-start",
-              background: "#eeeeee",
-              border: "#cc9999",
-            },
-            children: children,
-          });
+    const d = ztoolkit.UI.createElement(doc, "div", {
+      namespace: "html",
+      classList: ["toolbarButton", `${config.addonRef}-reader-div`],
+      properties: {
+        tabIndex: -1,
+        // innerHTML: "新div",
+      },
+      styles: {
+        zIndex: "99990",
+        position: "fixed",
+        left: params.x + "px",
+        top: params.y + "px",
+        display: "flex",
+        flexWrap: "wrap",
+        // width: "calc(100% - 4px)",
+        marginLeft: "2px",
+        justifyContent: "space-start",
+        background: "#eeeeee",
+        border: "#cc9999",
+      },
+      children: children,
+    });
 
+    const hasTags = TAGS.filter(
+      (f) =>
+        annotations.filter((a) => a.hasTag(f)).length == annotations.length,
+    ).join(",");
+    const hasTagsStr = hasTags ? `,已有【${hasTags}】` : "";
     append({
-      label: "添加标签",
+      label: `添加标签${hasTagsStr}`,
       onCommand: () => {
-        ztoolkit.log("测试添加标签"); 
-          doc.body.appendChild(d);
-          setTimeout(() => d.remove(), 10000);
-        
+        ztoolkit.log("测试添加标签");
+        doc.body.appendChild(d);
+        setTimeout(() => d.remove(), 10000);
       },
     });
-    // for (const tag of tags) {
-    //   append({
-    //     label: tag,
-    //     onCommand: click(tag),
-    //   });
-    // }
   }
 }
