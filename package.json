@@ -24,14 +24,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/windingwind/zotero-addon-template.git"
+    "url": "git+https://github.com/zzlb0224/zotero-annotation-manage.git"
   },
-  "author": "windingwind",
+  "author": "zzlb0224",
   "license": "AGPL-3.0-or-later",
   "bugs": {
-    "url": "https://github.com/windingwind/zotero-addon-template/issues"
+    "url": "https://github.com/zzlb0224/zotero-annotation-manage/issues"
   },
-  "homepage": "https://github.com/windingwind/zotero-addon-template#readme",
+  "homepage": "https://github.com/zzlb0224/zotero-annotation-manage#readme",
   "dependencies": {
     "zotero-plugin-toolkit": "^2.3.15"
   },
