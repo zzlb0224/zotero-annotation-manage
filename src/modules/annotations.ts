@@ -7,7 +7,7 @@ const TAGS = [
   "研究方法",
   "研究理论",
 ];
- function register() {
+function register() {
   // ztoolkit.UI.basicOptions.log.disableZLog = true;
   ztoolkit.log("Annotations register");
   Zotero.Reader.registerEventListener(
@@ -20,7 +20,7 @@ const TAGS = [
     createAnnotationContextMenu,
   );
 }
- function unregister() {
+function unregister() {
   ztoolkit.log("Annotations unregister");
   Zotero.Reader.unregisterEventListener(
     "renderTextSelectionPopup",
@@ -41,18 +41,20 @@ function getCollections(collections: Zotero.Collection[]): Zotero.Collection[] {
   }
   return [...collections, ...getChildCollections(collections)];
 }
-function relateTags(item: Zotero.Item) { 
-const recursiveCollections=!!Zotero.Prefs.get('recursiveCollections')
- const cid=ZoteroPane.getSelectedCollection(true)
- 
- const collectionIds = item.parentItem
+function relateTags(item: Zotero.Item) {
+  const recursiveCollections = !!Zotero.Prefs.get("recursiveCollections");
+  const cid = ZoteroPane.getSelectedCollection(true);
+
+  const collectionIds = item.parentItem
     ? item.parentItem.getCollections()
     : item.getCollections();
   const currCollections = Zotero.Collections.get(
-    cid?[cid,...collectionIds]:collectionIds,
+    cid ? [cid, ...collectionIds] : collectionIds,
   ) as Zotero.Collection[];
-  const collections =recursiveCollections? getCollections(currCollections):currCollections; 
- 
+  const collections = recursiveCollections
+    ? getCollections(currCollections)
+    : currCollections;
+
   return getTagsInCollections(collections);
 }
 
@@ -96,7 +98,7 @@ function createDiv(
     doc
       .getElementById(`${config.addonRef}-reader-div`)
       ?.parentElement?.remove();
-  const tags2 = relateTags(reader._item).filter(f=>!TAGS.includes(f));
+  const tags2 = relateTags(reader._item).filter((f) => !TAGS.includes(f));
   let tags = [...TAGS, ...tags2];
   if (params.ids) {
     const annotations = reader._item
@@ -260,7 +262,7 @@ function createAnnotationContextMenu(
 
   append({
     label: `添加标签${hasTagsStr}`,
-    onCommand: async() => {
+    onCommand: async () => {
       // ztoolkit.log("测试添加标签");
       const div = createDiv(doc, reader, params);
       doc.body.appendChild(div);
@@ -269,4 +271,4 @@ function createAnnotationContextMenu(
   });
 }
 
-export default {register,unregister}
+export default { register, unregister };
