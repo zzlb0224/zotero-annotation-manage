@@ -9,6 +9,7 @@ const TAGS = [
 ];
 export class Annotations {
   register() {
+    ztoolkit.UI.basicOptions.log.disableZLog = true;
     ztoolkit.log("Annotations register");
     Zotero.Reader.registerEventListener(
       "renderTextSelectionPopup",
@@ -31,67 +32,197 @@ export class Annotations {
       this.createAnnotationContextMenu,
     );
   }
-
-  private renderTextSelectionPopup(
-    event: _ZoteroTypes.Reader.EventParams<"renderTextSelectionPopup">,
-  ) {
-    const { append, reader, doc, params } = event;
-    ztoolkit.log(
-      "renderTextSelectionPopup show",
-      event,
-      event.params.annotation.tags,
+  static relateTags(item: Zotero.Item) {
+    const collectionIds = item.parentItem
+      ? item.parentItem.getCollections()
+      : item.getCollections();
+    const collections = Zotero.Collections.get(
+      collectionIds,
+    ) as Zotero.Collection[];
+    const itemsInSameCollections = collections.flatMap((c) =>
+      c.getChildItems(),
+    );
+    const pdfIds = itemsInSameCollections.flatMap((a) =>
+      a.getAttachments(false),
+    );
+    const pdfs = Zotero.Items.get(pdfIds).filter(
+      (f) => f.isFileAttachment() && f.isAttachment(),
     );
 
-    if (doc.getElementById(`${config.addonRef}-reader-div`))
+    const anns = pdfs
+      .flatMap((f) => f.getAnnotations(false))
+      .sort((a, b) => (a.dateModified < b.dateModified ? 1 : -1)); //.slice(0,100);
+
+    const tagDict = {} as { [key: string]: number };
+    for (const t of anns.flatMap((f) => f.getTags()).map((f) => f.tag)) {
+      if (TAGS.includes(t)) continue;
+      tagDict[t] = tagDict[t] ? tagDict[t] + 1 : 1;
+    }
+    const tags3 = Object.keys(tagDict).map((k) => ({
+      tag: k,
+      count: tagDict[k],
+    }));
+    return tags3;
+  }
+
+  static createDiv(
+    doc: Document,
+    reader: _ZoteroTypes.ReaderInstance,
+    params: any, // { annotation?: any; ids?: string[]; currentID?: string; x?: number; y?: number; },
+  ) {
+    // if (doc.getElementById(`${config.addonRef}-reader-div`))
+    if (
+      doc.getElementById(`${config.addonRef}-reader-div`)?.parentElement
+        ?.nodeName == "BODY"
+    )
+      doc.getElementById(`${config.addonRef}-reader-div`)?.remove();
+    else
       doc
         .getElementById(`${config.addonRef}-reader-div`)
         ?.parentElement?.remove();
-    const children = TAGS.map((label) => ({
+    const tags2 = Annotations.relateTags(reader._item).map((a) => a.tag);
+    let tags = [...TAGS, ...tags2];
+    if (params.ids) {
+      const annotations = reader._item
+        .getAnnotations()
+        .filter((f) => params.ids.includes(f.key));
+      tags = tags.filter(
+        (f) => annotations.filter((a) => !a.hasTag(f)).length > 0,
+      );
+    }
+    const children = tags.map((label) => ({
       tag: "span",
       namespace: "html",
+      classList: ["toolbarButton1"],
       properties: { textContent: label },
       styles: {
         margin: "2px",
         padding: "2px",
-        fontSize: "20px",
+        fontSize: "18px",
+        boxShadow: "#aaaaaa 0px 0px 3px 3px",
       },
       listeners: [
         {
           type: "click",
-          listener: (ev: Event) => {
-            // const color='#ffd400'
-            const color = "#e56eee";
-            const tags = [{ name: label }];
-            reader._annotationManager.addAnnotation(
-              Components.utils.cloneInto(
-                { ...params.annotation, color, tags },
-                doc,
-              ),
-            );
-            //@ts-ignore aaa
-            reader._primaryView._onSetSelectionPopup(null);
+          listener: () => {
+            // ztoolkit.log("增加标签", label, params);
+            if (params.ids) {
+              for (const id of params.ids) {
+                const annotation = reader._item
+                  .getAnnotations()
+                  .filter(function (e) {
+                    return e.key == id;
+                  })[0];
+                annotation.addTag(label, 0);
+                annotation.saveTx();
+              }
+              div?.remove();
+            } else {
+              // const color='#ffd400'
+              const color = "#e56eee";
+              const tags = [{ name: label }];
+              reader._annotationManager.addAnnotation(
+                Components.utils.cloneInto(
+                  { ...params.annotation, color, tags },
+                  doc,
+                ),
+              );
+              //@ts-ignore 隐藏弹出框
+              reader._primaryView._onSetSelectionPopup(null);
+            }
           },
         },
       ],
     }));
-    append(
-      ztoolkit.UI.createElement(doc, "div", {
-        namespace: "html",
-        id: `${config.addonRef}-reader-div`,
-        classList: ["toolbarButton", `${config.addonRef}-reader-div`],
-        properties: {
-          tabIndex: -1,
-        },
-        styles: {
+    const ids = {
+      zIndex: "99990",
+      position: "fixed",
+      top: params.y + "px",
+      left: params.x + "px",
+    };
+    const pvDoc =
+      (doc.querySelector("#primary-view iframe") as HTMLIFrameElement)
+        ?.contentDocument || doc;
+
+    const clientWidth2 = pvDoc.body.clientWidth;
+    const clientWidth1 = doc.body.clientWidth;
+
+    let maxWidth = Math.min(clientWidth2, 1200);
+
+    // const zoom=clientWidth1/clientWidth2
+    const scaleFactor = (
+      pvDoc.querySelector("#viewer") as HTMLElement
+    )?.style.getPropertyValue("--scale-factor");
+    const zoom = parseInt(scaleFactor) || 1;
+
+    if (params.ids) {
+      //对已有标签处理
+      if (params.x > clientWidth1 - 600) {
+        ids.left = clientWidth1 - 600 - 20 + "px";
+      }
+    } else {
+      const x = params.annotation?.position?.rects[0][0] * zoom;
+      maxWidth = Math.min(x, clientWidth2 - x) * 2 - 20;
+
+      // ztoolkit.log(
+      //   params.annotation?.position?.rects[0][0],
+      //   zoom,
+      //   x,
+      //   clientWidth2,
+      //   clientWidth2 - x,
+      //   maxWidth,
+      // );
+    }
+
+    const div = ztoolkit.UI.createElement(doc, "div", {
+      namespace: "html",
+      id: `${config.addonRef}-reader-div`,
+      classList: ["toolbar1", `${config.addonRef}-reader-div`],
+      properties: {
+        tabIndex: -1,
+      },
+      styles: Object.assign(
+        {
           display: "flex",
+          flexDirection: "row",
           flexWrap: "wrap",
-          width: "calc(100% - 4px)",
+          padding: "2px 5px",
           marginLeft: "2px",
+          // width: "calc(100% - 4px)",
+          maxWidth: maxWidth + "px",
           justifyContent: "space-start",
+          background: "#eeeeee",
+          border: "#cc9999",
+          // boxShadow: "#666666 0px 0px 6px 4px",
         },
-        children: children,
-      }),
+        params.ids ? ids : {},
+      ),
+      children: children,
+    });
+
+    ztoolkit.log(
+      "params",
+      params?.x,
+      params.annotation?.position?.rects[0],
+      clientWidth1,
+      clientWidth2,
+      "maxWidth",
+      maxWidth,
+      ids,
     );
+    return div;
+  }
+  private renderTextSelectionPopup(
+    event: _ZoteroTypes.Reader.EventParams<"renderTextSelectionPopup">,
+  ) {
+    const { append, reader, doc, params } = event;
+    // ztoolkit.log(
+    //   "renderTextSelectionPopup show",
+    //   event,
+    //   event.params.annotation.tags,
+    // );
+    const div = Annotations.createDiv(doc, reader, params);
+    append(div);
   }
   private createAnnotationContextMenu(
     event: _ZoteroTypes.Reader.EventParams<"createAnnotationContextMenu">,
@@ -99,78 +230,23 @@ export class Annotations {
     const { reader, params, append } = event;
     const doc = reader._iframeWindow?.document;
     if (!doc) return;
-    const click = (label: string) =>
-      function () {
-        ztoolkit.log(label);
-        for (const id of params.ids) {
-          const annotation = reader._item.getAnnotations().filter(function (e) {
-            return e.key == id;
-          })[0];
-          ztoolkit.log("增加标签", label, annotation);
-          annotation.addTag(label, 0);
-          annotation.saveTx();
-        }
-        d?.remove();
-      };
     const annotations = reader._item
       .getAnnotations()
       .filter((f) => params.ids.includes(f.key));
-
-    const tags = TAGS.filter(
-      (f) => annotations.filter((a) => !a.hasTag(f)).length > 0,
-    );
-
-    // ztoolkit.log(tags);
-    const children = tags.map((label) => ({
-      tag: "span",
-      namespace: "html",
-      properties: { textContent: label },
-      styles: {
-        margin: "2px",
-        padding: "2px",
-        fontSize: "20px",
-      },
-      listeners: [
-        {
-          type: "click",
-          listener: click(label),
-        },
-      ],
-    }));
-    const d = ztoolkit.UI.createElement(doc, "div", {
-      namespace: "html",
-      classList: ["toolbarButton", `${config.addonRef}-reader-div`],
-      properties: {
-        tabIndex: -1,
-        // innerHTML: "新div",
-      },
-      styles: {
-        zIndex: "99990",
-        position: "fixed",
-        left: params.x + "px",
-        top: params.y + "px",
-        display: "flex",
-        flexWrap: "wrap",
-        // width: "calc(100% - 4px)",
-        marginLeft: "2px",
-        justifyContent: "space-start",
-        background: "#eeeeee",
-        border: "#cc9999",
-      },
-      children: children,
-    });
-
     const hasTags = TAGS.filter(
       (f) =>
         annotations.filter((a) => a.hasTag(f)).length == annotations.length,
     ).join(",");
     const hasTagsStr = hasTags ? `,已有【${hasTags}】` : "";
+
     append({
       label: `添加标签${hasTagsStr}`,
       onCommand: () => {
-        ztoolkit.log("测试添加标签");
-        doc.body.appendChild(d);
-        setTimeout(() => d.remove(), 10000);
+        // ztoolkit.log("测试添加标签");
+        const div = Annotations.createDiv(doc, reader, params);
+
+        doc.body.appendChild(div);
+        setTimeout(() => div?.remove(), 10000);
       },
     });
   }
