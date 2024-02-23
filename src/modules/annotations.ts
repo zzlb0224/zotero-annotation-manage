@@ -161,7 +161,11 @@ export class Annotations {
         ids.left = clientWidth1 - 600 - 20 + "px";
       }
     } else {
-      const x = params.annotation?.position?.rects[0][0] * zoom;
+      const x =
+        ((params.annotation?.position?.rects[0][0] +
+          params.annotation?.position?.rects[0][2]) *
+          zoom) /
+        2;
       maxWidth = Math.min(x, clientWidth2 - x) * 2 - 20;
 
       // ztoolkit.log(
