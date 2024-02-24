@@ -165,7 +165,6 @@ function createDiv(
   const pvDoc =
     (doc.querySelector("#primary-view iframe") as HTMLIFrameElement)
       ?.contentDocument || doc;
-
   const clientWidthWithSlider = doc.body.clientWidth; //包括侧边栏
   const clientWidth2 = pvDoc.body.clientWidth; //不包括侧边栏
 
