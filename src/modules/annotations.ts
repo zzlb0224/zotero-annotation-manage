@@ -122,8 +122,8 @@ function createDiv(
     listeners: [
       {
         type: "click",
-        listener: () => {
-          // ztoolkit.log("增加标签", label, params);
+        listener: (e: Event) => {
+          ztoolkit.log("增加标签", label, params, e);
           if (params.ids) {
             for (const id of params.ids) {
               const annotation = reader._item
@@ -138,6 +138,10 @@ function createDiv(
           } else {
             // const color='#ffd400'
             const color = "#e56eee";
+            // Zotero.Tags.getColorByPosition()
+            Array.from({ length: 10 }).map((e, i) =>
+              Zotero.Tags.getColorByPosition(1, i),
+            );
             const tags = [{ name: label }];
             reader._annotationManager.addAnnotation(
               Components.utils.cloneInto(
@@ -162,29 +166,38 @@ function createDiv(
     (doc.querySelector("#primary-view iframe") as HTMLIFrameElement)
       ?.contentDocument || doc;
 
-  const clientWidth2 = pvDoc.body.clientWidth;
-  const clientWidth1 = doc.body.clientWidth;
+  const clientWidthWithSlider = doc.body.clientWidth; //包括侧边栏
+  const clientWidth2 = pvDoc.body.clientWidth; //不包括侧边栏
 
   let maxWidth = Math.min(clientWidth2, 1200);
+  /*
+  const doc=Zotero.Reader._readers[0]._iframeWindow.document;
+  const pvDoc=doc.querySelector("#primary-view iframe").contentDocument;
+  const viewer=pvDoc.querySelector("#viewer");
+  const scaleFactor =viewer.style.getPropertyValue("--scale-factor");
+  const zoom = parseFloat(scaleFactor) || 1; 
 
-  // const zoom=clientWidth1/clientWidth2
+  parseFloat(Zotero.Reader._readers[0]._iframeWindow.document.querySelector("#primary-view iframe").contentDocument.querySelector("#viewer").style.getPropertyValue("--scale-factor")||0)||1
+ */
+
   const scaleFactor = (
     pvDoc.querySelector("#viewer") as HTMLElement
   )?.style.getPropertyValue("--scale-factor");
-  const zoom = parseInt(scaleFactor) || 1;
-
+  const zoom = parseFloat(scaleFactor) || 1;
+  let centerX = 0;
   if (params.ids) {
     //对已有标签处理
-    if (params.x > clientWidth1 - 600) {
-      ids.left = clientWidth1 - 600 - 20 + "px";
+    if (params.x > clientWidthWithSlider - 600) {
+      ids.left = clientWidthWithSlider - 600 - 20 + "px";
+      maxWidth = Math.min(600,clientWidthWithSlider) 
     }
   } else {
-    const x =
+    centerX =
       ((params.annotation?.position?.rects[0][0] +
         params.annotation?.position?.rects[0][2]) *
         zoom) /
       2;
-    maxWidth = Math.min(x, clientWidth2 - x) * 2 - 20;
+    maxWidth = Math.min(centerX, clientWidth2 - centerX) * 2 - 20;
 
     // ztoolkit.log(
     //   params.annotation?.position?.rects[0][0],
@@ -226,11 +239,14 @@ function createDiv(
     "params",
     params?.x,
     params.annotation?.position?.rects[0],
-    clientWidth1,
+    clientWidthWithSlider,
     clientWidth2,
     "maxWidth",
     maxWidth,
     ids,
+    zoom,
+    centerX,
+    clientWidth2 - centerX,
   );
   return div;
 }
