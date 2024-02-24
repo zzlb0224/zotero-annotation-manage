@@ -189,7 +189,7 @@ function createDiv(
     //对已有标签处理
     if (params.x > clientWidthWithSlider - 600) {
       ids.left = clientWidthWithSlider - 600 - 20 + "px";
-      maxWidth = Math.min(600,clientWidthWithSlider) 
+      maxWidth = Math.min(600, clientWidthWithSlider);
     }
   } else {
     centerX =
