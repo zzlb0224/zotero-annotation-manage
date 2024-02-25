@@ -1,6 +1,6 @@
 {
   "name": "zotero-annotation-manage",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "zotero-annotation-manage",
   "config": {
     "addonName": "zotero-annotation-manage",
@@ -19,7 +19,7 @@
     "lint": "prettier --write . && eslint . --ext .ts --fix",
     "test": "echo \"Error: no test specified\" && exit 1",
     "release": "release-it --only-version --preReleaseId=beta",
-    "release1": "release-it",
+    "re": "release-it",
     "update-deps": "npm update --save"
   },
   "repository": {

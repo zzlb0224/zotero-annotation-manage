@@ -91,10 +91,6 @@ function getTagsInCollections(collections: Zotero.Collection[]) {
   const anns = pdfs.flatMap((f) => f.getAnnotations(false));
   //.sort((a, b) => (a.dateModified < b.dateModified ? 1 : -1))
   //.slice(0,100)
-  ztoolkit.log(
-    pdfs.map((a) => a._attachmentPath),
-    anns,
-  );
   const tags = anns.flatMap((f) => f.getTags());
   return tags;
 }
