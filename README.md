@@ -9,6 +9,8 @@
 ![弹出框](https://github.com/zzlb0224/zotero-annotation-manage/assets/8912444/e8b0e85f-4ead-45f0-a70e-fa03c5e95f39)
 ![选择文本](https://github.com/zzlb0224/zotero-annotation-manage/assets/8912444/a4872043-18e1-46de-98cc-7ce33f67f10f)
 
+![选择文本](.\\doc\\选择文本.png)
+
 # 注意
 
 仅支持Zotero 7.0。

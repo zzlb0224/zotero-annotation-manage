@@ -94,22 +94,23 @@ function getTagsInCollections(collections: Zotero.Collection[]) {
   const tags = anns.flatMap((f) => f.getTags());
   return tags;
 }
-function sortTags(tags: Array<{ tag: string; type: number }>) {
-  const tagDict2 = tags.reduce(
+function sortTags(tags: Array<{ tag: string; type: number }>,includeTAGS=false) {
+  let tagDict = tags.reduce(
     (o, f) => {
       o[f.tag] = o[f.tag] ? o[f.tag] + 1 : 1;
       return o;
     },
     {} as { [key: string]: number },
   );
-  const tagDict1 = TAGS.reduce(
+  if(includeTAGS)
+  {const tagDict1 = TAGS.reduce(
     (o, f) => {
       o[f] = 0;
       return o;
     },
     {} as { [key: string]: number },
   );
-  const tagDict = Object.assign({}, tagDict1, tagDict2);
+   tagDict = Object.assign({}, tagDict1, tagDict);}
 
   return Object.keys(tagDict)
     .map((k) => ({
@@ -145,7 +146,7 @@ function createDiv(
     doc
       .getElementById(`${config.addonRef}-reader-div`)
       ?.parentElement?.remove();
-  const tags = sortTags(relateTags(reader._item));
+  const tags = sortTags(relateTags(reader._item),true);
   const annotations = params.ids
     ? reader._item.getAnnotations().filter((f) => params.ids.includes(f.key))
     : [];
