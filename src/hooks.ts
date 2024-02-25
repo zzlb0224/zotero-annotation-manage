@@ -94,7 +94,6 @@ async function onMainWindowLoad(win: Window): Promise<void> {
 
 async function onMainWindowUnload(win: Window): Promise<void> {
   ztoolkit.unregisterAll();
-
   Annotations.unregister();
   // addon.data.dialog?.window?.close();
 }
