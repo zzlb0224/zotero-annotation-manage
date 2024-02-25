@@ -8,9 +8,7 @@
 
 ![注释菜单1](https://github.com/zzlb0224/zotero-annotation-manage/assets/8912444/70c5b9bf-328e-40e6-91ae-abfdd044a7cc)
 
-### 注释菜单
-
-1
+### 注释菜单2
 
 ![注释菜单2](https://github.com/zzlb0224/zotero-annotation-manage/assets/8912444/02e94548-06e5-41d4-bf48-57592cf7413c)
 
@@ -24,7 +22,7 @@
 
 ### 选择文本
 
-![选择文本](.\\doc\\选择文本.png)
+![选择文本](./doc/选择文本.png)
 
 # 注意
 
