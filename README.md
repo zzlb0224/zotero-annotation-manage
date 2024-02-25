@@ -2,6 +2,14 @@
 
 ## 第一个功能 添加标签
 
+## 使用帮助
+![注释菜单1](https://github.com/zzlb0224/zotero-annotation-manage/assets/8912444/70c5b9bf-328e-40e6-91ae-abfdd044a7cc)
+![注释菜单2](https://github.com/zzlb0224/zotero-annotation-manage/assets/8912444/02e94548-06e5-41d4-bf48-57592cf7413c)
+![弹出框](https://github.com/zzlb0224/zotero-annotation-manage/assets/8912444/e8b0e85f-4ead-45f0-a70e-fa03c5e95f39)
+![选择文本](https://github.com/zzlb0224/zotero-annotation-manage/assets/8912444/a4872043-18e1-46de-98cc-7ce33f67f10f)
+
+
+
 # Zotero Plugin Template
 
 [![zotero target version](https://img.shields.io/badge/Zotero-7-green?style=flat-square&logo=zotero&logoColor=CC2936)](https://www.zotero.org)
