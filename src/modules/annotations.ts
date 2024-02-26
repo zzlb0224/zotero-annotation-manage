@@ -259,7 +259,7 @@ function createDiv(
 
   const clientWidthWithSlider = doc.body.clientWidth; //包括侧边栏的宽度
   const clientWidth2 = pvDoc.body.clientWidth; //不包括侧边栏的宽度
-  let maxWidth = Math.min(clientWidth2, 333 * zoom);
+  let maxWidth = Math.min(clientWidth2, 444 * zoom);
   let centerX = 0;
   if (params.ids) {
     //对已有标签处理
@@ -274,8 +274,8 @@ function createDiv(
         zoom) /
       2;
     maxWidth = Math.min(centerX, clientWidth2 - centerX) * 2 - 23;
-    if (maxWidth > 333 * zoom) {
-      maxWidth = 333 * zoom;
+    if (maxWidth > 444 * zoom) {
+      maxWidth = 444 * zoom;
     }
   }
 
@@ -299,6 +299,8 @@ function createDiv(
         background: "#eeeeee",
         border: "#cc9999",
         // boxShadow: "#666666 0px 0px 6px 4px",
+        overflowY: "scroll",
+        maxHeight: "400px",
       },
       params.ids ? styleForExistAnno : {},
     ),
