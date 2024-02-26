@@ -94,7 +94,10 @@ function getTagsInCollections(collections: Zotero.Collection[]) {
   const tags = anns.flatMap((f) => f.getTags());
   return tags;
 }
-function sortTags(tags: Array<{ tag: string; type: number }>,includeTAGS=false) {
+function sortTags(
+  tags: Array<{ tag: string; type: number }>,
+  includeTAGS = false,
+) {
   let tagDict = tags.reduce(
     (o, f) => {
       o[f.tag] = o[f.tag] ? o[f.tag] + 1 : 1;
@@ -102,15 +105,16 @@ function sortTags(tags: Array<{ tag: string; type: number }>,includeTAGS=false) 
     },
     {} as { [key: string]: number },
   );
-  if(includeTAGS)
-  {const tagDict1 = TAGS.reduce(
-    (o, f) => {
-      o[f] = 0;
-      return o;
-    },
-    {} as { [key: string]: number },
-  );
-   tagDict = Object.assign({}, tagDict1, tagDict);}
+  if (includeTAGS) {
+    const tagDict1 = TAGS.reduce(
+      (o, f) => {
+        o[f] = 0;
+        return o;
+      },
+      {} as { [key: string]: number },
+    );
+    tagDict = Object.assign({}, tagDict1, tagDict);
+  }
 
   return Object.keys(tagDict)
     .map((k) => ({
@@ -127,7 +131,8 @@ function sortTags(tags: Array<{ tag: string; type: number }>,includeTAGS=false) 
       if (TAGS.includes(b.tag)) {
         return 1;
       }
-      return b.tag > a.tag ? -1 : 1;
+      //return b.tag > a.tag ? -1 : 1;
+      return b.count - a.count + (b.tag > a.tag ? -0.5 : 0.5);
     });
 }
 
@@ -146,7 +151,7 @@ function createDiv(
     doc
       .getElementById(`${config.addonRef}-reader-div`)
       ?.parentElement?.remove();
-  const tags = sortTags(relateTags(reader._item),true);
+  const tags = sortTags(relateTags(reader._item), true);
   const annotations = params.ids
     ? reader._item.getAnnotations().filter((f) => params.ids.includes(f.key))
     : [];
@@ -172,7 +177,7 @@ function createDiv(
       namespace: "html",
       classList: ["toolbarButton1"],
       properties: {
-        textContent: `${allHave ? "[x]" : noneHave ? "" : `[${someHave}]`}${label.tag}[${label.count}]`,
+        textContent: `${allHave ? "[x]" : noneHave ? "" : `[${someHave}]`}[${label.count}]${label.tag}`,
       },
       styles: {
         margin: "2px",
