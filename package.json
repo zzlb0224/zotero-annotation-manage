@@ -1,10 +1,10 @@
 {
   "name": "zotero-annotation-manage",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "zotero-annotation-manage",
   "config": {
     "addonName": "zotero-annotation-manage",
-    "addonID": "annotationmanage@ucsiuniversity.edu.my",
+    "addonID": "annotationmanage@zknu.edu.cn",
     "addonRef": "zoteroAnnotationManage",
     "addonInstance": "zoteroAnnotationManage",
     "prefsPrefix": "extensions.zotero.annotationmanage",

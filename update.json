@@ -1,9 +1,9 @@
 {
   "addons": {
-    "annotationmanage@ucsiuniversity.edu.my": {
+    "annotationmanage@zknu.edu.cn": {
       "updates": [
         {
-          "version": "0.1.9",
+          "version": "0.1.10",
           "update_link": "https://github.com/zzlb0224/zotero-annotation-manage/releases/latest/download/zotero-annotation-manage.xpi",
           "applications": {
             "zotero": {
