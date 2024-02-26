@@ -141,6 +141,7 @@ function createDiv(
   reader: _ZoteroTypes.ReaderInstance,
   params: any, // { annotation?: any; ids?: string[]; currentID?: string; x?: number; y?: number; },
 ) {
+  //todo doc 参数都是从reader里面出来的？那么这个参数是不是就没必要了，有待测试
   // if (doc.getElementById(`${config.addonRef}-reader-div`))
   if (
     doc.getElementById(`${config.addonRef}-reader-div`)?.parentElement
