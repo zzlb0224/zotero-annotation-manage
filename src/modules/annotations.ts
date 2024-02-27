@@ -135,25 +135,26 @@ function sortTags(
       return b.count - a.count + (b.tag > a.tag ? -0.5 : 0.5);
     });
 }
-function getLeftTop(temp4: HTMLElement,win:Window) {
+function getLeftTop(temp4: HTMLElement, win: Window) {
   let t1 = temp4;
   let left = 0;
   let top = 0;
   for (let i = 0; i < 15; i++) {
-    const tt=win.getComputedStyle(t1).getPropertyValue("transform")
-    // ztoolkit.log(i,  tt, t1.style.transform, t1); 
+    const tt = win.getComputedStyle(t1).getPropertyValue("transform");
+    // ztoolkit.log(i,  tt, t1.style.transform, t1);
     left += t1.offsetLeft;
-    top += t1.offsetTop ;
-    
+    top += t1.offsetTop;
+
     // const m1 = new WebKitCSSMatrix(window.getComputedStyle(t1).getPropertyValue("transform"));
     // left += t1.offsetLeft + m1.m41;
     // top += t1.offsetTop + m1.m42;
     // ztoolkit.log(i,  tt, t1.nodeName, t1);
-    if (!t1.parentElement||t1.nodeName=="HTML"||t1.nodeName=="BODY") break;
+    if (!t1.parentElement || t1.nodeName == "HTML" || t1.nodeName == "BODY")
+      break;
     t1 = t1.parentElement;
-  } 
-  const viewer=t1.querySelector("#primary-view iframe")
-  return [left, top,viewer?.clientWidth||0,viewer?.clientHeight||0];
+  }
+  const viewer = t1.querySelector("#primary-view iframe");
+  return [left, top, viewer?.clientWidth || 0, viewer?.clientHeight || 0];
 }
 
 function createDiv(
@@ -161,7 +162,6 @@ function createDiv(
   reader: _ZoteroTypes.ReaderInstance,
   params: any, // { annotation?: any; ids?: string[]; currentID?: string; x?: number; y?: number; },
 ) {
-  
   //todo doc 参数都是从reader里面出来的？那么这个参数是不是就没必要了，有待测试
   // if (doc.getElementById(`${config.addonRef}-reader-div`))
   if (
@@ -294,7 +294,7 @@ function createDiv(
         params.annotation?.position?.rects[0][2]) *
         zoom) /
       2;
-    
+
     maxWidth = Math.min(centerX, clientWidth2 - centerX) * 2 - 23;
     if (maxWidth > 444 * zoom) {
       maxWidth = 444 * zoom;
@@ -354,30 +354,29 @@ function renderTextSelectionPopup(
   //   event.params.annotation.tags,
   // );
   const div = createDiv(doc, reader, params);
-  updateDivWidth(div,reader._window!)
+  updateDivWidth(div, reader._window!);
   append(div);
-   
 }
-function updateDivWidth(div:HTMLElement,win:Window,n=3){
+function updateDivWidth(div: HTMLElement, win: Window, n = 3) {
   //todo 这样更新大小好像没起到效果。估计还要换个思路
-  if(n<0)return;
-  if(!div.parentElement||div.ownerDocument==null){
-    setTimeout(()=>updateDivWidth(div,win,n-1),1000)
-    return
+  if (n < 0) return;
+  if (!div.parentElement || div.ownerDocument == null) {
+    setTimeout(() => updateDivWidth(div, win, n - 1), 1000);
+    return;
   }
-  const d=getLeftTop(div,win)
-  // ztoolkit.log( div.clientWidth,d,n) 
-  if(!d[2]){
-     setTimeout(()=>updateDivWidth(div,win,n-1),1000)
-     return
+  const d = getLeftTop(div, win);
+  // ztoolkit.log( div.clientWidth,d,n)
+  if (!d[2]) {
+    setTimeout(() => updateDivWidth(div, win, n - 1), 1000);
+    return;
   }
-  const centerX=div.clientWidth/2+d[0];
-  
-  if(centerX>0){
-    const maxWidth = Math.min(centerX,d[2]-centerX )*2+"px"
-    div.style.setProperty("max-width",maxWidth )
-    div.style.maxWidth=maxWidth 
-    ztoolkit.log(div.style,centerX,centerX,d[2]-centerX ,maxWidth)
+  const centerX = div.clientWidth / 2 + d[0];
+
+  if (centerX > 0) {
+    const maxWidth = Math.min(centerX, d[2] - centerX) * 2 + "px";
+    div.style.setProperty("max-width", maxWidth);
+    div.style.maxWidth = maxWidth;
+    ztoolkit.log(div.style, centerX, centerX, d[2] - centerX, maxWidth);
   }
 }
 function createAnnotationContextMenu(
