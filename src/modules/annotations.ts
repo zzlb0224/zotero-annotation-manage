@@ -296,9 +296,9 @@ function createDiv(
       2;
 
     maxWidth = Math.min(centerX, clientWidth2 - centerX) * 2 - 23;
-    if (maxWidth > 444 * zoom) {
-      maxWidth = 444 * zoom;
-    }
+    // if (maxWidth > 444 * zoom) {
+    //   maxWidth = 444 * zoom;
+    // }
   }
 
   const div = ztoolkit.UI.createElement(doc, "div", {
@@ -354,7 +354,7 @@ function renderTextSelectionPopup(
   //   event.params.annotation.tags,
   // );
   const div = createDiv(doc, reader, params);
-  updateDivWidth(div, reader._window!);
+  // updateDivWidth(div, reader._window!);
   append(div);
 }
 function updateDivWidth(div: HTMLElement, win: Window, n = 3) {

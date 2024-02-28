@@ -10,6 +10,7 @@ import { getString, initLocale } from "./utils/locale";
 import { registerPrefsScripts } from "./modules/preferenceScript";
 import { createZToolkit } from "./utils/ztoolkit";
 import Annotations from "./modules/annotations";
+import AnnotationsToNote from "./modules/annotationsToNote";
 
 async function onStartup() {
   await Promise.all([
@@ -90,11 +91,13 @@ async function onMainWindowLoad(win: Window): Promise<void> {
 
   // addon.hooks.onDialogEvents("dialogExample");
   Annotations.register();
+  AnnotationsToNote.register();
 }
 
 async function onMainWindowUnload(win: Window): Promise<void> {
-  ztoolkit.unregisterAll();
   Annotations.unregister();
+  AnnotationsToNote.unregister();
+  ztoolkit.unregisterAll();
   // addon.data.dialog?.window?.close();
 }
 
