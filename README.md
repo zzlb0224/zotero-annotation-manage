@@ -1,5 +1,9 @@
 # Zotero的笔记整理
 
+## 注意
+
+- 需要安装 @windingwind的[BetterNotes](https://github.com/windingwind/zotero-better-notes/releases/) 才能使用导出功能。
+
 ## 第一个功能 为注释添加标签
 
 ### 注释菜单1

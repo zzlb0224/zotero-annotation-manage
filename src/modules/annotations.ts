@@ -1,4 +1,5 @@
 import { config } from "../../package.json";
+import { groupByMap, uniqueBy } from "../utils/array";
 const TAGS = [
   "研究目的",
   "研究假设",
@@ -45,11 +46,16 @@ function getCollections(collections: Zotero.Collection[]): Zotero.Collection[] {
   function getChildCollections(
     collections: Zotero.Collection[],
   ): Zotero.Collection[] {
-    const cs = unique(collections).flatMap((a) => a.getChildCollections(false));
+    const cs = uniqueBy(collections, (a) => a.key).flatMap((a) =>
+      a.getChildCollections(false),
+    );
     if (cs.length == 0) return collections;
     return [...cs, ...getChildCollections(cs)];
   }
-  return unique([...collections, ...getChildCollections(collections)]);
+  return uniqueBy(
+    [...collections, ...getChildCollections(collections)],
+    (a) => a.key,
+  );
 }
 function relateTags(item: Zotero.Item) {
   const recursiveCollections = !!Zotero.Prefs.get("recursiveCollections");
@@ -67,59 +73,37 @@ function relateTags(item: Zotero.Item) {
 
   return getTagsInCollections(collections);
 }
-function unique(arr: any[]) {
-  const arrry = [] as any[];
-  const obj = {} as { [key: string]: number };
-  for (let i = 0; i < arr.length; i++) {
-    if (!obj[arr[i].key]) {
-      arrry.push(arr[i]);
-      obj[arr[i].key] = 1;
-    } else {
-      obj[arr[i].key]++;
-    }
-  }
-  return arrry;
-}
-
 function getTagsInCollections(collections: Zotero.Collection[]) {
   const pdfIds = collections
     .flatMap((c) => c.getChildItems())
     .flatMap((a) => a.getAttachments(false));
-  const pdfs = Zotero.Items.get(pdfIds).filter(
+  const pdfItems = Zotero.Items.get(pdfIds).filter(
     (f) => f.isFileAttachment() && f.isAttachment(),
   );
-  const anns = pdfs.flatMap((f) => f.getAnnotations(false));
+  const annotations = pdfItems.flatMap((f) => f.getAnnotations(false));
   //.sort((a, b) => (a.dateModified < b.dateModified ? 1 : -1))
   //.slice(0,100)
-  const tags = anns.flatMap((f) => f.getTags());
+  const tags = annotations.flatMap((f) => f.getTags());
   return tags;
 }
+
 function sortTags(
   tags: Array<{ tag: string; type: number }>,
   includeTAGS = false,
 ) {
-  let tagDict = tags.reduce(
-    (o, f) => {
-      o[f.tag] = o[f.tag] ? o[f.tag] + 1 : 1;
-      return o;
-    },
-    {} as { [key: string]: number },
-  );
+  const tagGroup = groupByMap(tags, (a) => a.tag);
   if (includeTAGS) {
-    const tagDict1 = TAGS.reduce(
-      (o, f) => {
-        o[f] = 0;
-        return o;
-      },
-      {} as { [key: string]: number },
-    );
-    tagDict = Object.assign({}, tagDict1, tagDict);
+    TAGS.forEach((tag) => {
+      if (tagGroup.findIndex((f) => f.key == tag) == -1) {
+        tagGroup.push({ key: tag, values: [] });
+      }
+    });
   }
 
-  return Object.keys(tagDict)
+  return tagGroup
     .map((k) => ({
-      tag: k,
-      count: tagDict[k],
+      tag: k.key,
+      count: k.values.length,
     }))
     .sort((a, b) => {
       if (TAGS.includes(a.tag) && TAGS.includes(b.tag)) {
@@ -131,7 +115,6 @@ function sortTags(
       if (TAGS.includes(b.tag)) {
         return 1;
       }
-      //return b.tag > a.tag ? -1 : 1;
       return b.count - a.count + (b.tag > a.tag ? -0.5 : 0.5);
     });
 }
@@ -162,7 +145,7 @@ function createDiv(
   reader: _ZoteroTypes.ReaderInstance,
   params: any, // { annotation?: any; ids?: string[]; currentID?: string; x?: number; y?: number; },
 ) {
-  //todo doc 参数都是从reader里面出来的？那么这个参数是不是就没必要了，有待测试
+  //TODO doc 参数都是从reader里面出来的？那么这个参数是不是就没必要了，有待测试
   // if (doc.getElementById(`${config.addonRef}-reader-div`))
   if (
     doc.getElementById(`${config.addonRef}-reader-div`)?.parentElement
@@ -238,8 +221,8 @@ function createDiv(
                 Zotero.Tags.getColorByPosition(1, i),
               );
               const tags = [{ name: label.tag }];
-              //因为线程不一样，不能采用直接修改params.annotation的方式，所以直接采用新建的方式保存笔记
-              //特意采用 Components.utils.cloneInto 方法
+              // 因为线程不一样，不能采用直接修改params.annotation的方式，所以直接采用新建的方式保存笔记
+              // 特意采用 Components.utils.cloneInto 方法
               reader._annotationManager.addAnnotation(
                 Components.utils.cloneInto(
                   { ...params.annotation, color, tags },
@@ -263,7 +246,7 @@ function createDiv(
   const pvDoc =
     (doc.querySelector("#primary-view iframe") as HTMLIFrameElement)
       ?.contentDocument || doc;
-  /*
+  /* 测试宽度
   const doc=Zotero.Reader._readers[0]._iframeWindow.document;
   const pvDoc=doc.querySelector("#primary-view iframe").contentDocument;
   const viewer=pvDoc.querySelector("#viewer");

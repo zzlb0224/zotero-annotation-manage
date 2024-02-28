@@ -1,4 +1,6 @@
 import { config } from "../../package.json";
+import { ProgressWindowHelper } from "zotero-plugin-toolkit/dist/helpers/progressWindow";
+import { groupByMap, uniqueBy } from "../utils/array";
 function register() {
   //图标根目录 zotero-annotation-manage\addon\chrome\content\icons
   const iconBaseUrl = `chrome://${config.addonRef}/content/icons/`;
@@ -16,6 +18,13 @@ function register() {
           exportNoteByTag();
         },
       },
+      {
+        tag: "menuitem",
+        label: "按标签-pdf顺序",
+        commandListener: (ev) => {
+          exportNoteByTagPdf();
+        },
+      },
     ],
   });
   //   ztoolkit.Menu.register("item", {
@@ -31,89 +40,162 @@ function unregister() {
   //   ztoolkit.Menu.unregister(`${config.addonRef}-create-note-by-tag`);
   ztoolkit.Menu.unregister(`${config.addonRef}-create-note`);
 }
-function getTagAnnotations() {
-  const pdfIds = ZoteroPane.getSelectedItems(false).flatMap((f) =>
-    f.getAttachments(),
-  );
-  const annotations = Zotero.Items.get(pdfIds)
-    .filter((f) => f.isAttachment() && f.isPDFAttachment())
-    .flatMap((f) => f.getAnnotations())
-    .map((a) => ({ ann: a, tags: a.getTags() }));
-  const tas = { untag: { count: 0, anns: [] } } as {
-    [key: string]: { count: number; anns: Zotero.Item[] };
-  };
-  const add = (
-    tas: { [key: string]: { count: number; anns: Zotero.Item[] } },
-    tag: string,
-    ann: Zotero.Item,
-  ) => {
-    if (tas[tag]) {
-      tas[tag] = {
-        count: tas[tag].count + 1,
-        anns: [...tas[tag].anns, ann],
-      };
-    } else {
-      tas[tag] = { count: 1, anns: [ann] };
-    }
-  };
-  for (const tg of annotations) {
-    if (tg.tags && tg.tags.length > 0) {
-      for (const tag of tg.tags) {
-        add(tas, tag.tag, tg.ann);
-      }
-    } else {
-      add(tas, "untag", tg.ann);
-    }
-  }
-  return tas;
-}
-async function exportNoteByTag() {
-  //todo1 显示标题
-  //! 图片好像有问题
-  const popupWin = new ztoolkit.ProgressWindow("整理笔记", {
-    closeTime: -1,
-  }).show();
-  const targetNoteItem = new Zotero.Item("note");
-  targetNoteItem.libraryID = ZoteroPane.getSelectedLibraryID();
-  targetNoteItem.setCollections([ZoteroPane.getSelectedCollection(true) || 0]);
-  targetNoteItem.addTag("自用笔记", 0);
-  popupWin.createLine({
-    text: "创建新笔记 ",
-    type: "default",
-  });
-  const tas = getTagAnnotations();
-  const tas2 = Object.keys(tas)
-    .map((tag) => ({ tag, count: tas[tag].count, anns: tas[tag].anns }))
-    .sort((a, b) => a.count - b.count);
-  const resp = tas2.flatMap(async (a) =>
-    [
-      `<h1>${a.tag} ${a.count}<h1>\n`,
-      (
-        await Promise.all(
-          a.anns.map(
-            async (b) =>
-              await Zotero.BetterNotes.api.convert.annotations2html([b], {
-                noteItem: targetNoteItem,
-              }),
-          ),
-        )
-      ).join("\n\n"),
-    ].join("\n\n"),
-  );
-  const res = await Promise.all(resp);
-  await Zotero.BetterNotes.api.note.insert(
-    targetNoteItem,
-    "笔记整理\n" + res.join("\n"),
-    -1,
-  );
 
+async function saveTxt(
+  targetNoteItem: Zotero.Item,
+  txt: string,
+  popupWin: ProgressWindowHelper,
+) {
+  await Zotero.BetterNotes.api.note.insert(targetNoteItem, txt, -1);
   await targetNoteItem.saveTx();
   popupWin
     .createLine({
-      text: `完成`,
+      text: `创建笔记完成`,
       type: "default",
     })
     .startCloseTimer(5e3);
 }
+async function createNote(popupWin: ProgressWindowHelper) {
+  const targetNoteItem = new Zotero.Item("note");
+  popupWin.createLine({
+    text: "创建新笔记 ",
+    type: "default",
+  });
+  targetNoteItem.libraryID = ZoteroPane.getSelectedLibraryID();
+  targetNoteItem.setCollections([ZoteroPane.getSelectedCollection(true) || 0]);
+  targetNoteItem.addTag("生成的笔记", 0);
+  //必须保存后面才能保存图片
+  await targetNoteItem.saveTx();
+  return targetNoteItem;
+}
+
+async function getAnnotations(
+  items: Zotero.Item[],
+  targetNoteItem: Zotero.Item,
+) {
+  const items1 = items.map((a) =>
+    a.isAttachment() && a.isPDFAttachment() && a.parentItem ? a.parentItem : a,
+  );
+  const data = items1.flatMap((item) => {
+    const itemTags = item
+      .getTags()
+      .map((a) => a.tag)
+      .sort()
+      .join("  ");
+    const author = item.getField("firstCreator");
+    const year = item.getField("year");
+    const title = item.getField("title");
+    return Zotero.Items.get(item.getAttachments())
+      .filter((f) => f.isAttachment() && f.isPDFAttachment())
+      .flatMap((pdf) => {
+        const pdfTitle = pdf.getDisplayTitle();
+        return pdf.getAnnotations().flatMap(async (ann) => {
+          const text = ann.annotationText;
+          const comment = ann.annotationComment;
+          const html = (await Zotero.BetterNotes.api.convert.annotations2html(
+            [ann],
+            {
+              noteItem: targetNoteItem,
+            },
+          )) as string;
+          const color = ann.annotationColor;
+          const type = ann.annotationType;
+          const tags = ann.getTags();
+          const o = {
+            item,
+            pdf,
+            ann,
+            author,
+            year,
+            title,
+            pdfTitle,
+            text,
+            color,
+            type,
+            comment,
+            itemTags,
+            tag: { tag: "未添加标签untagged", type: 0 },
+            tags,
+            html,
+          };
+          if (tags.length == 0) return [o];
+          return tags.map((tag) => Object.assign({}, o, { tag }));
+        });
+      });
+  });
+
+  const datalist = await Promise.all(data);
+  return datalist.flat();
+}
+
+async function exportNoteByTag() {
+  const popupWin = new ztoolkit.ProgressWindow("整理笔记", {
+    closeTime: -1,
+  }).show();
+  const items = ZoteroPane.getSelectedItems();
+  const note = await createNote(popupWin);
+  const annotations = await getAnnotations(items, note);
+  const title = getFromTxt(annotations);
+  const txt = groupByMap(annotations, (a) => a.tag.tag)
+    .sort((a, b) => b.values.length - a.values.length)
+    .flatMap((tag) => {
+      return [`<h1>${tag.key}</h1>`, ...tag.values.map((b) => b.html)];
+    })
+    .join("\n");
+  saveTxt(note, `按tag整理笔记 ${title}\n${txt}`, popupWin);
+}
+
+async function exportNoteByTagPdf() {
+  const popupWin = new ztoolkit.ProgressWindow("整理笔记", {
+    closeTime: -1,
+  }).show();
+  const items = ZoteroPane.getSelectedItems();
+  const note = await createNote(popupWin);
+  const annotations = await getAnnotations(items, note);
+
+  const title = getFromTxt(annotations);
+  // ztoolkit.log(annotations)
+  const txt = groupByMap(annotations, (a) => a.tag.tag)
+    .sort((a, b) => b.values.length - a.values.length)
+    .flatMap((tag) => {
+      return [
+        `<h1>${tag.key}</h1>`,
+        ...groupByMap(tag.values, (p) => p.pdfTitle || "uu").flatMap((pdf) => [
+          `<h2>${pdf.key}</h2>`,
+          ...pdf.values.map((b) => b.html),
+        ]),
+      ];
+    })
+    .join("\n");
+
+  // ztoolkit.log(txt)
+  saveTxt(note, `按tag-pdf整理笔记 ${title}\n${txt}`, popupWin);
+}
 
 export default { register, unregister };
+function getFromTxt(
+  annotations: {
+    item: Zotero.Item;
+    pdf: Zotero.Item;
+    ann: Zotero.Item;
+    author: string;
+    year: string;
+    title: string;
+    pdfTitle: string;
+    text: string;
+    color: string;
+    type: _ZoteroTypes.Annotations.AnnotationType;
+    comment: string;
+    itemTags: string;
+    tag: { tag: string; type: number };
+    tags: { tag: string; type: number }[];
+    html: string;
+  }[],
+) {
+  const itemsLength = uniqueBy(annotations, (a) => a.item.key).length;
+  const pdfLength = uniqueBy(annotations, (a) => a.pdf.key).length;
+  const annotationLength = uniqueBy(annotations, (a) => a.ann.key).length;
+  const tagLength = uniqueBy(annotations, (a) => a.tag.tag).length;
+  const title = `${itemsLength}条目${pdfLength}条目${tagLength}标签${annotationLength}笔记${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`;
+  return title;
+}
