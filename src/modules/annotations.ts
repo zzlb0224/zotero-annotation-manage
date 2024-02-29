@@ -1,5 +1,5 @@
 import { config } from "../../package.json";
-import { groupByMap, uniqueBy } from "../utils/array";
+import { groupByMap, uniqueBy } from "../utils/zzlb";
 const TAGS = [
   "研究目的",
   "研究假设",

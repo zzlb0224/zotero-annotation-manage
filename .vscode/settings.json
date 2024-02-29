@@ -4,5 +4,5 @@
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
   },
-  "cSpell.words": ["Zotero", "ztoolkit", "Prefs"]
+  "cSpell.words": ["Zotero", "ztoolkit", "Prefs", "zzlb"]
 }
