@@ -1,32 +1,41 @@
 import { config } from "../../package.json";
 import { ProgressWindowHelper } from "zotero-plugin-toolkit/dist/helpers/progressWindow";
 import { groupByMap, uniqueBy } from "../utils/array";
+import { MenuitemOptions } from "zotero-plugin-toolkit/dist/managers/menu";
 function register() {
   //图标根目录 zotero-annotation-manage\addon\chrome\content\icons
   const iconBaseUrl = `chrome://${config.addonRef}/content/icons/`;
+  const children: MenuitemOptions[] = [
+    {
+      tag: "menuitem",
+      label: "按标签顺序",
+      commandListener: (ev) => {
+        exportNoteByTag();
+      },
+    },
+    {
+      tag: "menuitem",
+      label: "按标签-pdf顺序",
+      commandListener: (ev) => {
+        exportNoteByTagPdf();
+      },
+    },
+  ];
   //组合到一起的菜单能节省空间
   ztoolkit.Menu.register("item", {
     tag: "menu",
-    label: "导出笔记",
+    label: "导出笔记z",
     id: `${config.addonRef}-create-note`,
     icon: iconBaseUrl + "favicon.png",
-    children: [
-      {
-        tag: "menuitem",
-        label: "按标签顺序",
-        commandListener: (ev) => {
-          exportNoteByTag();
-        },
-      },
-      {
-        tag: "menuitem",
-        label: "按标签-pdf顺序",
-        commandListener: (ev) => {
-          exportNoteByTagPdf();
-        },
-      },
-    ],
+    children
   });
+  ztoolkit.Menu.register("collection", {
+      tag: "menu",
+      label: "导出笔记z",
+      id: `${config.addonRef}-create-note-collection`,
+      icon: iconBaseUrl + "favicon.png",
+      children,
+    });
   //   ztoolkit.Menu.register("item", {
   //     tag: "menuitem",
   //     id: `${config.addonRef}-create-note-by-tag`,
@@ -39,6 +48,7 @@ function register() {
 function unregister() {
   //   ztoolkit.Menu.unregister(`${config.addonRef}-create-note-by-tag`);
   ztoolkit.Menu.unregister(`${config.addonRef}-create-note`);
+  ztoolkit.Menu.unregister(`${config.addonRef}-create-note-collection`);
 }
 
 async function saveTxt(
@@ -142,7 +152,7 @@ async function exportNoteByTag() {
       return [`<h1>${tag.key}</h1>`, ...tag.values.map((b) => b.html)];
     })
     .join("\n");
-  saveTxt(note, `按tag整理笔记 ${title}\n${txt}`, popupWin);
+  saveTxt(note, `按tag ${title}\n${txt}`, popupWin);
 }
 
 async function exportNoteByTagPdf() {
@@ -169,7 +179,7 @@ async function exportNoteByTagPdf() {
     .join("\n");
 
   // ztoolkit.log(txt)
-  saveTxt(note, `按tag-pdf整理笔记 ${title}\n${txt}`, popupWin);
+  saveTxt(note, `按tag-pdf ${title}\n${txt}`, popupWin);
 }
 
 export default { register, unregister };
@@ -196,6 +206,6 @@ function getFromTxt(
   const pdfLength = uniqueBy(annotations, (a) => a.pdf.key).length;
   const annotationLength = uniqueBy(annotations, (a) => a.ann.key).length;
   const tagLength = uniqueBy(annotations, (a) => a.tag.tag).length;
-  const title = `${itemsLength}条目${pdfLength}条目${tagLength}标签${annotationLength}笔记${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`;
+  const title = `${itemsLength}条目${pdfLength}Pdf${tagLength}Tag${annotationLength}笔记${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`;
   return title;
 }
