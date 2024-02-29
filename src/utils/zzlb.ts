@@ -1,19 +1,22 @@
 //uniqueBy groupBy groupByMap 三个函数，因为使用的是对象的key来检查重复，所以只能使用string | number | symbol
+
 export function uniqueBy<T>(arr: T[], fn: (item: T) => ( string | number | symbol)) {
-  return arr.reduce<Record<( string | number | symbol), T>>((prev, curr) => {
-    const groupKey = fn(curr);  
-    return  { ...prev, [groupKey]: curr };
+  const o= arr.reduce<Record< ( string | number | symbol), T>>((prev, curr) => {
+    const groupKey = fn(curr); 
+    return { ...prev, [groupKey]: curr };
   }, {});
-} 
-export function groupBy<T>(arr: T[], fn: (item: T) => ( string | number | symbol)) {
-  return arr.reduce<Record<( string | number | symbol), T[]>>((prev, curr) => {
+  return Object.values(o)
+}
+ 
+export function groupBy<T>(arr: T[], fn: (item: T) =>  ( string | number | symbol)) {
+  return arr.reduce<Record< ( string | number | symbol), T[]>>((prev, curr) => {
     const groupKey = fn(curr);
     const group = prev[groupKey] || [];
     group.push(curr);
     return { ...prev, [groupKey]: group };
   }, {});
 }
-export function groupByMap<T>(arr: T[], fn: (item: T) => ( string | number | symbol)) {
+export function groupByMap<T>(arr: T[], fn: (item: T) =>  ( string | number | symbol)) {
   const g1 = groupBy(arr, fn);
   return Object.keys(g1).map((key) => ({ key, values: g1[key] }));
 }
