@@ -10,6 +10,9 @@ export function uniqueBy<T>(
   }, {});
   return Object.values(o);
 }
+export function unique<T>(arr: T[]) {
+  return [...new Set(arr)];
+}
 
 export function groupBy<T>(
   arr: T[],

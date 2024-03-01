@@ -3,6 +3,7 @@
 ## 注意
 
 - 需要安装 @windingwind的[BetterNotes](https://github.com/windingwind/zotero-better-notes/releases/) 才能使用导出功能。
+- 仅支持Zotero 7.0。
 
 ## 第一个功能 为注释添加标签
 
@@ -22,17 +23,9 @@
 
 ![选择文本](./doc/选择文本.png)
 
-### 选中条目的右键菜单能够按tag导出笔记
-
-1、应该会做不同排序的菜单和tag的筛选功能
-2、图片到处还有问题
-3、大纲分级还未处理
+## 第二个功能 选中条目的右键菜单能够按tag导出笔记
 
 ![选中条目的右键菜单](./doc/选中条目的右键菜单.png)
-
-## 注意
-
-仅支持Zotero 7.0。
 
 ## 感谢
 
@@ -42,7 +35,8 @@
 
 ## Reminder
 
-only supports Zotero 7.0
+- This plugin required @windingwind's [BetterNotes](https://github.com/windingwind/zotero-better-notes/releases/)
+- Only supports Zotero 7.0
 
 ## Disclaimer
 

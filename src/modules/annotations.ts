@@ -8,6 +8,7 @@ const TAGS = [
   "研究方法",
   "研究理论",
 ];
+
 const ANNOTATION_COLORS = [
   "#ffd400",
   "#ff6666",
