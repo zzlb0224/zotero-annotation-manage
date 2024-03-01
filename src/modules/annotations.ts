@@ -1,12 +1,19 @@
 import { config } from "../../package.json";
 import { groupByMap, uniqueBy } from "../utils/zzlb";
 const TAGS = [
-  "研究目的",
-  "研究假设",
-  "研究框架",
-  "数据来源",
-  "研究方法",
-  "研究理论",
+  "目的",
+  "假设",
+  "框架",
+  "数据",
+  "方法",
+  "理论",
+  "结论",
+  "贡献",
+  "不足",
+  "背景",
+  "现状",
+  "问题",
+  "对策",
 ];
 
 const ANNOTATION_COLORS = [
@@ -16,6 +23,14 @@ const ANNOTATION_COLORS = [
   "#2ea8e5",
   "#a28ae5",
   "#e56eee",
+  "#ffd400",
+  "#ff6666",
+  "#5fb236",
+  "#2ea8e5",
+  "#a28ae5",
+  "#e56eee",
+  "#ffd400",
+  //
   "#f19837",
   "#aaaaaa",
 ];
