@@ -1,5 +1,6 @@
 import { config } from "../../package.json";
 import { groupByMap, uniqueBy } from "../utils/zzlb";
+
 const TAGS = [
   "目的",
   "假设",
@@ -404,4 +405,4 @@ function createAnnotationContextMenu(
   });
 }
 
-export default { register, unregister };
+export default { TAGS, register, unregister };

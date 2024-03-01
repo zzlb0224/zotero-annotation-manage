@@ -2,6 +2,8 @@ import { config } from "../../package.json";
 import { ProgressWindowHelper } from "zotero-plugin-toolkit/dist/helpers/progressWindow";
 import { groupByMap, uniqueBy, allWithProgress } from "../utils/zzlb";
 import { MenuitemOptions } from "zotero-plugin-toolkit/dist/managers/menu";
+import tags from "./annotations";
+
 function register() {
   //图标根目录 zotero-annotation-manage\addon\chrome\content\icons
   const iconBaseUrl = `chrome://${config.addonRef}/content/icons/`;
@@ -88,6 +90,22 @@ interface AnnotationRes {
   tag: { tag: string; type: number };
   tags: { tag: string; type: number }[];
   html: string;
+}
+function sortTags(
+  a: { key: string; values: any[] },
+  b: { key: string; values: any[] },
+) {
+  const TAGS = tags.TAGS;
+  if (TAGS.includes(a.key) && TAGS.includes(a.key)) {
+    return TAGS.indexOf(a.key) - TAGS.indexOf(b.key);
+  }
+  if (TAGS.includes(a.key)) {
+    return -1;
+  }
+  if (TAGS.includes(b.key)) {
+    return 1;
+  }
+  return b.values.length - a.values.length + (b.key > a.key ? -0.5 : 0.5);
 }
 async function getAnnotations(
   items: Zotero.Item[],
@@ -178,7 +196,7 @@ async function exportNoteByTag() {
   const annotations = await getAnnotations(items, note, popupWin);
   const title = getTitleFromAnnotations(annotations);
   const txt = groupByMap(annotations, (a) => a.tag.tag)
-    .sort((a, b) => b.values.length - a.values.length)
+    .sort(sortTags)
     .flatMap((tag) => {
       return [
         `<h1>${tag.key} ${tag.values.length}</h1>`,
@@ -200,7 +218,7 @@ async function exportNoteByTagPdf() {
   const title = getTitleFromAnnotations(annotations);
   // ztoolkit.log(annotations)
   const txt = groupByMap(annotations, (a) => a.tag.tag)
-    .sort((a, b) => b.values.length - a.values.length)
+    .sort(sortTags)
     .flatMap((tag) => {
       return [
         `<h1>标签：${tag.key}  ${tag.values.length}</h1>`,
