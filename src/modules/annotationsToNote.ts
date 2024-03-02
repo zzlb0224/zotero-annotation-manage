@@ -1,13 +1,16 @@
 import { config } from "../../package.json";
 import { ProgressWindowHelper } from "zotero-plugin-toolkit/dist/helpers/progressWindow";
-import {
-  groupByMap,
-  uniqueBy,
-  allWithProgress,
-  getCollections,
-} from "../utils/zzlb";
+import { groupByMap, uniqueBy, getCollections } from "../utils/zzlb";
 import { MenuitemOptions } from "zotero-plugin-toolkit/dist/managers/menu";
 import tags from "./annotations";
+let popupWin: ProgressWindowHelper | undefined = undefined;
+popupWin = undefined;
+
+function isCollection(ev: Event) {
+  const pid = (ev.target as HTMLElement)?.parentElement?.parentElement?.id;
+  const isCollection = pid?.includes("collection") || false;
+  return isCollection;
+}
 function register() {
   //图标根目录 zotero-annotation-manage\addon\chrome\content\icons
   const iconBaseUrl = `chrome://${config.addonRef}/content/icons/`;
@@ -21,7 +24,7 @@ function register() {
         label: "按标签顺序",
         icon: iconBaseUrl + "favicon.png",
         commandListener: (ev) => {
-          exportNoteByTag();
+          exportNoteByTag(isCollection(ev));
         },
       },
       {
@@ -29,7 +32,7 @@ function register() {
         label: "按标签-pdf顺序",
         icon: iconBaseUrl + "favicon.png",
         commandListener: (ev) => {
-          exportNoteByTagPdf();
+          exportNoteByTagPdf(isCollection(ev));
         },
       },
       {
@@ -37,7 +40,7 @@ function register() {
         label: "图片笔记",
         icon: iconBaseUrl + "favicon.png",
         commandListener: (ev) => {
-          exportNoteOnlyImage();
+          exportNoteOnlyImage(isCollection(ev));
         },
       },
     ],
@@ -49,29 +52,28 @@ function register() {
   );
   ztoolkit.Menu.register(
     "collection",
-    Object.assign({ id: `${config.addonRef}-create-note` }, menu),
+    Object.assign({ id: `${config.addonRef}-create-note-collection` }, menu),
   );
 }
+
 function unregister() {
   ztoolkit.Menu.unregister(`${config.addonRef}-create-note`);
   ztoolkit.Menu.unregister(`${config.addonRef}-create-note-collection`);
 }
-async function saveNote(
-  targetNoteItem: Zotero.Item,
-  txt: string,
-  popupWin?: ProgressWindowHelper,
-) {
+
+async function saveNote(targetNoteItem: Zotero.Item, txt: string) {
   await Zotero.BetterNotes.api.note.insert(targetNoteItem, txt, -1);
   await targetNoteItem.saveTx();
   popupWin
     ?.createLine({
       text: `创建笔记完成`,
-      progress: 100,
+      // progress: 100,
       type: "default",
     })
     .startCloseTimer(5e3);
+  popupWin = undefined;
 }
-async function createNote(popupWin?: ProgressWindowHelper) {
+async function createNote() {
   const targetNoteItem = new Zotero.Item("note");
   targetNoteItem.libraryID = ZoteroPane.getSelectedLibraryID();
   targetNoteItem.setCollections([ZoteroPane.getSelectedCollection(true) || 0]);
@@ -121,6 +123,7 @@ function getAllAnnotations(items: Zotero.Item[]) {
   const items1 = items.map((a) =>
     a.isAttachment() && a.isPDFAttachment() && a.parentItem ? a.parentItem : a,
   );
+  // ztoolkit.log(4444, items1);
   const data = uniqueBy(items1, (a) => a.key).flatMap((item) => {
     const itemTags = item
       .getTags()
@@ -130,9 +133,12 @@ function getAllAnnotations(items: Zotero.Item[]) {
     const author = item.getField("firstCreator");
     const year = item.getField("year");
     const title = item.getField("title");
-    return Zotero.Items.get(item.getAttachments())
+
+    // ztoolkit.log(555, item);
+    return Zotero.Items.get(item.getAttachments(false))
       .filter((f) => f.isAttachment() && f.isPDFAttachment())
       .flatMap((pdf) => {
+        // ztoolkit.log(666, pdf);
         const pdfTitle = pdf.getDisplayTitle();
         return pdf.getAnnotations().flatMap((ann) => {
           const text = ann.annotationText;
@@ -164,11 +170,7 @@ function getAllAnnotations(items: Zotero.Item[]) {
   });
   return data;
 }
-async function convertHtml(
-  arr: AnnotationRes[],
-  targetNoteItem: Zotero.Item,
-  popupWin?: ProgressWindowHelper,
-) {
+async function convertHtml(arr: AnnotationRes[], targetNoteItem: Zotero.Item) {
   popupWin?.createLine({
     text: "正在转换",
     type: "default",
@@ -199,75 +201,92 @@ function getTitleFromAnnotations(annotations: AnnotationRes[]) {
   const title = `注释 (${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}) ${itemsLength}-${annotationLength}`;
   return title;
 }
-async function exportNote(
-  toText: (arg0: AnnotationRes[]) => string,
-  filter?: (arg0: AnnotationRes[]) => AnnotationRes[],
-) {
-  const popupWin = new ztoolkit.ProgressWindow("整理笔记", {
-    closeTime: -1,
-  }).show();
-  const note = await createNote(popupWin);
+
+async function exportNote({
+  toText,
+  isCollection = false,
+  filter = undefined,
+}: {
+  toText: (arg0: AnnotationRes[]) => string;
+  isCollection?: boolean;
+  filter?: (arg0: AnnotationRes[]) => AnnotationRes[];
+}) {
+  ztoolkit.log("exportNote", isCollection);
+  if (!popupWin)
+    popupWin = new ztoolkit.ProgressWindow("整理笔记", {
+      closeTime: -1,
+    }).show();
   let items = ZoteroPane.getSelectedItems();
-  ztoolkit.log(items);
-  if (items.length == 0) {
+  if (isCollection) {
     const sc = ZoteroPane.getSelectedCollection();
     if (sc) {
       const scs = getCollections([sc]);
       items = scs.flatMap((f) => f.getChildItems(false, false));
     }
   }
-  ztoolkit.log(items);
   let annotations = getAllAnnotations(items);
-  if (filter) annotations = filter(annotations);
+  if (filter) {
+    annotations = filter(annotations);
+  }
+  if(annotations.length==0){
+    popupWin?.createLine({text:"没有找到标记"}).startCloseTimer(5e3)
+    return
+  }
+  const note = await createNote();
   await convertHtml(annotations, note);
   const title = getTitleFromAnnotations(annotations);
   const txt = toText(annotations);
-  await saveNote(note, `${title}\n${txt}`, popupWin);
+  await saveNote(note, `${title}\n${txt}`);
 }
-async function exportNoteByTag() {
-  return exportNote((annotations) =>
-    groupByMap(annotations, (a) => a.tag.tag)
-      .sort(sortTags)
-      .flatMap((tag) => {
-        return [
-          `<h1>${tag.key} ${tag.values.length}</h1>`,
-          ...tag.values.map((b) => `${b.html}`),
-        ];
-      })
-      .join("\n"),
-  );
+async function exportNoteByTag(isCollection = false) {
+  return await exportNote({
+    toText: (annotations) =>
+      groupByMap(annotations, (a) => a.tag.tag)
+        .sort(sortTags)
+        .flatMap((tag) => {
+          return [
+            `<h1>${tag.key} ${tag.values.length}</h1>`,
+            ...tag.values.map((b) => `${b.html}`),
+          ];
+        })
+        .join("\n"),
+    isCollection,
+  });
 }
-async function exportNoteByTagPdf() {
-  return exportNote((annotations) =>
-    groupByMap(annotations, (a) => a.tag.tag)
-      .sort(sortTags)
-      .flatMap((tag) => {
-        return [
-          `<h1>标签：${tag.key}  ${tag.values.length}</h1>`,
-          ...groupByMap(tag.values, (a) => "文件：" + a.pdfTitle).flatMap(
-            (pdfTitle) => [
-              `<h2>${pdfTitle.key}  ${pdfTitle.values.length}</h2>`,
-              ...pdfTitle.values.map((b) => `${b.html}`),
-            ],
-          ),
-        ];
-      })
-      .join("\n"),
-  );
+async function exportNoteByTagPdf(isCollection = false) {
+  return await exportNote({
+    toText: (annotations) =>
+      groupByMap(annotations, (a) => a.tag.tag)
+        .sort(sortTags)
+        .flatMap((tag) => {
+          return [
+            `<h1>标签：${tag.key}  ${tag.values.length}</h1>`,
+            ...groupByMap(tag.values, (a) => "文件：" + a.pdfTitle).flatMap(
+              (pdfTitle) => [
+                `<h2>${pdfTitle.key}  ${pdfTitle.values.length}</h2>`,
+                ...pdfTitle.values.map((b) => `${b.html}`),
+              ],
+            ),
+          ];
+        })
+        .join("\n"),
+    isCollection,
+  });
 }
-async function exportNoteOnlyImage() {
-  return exportNote(
-    (annotations) =>
+async function exportNoteOnlyImage(isCollection = false) {
+  return await exportNote({
+    toText: (annotations) =>
       groupByMap(annotations, (a) => "文件：" + a.pdfTitle)
         .flatMap((pdfTitle) => [
           `<h1>${pdfTitle.key}  ${pdfTitle.values.length}</h1>`,
           ...pdfTitle.values.map((b) => `${b.html}`),
         ])
         .join("\n"),
-    (annotations) => {
+    isCollection,
+    filter: (annotations) => {
       annotations = annotations.filter((f) => f.type == "image");
       return uniqueBy(annotations, (a) => a.ann.key);
     },
-  );
+  });
 }
 export default { register, unregister };
