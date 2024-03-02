@@ -1,6 +1,6 @@
 {
   "name": "zotero-annotation-manage",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "zotero-annotation-manage",
   "config": {
     "addonName": "zotero-annotation-manage",
