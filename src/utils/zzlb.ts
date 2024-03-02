@@ -1,5 +1,11 @@
-//uniqueBy groupBy groupByMap 三个函数，因为使用的是对象的key来检查重复，所以只能使用string | number | symbol
+import { uniqueBy } from "./zzlb";
 
+/* unique 采用set的比较方式*/
+export function unique<T>(arr: T[]) {
+  return [...new Set(arr)];
+}
+
+//uniqueBy groupBy groupByMap 三个函数，因为使用的是object的key来检查重复，所以只能使用string | number | symbol
 export function uniqueBy<T>(
   arr: T[],
   fn: (item: T) => string | number | symbol,
@@ -9,9 +15,6 @@ export function uniqueBy<T>(
     return { ...prev, [groupKey]: curr };
   }, {});
   return Object.values(o);
-}
-export function unique<T>(arr: T[]) {
-  return [...new Set(arr)];
 }
 
 export function groupBy<T>(
@@ -45,4 +48,21 @@ export function allWithProgress<T>(
     });
   });
   return Promise.all(arr);
+}
+export function getCollections(
+  collections: Zotero.Collection[],
+): Zotero.Collection[] {
+  function getChildCollections(
+    collections: Zotero.Collection[],
+  ): Zotero.Collection[] {
+    const cs = uniqueBy(collections, (a) => a.key).flatMap((a) =>
+      a.getChildCollections(false),
+    );
+    if (cs.length == 0) return collections;
+    return [...cs, ...getChildCollections(cs)];
+  }
+  return uniqueBy(
+    [...collections, ...getChildCollections(collections)],
+    (a) => a.key,
+  );
 }
