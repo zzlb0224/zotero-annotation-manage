@@ -228,9 +228,9 @@ async function exportNote({
   if (filter) {
     annotations = filter(annotations);
   }
-  if(annotations.length==0){
-    popupWin?.createLine({text:"没有找到标记"}).startCloseTimer(5e3)
-    return
+  if (annotations.length == 0) {
+    popupWin?.createLine({ text: "没有找到标记" }).startCloseTimer(5e3);
+    return;
   }
   const note = await createNote();
   await convertHtml(annotations, note);
