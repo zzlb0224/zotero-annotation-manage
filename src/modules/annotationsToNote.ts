@@ -232,6 +232,7 @@ async function exportNote({
     popupWin?.createLine({ text: "没有找到标记" }).startCloseTimer(5e3);
     return;
   }
+  //createNote 一定要在 getSelectedItems 之后，不然获取不到选择的条目
   const note = await createNote();
   await convertHtml(annotations, note);
   const title = getTitleFromAnnotations(annotations);
