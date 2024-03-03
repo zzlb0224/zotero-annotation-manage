@@ -6,6 +6,7 @@ const TAGS = [
   "假设",
   "框架",
   "数据",
+  "量表",
   "方法",
   "理论",
   "结论",
@@ -30,6 +31,7 @@ const ANNOTATION_COLORS = [
   "#a28ae5",
   "#e56eee",
   "#ffd400",
+  "#ff6666",
   //
   "#f19837",
   "#aaaaaa",
