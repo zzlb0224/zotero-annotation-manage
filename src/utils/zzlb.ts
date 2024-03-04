@@ -13,19 +13,7 @@ export function uniqueBy<T>(
     return { ...prev, [groupKey]: curr };
   }, {});
   return Object.values(o);
-}
-
-export function groupBy<T>(
-  arr: T[],
-  fn: (item: T) => string | number | symbol,
-) {
-  return arr.reduce<Record<string | number | symbol, T[]>>((prev, curr) => {
-    const groupKey = fn(curr);
-    const group = prev[groupKey] || [];
-    group.push(curr);
-    return { ...prev, [groupKey]: group };
-  }, {});
-}
+} 
 export interface groupByMapResult<T> {
   key: string;
   values: T[];
@@ -34,7 +22,12 @@ export function groupByMap<T>(
   arr: T[],
   fn: (item: T) => string | number | symbol,
 ) {
-  const g1 = groupBy(arr, fn);
+  const g1 = arr.reduce<Record<string | number | symbol, T[]>>((prev, curr) => {
+    const groupKey = fn(curr);
+    const group = prev[groupKey] || [];
+    group.push(curr);
+    return { ...prev, [groupKey]: group };
+  }, {});
   return Object.keys(g1).map(
     (key) => ({ key, values: g1[key] }) as groupByMapResult<T>,
   );
