@@ -47,6 +47,24 @@ function register() {
           exportNoteOnlyImage(isCollection(ev));
         },
       },
+      {
+        tag: "menuitem",
+        label: "tag:量表",
+        icon: iconBaseUrl + "favicon.png",
+        commandListener: (ev) => {
+          exportNote({
+            filter: (ans) => ans.filter((f) => f.tag.tag == "量表"),
+            isCollection: isCollection(ev),
+            toText: (ans) =>
+              groupBy(ans, (a) => a.pdfTitle)
+                .flatMap((a) => [
+                  h1span(`标签：${a.key}  (${a.values.length})`, "h1"),
+                  a.values.map((b) => h1span(b.html, "span")).join("  "),
+                ])
+                .join("\n"),
+          });
+        },
+      },
     ],
   };
   //组合到一起的菜单能节省空间，因此使用children
@@ -283,7 +301,7 @@ async function exportNoteByTagPdf(isCollection = false) {
         .sort(sortByTAGs)
         .flatMap((tag) => {
           return [
-            `<h1>标签：${tag.key}  (${tag.values.length})</h1>`,
+            h1span(`标签：${tag.key}  (${tag.values.length})`, "h1"),
             ...groupBy(tag.values, (a) => "文件：" + a.pdfTitle).flatMap(
               (pdfTitle) => [
                 `<h2>${pdfTitle.key}  (${pdfTitle.values.length})</h2>`,
@@ -295,6 +313,9 @@ async function exportNoteByTagPdf(isCollection = false) {
         .join("\n"),
     isCollection,
   });
+}
+function h1span(txt: string, tag = "h1", attrs = "") {
+  return `<${tag} ${attrs}>${txt}</${tag}>`;
 }
 async function exportNoteOnlyImage(isCollection = false) {
   return await exportNote({

@@ -47,7 +47,8 @@ function relateTags(item: Zotero.Item) {
 function getTagsInCollections(collections: Zotero.Collection[]) {
   const pdfIds = collections
     .flatMap((c) => c.getChildItems())
-    .flatMap((a) => a.getAttachments(false));
+    .filter((f) => !f.isAttachment())
+    .flatMap((a) => a.getAttachments(false)); //为啥会出现
   const pdfItems = Zotero.Items.get(pdfIds).filter(
     (f) => f.isFileAttachment() && f.isAttachment(),
   );
