@@ -8,6 +8,7 @@ import {
 } from "../utils/zzlb";
 import { MenuitemOptions } from "zotero-plugin-toolkit/dist/managers/menu";
 import tags from "./annotations";
+import { stringify } from 'querystring';
 let popupWin: ProgressWindowHelper | undefined = undefined;
 popupWin = undefined;
 let popupTime = Date.now();
@@ -70,17 +71,14 @@ function unregister() {
 async function saveNote(targetNoteItem: Zotero.Item, txt: string) {
   await Zotero.BetterNotes.api.note.insert(targetNoteItem, txt, -1);
   await targetNoteItem.saveTx();
-  ztoolkit.log("笔记创建完成", new Date().toLocaleTimeString());
+  ztoolkit.log("笔记更新完成", new Date().toLocaleTimeString());
   popupWin
     ?.createLine({
-      text: `创建笔记完成`,
-      // progress: 100,
+      text: `笔记更新完成`, 
       type: "default",
     })
     .startCloseTimer(5e3);
-  popupWin = undefined;
-
-  //ZoteroPane.getSelectedItems()
+  popupWin = undefined; 
 }
 async function createNote(txt = "") {
   const targetNoteItem = new Zotero.Item("note");
@@ -118,7 +116,7 @@ function sortTags(
   b: { key: string; values: any[] },
 ) {
   const TAGS = tags.TAGS;
-  if (TAGS.includes(a.key) && TAGS.includes(a.key)) {
+  if (TAGS.includes(a.key) && TAGS.includes(b.key)) {
     return TAGS.indexOf(a.key) - TAGS.indexOf(b.key);
   }
   if (TAGS.includes(a.key)) {
@@ -225,6 +223,7 @@ function getTitleFromAnnotations(annotations: AnnotationRes[]) {
   // const pdfLength = uniqueBy(annotations, (a) => a.pdf.key).length;
   const annotationLength = uniqueBy(annotations, (a) => a.ann.key).length;
   // const tagLength = uniqueBy(annotations, (a) => a.tag.tag).length;
+
   const title = `注释 (${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}) ${itemsLength}-${annotationLength}`;
   return title;
 }
@@ -263,8 +262,15 @@ async function exportNote({
   //createNote 会创建顶层条目触发另一个插件的 closeOtherProgressWindows
 
   annotations = await convertHtml(annotations, note);
+    const getKeyGroup = (fn: (item: AnnotationRes) => string | number | symbol)=>groupByMap(annotations,fn).sort((a,b)=>b.values.length-a.values.length).slice(0,5).map(t=>`${t.key}(${t.values.length})`).join("  ")
+
   const txt = toText(annotations);
-  await saveNote(note, `${title}\n${txt}`);
+  await saveNote(note, `\n
+${getKeyGroup(f=>f.type)}\n
+${getKeyGroup(f=>f.color)}\n
+${getKeyGroup(f=>f.year)}\n
+${getKeyGroup(f=>f.tag.tag)}
+${txt}`);
 }
 async function exportNoteByTag(isCollection = false) {
   return await exportNote({
@@ -273,7 +279,7 @@ async function exportNoteByTag(isCollection = false) {
         .sort(sortTags)
         .flatMap((tag) => {
           return [
-            `<h1>${tag.key} ${tag.values.length}</h1>`,
+            `<h1>${tag.key} (${tag.values.length})</h1>`,
             ...tag.values.map((b) => `${b.html}`),
           ];
         })
@@ -288,10 +294,10 @@ async function exportNoteByTagPdf(isCollection = false) {
         .sort(sortTags)
         .flatMap((tag) => {
           return [
-            `<h1>标签：${tag.key}  ${tag.values.length}</h1>`,
+            `<h1>标签：${tag.key}  (${tag.values.length})</h1>`,
             ...groupByMap(tag.values, (a) => "文件：" + a.pdfTitle).flatMap(
               (pdfTitle) => [
-                `<h2>${pdfTitle.key}  ${pdfTitle.values.length}</h2>`,
+                `<h2>${pdfTitle.key}  (${pdfTitle.values.length})</h2>`,
                 ...pdfTitle.values.map((b) => `${b.html}`),
               ],
             ),
@@ -306,8 +312,8 @@ async function exportNoteOnlyImage(isCollection = false) {
     toText: (annotations) =>
       groupByMap(annotations, (a) => "文件：" + a.pdfTitle)
         .flatMap((pdfTitle) => [
-          `<h1>${pdfTitle.key}  ${pdfTitle.values.length}</h1>`,
-          ...pdfTitle.values.map((b) => `${b.html}`),
+          `<h1>${pdfTitle.key}  (${pdfTitle.values.length})</h1>`,
+          ...pdfTitle.values.flatMap((b) => [b.html?b.html:`<span style="color:#ff6666">未能加载：${b.ann.key}</span>`]),
         ])
         .join("\n"),
     isCollection,
