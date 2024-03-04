@@ -4,11 +4,10 @@ import {
   groupByMap,
   uniqueBy,
   getCollections,
-  allWithProgress as promiseAllWithProgress,
+  promiseAllWithProgress,
 } from "../utils/zzlb";
 import { MenuitemOptions } from "zotero-plugin-toolkit/dist/managers/menu";
-import tags from "./annotations";
-import { stringify } from 'querystring';
+import { sortByTags } from "../utils/zzlb";
 let popupWin: ProgressWindowHelper | undefined = undefined;
 popupWin = undefined;
 let popupTime = Date.now();
@@ -74,11 +73,11 @@ async function saveNote(targetNoteItem: Zotero.Item, txt: string) {
   ztoolkit.log("笔记更新完成", new Date().toLocaleTimeString());
   popupWin
     ?.createLine({
-      text: `笔记更新完成`, 
+      text: `笔记更新完成`,
       type: "default",
     })
     .startCloseTimer(5e3);
-  popupWin = undefined; 
+  popupWin = undefined;
 }
 async function createNote(txt = "") {
   const targetNoteItem = new Zotero.Item("note");
@@ -110,22 +109,6 @@ interface AnnotationRes {
   tag: { tag: string; type: number };
   tags: { tag: string; type: number }[];
   html: string;
-}
-function sortTags(
-  a: { key: string; values: any[] },
-  b: { key: string; values: any[] },
-) {
-  const TAGS = tags.TAGS;
-  if (TAGS.includes(a.key) && TAGS.includes(b.key)) {
-    return TAGS.indexOf(a.key) - TAGS.indexOf(b.key);
-  }
-  if (TAGS.includes(a.key)) {
-    return -1;
-  }
-  if (TAGS.includes(b.key)) {
-    return 1;
-  }
-  return b.values.length - a.values.length + (b.key > a.key ? -0.5 : 0.5);
 }
 function getAllAnnotations(items: Zotero.Item[]) {
   const items1 = items.map((a) =>
@@ -262,21 +245,29 @@ async function exportNote({
   //createNote 会创建顶层条目触发另一个插件的 closeOtherProgressWindows
 
   annotations = await convertHtml(annotations, note);
-    const getKeyGroup = (fn: (item: AnnotationRes) => string | number | symbol)=>groupByMap(annotations,fn).sort((a,b)=>b.values.length-a.values.length).slice(0,5).map(t=>`${t.key}(${t.values.length})`).join("  ")
+  const getKeyGroup = (fn: (item: AnnotationRes) => string | number | symbol) =>
+    groupByMap(annotations, fn)
+      .sort((a, b) => b.values.length - a.values.length)
+      .slice(0, 5)
+      .map((t) => `${t.key}(${t.values.length})`)
+      .join("  ");
 
   const txt = toText(annotations);
-  await saveNote(note, `\n
-${getKeyGroup(f=>f.type)}\n
-${getKeyGroup(f=>f.color)}\n
-${getKeyGroup(f=>f.year)}\n
-${getKeyGroup(f=>f.tag.tag)}
-${txt}`);
+  await saveNote(
+    note,
+    `\n
+${getKeyGroup((f) => f.type)}\n
+${getKeyGroup((f) => f.color)}\n
+${getKeyGroup((f) => f.year)}\n
+${getKeyGroup((f) => f.tag.tag)}
+${txt}`,
+  );
 }
 async function exportNoteByTag(isCollection = false) {
   return await exportNote({
     toText: (annotations) =>
       groupByMap(annotations, (a) => a.tag.tag)
-        .sort(sortTags)
+        .sort(sortByTags)
         .flatMap((tag) => {
           return [
             `<h1>${tag.key} (${tag.values.length})</h1>`,
@@ -291,7 +282,7 @@ async function exportNoteByTagPdf(isCollection = false) {
   return await exportNote({
     toText: (annotations) =>
       groupByMap(annotations, (a) => a.tag.tag)
-        .sort(sortTags)
+        .sort(sortByTags)
         .flatMap((tag) => {
           return [
             `<h1>标签：${tag.key}  (${tag.values.length})</h1>`,
@@ -313,7 +304,11 @@ async function exportNoteOnlyImage(isCollection = false) {
       groupByMap(annotations, (a) => "文件：" + a.pdfTitle)
         .flatMap((pdfTitle) => [
           `<h1>${pdfTitle.key}  (${pdfTitle.values.length})</h1>`,
-          ...pdfTitle.values.flatMap((b) => [b.html?b.html:`<span style="color:#ff6666">未能加载：${b.ann.key}</span>`]),
+          ...pdfTitle.values.flatMap((b) => [
+            b.html
+              ? b.html
+              : `<span style="color:#ff6666">未能加载：${b.ann.key}</span>`,
+          ]),
         ])
         .join("\n"),
     isCollection,

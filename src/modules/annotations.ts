@@ -1,41 +1,12 @@
 import { config } from "../../package.json";
-import { getCollections } from "../utils/zzlb";
-import { groupByMap } from "../utils/zzlb";
-const TAGS = [
-  "目的",
-  "假设",
-  "框架",
-  "数据",
-  "量表",
-  "方法",
-  "理论",
-  "结论",
-  "贡献",
-  "不足",
-  "背景",
-  "现状",
-  "问题",
-  "对策",
-];
-const ANNOTATION_COLORS = [
-  "#ffd400",
-  "#ff6666",
-  "#5fb236",
-  "#2ea8e5",
-  "#a28ae5",
-  "#e56eee",
-  "#ffd400",
-  "#ff6666",
-  "#5fb236",
-  "#2ea8e5",
-  "#a28ae5",
-  "#e56eee",
-  "#ffd400",
-  "#ff6666",
-  //
-  "#f19837",
-  "#aaaaaa",
-];
+import {
+  ANNOTATION_COLORS,
+  TAGS,
+  getCollections,
+  sortByTags,
+  groupByMap,
+  groupByMapResult,
+} from "../utils/zzlb";
 function register() {
   // ztoolkit.UI.basicOptions.log.disableZLog = true;
   ztoolkit.log("Annotations register");
@@ -86,35 +57,13 @@ function getTagsInCollections(collections: Zotero.Collection[]) {
   const tags = annotations.flatMap((f) => f.getTags());
   return tags;
 }
-function sortTags(
-  tags: Array<{ tag: string; type: number }>,
-  includeTAGS = false,
-) {
-  const tagGroup = groupByMap(tags, (a) => a.tag);
-  if (includeTAGS) {
-    TAGS.forEach((tag) => {
-      if (tagGroup.findIndex((f) => f.key == tag) == -1) {
-        tagGroup.push({ key: tag, values: [] });
-      }
-    });
-  }
-  return tagGroup
-    .map((k) => ({
-      tag: k.key,
-      count: k.values.length,
-    }))
-    .sort((a, b) => {
-      if (TAGS.includes(a.tag) && TAGS.includes(b.tag)) {
-        return TAGS.indexOf(a.tag) - TAGS.indexOf(b.tag);
-      }
-      if (TAGS.includes(a.tag)) {
-        return -1;
-      }
-      if (TAGS.includes(b.tag)) {
-        return 1;
-      }
-      return b.count - a.count + (b.tag > a.tag ? -0.5 : 0.5);
-    });
+function includeTAGS<T>(tagGroup: groupByMapResult<T>[]) {
+  TAGS.forEach((tag) => {
+    if (tagGroup.findIndex((f) => f.key == tag) == -1) {
+      tagGroup.push({ key: tag, values: [] });
+    }
+  });
+  return tagGroup;
 }
 function getLeftTop(temp4: HTMLElement, win: Window) {
   let t1 = temp4;
@@ -122,7 +71,14 @@ function getLeftTop(temp4: HTMLElement, win: Window) {
   let top = 0;
   for (let i = 0; i < 15; i++) {
     const tt = win.getComputedStyle(t1).getPropertyValue("transform");
-    // ztoolkit.log(i,  tt, t1.style.transform, t1);
+    //无法计算transform，不能准确定位
+    ztoolkit.log(
+      i,
+      "计算transform",
+      t1,
+      t1.style.transform,
+      win.getComputedStyle(t1).getPropertyValue("transform"),
+    );
     left += t1.offsetLeft;
     top += t1.offsetTop;
     // const m1 = new WebKitCSSMatrix(window.getComputedStyle(t1).getPropertyValue("transform"));
@@ -152,36 +108,36 @@ function createDiv(
     doc
       .getElementById(`${config.addonRef}-reader-div`)
       ?.parentElement?.remove();
-  const tags = sortTags(relateTags(reader._item), true);
+  const tags1 = groupByMap(relateTags(reader._item), (t) => t.tag);
+  includeTAGS(tags1);
+  tags1.sort(sortByTags);
   const annotations = params.ids
     ? reader._item.getAnnotations().filter((f) => params.ids.includes(f.key))
     : [];
-  const max = Math.max(...tags.map((a) => a.count));
-  const min = Math.min(...tags.map((a) => a.count));
-  const children = tags.map((label) => {
+  const children = tags1.map((label) => {
     const allHave =
-      annotations.length > 0 && annotations.every((a) => a.hasTag(label.tag));
+      annotations.length > 0 && annotations.every((a) => a.hasTag(label.key));
     const noneHave =
-      annotations.length == 0 || annotations.every((a) => !a.hasTag(label.tag));
+      annotations.length == 0 || annotations.every((a) => !a.hasTag(label.key));
     const someHave =
-      annotations.filter((a) => a.hasTag(label.tag)).length +
+      annotations.filter((a) => a.hasTag(label.key)).length +
       "/" +
       annotations.length;
     let color = "#f19837";
-    if (TAGS.includes(label.tag)) {
-      color = ANNOTATION_COLORS[TAGS.indexOf(label.tag)];
+    if (TAGS.includes(label.key)) {
+      color = ANNOTATION_COLORS[TAGS.indexOf(label.key)];
     }
     return {
       tag: "span",
       namespace: "html",
       classList: ["toolbarButton1"],
       properties: {
-        textContent: `${allHave ? "[x]" : noneHave ? "" : `[${someHave}]`}[${label.count}]${label.tag}`,
+        textContent: `${allHave ? "[x]" : noneHave ? "" : `[${someHave}]`}[${label.values.length}]${label.key}`,
       },
       styles: {
         margin: "2px",
         padding: "2px",
-        background: TAGS.includes(label.tag) ? color : "",
+        background: TAGS.includes(label.key) ? color : "",
         // fontSize: ((label.count-min)/(max-min)*10+15).toFixed()+ "px",
         fontSize: "20px",
         boxShadow: "#999999 0px 0px 3px 3px",
@@ -200,11 +156,11 @@ function createDiv(
                   })[0];
                 if (allHave) {
                   //全部都有则删除
-                  annotation.removeTag(label.tag);
+                  annotation.removeTag(label.key);
                 } else {
                   //部分有则添加
-                  if (!annotation.hasTag(label.tag)) {
-                    annotation.addTag(label.tag, 0);
+                  if (!annotation.hasTag(label.key)) {
+                    annotation.addTag(label.key, 0);
                   }
                 }
                 annotation.saveTx(); //增加每一个都要保存，为啥不能批量保存？
@@ -215,7 +171,7 @@ function createDiv(
               Array.from({ length: 10 }).map((e, i) =>
                 Zotero.Tags.getColorByPosition(1, i),
               );
-              const tags = [{ name: label.tag }];
+              const tags = [{ name: label.key }];
               // 因为线程不一样，不能采用直接修改params.annotation的方式，所以直接采用新建的方式保存笔记
               // 特意采用 Components.utils.cloneInto 方法
               reader._annotationManager.addAnnotation(
@@ -360,8 +316,11 @@ function createAnnotationContextMenu(
   const annotations = reader._item
     .getAnnotations()
     .filter((f) => params.ids.includes(f.key));
-  const tags = sortTags(annotations.flatMap((f) => f.getTags()));
-  const hasTags = tags.map((f) => `${f.tag}[${f.count}]`).join(",");
+  const tags1 = groupByMap(
+    annotations.flatMap((f) => f.getTags()),
+    (t) => t.tag,
+  ).sort(sortByTags);
+  const hasTags = tags1.map((f) => `${f.key}[${f.values.length}]`).join(",");
   const label = hasTags ? `添加标签，已有【${hasTags}】` : "添加标签";
   append({
     label: label,

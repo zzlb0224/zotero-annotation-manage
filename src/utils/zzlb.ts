@@ -26,14 +26,20 @@ export function groupBy<T>(
     return { ...prev, [groupKey]: group };
   }, {});
 }
+export interface groupByMapResult<T> {
+  key: string;
+  values: T[];
+}
 export function groupByMap<T>(
   arr: T[],
   fn: (item: T) => string | number | symbol,
 ) {
   const g1 = groupBy(arr, fn);
-  return Object.keys(g1).map((key) => ({ key, values: g1[key] }));
+  return Object.keys(g1).map(
+    (key) => ({ key, values: g1[key] }) as groupByMapResult<T>,
+  );
 }
-export function allWithProgress<T>(
+export function promiseAllWithProgress<T>(
   arr: Promise<T>[],
   callback: { (progress: number, index: number): void },
 ): Promise<T[]> {
@@ -64,3 +70,53 @@ export function getCollections(
     (a) => a.key,
   );
 }
+export function sortByTags(
+  a: { key: string; values: any[] },
+  b: { key: string; values: any[] },
+) {
+  if (TAGS.includes(a.key) && TAGS.includes(b.key)) {
+    return TAGS.indexOf(a.key) - TAGS.indexOf(b.key);
+  }
+  if (TAGS.includes(a.key)) {
+    return -1;
+  }
+  if (TAGS.includes(b.key)) {
+    return 1;
+  }
+  return b.values.length - a.values.length + (b.key > a.key ? -0.5 : 0.5);
+}
+export const TAGS = [
+  "目的",
+  "假设",
+  "框架",
+  "数据",
+  "量表",
+  "方法",
+  "理论",
+  "结论",
+  "贡献",
+  "不足",
+  "背景",
+  "现状",
+  "问题",
+  "对策",
+];
+export const ANNOTATION_COLORS = [
+  "#ffd400",
+  "#ff6666",
+  "#5fb236",
+  "#2ea8e5",
+  "#a28ae5",
+  "#e56eee",
+  "#ffd400",
+  "#ff6666",
+  "#5fb236",
+  "#2ea8e5",
+  "#a28ae5",
+  "#e56eee",
+  "#ffd400",
+  "#ff6666",
+  //
+  "#f19837",
+  "#aaaaaa",
+];
