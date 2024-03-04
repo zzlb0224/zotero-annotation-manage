@@ -13,7 +13,7 @@ export function uniqueBy<T>(
     return { ...prev, [groupKey]: curr };
   }, {});
   return Object.values(o);
-} 
+}
 export interface groupByResult<T> {
   key: string;
   values: T[];

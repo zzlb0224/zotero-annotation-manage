@@ -1,6 +1,6 @@
 import { config } from "../../package.json";
 import { ProgressWindowHelper } from "zotero-plugin-toolkit/dist/helpers/progressWindow";
-import { MenuitemOptions } from "zotero-plugin-toolkit/dist/managers/menu"; 
+import { MenuitemOptions } from "zotero-plugin-toolkit/dist/managers/menu";
 import {
   groupBy,
   uniqueBy,
@@ -9,7 +9,7 @@ import {
   sortByTAGs,
 } from "../utils/zzlb";
 let popupWin: ProgressWindowHelper | undefined = undefined;
-let popupTime =-1;
+let popupTime = -1;
 function isCollection(ev: Event) {
   const pid = (ev.target as HTMLElement)?.parentElement?.parentElement?.id;
   const isCollection = pid?.includes("collection") || false;
@@ -189,7 +189,6 @@ function createPopupWin({
   header = "整理笔记",
   lines: defaultLines = [],
 }: { closeTime?: number; header?: string; lines?: string[] } = {}) {
-  
   if (!popupWin || Date.now() - popupTime > closeTime) {
     popupTime = Date.now();
     popupWin = new ztoolkit.ProgressWindow(header, {
