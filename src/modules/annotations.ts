@@ -3,9 +3,9 @@ import {
   ANNOTATION_COLORS,
   TAGS,
   getCollections,
-  sortByTags,
-  groupByMap,
-  groupByMapResult,
+  sortByTAGs,
+  groupBy,
+  groupByResult,
 } from "../utils/zzlb";
 function register() {
   // ztoolkit.UI.basicOptions.log.disableZLog = true;
@@ -57,7 +57,7 @@ function getTagsInCollections(collections: Zotero.Collection[]) {
   const tags = annotations.flatMap((f) => f.getTags());
   return tags;
 }
-function includeTAGS<T>(tagGroup: groupByMapResult<T>[]) {
+function includeTAGS<T>(tagGroup: groupByResult<T>[]) {
   TAGS.forEach((tag) => {
     if (tagGroup.findIndex((f) => f.key == tag) == -1) {
       tagGroup.push({ key: tag, values: [] });
@@ -108,9 +108,9 @@ function createDiv(
     doc
       .getElementById(`${config.addonRef}-reader-div`)
       ?.parentElement?.remove();
-  const tags1 = groupByMap(relateTags(reader._item), (t) => t.tag);
+  const tags1 = groupBy(relateTags(reader._item), (t) => t.tag);
   includeTAGS(tags1);
-  tags1.sort(sortByTags);
+  tags1.sort(sortByTAGs);
   const annotations = params.ids
     ? reader._item.getAnnotations().filter((f) => params.ids.includes(f.key))
     : [];
@@ -316,10 +316,10 @@ function createAnnotationContextMenu(
   const annotations = reader._item
     .getAnnotations()
     .filter((f) => params.ids.includes(f.key));
-  const tags1 = groupByMap(
+  const tags1 = groupBy(
     annotations.flatMap((f) => f.getTags()),
     (t) => t.tag,
-  ).sort(sortByTags);
+  ).sort(sortByTAGs);
   const hasTags = tags1.map((f) => `${f.key}[${f.values.length}]`).join(",");
   const label = hasTags ? `添加标签，已有【${hasTags}】` : "添加标签";
   append({

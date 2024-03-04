@@ -14,11 +14,11 @@ export function uniqueBy<T>(
   }, {});
   return Object.values(o);
 } 
-export interface groupByMapResult<T> {
+export interface groupByResult<T> {
   key: string;
   values: T[];
 }
-export function groupByMap<T>(
+export function groupBy<T>(
   arr: T[],
   fn: (item: T) => string | number | symbol,
 ) {
@@ -29,7 +29,7 @@ export function groupByMap<T>(
     return { ...prev, [groupKey]: group };
   }, {});
   return Object.keys(g1).map(
-    (key) => ({ key, values: g1[key] }) as groupByMapResult<T>,
+    (key) => ({ key, values: g1[key] }) as groupByResult<T>,
   );
 }
 export function promiseAllWithProgress<T>(
@@ -63,7 +63,7 @@ export function getCollections(
     (a) => a.key,
   );
 }
-export function sortByTags(
+export function sortByTAGs(
   a: { key: string; values: any[] },
   b: { key: string; values: any[] },
 ) {

@@ -1,17 +1,15 @@
 import { config } from "../../package.json";
 import { ProgressWindowHelper } from "zotero-plugin-toolkit/dist/helpers/progressWindow";
+import { MenuitemOptions } from "zotero-plugin-toolkit/dist/managers/menu"; 
 import {
-  groupByMap,
+  groupBy,
   uniqueBy,
   getCollections,
   promiseAllWithProgress,
+  sortByTAGs,
 } from "../utils/zzlb";
-import { MenuitemOptions } from "zotero-plugin-toolkit/dist/managers/menu";
-import { sortByTags } from "../utils/zzlb";
 let popupWin: ProgressWindowHelper | undefined = undefined;
-popupWin = undefined;
-let popupTime = Date.now();
-
+let popupTime =-1;
 function isCollection(ev: Event) {
   const pid = (ev.target as HTMLElement)?.parentElement?.parentElement?.id;
   const isCollection = pid?.includes("collection") || false;
@@ -191,6 +189,7 @@ function createPopupWin({
   header = "整理笔记",
   lines: defaultLines = [],
 }: { closeTime?: number; header?: string; lines?: string[] } = {}) {
+  
   if (!popupWin || Date.now() - popupTime > closeTime) {
     popupTime = Date.now();
     popupWin = new ztoolkit.ProgressWindow(header, {
@@ -246,7 +245,7 @@ async function exportNote({
 
   annotations = await convertHtml(annotations, note);
   const getKeyGroup = (fn: (item: AnnotationRes) => string | number | symbol) =>
-    groupByMap(annotations, fn)
+    groupBy(annotations, fn)
       .sort((a, b) => b.values.length - a.values.length)
       .slice(0, 5)
       .map((t) => `${t.key}(${t.values.length})`)
@@ -266,8 +265,8 @@ ${txt}`,
 async function exportNoteByTag(isCollection = false) {
   return await exportNote({
     toText: (annotations) =>
-      groupByMap(annotations, (a) => a.tag.tag)
-        .sort(sortByTags)
+      groupBy(annotations, (a) => a.tag.tag)
+        .sort(sortByTAGs)
         .flatMap((tag) => {
           return [
             `<h1>${tag.key} (${tag.values.length})</h1>`,
@@ -281,12 +280,12 @@ async function exportNoteByTag(isCollection = false) {
 async function exportNoteByTagPdf(isCollection = false) {
   return await exportNote({
     toText: (annotations) =>
-      groupByMap(annotations, (a) => a.tag.tag)
-        .sort(sortByTags)
+      groupBy(annotations, (a) => a.tag.tag)
+        .sort(sortByTAGs)
         .flatMap((tag) => {
           return [
             `<h1>标签：${tag.key}  (${tag.values.length})</h1>`,
-            ...groupByMap(tag.values, (a) => "文件：" + a.pdfTitle).flatMap(
+            ...groupBy(tag.values, (a) => "文件：" + a.pdfTitle).flatMap(
               (pdfTitle) => [
                 `<h2>${pdfTitle.key}  (${pdfTitle.values.length})</h2>`,
                 ...pdfTitle.values.map((b) => `${b.html}`),
@@ -301,7 +300,7 @@ async function exportNoteByTagPdf(isCollection = false) {
 async function exportNoteOnlyImage(isCollection = false) {
   return await exportNote({
     toText: (annotations) =>
-      groupByMap(annotations, (a) => "文件：" + a.pdfTitle)
+      groupBy(annotations, (a) => "文件：" + a.pdfTitle)
         .flatMap((pdfTitle) => [
           `<h1>${pdfTitle.key}  (${pdfTitle.values.length})</h1>`,
           ...pdfTitle.values.flatMap((b) => [
