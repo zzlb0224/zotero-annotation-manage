@@ -10,14 +10,15 @@ import {
 } from "../utils/zzlb";
 let popupWin: ProgressWindowHelper | undefined = undefined;
 let popupTime = -1;
-function isCollection(ev: Event) {
-  const pid = (ev.target as HTMLElement)?.parentElement?.parentElement?.id;
-  const isCollection = pid?.includes("collection") || false;
-  return isCollection;
-}
+
 function register() {
   //图标根目录 zotero-annotation-manage\addon\chrome\content\icons
   const iconBaseUrl = `chrome://${config.addonRef}/content/icons/`;
+  function isCollection(ev: Event) {
+    const pid = (ev.target as HTMLElement)?.parentElement?.parentElement?.id;
+    const isCollection = pid?.includes("collection") || false;
+    return isCollection;
+  }
   const menu: MenuitemOptions = {
     tag: "menu",
     label: "导出笔记z",
@@ -52,17 +53,7 @@ function register() {
         label: "tag:量表",
         icon: iconBaseUrl + "favicon.png",
         commandListener: (ev) => {
-          exportNote({
-            filter: (ans) => ans.filter((f) => f.tag.tag == "量表"),
-            isCollection: isCollection(ev),
-            toText: (ans) =>
-              groupBy(ans, (a) => a.pdfTitle)
-                .flatMap((a) => [
-                  h1span(`标签：${a.key}  (${a.values.length})`, "h1"),
-                  a.values.map((b) => h1span(b.html, "span")).join("  "),
-                ])
-                .join("\n"),
-          });
+          exportNoteScale(isCollection(ev));
         },
       },
     ],
@@ -122,7 +113,7 @@ interface AnnotationRes {
   type: _ZoteroTypes.Annotations.AnnotationType;
   comment: string;
   itemTags: string;
-  tag: { tag: string; type: number };
+  tag: { tag: string; type: number }; //flatMap
   tags: { tag: string; type: number }[];
   html: string;
 }
@@ -168,13 +159,15 @@ function getAllAnnotations(items: Zotero.Item[]) {
               type,
               comment,
               itemTags,
-              tag: { tag: "未添加标签untagged", type: 0 },
+              tag: {
+                tag: "在filter使用flatMap之后才能用。例如：filter:(ans)=>ans.flatMap(an=>an.tags.map(tag=>Object.assign({},an,{tag})))",
+                type: 0,
+              },
               tags,
               annotationTags,
               html: "<span color='red'>等待转换：请调用convertHtml方法</span>",
             } as AnnotationRes;
-            if (tags.length == 0) return [o];
-            return tags.map((tag) => Object.assign({}, o, { tag }));
+            return o;
           });
         });
     });
@@ -226,6 +219,9 @@ function getTitleFromAnnotations(annotations: AnnotationRes[]) {
   const title = `注释 (${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}) ${itemsLength}-${annotationLength}`;
   return title;
 }
+function h1(txt: string, tag = "h1", attrs = "") {
+  return `<${tag} ${attrs}>${txt}</${tag}>`;
+}
 async function exportNote({
   toText,
   isCollection = false,
@@ -271,16 +267,16 @@ async function exportNote({
   const txt = toText(annotations);
   await saveNote(
     note,
-    `\n
-${getKeyGroup((f) => f.type)}\n
-${getKeyGroup((f) => f.color)}\n
-${getKeyGroup((f) => f.year)}\n
-${getKeyGroup((f) => f.tag.tag)}
-${txt}`,
+    h1(
+      getKeyGroup((f) => f.year),
+      "h2",
+    ) + txt,
   );
 }
-async function exportNoteByTag(isCollection = false) {
-  return await exportNote({
+function exportNoteByTag(isCollection: boolean = false) {
+  exportNote({
+    filter: (ans) =>
+      ans.flatMap((an) => an.tags.map((tag) => Object.assign({}, an, { tag }))),
     toText: (annotations) =>
       groupBy(annotations, (a) => a.tag.tag)
         .sort(sortByTAGs)
@@ -294,14 +290,16 @@ async function exportNoteByTag(isCollection = false) {
     isCollection,
   });
 }
-async function exportNoteByTagPdf(isCollection = false) {
-  return await exportNote({
+function exportNoteByTagPdf(isCollection: boolean = false) {
+  exportNote({
+    filter: (ans) =>
+      ans.flatMap((an) => an.tags.map((tag) => Object.assign({}, an, { tag }))),
     toText: (annotations) =>
       groupBy(annotations, (a) => a.tag.tag)
         .sort(sortByTAGs)
         .flatMap((tag) => {
           return [
-            h1span(`标签：${tag.key}  (${tag.values.length})`, "h1"),
+            h1(`标签：${tag.key}  (${tag.values.length})`, "h1"),
             ...groupBy(tag.values, (a) => "文件：" + a.pdfTitle).flatMap(
               (pdfTitle) => [
                 `<h2>${pdfTitle.key}  (${pdfTitle.values.length})</h2>`,
@@ -314,11 +312,9 @@ async function exportNoteByTagPdf(isCollection = false) {
     isCollection,
   });
 }
-function h1span(txt: string, tag = "h1", attrs = "") {
-  return `<${tag} ${attrs}>${txt}</${tag}>`;
-}
-async function exportNoteOnlyImage(isCollection = false) {
-  return await exportNote({
+
+function exportNoteOnlyImage(isCollection: boolean = false) {
+  exportNote({
     toText: (annotations) =>
       groupBy(annotations, (a) => "文件：" + a.pdfTitle)
         .flatMap((pdfTitle) => [
@@ -335,6 +331,17 @@ async function exportNoteOnlyImage(isCollection = false) {
       annotations = annotations.filter((f) => f.type == "image");
       return uniqueBy(annotations, (a) => a.ann.key);
     },
+  });
+}
+
+function exportNoteScale(isCollection: boolean = false) {
+  exportNote({
+    filter: (ans) => ans.filter((f) => f.tags.some((a) => a.tag == "量表")),
+    isCollection: isCollection,
+    toText: (ans) =>
+      groupBy(ans, (a) => a.pdfTitle)
+        .flatMap((a) => [h1(a.key, "h1"), a.values.map((b) => b.html).join("")])
+        .join(""),
   });
 }
 export default { register, unregister };
