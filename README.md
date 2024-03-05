@@ -1,5 +1,10 @@
 # Zotero的笔记整理
 
+## TODO
+
+1、增加配置页面
+2、增加更多的导出格式
+
 ## 注意
 
 - 需要安装 @windingwind的[BetterNotes](https://github.com/windingwind/zotero-better-notes/releases/) 才能使用导出功能。
