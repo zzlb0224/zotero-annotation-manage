@@ -71,7 +71,7 @@ function getLeftTop(temp4: HTMLElement, win: Window) {
   let left = 0;
   let top = 0;
   for (let i = 0; i < 15; i++) {
-    const tt = win.getComputedStyle(t1).getPropertyValue("transform");
+    const tf = win.getComputedStyle(t1).getPropertyValue("transform");
     //无法计算transform，不能准确定位
     ztoolkit.log(
       i,
@@ -82,10 +82,15 @@ function getLeftTop(temp4: HTMLElement, win: Window) {
     );
     left += t1.offsetLeft;
     top += t1.offsetTop;
-    // const m1 = new WebKitCSSMatrix(window.getComputedStyle(t1).getPropertyValue("transform"));
-    // left += t1.offsetLeft + m1.m41;
-    // top += t1.offsetTop + m1.m42;
-    // ztoolkit.log(i,  tt, t1.nodeName, t1);
+    const mat1 = new WebKitCSSMatrix(
+      window.getComputedStyle(t1).getPropertyValue("transform"),
+    );
+    const mat2 = new DOMMatrix(
+      window.getComputedStyle(t1).getPropertyValue("transform"),
+    );
+    // left += t1.offsetLeft + mat1.m41;
+    // top += t1.offsetTop + mat2.m42;
+    ztoolkit.log(i, tf, mat1, mat2, t1.nodeName, t1);
     if (!t1.parentElement || t1.nodeName == "HTML" || t1.nodeName == "BODY")
       break;
     t1 = t1.parentElement;
@@ -283,11 +288,11 @@ function renderTextSelectionPopup(
   //   event.params.annotation.tags,
   // );
   const div = createDiv(doc, reader, params);
-  // updateDivWidth(div, reader._window!);
+  updateDivWidth(div, reader._window!);
   append(div);
 }
 function updateDivWidth(div: HTMLElement, win: Window, n = 3) {
-  //todo 这样更新大小好像没起到效果。估计还要换个思路
+  //TODO 这样更新大小好像没起到效果。估计还要换个思路
   if (n < 0) return;
   if (!div.parentElement || div.ownerDocument == null) {
     setTimeout(() => updateDivWidth(div, win, n - 1), 1000);
@@ -302,8 +307,8 @@ function updateDivWidth(div: HTMLElement, win: Window, n = 3) {
   const centerX = div.clientWidth / 2 + d[0];
   if (centerX > 0) {
     const maxWidth = Math.min(centerX, d[2] - centerX) * 2 + "px";
-    div.style.setProperty("max-width", maxWidth);
-    div.style.maxWidth = maxWidth;
+    // div.style.setProperty("max-width", maxWidth);
+    // div.style.maxWidth = maxWidth;
     ztoolkit.log(div.style, centerX, centerX, d[2] - centerX, maxWidth);
   }
 }
