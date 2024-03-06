@@ -227,9 +227,13 @@ async function exportNote({
   isCollection = false,
   filter = undefined,
 }: {
-  toText: (arg0: AnnotationRes[]) => string;
+  toText:
+    | ((arg0: AnnotationRes[]) => string)
+    | ((arg0: AnnotationRes[]) => Promise<string>);
   isCollection?: boolean;
-  filter?: (arg0: AnnotationRes[]) => AnnotationRes[];
+  filter?:
+    | ((arg0: AnnotationRes[]) => AnnotationRes[])
+    | ((arg0: AnnotationRes[]) => Promise<AnnotationRes[]>);
 }) {
   createPopupWin();
 
@@ -243,7 +247,7 @@ async function exportNote({
   }
   let annotations = getAllAnnotations(items);
   if (filter) {
-    annotations = filter(annotations);
+    annotations = await filter(annotations);
   }
   if (annotations.length == 0) {
     popupWin
@@ -264,7 +268,8 @@ async function exportNote({
       .map((t) => `${t.key}(${t.values.length})`)
       .join("  ");
 
-  const txt = toText(annotations);
+  const txt = await toText(annotations);
+  ztoolkit.log("输出的html", txt);
   await saveNote(
     note,
     h1(
@@ -318,7 +323,7 @@ function exportNoteOnlyImage(isCollection: boolean = false) {
     toText: (annotations) =>
       groupBy(annotations, (a) => "文件：" + a.pdfTitle)
         .flatMap((pdfTitle) => [
-          `<h1>${pdfTitle.key}  (${pdfTitle.values.length})</h1>`,
+          `<h1>${pdfTitle.key} ${getCiteItemHtml(pdfTitle.values[0]?.item)}  (${pdfTitle.values.length})</h1>`,
           ...pdfTitle.values.flatMap((b) => [
             b.html
               ? b.html
@@ -333,15 +338,106 @@ function exportNoteOnlyImage(isCollection: boolean = false) {
     },
   });
 }
-
 function exportNoteScale(isCollection: boolean = false) {
   exportNote({
-    filter: (ans) => ans.filter((f) => f.tags.some((a) => a.tag == "量表")),
+    filter: async (ans) =>
+      ans.filter((f) => f.tags.some((a) => a.tag == "量表")),
     isCollection: isCollection,
     toText: (ans) =>
       groupBy(ans, (a) => a.pdfTitle)
-        .flatMap((a) => [h1(a.key, "h1"), a.values.map((b) => b.html).join("")])
+        .sort((a, b) => (a.key > b.key ? 1 : -1))
+        .flatMap((a, index) => [
+          h1(
+            `(${index + 1}) ` +
+              a.key +
+              getCiteItemHtmlWithPage(a.values[0].ann),
+            "h1",
+          ),
+          a.values
+            .map((b) =>
+              h1(
+                getCiteAnnotationHtml(
+                  b.ann,
+                  (
+                    b.ann.annotationComment ||
+                    b.ann.annotationText ||
+                    ""
+                  ).replace(/🔤/g, ""),
+                ),
+                "h2",
+              ),
+            )
+            .join(" "),
+        ])
         .join(""),
   });
 }
+
+function getCiteAnnotationHtml(annotation: Zotero.Item, text = "") {
+  const attachmentItem = annotation.parentItem;
+  if (!attachmentItem) return "";
+  const parentItem = attachmentItem.parentItem;
+  if (!parentItem) return "";
+  const color = annotation.annotationColor;
+  const pageLabel = annotation.annotationPageLabel;
+  const position = JSON.parse(annotation.annotationPosition);
+  const citationItem = getCitationItem(parentItem, pageLabel);
+  const storedAnnotation = {
+    attachmentURI: Zotero.URI.getItemURI(attachmentItem),
+    annotationKey: annotation.key,
+    color,
+    pageLabel,
+    position,
+    citationItem,
+  };
+  const formatted =
+    text ||
+    annotation.annotationComment ||
+    annotation.annotationText ||
+    "没有文本，没有内容。。。";
+  //class="highlight" 对应的内容必须有双引号 估计是Zotero.EditorInstanceUtilities._transformTextToHTML方法处理了这个
+  return `<span class="highlight" data-annotation="${encodeURIComponent(
+    JSON.stringify(storedAnnotation),
+  )}">"${formatted}"</span>
+   `;
+}
+function getCitationItem(parentItem?: Zotero.Item, pageLabel: string = "") {
+  if (!parentItem) return {};
+  // Note: integration.js` uses `Zotero.Cite.System.prototype.retrieveItem`,
+  // which produces a little bit different CSL JSON
+  // @ts-ignore Item
+  const itemData = Zotero.Utilities.Item.itemToCSLJSON(parentItem);
+  const uris = [Zotero.URI.getItemURI(parentItem)];
+  const citationItem = {
+    uris,
+    locator: pageLabel,
+    itemData,
+  };
+  return citationItem;
+}
+function getCiteItemHtmlWithPage(annotation: Zotero.Item, text: string = "") {
+  return getCiteItemHtml(
+    annotation.parentItem?.parentItem,
+    annotation.annotationPageLabel,
+    text,
+  );
+}
+function getCiteItemHtml(
+  parentItem?: Zotero.Item,
+  locator: string = "",
+  text: string = "",
+) {
+  if (!parentItem) return "";
+  const citationData = {
+    citationItems: [getCitationItem(parentItem, locator)],
+    properties: {},
+  };
+  const formatted = text
+    ? text
+    : Zotero.EditorInstanceUtilities.formatCitation(citationData);
+  return `<span class="citation" data-citation="${encodeURIComponent(
+    JSON.stringify(citationData),
+  )}">${formatted}</span>`;
+}
+
 export default { register, unregister };
