@@ -75,7 +75,9 @@ function unregister() {
 }
 
 async function saveNote(targetNoteItem: Zotero.Item, txt: string) {
-  await Zotero.BetterNotes.api.note.insert(targetNoteItem, txt, -1);
+  await Zotero.BetterNotes.api.note.insert(targetNoteItem, txt, -1); 
+  // const editor= await Zotero.BetterNotes.api.editor.getEditorInstance(targetNoteItem.id)
+  // await Zotero.BetterNotes.api.editor.replace(editor,0,1e3,txt)
   await targetNoteItem.saveTx();
   ztoolkit.log("笔记更新完成", new Date().toLocaleTimeString());
   popupWin
@@ -219,9 +221,10 @@ function getTitleFromAnnotations(annotations: AnnotationRes[]) {
   const title = `注释 (${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}) ${itemsLength}-${annotationLength}`;
   return title;
 }
-function h1(txt: string, tag = "h1", attrs = "") {
-  return `<${tag} ${attrs}>${txt}</${tag}>`;
-}
+
+// function h1(txt: string, tag = "h1", attrs = "") {
+//   return `<${tag} ${attrs}>${txt}</${tag}>`;
+// }
 async function exportNote({
   toText,
   isCollection = false,
@@ -257,9 +260,8 @@ async function exportNote({
   }
   const title = getTitleFromAnnotations(annotations);
   //createNote 一定要在 getSelectedItems 之后，不然获取不到选择的条目
-  const note = await createNote(title);
-  //createNote 会创建顶层条目触发另一个插件的 closeOtherProgressWindows
-
+  // 另一个问题是 会创建顶层条目触发另一个插件的 closeOtherProgressWindows
+  const note = await createNote(title); 
   annotations = await convertHtml(annotations, note);
   const getKeyGroup = (fn: (item: AnnotationRes) => string | number | symbol) =>
     groupBy(annotations, fn)
@@ -270,13 +272,7 @@ async function exportNote({
 
   const txt = await toText(annotations);
   ztoolkit.log("输出的html", txt);
-  await saveNote(
-    note,
-    h1(
-      getKeyGroup((f) => f.year),
-      "h2",
-    ) + txt,
-  );
+  await saveNote(note, `<h2>${getKeyGroup((f) => f.year)}</h2>\n${txt}`);
 }
 function exportNoteByTag(isCollection: boolean = false) {
   exportNote({
@@ -285,9 +281,9 @@ function exportNoteByTag(isCollection: boolean = false) {
     toText: (annotations) =>
       groupBy(annotations, (a) => a.tag.tag)
         .sort(sortByTAGs)
-        .flatMap((tag) => {
+        .flatMap((tag, index) => {
           return [
-            `<h1>${tag.key} (${tag.values.length})</h1>`,
+            `<h1>(${index + 1}) ${tag.key} (${tag.values.length})</h1>`,
             ...tag.values.map((b) => `${b.html}`),
           ];
         })
@@ -302,12 +298,12 @@ function exportNoteByTagPdf(isCollection: boolean = false) {
     toText: (annotations) =>
       groupBy(annotations, (a) => a.tag.tag)
         .sort(sortByTAGs)
-        .flatMap((tag) => {
+        .flatMap((tag, index) => {
           return [
-            h1(`标签：${tag.key}  (${tag.values.length})`, "h1"),
-            ...groupBy(tag.values, (a) => "文件：" + a.pdfTitle).flatMap(
-              (pdfTitle) => [
-                `<h2>${pdfTitle.key}  (${pdfTitle.values.length})</h2>`,
+            `<h1> (${index + 1}) 标签：${tag.key}  (${tag.values.length})</h1>`,
+            ...groupBy(tag.values, (a) => a.pdfTitle).flatMap(
+              (pdfTitle, index2) => [
+                `<h2> (${index + 1}.${index2 + 1}) ${tag.key} ${pdfTitle.key} (${pdfTitle.values.length})</h2>`,
                 ...pdfTitle.values.map((b) => `${b.html}`),
               ],
             ),
@@ -321,9 +317,9 @@ function exportNoteByTagPdf(isCollection: boolean = false) {
 function exportNoteOnlyImage(isCollection: boolean = false) {
   exportNote({
     toText: (annotations) =>
-      groupBy(annotations, (a) => "文件：" + a.pdfTitle)
-        .flatMap((pdfTitle) => [
-          `<h1>${pdfTitle.key} ${getCiteItemHtml(pdfTitle.values[0]?.item)}  (${pdfTitle.values.length})</h1>`,
+      groupBy(annotations, (a) => a.pdfTitle)
+        .flatMap((pdfTitle, index,aa) => [
+          `<h1> (${index + 1}/${aa.length}) ${pdfTitle.key} ${getCiteItemHtml(pdfTitle.values[0]?.item)}  (${pdfTitle.values.length})</h1>`,
           ...pdfTitle.values.flatMap((b) => [
             b.html
               ? b.html
@@ -346,27 +342,10 @@ function exportNoteScale(isCollection: boolean = false) {
     toText: (ans) =>
       groupBy(ans, (a) => a.pdfTitle)
         .sort((a, b) => (a.key > b.key ? 1 : -1))
-        .flatMap((a, index) => [
-          h1(
-            `(${index + 1}) ` +
-              a.key +
-              getCiteItemHtmlWithPage(a.values[0].ann),
-            "h1",
-          ),
+        .flatMap((a, index,aa) => [
+          `<h1>(${index + 1}/${aa.length}) ${a.key} ${getCiteItemHtmlWithPage(a.values[0].ann)}</h1>`,
           a.values
-            .map((b) =>
-              h1(
-                getCiteAnnotationHtml(
-                  b.ann,
-                  (
-                    b.ann.annotationComment ||
-                    b.ann.annotationText ||
-                    ""
-                  ).replace(/🔤/g, ""),
-                ),
-                "h2",
-              ),
-            )
+            .map((b) => `<h2>${getCiteAnnotationHtml(b.ann)}</h2>`)
             .join(" "),
         ])
         .join(""),
@@ -399,7 +378,7 @@ function getCiteAnnotationHtml(annotation: Zotero.Item, text = "") {
   return `<span class="highlight" data-annotation="${encodeURIComponent(
     JSON.stringify(storedAnnotation),
   )}">"${formatted}"</span>
-   `;
+  `;
 }
 function getCitationItem(parentItem?: Zotero.Item, pageLabel: string = "") {
   if (!parentItem) return {};
