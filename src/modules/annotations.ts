@@ -172,10 +172,11 @@ function createDiv(
         padding: "2px",
         background: TAGS.includes(label.key) ? color : "",
         // fontSize: ((label.count-min)/(max-min)*10+15).toFixed()+ "px",
-        fontSize: Zotero.Prefs.get(
-          `extensions.zotero.ZoteroPDFTranslate.fontSize`,
-          true,
-        )+"px",
+        fontSize:
+          Zotero.Prefs.get(
+            `extensions.zotero.ZoteroPDFTranslate.fontSize`,
+            true,
+          ) + "px",
         boxShadow: "#999999 0px 0px 3px 3px",
       },
       listeners: [
