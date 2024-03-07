@@ -295,7 +295,7 @@ function createDiv(
     styles,
     children: children,
     //
-  });
+  } as any);
   ztoolkit.log(
     "params",
     params?.x,
