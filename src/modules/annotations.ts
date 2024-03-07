@@ -175,7 +175,7 @@ function createDiv(
         fontSize: Zotero.Prefs.get(
           `extensions.zotero.ZoteroPDFTranslate.fontSize`,
           true,
-        ),
+        )+"px",
         boxShadow: "#999999 0px 0px 3px 3px",
       },
       listeners: [
