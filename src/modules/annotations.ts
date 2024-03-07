@@ -1,3 +1,8 @@
+import {
+  ElementProps,
+  FragmentElementProps,
+  HTMLElementProps,
+} from "zotero-plugin-toolkit/dist/tools/ui";
 import { config } from "../../package.json";
 import {
   ANNOTATION_COLORS,
@@ -67,36 +72,58 @@ function includeTAGS<T>(tagGroup: groupByResult<T>[]) {
   return tagGroup;
 }
 function getLeftTop(temp4: HTMLElement, win: Window) {
-  let t1 = temp4;
-  let left = 0;
-  let top = 0;
-  for (let i = 0; i < 15; i++) {
-    const tf = win.getComputedStyle(t1).getPropertyValue("transform");
-    //无法计算transform，不能准确定位
-    ztoolkit.log(
-      i,
-      "计算transform",
-      t1,
-      t1.style.transform,
-      win.getComputedStyle(t1).getPropertyValue("transform"),
-    );
-    left += t1.offsetLeft;
-    top += t1.offsetTop;
-    const mat1 = new WebKitCSSMatrix(
-      window.getComputedStyle(t1).getPropertyValue("transform"),
-    );
-    const mat2 = new DOMMatrix(
-      window.getComputedStyle(t1).getPropertyValue("transform"),
-    );
-    // left += t1.offsetLeft + mat1.m41;
-    // top += t1.offsetTop + mat2.m42;
-    ztoolkit.log(i, tf, mat1, mat2, t1.nodeName, t1);
-    if (!t1.parentElement || t1.nodeName == "HTML" || t1.nodeName == "BODY")
-      break;
-    t1 = t1.parentElement;
+  try {
+    let t1 = temp4;
+    let left = 0;
+    let top = 0;
+    for (let i = 0; i < 15; i++) {
+      // const tf = win.getComputedStyle(t1).getPropertyValue("transform");
+      //无法计算transform，不能准确定位
+      // ztoolkit.log(
+      //   "getLeftTop",
+      //   i,
+      //   "计算transform",
+      //   t1,
+      //   t1.style,
+      //   t1.getAttribute("style"),
+      //   tf,
+      // );
+
+      for (const k in t1.style) {
+        const v = t1.style[k];
+        if (k == "transform" && v) {
+          ("translate(26.0842px, 108.715px)");
+          const vv = "translate(26.0842px, 108.715px)"
+            .split(/[(),]/)
+            .map((a) => parseFloat(a));
+          left += vv[1];
+          top += vv[2];
+          // ztoolkit.log("正在计算", `new WebKitCSSMatrix("${v}")`);
+          // const d= new WebKitCSSMatrix(v)
+          // ztoolkit.log("getLeftTop",k,v, d)
+        }
+      }
+
+      left += t1.offsetLeft;
+      top += t1.offsetTop;
+      //  ztoolkit.log("getLeftTop",tran);
+      // const mat1 = new WebKitCSSMatrix(tran,
+      // );
+      // const mat2 = new DOMMatrix(tran,
+      // );
+      // left += t1.offsetLeft + mat1.m41;
+      // top += t1.offsetTop + mat2.m42;
+      // ztoolkit.log("getLeftTop",i, tf,  mat2, t1.nodeName, t1);
+      if (!t1.parentElement || t1.nodeName == "HTML" || t1.nodeName == "BODY")
+        break;
+      t1 = t1.parentElement;
+    }
+    const viewer = t1.querySelector("#primary-view iframe");
+    return [left, top, viewer?.clientWidth || 0, viewer?.clientHeight || 0];
+  } catch (error) {
+    ztoolkit.log("无法计算", error);
+    return false;
   }
-  const viewer = t1.querySelector("#primary-view iframe");
-  return [left, top, viewer?.clientWidth || 0, viewer?.clientHeight || 0];
 }
 function createDiv(
   doc: Document,
@@ -145,7 +172,10 @@ function createDiv(
         padding: "2px",
         background: TAGS.includes(label.key) ? color : "",
         // fontSize: ((label.count-min)/(max-min)*10+15).toFixed()+ "px",
-        fontSize: "20px",
+        fontSize: Zotero.Prefs.get(
+          `extensions.zotero.ZoteroPDFTranslate.fontSize`,
+          true,
+        ),
         boxShadow: "#999999 0px 0px 3px 3px",
       },
       listeners: [
@@ -193,7 +223,7 @@ function createDiv(
         },
       ],
     };
-  });
+  }) as FragmentElementProps;
   const styleForExistAnno = {
     zIndex: "99990",
     position: "fixed",
@@ -236,6 +266,24 @@ function createDiv(
     //   maxWidth = 444 * zoom;
     // }
   }
+  const styles = Object.assign(
+    {
+      display: "flex",
+      flexDirection: "row",
+      flexWrap: "wrap",
+      padding: "2px 5px",
+      marginLeft: "2px",
+      // width: "calc(100% - 4px)",
+      maxWidth: maxWidth + "px",
+      justifyContent: "space-start",
+      background: "#eeeeee",
+      border: "#cc9999",
+      // boxShadow: "#666666 0px 0px 6px 4px",
+      overflowY: "scroll",
+      maxHeight: "400px",
+    },
+    params.ids ? styleForExistAnno : {},
+  );
   const div = ztoolkit.UI.createElement(doc, "div", {
     namespace: "html",
     id: `${config.addonRef}-reader-div`,
@@ -243,25 +291,9 @@ function createDiv(
     properties: {
       tabIndex: -1,
     },
-    styles: Object.assign(
-      {
-        display: "flex",
-        flexDirection: "row",
-        flexWrap: "wrap",
-        padding: "2px 5px",
-        marginLeft: "2px",
-        // width: "calc(100% - 4px)",
-        maxWidth: maxWidth + "px",
-        justifyContent: "space-start",
-        background: "#eeeeee",
-        border: "#cc9999",
-        // boxShadow: "#666666 0px 0px 6px 4px",
-        overflowY: "scroll",
-        maxHeight: "400px",
-      },
-      params.ids ? styleForExistAnno : {},
-    ),
+    styles,
     children: children,
+    //
   });
   ztoolkit.log(
     "params",
@@ -299,17 +331,26 @@ function updateDivWidth(div: HTMLElement, win: Window, n = 3) {
     return;
   }
   const d = getLeftTop(div, win);
-  // ztoolkit.log( div.clientWidth,d,n)
-  if (!d[2]) {
+
+  // ztoolkit.log(div.clientWidth, d, n);
+  if (!d || !d[2]) {
     setTimeout(() => updateDivWidth(div, win, n - 1), 1000);
     return;
   }
   const centerX = div.clientWidth / 2 + d[0];
   if (centerX > 0) {
     const maxWidth = Math.min(centerX, d[2] - centerX) * 2 + "px";
-    // div.style.setProperty("max-width", maxWidth);
-    // div.style.maxWidth = maxWidth;
-    ztoolkit.log(div.style, centerX, centerX, d[2] - centerX, maxWidth);
+    div.style.setProperty("max-width", maxWidth);
+    div.style.maxWidth = maxWidth;
+    ztoolkit.log(
+      "updateDivWidth",
+      div.style,
+      centerX,
+      centerX,
+      d[2] - centerX,
+      maxWidth,
+      n,
+    );
   }
 }
 function createAnnotationContextMenu(
