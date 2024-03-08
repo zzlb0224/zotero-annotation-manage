@@ -71,36 +71,23 @@ function includeTAGS<T>(tagGroup: groupByResult<T>[]) {
   });
   return tagGroup;
 }
-function getLeftTop(temp4: HTMLElement, win: Window) {
+function getLeftTop(temp4: HTMLElement) {
   try {
     let t1 = temp4;
     let left = 0;
     let top = 0;
-    for (let i = 0; i < 15; i++) {
-      // const tf = win.getComputedStyle(t1).getPropertyValue("transform");
-      //无法计算transform，不能准确定位
-      // ztoolkit.log(
-      //   "getLeftTop",
-      //   i,
-      //   "计算transform",
-      //   t1,
-      //   t1.style,
-      //   t1.getAttribute("style"),
-      //   tf,
-      // );
-
+    const width = temp4.clientWidth
+    const height = temp4.clientHeight
+    for (let i = 0; i < 15; i++) {     
       for (const k in t1.style) {
         const v = t1.style[k];
         if (k == "transform" && v) {
           ("translate(26.0842px, 108.715px)");
-          const vv = "translate(26.0842px, 108.715px)"
+          const translateLeftTop = v// "translate(26.0842px, 108.715px)"
             .split(/[(),]/)
             .map((a) => parseFloat(a));
-          left += vv[1];
-          top += vv[2];
-          // ztoolkit.log("正在计算", `new WebKitCSSMatrix("${v}")`);
-          // const d= new WebKitCSSMatrix(v)
-          // ztoolkit.log("getLeftTop",k,v, d)
+          left += translateLeftTop[1];
+          top += translateLeftTop[2];         
         }
       }
 
@@ -118,8 +105,9 @@ function getLeftTop(temp4: HTMLElement, win: Window) {
         break;
       t1 = t1.parentElement;
     }
-    const viewer = t1.querySelector("#primary-view iframe");
-    return [left, top, viewer?.clientWidth || 0, viewer?.clientHeight || 0];
+    const viewer = t1.querySelector("#primary-view iframe")||{} as any;
+    const { clientWidth, clientHeight } = viewer;
+    return { left, top,width,height, clientWidth, clientHeight };
   } catch (error) {
     ztoolkit.log("无法计算", error);
     return false;
@@ -296,19 +284,17 @@ function createDiv(
     children: children,
     //
   } as any);
-  ztoolkit.log(
-    "params",
-    params?.x,
-    params.annotation?.position?.rects[0],
+  const { x, y } = params;
+  const rect = params.annotation?.position?.rects;
+  ztoolkit.log("params", {
+    x,
+    y,
     clientWidthWithSlider,
     clientWidth2,
-    "maxWidth",
     maxWidth,
-    styleForExistAnno,
     zoom,
     centerX,
-    clientWidth2 - centerX,
-  );
+  });
   return div;
 }
 function renderTextSelectionPopup(
@@ -321,36 +307,34 @@ function renderTextSelectionPopup(
   //   event.params.annotation.tags,
   // );
   const div = createDiv(doc, reader, params);
-  updateDivWidth(div, reader._window!);
+  setTimeout(()=>updateDivWidth(div),1000) 
   append(div);
 }
-function updateDivWidth(div: HTMLElement, win: Window, n = 3) {
+function updateDivWidth(div: HTMLElement,  n = 3) {
   //TODO 这样更新大小好像没起到效果。估计还要换个思路
   if (n < 0) return;
   if (!div.parentElement || div.ownerDocument == null) {
-    setTimeout(() => updateDivWidth(div, win, n - 1), 1000);
+    setTimeout(() => updateDivWidth(div, n - 1), 1000);
     return;
   }
-  const d = getLeftTop(div, win);
+  const leftTop = getLeftTop(div);
 
   // ztoolkit.log(div.clientWidth, d, n);
-  if (!d || !d[2]) {
-    setTimeout(() => updateDivWidth(div, win, n - 1), 1000);
+  if (!leftTop || !leftTop.clientWidth) {
+    setTimeout(() => updateDivWidth(div,  n - 1), 1000);
     return;
   }
-  const centerX = div.clientWidth / 2 + d[0];
+  const centerX = div.clientWidth / 2 + leftTop.left;
   if (centerX > 0) {
-    const maxWidth = Math.min(centerX, d[2] - centerX) * 2 + "px";
+    const maxWidth =
+      Math.min(centerX, leftTop.clientWidth - centerX) * 2 + "px";
     div.style.setProperty("max-width", maxWidth);
     div.style.maxWidth = maxWidth;
     ztoolkit.log(
       "updateDivWidth",
-      div.style,
-      centerX,
-      centerX,
-      d[2] - centerX,
-      maxWidth,
-      n,
+      // div.style,
+      { centerX, maxWidth, n },
+      leftTop,
     );
   }
 }
