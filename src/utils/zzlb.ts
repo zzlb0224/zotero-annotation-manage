@@ -1,3 +1,5 @@
+import { getPref } from "./prefs";
+
 /* unique 采用set的比较方式*/
 export function unique<T>(arr: T[]) {
   return [...new Set(arr)];
@@ -78,22 +80,29 @@ export function sortByTAGs(
   }
   return b.values.length - a.values.length + (b.key > a.key ? -0.5 : 0.5);
 }
-export const TAGS = [
-  "目的",
-  "假设",
-  "框架",
-  "数据",
-  "量表",
-  "方法",
-  "理论",
-  "结论",
-  "贡献",
-  "不足",
-  "背景",
-  "现状",
-  "问题",
-  "对策",
-];
+const prefTags = ((getPref("tags") as string) || "")
+  .split(",")
+  .map((a) => a.trim())
+  .filter((f) => f);
+export const TAGS =
+  prefTags && prefTags.length > 0
+    ? prefTags
+    : [
+        "目的",
+        "假设",
+        "框架",
+        "数据",
+        "量表",
+        "方法",
+        "理论",
+        "结论",
+        "贡献",
+        "不足",
+        "背景",
+        "现状",
+        "问题",
+        "对策",
+      ];
 export const ANNOTATION_COLORS = [
   "#ffd400",
   "#ff6666",

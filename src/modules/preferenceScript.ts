@@ -1,5 +1,7 @@
 import { config } from "../../package.json";
 import { getString } from "../utils/locale";
+import { getPref, setPref } from "../utils/prefs";
+import { TAGS } from "../utils/zzlb";
 
 export async function registerPrefsScripts(_window: Window) {
   // This function is called when the prefs window is opened
@@ -47,6 +49,19 @@ async function updatePrefsUI() {
   // Or bind some events to the elements
   const renderLock = ztoolkit.getGlobal("Zotero").Promise.defer();
   if (addon.data.prefs?.window == undefined) return;
+  const doc = addon.data.prefs.window?.document;
+  if (!doc) {
+    return;
+  }
+  // const tags =  doc.querySelector(`${config.addonRef}-tags`) as HTMLInputElement
+  // if(tags)
+  // {
+  // tags.value = getPref("tags") as string +"load"
+  // tags.addEventListener("change", (e: Event) => {
+  //     ztoolkit.log(e)
+  //   })
+  // }
+
   const tableHelper = new ztoolkit.VirtualizedTable(addon.data.prefs?.window)
     .setContainerId(`${config.addonRef}-table-container`)
     .setProp({
@@ -112,10 +127,21 @@ function bindPrefEvents() {
       `#zotero-prefpane-${config.addonRef}-enable`,
     )
     ?.addEventListener("command", (e) => {
-      ztoolkit.log(e);
-      addon.data.prefs!.window.alert(
-        `Successfully changed to ${(e.target as XUL.Checkbox).checked}!`,
-      );
+      ztoolkit.log(e, getPref("tags"));
+      // addon.data.prefs!.window.alert(
+      //   `Successfully changed to ${(e.target as XUL.Checkbox).checked}!`,
+      // );
+    });
+
+  addon.data
+    .prefs!.window.document.querySelector(
+      `#zotero-prefpane-${config.addonRef}-tags`,
+    )
+    ?.addEventListener("change", (e) => {
+      ztoolkit.log(e, getPref("tags"));
+      // addon.data.prefs!.window.alert(
+      //   `Successfully changed to ${(e.target as HTMLInputElement).value}!`,
+      // );
     });
 
   addon.data
@@ -123,9 +149,17 @@ function bindPrefEvents() {
       `#zotero-prefpane-${config.addonRef}-input`,
     )
     ?.addEventListener("change", (e) => {
-      ztoolkit.log(e);
+      ztoolkit.log(e, getPref("tags"));
       addon.data.prefs!.window.alert(
         `Successfully changed to ${(e.target as HTMLInputElement).value}!`,
       );
     });
+}
+export async function setDefaultPrefSettings() {
+  if (!getPref("tags")) {
+    setPref("tags", TAGS.join(","));
+  }
+  if (getPref("exportenable") == "") {
+    setPref("exportenable", true);
+  }
 }

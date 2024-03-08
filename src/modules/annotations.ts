@@ -12,7 +12,9 @@ import {
   groupBy,
   groupByResult,
 } from "../utils/zzlb";
+import { getPref } from "../utils/prefs";
 function register() {
+  if (!getPref("enable")) return;
   // ztoolkit.UI.basicOptions.log.disableZLog = true;
   ztoolkit.log("Annotations register");
   Zotero.Reader.registerEventListener(
