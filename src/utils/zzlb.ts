@@ -69,56 +69,51 @@ export function sortByTAGs(
   a: { key: string; values: any[] },
   b: { key: string; values: any[] },
 ) {
-  if (TAGS.includes(a.key) && TAGS.includes(b.key)) {
-    return TAGS.indexOf(a.key) - TAGS.indexOf(b.key);
+  const tags = getTags();
+  if (tags.includes(a.key) && tags.includes(b.key)) {
+    return tags.indexOf(a.key) - tags.indexOf(b.key);
   }
-  if (TAGS.includes(a.key)) {
+  if (tags.includes(a.key)) {
     return -1;
   }
-  if (TAGS.includes(b.key)) {
+  if (tags.includes(b.key)) {
     return 1;
   }
   return b.values.length - a.values.length + (b.key > a.key ? -0.5 : 0.5);
 }
-const prefTags = ((getPref("tags") as string) || "")
-  .split(",")
-  .map((a) => a.trim())
-  .filter((f) => f);
-export const TAGS =
-  prefTags && prefTags.length > 0
+
+export function getTags() {
+  const prefTags = ((getPref("tags") as string) || "")
+    .split(",")
+    .map((a) => a.trim())
+    .filter((f) => f);
+  return prefTags && prefTags.length > 0
     ? prefTags
-    : [
-        "目的",
-        "假设",
-        "框架",
-        "数据",
-        "量表",
-        "方法",
-        "理论",
-        "结论",
-        "贡献",
-        "不足",
-        "背景",
-        "现状",
-        "问题",
-        "对策",
-      ];
-export const ANNOTATION_COLORS = [
+    : "目的,假设,框架,数据,量表,方法,理论,结论,贡献,不足,背景,现状,问题,对策".split(
+        ",",
+      );
+}
+export function getColors() {
+  const tags = getTags();
+  return Array.from({
+    length: tags.length / ANNOTATION_COLORS.length + 1,
+  }).flatMap((a) => ANNOTATION_COLORS);
+}
+
+export function getColor(tag: string) {
+  const tags = getTags();
+  if (tags.includes(tag)) {
+    return getColors()[tags.indexOf(tag)];
+  }
+  return "";
+}
+const ANNOTATION_COLORS = [
   "#ffd400",
   "#ff6666",
   "#5fb236",
   "#2ea8e5",
   "#a28ae5",
   "#e56eee",
-  "#ffd400",
-  "#ff6666",
-  "#5fb236",
-  "#2ea8e5",
-  "#a28ae5",
-  "#e56eee",
-  "#ffd400",
-  "#ff6666",
-  //
   "#f19837",
   "#aaaaaa",
 ];

@@ -2,12 +2,13 @@ pref-title = Addon Template Example
 pref-enable =
     .label = Enable 
 
-pref-tagslabel =TAGS
-pref-tags =
-    .label = TAGS
+pref-input = this is a input
+pref-tagsLabel = TAGS
 
-pref-exporttitle = 输出笔记
-pref-exportenable =
-    .label = 开启   
+pref-selectedCollection = 
+    .label = relate tags in selected collection
+pref-currentCollection = 
+    .label = relate tags in current collection
+
 
 pref-help = { $name } Build { $version } { $time }

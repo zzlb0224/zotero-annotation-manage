@@ -5,16 +5,16 @@ import {
 } from "zotero-plugin-toolkit/dist/tools/ui";
 import { config } from "../../package.json";
 import {
-  ANNOTATION_COLORS,
-  TAGS,
   getCollections,
   sortByTAGs,
   groupBy,
   groupByResult,
+  getTags,
+  getColors,
 } from "../utils/zzlb";
 import { getPref } from "../utils/prefs";
 function register() {
-  if (!getPref("enable")) return;
+  // if (!getPref("enable")) return;
   // ztoolkit.UI.basicOptions.log.disableZLog = true;
   ztoolkit.log("Annotations register");
   Zotero.Reader.registerEventListener(
@@ -38,18 +38,29 @@ function unregister() {
   );
 }
 function relateTags(item: Zotero.Item) {
+  const allCollectionIds: number[] = [];
   const recursiveCollections = !!Zotero.Prefs.get("recursiveCollections");
-  const cid = ZoteroPane.getSelectedCollection(true);
-  const collectionIds = item.parentItem
-    ? item.parentItem.getCollections()
-    : item.getCollections();
-  const currCollections = Zotero.Collections.get(
-    cid ? [cid, ...collectionIds] : collectionIds,
-  ) as Zotero.Collection[];
-  const collections = recursiveCollections
-    ? getCollections(currCollections)
-    : currCollections;
-  return getTagsInCollections(collections);
+
+  if (getPref("selectedCollection")) {
+    const selectedCollectionId = ZoteroPane.getSelectedCollection(true);
+    if (selectedCollectionId) allCollectionIds.push(selectedCollectionId);
+  }
+  if (getPref("currentCollection")) {
+    const currentCollectionIds = item.parentItem
+      ? item.parentItem.getCollections()
+      : item.getCollections();
+    allCollectionIds.push(...currentCollectionIds);
+  }
+  if (allCollectionIds.length > 0) {
+    const allCollections = Zotero.Collections.get(
+      allCollectionIds,
+    ) as Zotero.Collection[];
+    const collections = recursiveCollections
+      ? getCollections(allCollections)
+      : allCollections;
+    return getTagsInCollections(collections);
+  }
+  return [];
 }
 function getTagsInCollections(collections: Zotero.Collection[]) {
   const pdfIds = collections
@@ -66,12 +77,32 @@ function getTagsInCollections(collections: Zotero.Collection[]) {
   return tags;
 }
 function includeTAGS<T>(tagGroup: groupByResult<T>[]) {
-  TAGS.forEach((tag) => {
+  getTags().forEach((tag) => {
     if (tagGroup.findIndex((f) => f.key == tag) == -1) {
       tagGroup.push({ key: tag, values: [] });
     }
   });
   return tagGroup;
+}
+function getTranslate(t1: HTMLElement) {
+  for (const k in t1.style) {
+    const v = t1.style[k];
+    if (k == "transform" && v) {
+      //没有附加到Dom无法调用 new WebKitCSSMatrix，只能这样使用
+      ("translate(26.0842px, 108.715px)");
+      const translateLeftTop = v.match(
+        /translate[(]([\d.]*)px,\s?([\d.]*)px[)]/,
+      );
+      //['translate(26.0842px, 108.715px)', '26.0842', '108.715', index: 0, input: 'translate(26.0842px, 108.715px)', groups: undefined]
+      if (translateLeftTop && translateLeftTop.length > 2) {
+        return {
+          x: parseFloat(translateLeftTop[1]),
+          y: parseFloat(translateLeftTop[2]),
+        };
+      }
+    }
+  }
+  return { x: 0, y: 0 };
 }
 function getLeftTop(temp4: HTMLElement) {
   try {
@@ -81,29 +112,15 @@ function getLeftTop(temp4: HTMLElement) {
     const width = temp4.clientWidth;
     const height = temp4.clientHeight;
     while (t1) {
-      for (const k in t1.style) {
-        const v = t1.style[k];
-        if (k == "transform" && v) {
-          //没有附加到Dom无法调用 new WebKitCSSMatrix，只能这样使用
-          ("translate(26.0842px, 108.715px)");
-          const translateLeftTop = v.match(
-            /translate[(]([\d.]*)px,\s?([\d.]*)px[)]/,
-          );
-          //['translate(26.0842px, 108.715px)', '26.0842', '108.715', index: 0, input: 'translate(26.0842px, 108.715px)', groups: undefined]
-          if (translateLeftTop && translateLeftTop.length > 2) {
-            left += parseFloat(translateLeftTop[1]);
-            top += parseFloat(translateLeftTop[2]);
-          }
-        }
-      }
+      const ts = getTranslate(t1);
+      left += ts.x;
+      top += ts.y;
       left += t1.offsetLeft;
       top += t1.offsetTop;
-      if (!t1.parentElement || t1.nodeName == "HTML" || t1.nodeName == "BODY")
-        break;
+      if (!t1.parentElement || t1.className == "primary") break;
       t1 = t1.parentElement;
     }
-    const viewer = t1.querySelector("#primary-view iframe") || ({} as any);
-    const { clientWidth, clientHeight } = viewer;
+    const { clientWidth, clientHeight } = t1;
     return { left, top, width, height, clientWidth, clientHeight };
   } catch (error) {
     ztoolkit.log("无法计算", error);
@@ -126,7 +143,9 @@ function createDiv(
     doc
       .getElementById(`${config.addonRef}-reader-div`)
       ?.parentElement?.remove();
-  const tags1 = groupBy(relateTags(reader._item), (t) => t.tag);
+  const tags1 = getPref("relateTags")
+    ? groupBy(relateTags(reader._item), (t) => t.tag)
+    : [];
   includeTAGS(tags1);
   tags1.sort(sortByTAGs);
   const annotations = params.ids
@@ -142,8 +161,9 @@ function createDiv(
       "/" +
       annotations.length;
     let color = "#f19837";
-    if (TAGS.includes(label.key)) {
-      color = ANNOTATION_COLORS[TAGS.indexOf(label.key)];
+    const tags = getTags();
+    if (tags.includes(label.key)) {
+      color = getColors()[tags.indexOf(label.key)];
     }
     return {
       tag: "span",
@@ -155,7 +175,7 @@ function createDiv(
       styles: {
         margin: "2px",
         padding: "2px",
-        background: TAGS.includes(label.key) ? color : "",
+        background: tags.includes(label.key) ? color : "",
         // fontSize: ((label.count-min)/(max-min)*10+15).toFixed()+ "px",
         fontSize:
           Zotero.Prefs.get(
@@ -323,8 +343,8 @@ function updateDivWidth(div: HTMLElement, n = 3) {
   if (centerX > 0) {
     const maxWidth =
       Math.min(centerX, leftTop.clientWidth - centerX) * 2 + "px";
-    // div.style.setProperty("max-width", maxWidth);
-    // div.style.maxWidth = maxWidth;
+    div.style.setProperty("max-width", maxWidth);
+    div.style.maxWidth = maxWidth;
     ztoolkit.log(
       "updateDivWidth",
       // div.style,
@@ -359,4 +379,4 @@ function createAnnotationContextMenu(
     },
   });
 }
-export default { TAGS, register, unregister };
+export default { register, unregister };

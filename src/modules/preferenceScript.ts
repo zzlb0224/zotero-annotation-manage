@@ -1,7 +1,7 @@
 import { config } from "../../package.json";
 import { getString } from "../utils/locale";
 import { getPref, setPref } from "../utils/prefs";
-import { TAGS } from "../utils/zzlb";
+import { getColor, getTags } from "../utils/zzlb";
 
 export async function registerPrefsScripts(_window: Window) {
   // This function is called when the prefs window is opened
@@ -42,6 +42,44 @@ export async function registerPrefsScripts(_window: Window) {
   updatePrefsUI();
   bindPrefEvents();
 }
+function replaceElement(doc: Document) {
+  const id = `zotero-prefpane-${config.addonRef}-coloredTags`;
+  ztoolkit.UI.replaceElement(
+    {
+      tag: "div",
+      id,
+      attributes: {
+        value: getPref("translateSource") as string,
+        native: "true",
+      },
+      children: [
+        {
+          tag: "div",
+          styles: {
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "flex-start",
+            flexWrap: "wrap",
+          },
+          children: getTags().map((tag) => ({
+            tag: "label",
+            properties: {
+              innerText: tag,
+              TextContent: tag,
+            },
+            styles: {
+              background: getColor(tag),
+              padding: "5px",
+              margin: "5px 0",
+            },
+          })),
+        },
+      ],
+    },
+    doc.getElementById(id)!,
+  );
+  // if(ele)ele.id=id
+}
 
 async function updatePrefsUI() {
   // You can initialize some UI elements on prefs window
@@ -53,6 +91,8 @@ async function updatePrefsUI() {
   if (!doc) {
     return;
   }
+  replaceElement(doc);
+
   // const tags =  doc.querySelector(`${config.addonRef}-tags`) as HTMLInputElement
   // if(tags)
   // {
@@ -139,6 +179,8 @@ function bindPrefEvents() {
     )
     ?.addEventListener("change", (e) => {
       ztoolkit.log(e, getPref("tags"));
+
+      replaceElement(addon.data.prefs!.window.document);
       // addon.data.prefs!.window.alert(
       //   `Successfully changed to ${(e.target as HTMLInputElement).value}!`,
       // );
@@ -157,9 +199,12 @@ function bindPrefEvents() {
 }
 export async function setDefaultPrefSettings() {
   if (!getPref("tags")) {
-    setPref("tags", TAGS.join(","));
+    setPref("tags", getTags().join(","));
   }
-  if (getPref("exportenable") == "") {
-    setPref("exportenable", true);
+  if (getPref("currentCollection") == undefined) {
+    setPref("currentCollection", true);
+  }
+  if (getPref("selectedCollection") == undefined) {
+    setPref("selectedCollection", true);
   }
 }

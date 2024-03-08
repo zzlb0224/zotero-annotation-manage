@@ -13,7 +13,7 @@ let popupWin: ProgressWindowHelper | undefined = undefined;
 let popupTime = -1;
 
 function register() {
-  if (!getPref("exportenable")) return;
+  // if (!getPref("exportenable")) return;
   //图标根目录 zotero-annotation-manage\addon\chrome\content\icons
   const iconBaseUrl = `chrome://${config.addonRef}/content/icons/`;
   function isCollection(ev: Event) {
