@@ -285,7 +285,12 @@ function createDiv(
         scaleFactor) /
         2 +
       pageLeft;
-    maxWidth = Math.min(centerX, clientWidthWithoutSlider - centerX) * 2 - 23;
+    maxWidth =
+      Math.min(
+        centerX * 2,
+        (clientWidthWithoutSlider - centerX) * 2,
+        clientWidthWithoutSlider,
+      ) - 23;
   }
   //样式应该加到css中，但是不会
   const styles = Object.assign(
