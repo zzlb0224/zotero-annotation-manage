@@ -290,7 +290,7 @@ function createDiv(
         centerX * 2,
         (clientWidthWithoutSlider - centerX) * 2,
         clientWidthWithoutSlider,
-      ) - 23;
+      ) * 0.9;
   }
   //样式应该加到css中，但是不会
   const styles = Object.assign(
