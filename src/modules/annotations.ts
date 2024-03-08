@@ -5,12 +5,13 @@ import {
 } from "zotero-plugin-toolkit/dist/tools/ui";
 import { config } from "../../package.json";
 import {
-  getCollections,
   sortByTAGs,
   groupBy,
   groupByResult,
   getTags,
   getColors,
+  getChildCollections,
+  uniqueBy,
 } from "../utils/zzlb";
 import { getPref } from "../utils/prefs";
 function register() {
@@ -51,14 +52,19 @@ function relateTags(item: Zotero.Item) {
       : item.getCollections();
     allCollectionIds.push(...currentCollectionIds);
   }
+  ztoolkit.log(
+    allCollectionIds,
+    getPref("selectedCollection"),
+    getPref("currentCollection"),
+  );
   if (allCollectionIds.length > 0) {
     const allCollections = Zotero.Collections.get(
       allCollectionIds,
     ) as Zotero.Collection[];
     const collections = recursiveCollections
-      ? getCollections(allCollections)
+      ? [...allCollections, ...getChildCollections(allCollections)]
       : allCollections;
-    return getTagsInCollections(collections);
+    return getTagsInCollections(uniqueBy(collections, (u) => u.key));
   }
   return [];
 }
@@ -74,6 +80,12 @@ function getTagsInCollections(collections: Zotero.Collection[]) {
   //.sort((a, b) => (a.dateModified < b.dateModified ? 1 : -1))
   //.slice(0,100)
   const tags = annotations.flatMap((f) => f.getTags());
+
+  ztoolkit.log(
+    collections.map((a) => a.name),
+    getPref("selectedCollection"),
+    getPref("currentCollection"),
+  );
   return tags;
 }
 function includeTAGS<T>(tagGroup: groupByResult<T>[]) {
@@ -143,9 +155,8 @@ function createDiv(
     doc
       .getElementById(`${config.addonRef}-reader-div`)
       ?.parentElement?.remove();
-  const tags1 = getPref("relateTags")
-    ? groupBy(relateTags(reader._item), (t) => t.tag)
-    : [];
+  const tags1 = groupBy(relateTags(reader._item), (t) => t.tag);
+  // ztoolkit.log(tags1,getPref("selectedCollection"),getPref("currentCollection"))
   includeTAGS(tags1);
   tags1.sort(sortByTAGs);
   const annotations = params.ids
@@ -247,28 +258,36 @@ function createDiv(
   const zoom = parseFloat(scaleFactor) || 1; 
   parseFloat(Zotero.Reader._readers[0]._iframeWindow.document.querySelector("#primary-view iframe").contentDocument.querySelector("#viewer").style.getPropertyValue("--scale-factor")||0)||1
  */
-  const scaleFactor = (
-    pvDoc.querySelector("#viewer") as HTMLElement
-  )?.style.getPropertyValue("--scale-factor");
-  const zoom = parseFloat(scaleFactor) || 1;
+  const scaleFactor =
+    parseFloat(
+      (pvDoc.querySelector("#viewer") as HTMLElement)?.style.getPropertyValue(
+        "--scale-factor",
+      ),
+    ) || 1;
   const clientWidthWithSlider = doc.body.clientWidth; //包括侧边栏的宽度
-  const clientWidth2 = pvDoc.body.clientWidth; //不包括侧边栏的宽度
-  let maxWidth = Math.min(clientWidth2, 444 * zoom);
+  const clientWidthWithoutSlider = pvDoc.body.clientWidth; //不包括侧边栏的宽度
+  let maxWidth = Math.min(clientWidthWithoutSlider, 333 * scaleFactor);
   let centerX = 0;
   if (params.ids) {
-    //对已有标签处理
+    //对已有标签处理 防止出现右边超出边界
     if (params.x > clientWidthWithSlider - 666) {
       styleForExistAnno.left = clientWidthWithSlider - 666 - 23 + "px";
       maxWidth = Math.min(666, clientWidthWithSlider);
     }
   } else {
+    //页面缩小了需要处理左边距
+    const pageLeft =
+      (pvDoc.querySelector("#viewer .page") as HTMLElement)?.offsetLeft || 0;
+    //找到弹出框的中心点
     centerX =
       ((params.annotation?.position?.rects[0][0] +
         params.annotation?.position?.rects[0][2]) *
-        zoom) /
-      2;
-    // maxWidth = Math.min(centerX, clientWidth2 - centerX) * 2 - 23;
+        scaleFactor) /
+        2 +
+      pageLeft;
+    maxWidth = Math.min(centerX, clientWidthWithoutSlider - centerX) * 2 - 23;
   }
+  //样式应该加到css中，但是不会
   const styles = Object.assign(
     {
       display: "flex",
@@ -300,16 +319,19 @@ function createDiv(
   } as any);
   const { x, y } = params;
   const rect = params.annotation?.position?.rects;
-  ztoolkit.log("params", {
-    x,
-    y,
+  ztoolkit.log(
+    "params",
+    {
+      x,
+      y,
+      clientWidthWithSlider,
+      clientWidth2: clientWidthWithoutSlider,
+      maxWidth,
+      zoom: scaleFactor,
+      centerX,
+    },
     rect,
-    clientWidthWithSlider,
-    clientWidth2,
-    maxWidth,
-    zoom,
-    centerX,
-  });
+  );
   return div;
 }
 function renderTextSelectionPopup(
@@ -343,8 +365,8 @@ function updateDivWidth(div: HTMLElement, n = 3) {
   if (centerX > 0) {
     const maxWidth =
       Math.min(centerX, leftTop.clientWidth - centerX) * 2 + "px";
-    div.style.setProperty("max-width", maxWidth);
-    div.style.maxWidth = maxWidth;
+    // div.style.setProperty("max-width", maxWidth);
+    // div.style.maxWidth = maxWidth;
     ztoolkit.log(
       "updateDivWidth",
       // div.style,

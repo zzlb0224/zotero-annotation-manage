@@ -48,9 +48,16 @@ export function promiseAllWithProgress<T>(
   });
   return Promise.all(arr);
 }
-export function getCollections(
+export function getChildCollections(
   collections: Zotero.Collection[],
 ): Zotero.Collection[] {
+  const childCollections = uniqueBy(collections, (a) => a.key).flatMap((a) =>
+    a.getChildCollections(false),
+  );
+  if (childCollections.length == 0) return [];
+  return [...childCollections, ...getChildCollections(childCollections)];
+}
+function getCollections(collections: Zotero.Collection[]): Zotero.Collection[] {
   function getChildCollections(
     collections: Zotero.Collection[],
   ): Zotero.Collection[] {

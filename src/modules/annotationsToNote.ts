@@ -4,9 +4,9 @@ import { MenuitemOptions } from "zotero-plugin-toolkit/dist/managers/menu";
 import {
   groupBy,
   uniqueBy,
-  getCollections,
   promiseAllWithProgress,
   sortByTAGs,
+  getChildCollections,
 } from "../utils/zzlb";
 import { getPref } from "../utils/prefs";
 let popupWin: ProgressWindowHelper | undefined = undefined;
@@ -242,13 +242,18 @@ async function exportNote({
 }) {
   createPopupWin();
 
-  let items = ZoteroPane.getSelectedItems();
+  let items: Zotero.Item[] = [];
   if (isCollection) {
-    const sc = ZoteroPane.getSelectedCollection();
-    if (sc) {
-      const scs = getCollections([sc]);
-      items = scs.flatMap((f) => f.getChildItems(false, false));
+    const selectedCollection = ZoteroPane.getSelectedCollection();
+    if (selectedCollection) {
+      const cs = uniqueBy(
+        [selectedCollection, ...getChildCollections([selectedCollection])],
+        (u) => u.key,
+      );
+      items = cs.flatMap((f) => f.getChildItems(false, false));
     }
+  } else {
+    items = ZoteroPane.getSelectedItems();
   }
   let annotations = getAllAnnotations(items);
   if (filter) {

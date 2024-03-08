@@ -8,9 +8,9 @@ pref-tagsLabel = 固定输出标签
 
 
 pref-selectedCollection = 
-    .label =  显示选中文件夹的相关标签
+    .label =  显示选中文件夹（collection）的相关标签
 pref-currentCollection = 
-    .label =  显示当前文件夹的相关标签
+    .label =  显示当前条目所在文件夹（collection）的相关标签（一个条目可以属于多个文件夹）
 
 
 
