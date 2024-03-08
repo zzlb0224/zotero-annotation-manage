@@ -76,38 +76,33 @@ function getLeftTop(temp4: HTMLElement) {
     let t1 = temp4;
     let left = 0;
     let top = 0;
-    const width = temp4.clientWidth
-    const height = temp4.clientHeight
-    for (let i = 0; i < 15; i++) {     
+    const width = temp4.clientWidth;
+    const height = temp4.clientHeight;
+    while (t1) {
       for (const k in t1.style) {
         const v = t1.style[k];
         if (k == "transform" && v) {
+          //没有附加到Dom无法调用 new WebKitCSSMatrix，只能这样使用
           ("translate(26.0842px, 108.715px)");
-          const translateLeftTop = v// "translate(26.0842px, 108.715px)"
-            .split(/[(),]/)
-            .map((a) => parseFloat(a));
-          left += translateLeftTop[1];
-          top += translateLeftTop[2];         
+          const translateLeftTop = v.match(
+            /translate[(]([\d.]*)px,\s?([\d.]*)px[)]/,
+          );
+          //['translate(26.0842px, 108.715px)', '26.0842', '108.715', index: 0, input: 'translate(26.0842px, 108.715px)', groups: undefined]
+          if (translateLeftTop && translateLeftTop.length > 2) {
+            left += parseFloat(translateLeftTop[1]);
+            top += parseFloat(translateLeftTop[2]);
+          }
         }
       }
-
       left += t1.offsetLeft;
       top += t1.offsetTop;
-      //  ztoolkit.log("getLeftTop",tran);
-      // const mat1 = new WebKitCSSMatrix(tran,
-      // );
-      // const mat2 = new DOMMatrix(tran,
-      // );
-      // left += t1.offsetLeft + mat1.m41;
-      // top += t1.offsetTop + mat2.m42;
-      // ztoolkit.log("getLeftTop",i, tf,  mat2, t1.nodeName, t1);
       if (!t1.parentElement || t1.nodeName == "HTML" || t1.nodeName == "BODY")
         break;
       t1 = t1.parentElement;
     }
-    const viewer = t1.querySelector("#primary-view iframe")||{} as any;
+    const viewer = t1.querySelector("#primary-view iframe") || ({} as any);
     const { clientWidth, clientHeight } = viewer;
-    return { left, top,width,height, clientWidth, clientHeight };
+    return { left, top, width, height, clientWidth, clientHeight };
   } catch (error) {
     ztoolkit.log("无法计算", error);
     return false;
@@ -307,10 +302,10 @@ function renderTextSelectionPopup(
   //   event.params.annotation.tags,
   // );
   const div = createDiv(doc, reader, params);
-  setTimeout(()=>updateDivWidth(div),1000) 
+  setTimeout(() => updateDivWidth(div), 1000);
   append(div);
 }
-function updateDivWidth(div: HTMLElement,  n = 3) {
+function updateDivWidth(div: HTMLElement, n = 3) {
   //TODO 这样更新大小好像没起到效果。估计还要换个思路
   if (n < 0) return;
   if (!div.parentElement || div.ownerDocument == null) {
@@ -321,7 +316,7 @@ function updateDivWidth(div: HTMLElement,  n = 3) {
 
   // ztoolkit.log(div.clientWidth, d, n);
   if (!leftTop || !leftTop.clientWidth) {
-    setTimeout(() => updateDivWidth(div,  n - 1), 1000);
+    setTimeout(() => updateDivWidth(div, n - 1), 1000);
     return;
   }
   const centerX = div.clientWidth / 2 + leftTop.left;
