@@ -245,10 +245,7 @@ function createDiv(
         params.annotation?.position?.rects[0][2]) *
         zoom) /
       2;
-    maxWidth = Math.min(centerX, clientWidth2 - centerX) * 2 - 23;
-    // if (maxWidth > 444 * zoom) {
-    //   maxWidth = 444 * zoom;
-    // }
+    // maxWidth = Math.min(centerX, clientWidth2 - centerX) * 2 - 23;
   }
   const styles = Object.assign(
     {
@@ -284,6 +281,7 @@ function createDiv(
   ztoolkit.log("params", {
     x,
     y,
+    rect,
     clientWidthWithSlider,
     clientWidth2,
     maxWidth,
@@ -323,8 +321,8 @@ function updateDivWidth(div: HTMLElement, n = 3) {
   if (centerX > 0) {
     const maxWidth =
       Math.min(centerX, leftTop.clientWidth - centerX) * 2 + "px";
-    div.style.setProperty("max-width", maxWidth);
-    div.style.maxWidth = maxWidth;
+    // div.style.setProperty("max-width", maxWidth);
+    // div.style.maxWidth = maxWidth;
     ztoolkit.log(
       "updateDivWidth",
       // div.style,
