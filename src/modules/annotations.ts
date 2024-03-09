@@ -136,11 +136,37 @@ function getLeftTop(temp4: HTMLElement) {
     return false;
   }
 }
+
+async function getAllTags() {
+  if (Date.now() - allTagsGetTime < 5000) return allTags;
+  allTagsGetTime = Date.now();
+  const libraryID = Zotero.Libraries.getAll().map((a) => a.libraryID)[0];
+  const items = await Zotero.Items.getAll(libraryID, false, false, false);
+  const pdfIds = items
+    .filter((f) => !f.parentID && !f.isAttachment())
+    .flatMap((f) => f.getAttachments(false));
+  const pdfs = Zotero.Items.get(pdfIds);
+  const tags = pdfs
+    .filter((f) => f.isPDFAttachment())
+    .flatMap((f) => f.getAnnotations())
+    .flatMap((f) => f.getTags());
+  // ztoolkit.log(pdfs,tags)
+  return groupBy(tags, (t) => t.tag);
+}
+let allTagsGetTime = -1;
+let allTags: groupByResult<{
+  tag: string;
+  type: number;
+}>[] = [];
+
 function createDiv(
   doc: Document,
   reader: _ZoteroTypes.ReaderInstance,
   params: any, // { annotation?: any; ids?: string[]; currentID?: string; x?: number; y?: number; },
 ) {
+  setTimeout(async () => {
+    allTags = await getAllTags();
+  }, 1);
   const isExistAnno = !!params.ids;
   //TODO doc 参数都是从reader里面出来的？那么这个参数是不是就没必要了，有待测试
   // if (doc.getElementById(`${config.addonRef}-reader-div`))
@@ -161,7 +187,13 @@ function createDiv(
     ? reader._item.getAnnotations().filter((f) => params.ids.includes(f.key))
     : [];
 
-  //样式应该加到css中，但是不会
+  const {
+    clientWidthWithoutSlider,
+    scaleFactor,
+    clientWidthWithSlider,
+    pageLeft,
+  } = getPrimaryViewDoc(doc);
+  let maxWidth = 666;
   const styles: Partial<CSSStyleDeclaration> = {
     display: "flex",
     flexDirection: "row",
@@ -177,43 +209,18 @@ function createDiv(
     overflowY: "scroll",
     maxHeight: "350px",
   };
-  const pvDoc =
-    (doc.querySelector("#primary-view iframe") as HTMLIFrameElement)
-      ?.contentDocument || doc;
-  /* 测试宽度
-  const doc=Zotero.Reader._readers[0]._iframeWindow.document;
-  const pvDoc=doc.querySelector("#primary-view iframe").contentDocument;
-  const viewer=pvDoc.querySelector("#viewer");
-  const scaleFactor =viewer.style.getPropertyValue("--scale-factor");
-  const zoom = parseFloat(scaleFactor) || 1; 
-  parseFloat(Zotero.Reader._readers[0]._iframeWindow.document.querySelector("#primary-view iframe").contentDocument.querySelector("#viewer").style.getPropertyValue("--scale-factor")||0)||1
- */
-  const scaleFactor =
-    parseFloat(
-      (pvDoc.querySelector("#viewer") as HTMLElement)?.style.getPropertyValue(
-        "--scale-factor",
-      ),
-    ) || 1;
-  const clientWidthWithSlider = doc.body.clientWidth; //包括侧边栏的宽度
-  const clientWidthWithoutSlider = pvDoc.body.clientWidth; //不包括侧边栏的宽度
-  let maxWidth = Math.min(clientWidthWithoutSlider, 333 * scaleFactor);
-  let centerX = 0;
   if (isExistAnno) {
     styles.zIndex = "99990";
     styles.position = "fixed";
     styles.top = params.y + "px";
     styles.left = params.x + "px"; //只有左边需要改，其它的固定
     //对已有标签处理 防止出现右边超出边界
-    if (params.x > clientWidthWithSlider - 666) {
-      styles.left = clientWidthWithSlider - 666 - 23 + "px";
-      maxWidth = Math.min(666, clientWidthWithSlider);
+    if (params.x > clientWidthWithSlider - maxWidth) {
+      styles.left = clientWidthWithSlider - maxWidth - 23 + "px";
     }
   } else {
-    //页面缩小了需要处理左边距
-    const pageLeft =
-      (pvDoc.querySelector("#viewer .page") as HTMLElement)?.offsetLeft || 0;
     //找到弹出框的中心点
-    centerX =
+    const centerX =
       ((params.annotation?.position?.rects[0][0] +
         params.annotation?.position?.rects[0][2]) *
         scaleFactor) /
@@ -230,110 +237,8 @@ function createDiv(
     //这个应该可以更精准的计算。但是不会啊
   }
   styles.maxWidth = maxWidth + "px";
-
   let searchTag = "";
-  let inputEle: HTMLInputElement;
 
-  async function getAllTags() {
-    //这个方法必须做个缓存
-    const libraryID = Zotero.Libraries.getAll().map((a) => a.libraryID)[0];
-    const items = await Zotero.Items.getAll(libraryID, false, false, false);
-
-    const pdfids = items
-      .filter((f) => !f.parentID && !f.isAttachment())
-      .flatMap((f) => f.getAttachments(false));
-    const pdfs = Zotero.Items.get(pdfids);
-    const tags = pdfs
-      .filter((f) => f.isPDFAttachment())
-      .flatMap((f) => f.getAnnotations())
-      .flatMap((f) => f.getTags());
-    // ztoolkit.log(pdfs,tags)
-    return groupBy(tags, (t) => t.tag);
-  }
-  let allTags: groupByResult<{
-    tag: string;
-    type: number;
-  }>[] = [];
-  setTimeout(async () => {
-    allTags = await getAllTags();
-  }, 1);
-
-  // Zotero.Items.getAll(0,false,false,false).then(i=>i.flatMap(a=>a.getAttachments()).)
-  const searchDiv: TagElementProps = {
-    tag: "div",
-    styles: { display: "flex", justifyContent: "space-between" },
-    children: [
-      {
-        tag: "input",
-        styles: { flex: "1" },
-        listeners: [
-          {
-            type: "keyup",
-            listener: (e: Event) => {
-              const target = e.target as HTMLInputElement;
-              inputEle = target;
-              searchTag = target.value;
-              ztoolkit.log("keyup", searchTag);
-
-              if (doc.getElementById(`${config.addonRef}-reader-div-tags`)) {
-                const tags2 = allTags.length == 0 ? tags1 : allTags;
-                const tags3 = searchTag
-                  ? tags2.filter((f) => RegExp(searchTag, "i").test(f.key))
-                  : tags1;
-                ztoolkit.log(allTags, tags1, tags2, tags3);
-                ztoolkit.UI.replaceElement(
-                  createTagsDiv(tags3),
-                  doc.getElementById(`${config.addonRef}-reader-div-tags`)!,
-                );
-              }
-            },
-          },
-        ],
-      },
-      {
-        tag: "div",
-        styles,
-        children: [
-          {
-            tag: "button",
-            properties: { textContent: "确认" },
-            styles: {
-              margin: "2px",
-              padding: "2px",
-              border: "1px solid #dddddd",
-              background: "#99aa66",
-            },
-            listeners: [
-              {
-                type: "click",
-                listener: (e: Event) => {
-                  const tag = searchTag.trim();
-                  if (tag) onTagClick(searchTag, getFixedColor(tag));
-                },
-              },
-            ],
-          },
-          {
-            tag: "button",
-            properties: { textContent: "取消" },
-            styles: {
-              margin: "2px",
-              padding: "2px",
-              border: "1px solid #dddddd",
-            },
-            listeners: [
-              {
-                type: "click",
-                listener: (e: Event) => {
-                  if (inputEle) inputEle.value = "";
-                },
-              },
-            ],
-          },
-        ],
-      },
-    ],
-  };
   const div = ztoolkit.UI.createElement(doc, "div", {
     namespace: "html",
     id: `${config.addonRef}-reader-div`,
@@ -341,24 +246,69 @@ function createDiv(
     properties: {
       tabIndex: -1,
     },
-    children: [createTagsDiv(tags1), searchDiv],
+    children: [createTagsDiv(tags1), createSearchDiv()],
   });
-  const { x, y } = params;
-  const rect = params.annotation?.position?.rects;
-  ztoolkit.log(
-    "params",
-    {
-      x,
-      y,
-      clientWidthWithSlider,
-      clientWidth2: clientWidthWithoutSlider,
-      maxWidth,
-      zoom: scaleFactor,
-      centerX,
-    },
-    rect,
-  );
   return div;
+
+  function createSearchDiv(): TagElementProps {
+    return {
+      tag: "div",
+      styles: { display: "flex", justifyContent: "space-between" },
+      children: [
+        {
+          tag: "input",
+          styles: { flex: "1" },
+          listeners: [
+            {
+              type: "keyup",
+              listener: (e: Event) => {
+                const target = e.target as HTMLInputElement;
+
+                searchTag = target.value;
+                ztoolkit.log("keyup", searchTag);
+                if (doc.getElementById(`${config.addonRef}-reader-div-tags`)) {
+                  const tags2 = allTags.length == 0 ? tags1 : allTags;
+                  const tags3 = searchTag
+                    ? tags2.filter((f) => RegExp(searchTag, "i").test(f.key))
+                    : tags1;
+                  ztoolkit.log(allTags, tags1, tags2, tags3);
+                  ztoolkit.UI.replaceElement(
+                    createTagsDiv(tags3),
+                    doc.getElementById(`${config.addonRef}-reader-div-tags`)!,
+                  );
+                }
+              },
+            },
+          ],
+        },
+        {
+          tag: "div",
+          styles,
+          children: [
+            {
+              tag: "button",
+              properties: { textContent: "确认" },
+              styles: {
+                margin: "2px",
+                padding: "2px",
+                border: "1px solid #dddddd",
+                background: "#99aa66",
+              },
+              listeners: [
+                {
+                  type: "click",
+                  listener: (e: Event) => {
+                    const tag = searchTag.trim();
+                    if (tag) onTagClick(searchTag, getFixedColor(tag));
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+  }
 
   function createTagsDiv(
     tags2: groupByResult<{ tag: string; type: number }>[],
@@ -462,6 +412,28 @@ function createDiv(
     }
   }
 }
+function getPrimaryViewDoc(doc: Document) {
+  const pvDoc =
+    (doc.querySelector("#primary-view iframe") as HTMLIFrameElement)
+      ?.contentDocument || doc;
+  const scaleFactor =
+    parseFloat(
+      (pvDoc.querySelector("#viewer") as HTMLElement)?.style.getPropertyValue(
+        "--scale-factor",
+      ),
+    ) || 1;
+  const clientWidthWithSlider = doc.body.clientWidth; //包括侧边栏的宽度
+  const clientWidthWithoutSlider = pvDoc.body.clientWidth; //不包括侧边栏的宽度
+  const pageLeft =
+    (pvDoc.querySelector("#viewer .page") as HTMLElement)?.offsetLeft || 0;
+  return {
+    clientWidthWithoutSlider,
+    scaleFactor,
+    clientWidthWithSlider,
+    pageLeft,
+  };
+}
+
 function renderTextSelectionPopup(
   event: _ZoteroTypes.Reader.EventParams<"renderTextSelectionPopup">,
 ) {
