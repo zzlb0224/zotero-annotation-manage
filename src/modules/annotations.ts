@@ -315,7 +315,7 @@ function createDiv(
                     type: "click",
                     listener: (e: Event) => {
                       const tag = inputValue.trim();
-                      if (tag) onTagClick(inputValue, getFixedColor(tag) || "");
+                      if (tag) onTagClick(inputValue, getFixedColor(tag));
                     },
                   },
                 ],

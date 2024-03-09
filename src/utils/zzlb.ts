@@ -104,12 +104,12 @@ export function getFixedColors() {
   }).flatMap((a) => ANNOTATION_COLORS);
 }
 
-export function getFixedColor(tag: string, defaultColor: string = "#f19837") {
+export function getFixedColor(tag: string, optional: string = "#f19837") {
   const tags = getFixedTags();
   if (tags.includes(tag)) {
     return getFixedColors()[tags.indexOf(tag)];
   }
-  return defaultColor;
+  return optional;
 }
 const ANNOTATION_COLORS = [
   "#ffd400",
