@@ -72,11 +72,8 @@ function getCollections(collections: Zotero.Collection[]): Zotero.Collection[] {
     (a) => a.key,
   );
 }
-export function sortByTAGs(
-  a: { key: string; values: any[] },
-  b: { key: string; values: any[] },
-) {
-  const tags = getTags();
+export function sortByTAGs<T>(a: groupByResult<T>, b: groupByResult<T>) {
+  const tags = getFixedTags();
   if (tags.includes(a.key) && tags.includes(b.key)) {
     return tags.indexOf(a.key) - tags.indexOf(b.key);
   }
@@ -89,7 +86,7 @@ export function sortByTAGs(
   return b.values.length - a.values.length + (b.key > a.key ? -0.5 : 0.5);
 }
 
-export function getTags() {
+export function getFixedTags() {
   const prefTags = ((getPref("tags") as string) || "")
     .split(",")
     .map((a) => a.trim())
@@ -100,17 +97,17 @@ export function getTags() {
         ",",
       );
 }
-export function getColors() {
-  const tags = getTags();
+export function getFixedColors() {
+  const tags = getFixedTags();
   return Array.from({
     length: tags.length / ANNOTATION_COLORS.length + 1,
   }).flatMap((a) => ANNOTATION_COLORS);
 }
 
-export function getColor(tag: string) {
-  const tags = getTags();
+export function getFixedColor(tag: string) {
+  const tags = getFixedTags();
   if (tags.includes(tag)) {
-    return getColors()[tags.indexOf(tag)];
+    return getFixedColors()[tags.indexOf(tag)];
   }
   return "";
 }

@@ -1,7 +1,7 @@
 import { config } from "../../package.json";
 import { getString } from "../utils/locale";
 import { getPref, setPref } from "../utils/prefs";
-import { getColor, getTags } from "../utils/zzlb";
+import { getFixedColor, getFixedTags } from "../utils/zzlb";
 
 export async function registerPrefsScripts(_window: Window) {
   // This function is called when the prefs window is opened
@@ -61,14 +61,14 @@ function replaceElement(doc: Document) {
             justifyContent: "flex-start",
             flexWrap: "wrap",
           },
-          children: getTags().map((tag) => ({
+          children: getFixedTags().map((tag) => ({
             tag: "label",
             properties: {
               innerText: tag,
               TextContent: tag,
             },
             styles: {
-              background: getColor(tag),
+              background: getFixedColor(tag),
               padding: "5px",
               margin: "5px 0",
             },
@@ -199,7 +199,7 @@ function bindPrefEvents() {
 }
 export async function setDefaultPrefSettings() {
   if (!getPref("tags")) {
-    setPref("tags", getTags().join(","));
+    setPref("tags", getFixedTags().join(","));
   }
   if (getPref("currentCollection") == undefined) {
     setPref("currentCollection", true);

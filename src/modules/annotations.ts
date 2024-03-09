@@ -8,8 +8,8 @@ import {
   sortByTAGs,
   groupBy,
   groupByResult,
-  getTags,
-  getColors,
+  getFixedTags,
+  getFixedColors,
   getChildCollections,
   uniqueBy,
 } from "../utils/zzlb";
@@ -41,22 +41,18 @@ function unregister() {
 function relateTags(item: Zotero.Item) {
   const allCollectionIds: number[] = [];
   const recursiveCollections = !!Zotero.Prefs.get("recursiveCollections");
-
-  if (getPref("selectedCollection")) {
+  const prefSelectedCollection = !!getPref("selectedCollection");
+  const prefCurrentCollection = !!getPref("currentCollection");
+  if (prefSelectedCollection) {
     const selectedCollectionId = ZoteroPane.getSelectedCollection(true);
     if (selectedCollectionId) allCollectionIds.push(selectedCollectionId);
   }
-  if (getPref("currentCollection")) {
+  if (prefCurrentCollection) {
     const currentCollectionIds = item.parentItem
       ? item.parentItem.getCollections()
       : item.getCollections();
     allCollectionIds.push(...currentCollectionIds);
   }
-  ztoolkit.log(
-    allCollectionIds,
-    getPref("selectedCollection"),
-    getPref("currentCollection"),
-  );
   if (allCollectionIds.length > 0) {
     const allCollections = Zotero.Collections.get(
       allCollectionIds,
@@ -89,7 +85,7 @@ function getTagsInCollections(collections: Zotero.Collection[]) {
   return tags;
 }
 function includeTAGS<T>(tagGroup: groupByResult<T>[]) {
-  getTags().forEach((tag) => {
+  getFixedTags().forEach((tag) => {
     if (tagGroup.findIndex((f) => f.key == tag) == -1) {
       tagGroup.push({ key: tag, values: [] });
     }
@@ -172,9 +168,9 @@ function createDiv(
       "/" +
       annotations.length;
     let color = "#f19837";
-    const tags = getTags();
+    const tags = getFixedTags();
     if (tags.includes(label.key)) {
-      color = getColors()[tags.indexOf(label.key)];
+      color = getFixedColors()[tags.indexOf(label.key)];
     }
     return {
       tag: "span",
@@ -310,7 +306,7 @@ function createDiv(
       border: "#cc9999",
       // boxShadow: "#666666 0px 0px 6px 4px",
       overflowY: "scroll",
-      maxHeight: "400px",
+      maxHeight: "300px",
     },
     params.ids ? styleForExistAnno : {},
   );
@@ -321,8 +317,41 @@ function createDiv(
     properties: {
       tabIndex: -1,
     },
-    styles,
-    children: children,
+    children: [
+      { tag: "div", styles, children: children },
+      {
+        tag: "div",
+        styles: { display: "flex", justifyContent: "space-between" },
+        children: [
+          { tag: "input" },
+          {
+            tag: "div",
+            styles,
+            children: [
+              {
+                tag: "button",
+                properties: { textContent: "确认" },
+                styles: {
+                  margin: "2px",
+                  padding: "2px",
+                  border: "1px solid #dddddd",
+                  background: "#99aa66",
+                },
+              },
+              {
+                tag: "button",
+                properties: { textContent: "取消" },
+                styles: {
+                  margin: "2px",
+                  padding: "2px",
+                  border: "1px solid #dddddd",
+                },
+              },
+            ],
+          },
+        ],
+      },
+    ],
     //
   } as any);
   const { x, y } = params;
