@@ -290,7 +290,8 @@ function createDiv(
         centerX * 2,
         (clientWidthWithoutSlider - centerX) * 2,
         clientWidthWithoutSlider,
-      ) * 0.9;
+      ) * 0.75+50;
+      //这个应该可以更精准的计算。但是不会啊
   }
   //样式应该加到css中，但是不会
   const styles = Object.assign(
