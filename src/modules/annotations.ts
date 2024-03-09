@@ -9,9 +9,9 @@ import {
   groupBy,
   groupByResult,
   getFixedTags,
-  getFixedColors,
   getChildCollections,
   uniqueBy,
+  getFixedColor,
 } from "../utils/zzlb";
 import { getPref } from "../utils/prefs";
 function register() {
@@ -159,30 +159,23 @@ function createDiv(
     ? reader._item.getAnnotations().filter((f) => params.ids.includes(f.key))
     : [];
   const children = tags1.map((label) => {
-    const allHave =
-      annotations.length > 0 && annotations.every((a) => a.hasTag(label.key));
-    const noneHave =
-      annotations.length == 0 || annotations.every((a) => !a.hasTag(label.key));
-    const someHave =
-      annotations.filter((a) => a.hasTag(label.key)).length +
-      "/" +
-      annotations.length;
-    let color = "#f19837";
-    const tags = getFixedTags();
-    if (tags.includes(label.key)) {
-      color = getFixedColors()[tags.indexOf(label.key)];
-    }
+    const tag = label.key;
+    const allHave = isAllHave(tag);
+    const noneHave = isNoneHave(tag);
+    const someHave = strSomeHave(tag);
+    const bgColor = getFixedColor(tag, "");
+
     return {
       tag: "span",
       namespace: "html",
       classList: ["toolbarButton1"],
       properties: {
-        textContent: `${allHave ? "[x]" : noneHave ? "" : `[${someHave}]`}[${label.values.length}]${label.key}`,
+        textContent: `${allHave ? "[x]" : noneHave ? "" : `[${someHave}]`}[${label.values.length}]${tag}`,
       },
       styles: {
         margin: "2px",
         padding: "2px",
-        background: tags.includes(label.key) ? color : "",
+        background: bgColor,
         // fontSize: ((label.count-min)/(max-min)*10+15).toFixed()+ "px",
         fontSize:
           Zotero.Prefs.get(
@@ -196,42 +189,7 @@ function createDiv(
           type: "click",
           listener: (e: Event) => {
             ztoolkit.log("增加标签", label, params, e);
-            if (params.ids) {
-              for (const id of params.ids) {
-                const annotation = reader._item
-                  .getAnnotations()
-                  .filter(function (e) {
-                    return e.key == id;
-                  })[0];
-                if (allHave) {
-                  //全部都有则删除
-                  annotation.removeTag(label.key);
-                } else {
-                  //部分有则添加
-                  if (!annotation.hasTag(label.key)) {
-                    annotation.addTag(label.key, 0);
-                  }
-                }
-                annotation.saveTx(); //增加每一个都要保存，为啥不能批量保存？
-              }
-              div?.remove();
-            } else {
-              // Zotero.Tags.getColorByPosition()
-              Array.from({ length: 10 }).map((e, i) =>
-                Zotero.Tags.getColorByPosition(1, i),
-              );
-              const tags = [{ name: label.key }];
-              // 因为线程不一样，不能采用直接修改params.annotation的方式，所以直接采用新建的方式保存笔记
-              // 特意采用 Components.utils.cloneInto 方法
-              reader._annotationManager.addAnnotation(
-                Components.utils.cloneInto(
-                  { ...params.annotation, color, tags },
-                  doc,
-                ),
-              );
-              //@ts-ignore 隐藏弹出框
-              reader._primaryView._onSetSelectionPopup(null);
-            }
+            onTagClick(tag, bgColor);
           },
         },
       ],
@@ -306,10 +264,12 @@ function createDiv(
       border: "#cc9999",
       // boxShadow: "#666666 0px 0px 6px 4px",
       overflowY: "scroll",
-      maxHeight: "300px",
+      maxHeight: "350px",
     },
     params.ids ? styleForExistAnno : {},
   );
+  let inputValue = "";
+  let inputEle: HTMLInputElement;
   const div = ztoolkit.UI.createElement(doc, "div", {
     namespace: "html",
     id: `${config.addonRef}-reader-div`,
@@ -323,7 +283,20 @@ function createDiv(
         tag: "div",
         styles: { display: "flex", justifyContent: "space-between" },
         children: [
-          { tag: "input" },
+          {
+            tag: "input",
+            styles: { flex: "1" },
+            listeners: [
+              {
+                type: "keyup",
+                listener: (e: Event) => {
+                  const target = e.target as HTMLInputElement;
+                  inputEle = target;
+                  inputValue = target.value;
+                },
+              },
+            ],
+          },
           {
             tag: "div",
             styles,
@@ -337,6 +310,15 @@ function createDiv(
                   border: "1px solid #dddddd",
                   background: "#99aa66",
                 },
+                listeners: [
+                  {
+                    type: "click",
+                    listener: (e: Event) => {
+                      const tag = inputValue.trim();
+                      if (tag) onTagClick(inputValue, getFixedColor(tag) || "");
+                    },
+                  },
+                ],
               },
               {
                 tag: "button",
@@ -346,6 +328,14 @@ function createDiv(
                   padding: "2px",
                   border: "1px solid #dddddd",
                 },
+                listeners: [
+                  {
+                    type: "click",
+                    listener: (e: Event) => {
+                      if (inputEle) inputEle.value = "";
+                    },
+                  },
+                ],
               },
             ],
           },
@@ -370,6 +360,54 @@ function createDiv(
     rect,
   );
   return div;
+
+  function strSomeHave(tag: string) {
+    return (
+      annotations.filter((a) => a.hasTag(tag)).length + "/" + annotations.length
+    );
+  }
+
+  function isNoneHave(tag: string) {
+    return annotations.length == 0 || annotations.every((a) => !a.hasTag(tag));
+  }
+
+  function isAllHave(tag: string) {
+    return annotations.length > 0 && annotations.every((a) => a.hasTag(tag));
+  }
+
+  function onTagClick(tag: string, color: string) {
+    if (params.ids) {
+      for (const id of params.ids) {
+        const annotation = reader._item.getAnnotations().filter(function (e) {
+          return e.key == id;
+        })[0];
+        if (isAllHave(tag)) {
+          //全部都有则删除
+          annotation.removeTag(tag);
+        } else {
+          //部分有则添加
+          if (!annotation.hasTag(tag)) {
+            annotation.addTag(tag, 0);
+          }
+        }
+        annotation.saveTx(); //增加每一个都要保存，为啥不能批量保存？
+      }
+      div?.remove();
+    } else {
+      // Zotero.Tags.getColorByPosition()
+      Array.from({ length: 10 }).map((e, i) =>
+        Zotero.Tags.getColorByPosition(1, i),
+      );
+      const tags = [{ name: tag }];
+      // 因为线程不一样，不能采用直接修改params.annotation的方式，所以直接采用新建的方式保存笔记
+      // 特意采用 Components.utils.cloneInto 方法
+      reader._annotationManager.addAnnotation(
+        Components.utils.cloneInto({ ...params.annotation, color, tags }, doc),
+      );
+      //@ts-ignore 隐藏弹出框
+      reader._primaryView._onSetSelectionPopup(null);
+    }
+  }
 }
 function renderTextSelectionPopup(
   event: _ZoteroTypes.Reader.EventParams<"renderTextSelectionPopup">,
