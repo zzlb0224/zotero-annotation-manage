@@ -44,6 +44,7 @@ function relateTags(item: Zotero.Item) {
   const recursiveCollections = !!Zotero.Prefs.get("recursiveCollections");
   const prefSelectedCollection = !!getPref("selectedCollection");
   const prefCurrentCollection = !!getPref("currentCollection");
+
   if (prefSelectedCollection) {
     const selectedCollectionId = ZoteroPane.getSelectedCollection(true);
     if (selectedCollectionId) allCollectionIds.push(selectedCollectionId);
@@ -166,7 +167,7 @@ function createDiv(
 ) {
   setTimeout(async () => {
     allTags = await getAllTags();
-  }, 1);
+  }, 0);
   const isExistAnno = !!params.ids;
   //TODO doc 参数都是从reader里面出来的？那么这个参数是不是就没必要了，有待测试
   // if (doc.getElementById(`${config.addonRef}-reader-div`))
@@ -179,7 +180,10 @@ function createDiv(
     doc
       .getElementById(`${config.addonRef}-reader-div`)
       ?.parentElement?.remove();
-  const tags1 = groupBy(relateTags(reader._item), (t) => t.tag);
+  const bShowAllTags = !!getPref("showAllTags");
+  const tags1 = bShowAllTags
+    ? allTags
+    : groupBy(relateTags(reader._item), (t) => t.tag);
   // ztoolkit.log(tags1,getPref("selectedCollection"),getPref("currentCollection"))
   includeTAGS(tags1);
   tags1.sort(sortByTAGs);

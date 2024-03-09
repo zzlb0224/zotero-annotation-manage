@@ -11,6 +11,9 @@ pref-selectedCollection =
     .label =  显示选中文件夹（collection）的相关标签
 pref-currentCollection = 
     .label =  显示当前条目所在文件夹（collection）的相关标签（一个条目可以属于多个文件夹）
+    
+pref-showAllTags = 
+    .label =  显示库中的所有标签（会卡的吧）
 
 
 
