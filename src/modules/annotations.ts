@@ -465,14 +465,18 @@ function createDiv(
 
   function saveAnnotationTags() {
     if (selectedTags.length == 0 && searchTag) {
-      //未选中，并且文本框里也没有加
-      return;
-    }
-    if (searchTag)
       selectedTags.push({ tag: searchTag, color: getFixedColor(searchTag) });
+    }
+    if (selectedTags.length == 0) return;
+
+    const automaticallyCombineNestedTags = !!getPref(
+      "automatically-combine-nested-tags",
+    );
     if (isExistAnno) {
       for (const annotation of existAnnotations) {
-        const nts2: string[] = getNestedTags(selectedTags.map((a) => a.tag));
+        const nts2: string[] = automaticallyCombineNestedTags
+          ? getNestedTags(selectedTags.map((a) => a.tag))
+          : [];
         const sts = uniqueBy(
           [...selectedTags.map((a) => a.tag), ...nts2],
           (u) => u,
@@ -497,11 +501,13 @@ function createDiv(
       const color =
         selectedTags.map((a) => a.color).filter((f) => f)[0] ||
         getFixedColor(selectedTags.map((a) => a.tag)[0]);
-      const nts2: string[] = getNestedTags(selectedTags.map((a) => a.tag));
+      const nts2: string[] = automaticallyCombineNestedTags
+        ? getNestedTags(selectedTags.map((a) => a.tag))
+        : [];
       const tags = uniqueBy(
         [...selectedTags.map((a) => a.tag), ...nts2],
         (u) => u,
-      );
+      ).map((a) => ({ name: a }));
       // 因为线程不一样，不能采用直接修改params.annotation的方式，所以直接采用新建的方式保存笔记
       // 特意采用 Components.utils.cloneInto 方法
       reader._annotationManager.addAnnotation(

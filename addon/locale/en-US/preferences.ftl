@@ -4,7 +4,7 @@ pref-enable =
 
 pref-input = this is a input
 pref-tagsLabel =fixed tags
-pref-fixed-colors = colors 
+pref-fixed-colors = fixed colors 
 pref-optional-color =optional color #ffc0cb 
 pref-optional-color-label =optional color #ffc0cb 
 
@@ -17,5 +17,7 @@ pref-showAllTags =
 
 pref-multipleTags = 
     .label = multiple tags
+pref-automatically-combine-nested-tags = 
+    .label =  automatically-combine-nested-tags 
 
 pref-help = { $name } Build { $version } { $time }
