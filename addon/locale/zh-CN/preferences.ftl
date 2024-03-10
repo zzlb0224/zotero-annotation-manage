@@ -16,8 +16,10 @@ pref-currentCollection =
     .label =  显示当前条目所在文件夹（collection）的相关标签（一个条目可以属于多个文件夹）
     
 pref-showAllTags = 
-    .label =  显示库中的所有标签
+    .label =  显示库中的所有笔记的标签
 
+pref-item-tags = 
+    .label =  并且包括条目的标签
 pref-multipleTags = 
     .label =  同时添加多个标签
 

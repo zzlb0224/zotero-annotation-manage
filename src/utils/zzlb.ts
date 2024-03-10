@@ -6,32 +6,32 @@ export function unique<T>(arr: T[]) {
 }
 
 //uniqueBy groupBy groupByMap 三个函数，因为使用的是object的key来检查重复，所以只能使用string | number | symbol
-export function uniqueBy<T>(
-  arr: T[],
-  fn: (item: T) => string | number | symbol,
-) {
-  const o = arr.reduce<Record<string | number | symbol, T>>((prev, curr) => {
+export function uniqueBy<T>(arr: T[], fn: (item: T) => string) {
+  const groupedBy: { [key: string]: T } = {};
+  for (const curr of arr) {
     const groupKey = fn(curr);
-    return { ...prev, [groupKey]: curr };
-  }, {});
-  return Object.values(o);
+    if (groupKey in groupedBy) {
+      groupedBy[groupKey] = curr;
+    }
+  }
+  return Object.values(groupedBy);
 }
 export interface groupByResult<T> {
   key: string;
   values: T[];
 }
-export function groupBy<T>(
-  arr: T[],
-  fn: (item: T) => string | number | symbol,
-) {
-  const g1 = arr.reduce<Record<string | number | symbol, T[]>>((prev, curr) => {
+export function groupBy<T>(arr: T[], fn: (item: T) => string) {
+  const groupedBy: { [key: string]: T[] } = {};
+  for (const curr of arr) {
     const groupKey = fn(curr);
-    const group = prev[groupKey] || [];
-    group.push(curr);
-    return { ...prev, [groupKey]: group };
-  }, {});
-  return Object.keys(g1).map(
-    (key) => ({ key, values: g1[key] }) as groupByResult<T>,
+    if (groupedBy[groupKey]) {
+      groupedBy[groupKey].push(curr);
+    } else {
+      groupedBy[groupKey] = [curr];
+    }
+  }
+  return Object.keys(groupedBy).map(
+    (key) => ({ key, values: groupedBy[key] }) as groupByResult<T>,
   );
 }
 export function promiseAllWithProgress<T>(

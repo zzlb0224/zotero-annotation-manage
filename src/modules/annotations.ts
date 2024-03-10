@@ -137,22 +137,23 @@ function getLeftTop(temp4: HTMLElement) {
 function allTagsInLibraryGet(time = 1000) {
   setTimeout(async () => await getAllTags(), time);
   async function getAllTags() {
-    if (Date.now() - allTagsInLibraryTime < 5000) return allTagsInLibrary;
+    if (Date.now() - allTagsInLibraryTime < 10000) return allTagsInLibrary;
     allTagsInLibraryTime = Date.now();
     // const libraryID = Zotero.Libraries.getAll().map((a) => a.libraryID)[0];
-    const items = await Zotero.Items.getAll(1, false, false, false);
-    const pdfIds = items
-      .filter((f) => !f.parentID && !f.isAttachment())
-      .flatMap((f) => f.getAttachments(false));
+    const allItems = await Zotero.Items.getAll(1, false, false, false);
+    const items = allItems.filter((f) => !f.parentID && !f.isAttachment());
+    const pdfIds = items.flatMap((f) => f.getAttachments(false));
     const pdfs = Zotero.Items.get(pdfIds);
     const tags = pdfs
       .filter((f) => f.isPDFAttachment())
       .flatMap((f) => f.getAnnotations())
       .flatMap((f) => f.getTags());
-    // ztoolkit.log(pdfs,tags)
-
-    ztoolkit.log("重新加载getAllTags", tags);
-    allTagsInLibrary = groupBy(tags, (t) => t.tag);
+    const itemTags = getPref("item-tags")
+      ? items.flatMap((f) => f.getTags())
+      : [];
+    allTagsInLibrary = groupBy([...tags, ...itemTags], (t) => t.tag);
+    ztoolkit.log("重新加载getAllTags", tags, itemTags, allTagsInLibrary);
+    // allTagsInLibrary.sort(sortByTAGs) 会产生性能问题
     return allTagsInLibrary;
   }
 }
@@ -167,11 +168,8 @@ function createDiv(
   reader: _ZoteroTypes.ReaderInstance,
   params: any, // { annotation?: any; ids?: string[]; currentID?: string; x?: number; y?: number; },
 ) {
-  // setTimeout(async () => {
-  //   allTagsInLibrary = await getAllTags();
-  // }, 0);
   const isExistAnno = !!params.ids;
-
+  allTagsInLibraryGet(1);
   const doc = reader._iframeWindow?.document;
   if (!doc) return;
   if (
@@ -187,9 +185,20 @@ function createDiv(
   const fontSize =
     Zotero.Prefs.get(`extensions.zotero.ZoteroPDFTranslate.fontSize`, true) +
     "px";
-  const tags1 = bShowAllTags
-    ? allTagsInLibrary
-    : groupBy(relateTags(reader._item), (t) => t.tag);
+  let tags1: groupByResult<{
+    tag: string;
+    type: number;
+  }>[] = [];
+  if (bShowAllTags) {
+    if (allTagsInLibrary.length == 0) {
+      allTagsInLibraryGet(1000);
+      tags1 = groupBy(relateTags(reader._item), (t) => t.tag);
+    } else {
+      tags1 = allTagsInLibrary;
+    }
+  } else {
+    tags1 = groupBy(relateTags(reader._item), (t) => t.tag);
+  }
   // ztoolkit.log(tags1,getPref("selectedCollection"),getPref("currentCollection"))
   includeTAGS(tags1);
   tags1.sort(sortByTAGs);
@@ -243,7 +252,7 @@ function createDiv(
   styles.maxWidth = maxWidth + "px";
   let searchTag = "";
   const selectedTags: { tag: string; color: string }[] = [];
-  const tagsDisplay: groupByResult<{ tag: string; type: number }>[] = [];
+  let tagsDisplay: groupByResult<{ tag: string; type: number }>[] = [];
   searchTagResult();
   const div = ztoolkit.UI.createElement(doc, "div", {
     namespace: "html",
@@ -357,11 +366,14 @@ function createDiv(
   }
 
   function searchTagResult() {
+    if (allTagsInLibrary.length == 0) {
+      allTagsInLibraryGet(1000);
+    }
     const tags2 = allTagsInLibrary.length == 0 ? tags1 : allTagsInLibrary;
     const tags3 = searchTag
       ? tags2.filter((f) => RegExp(searchTag, "i").test(f.key))
       : tags1;
-    tagsDisplay.splice(0, 1e6, ...tags3);
+    tagsDisplay = tags3.slice(1, 100);
   }
 
   function createTagsDiv(): TagElementProps {

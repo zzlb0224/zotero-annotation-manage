@@ -270,7 +270,7 @@ async function exportNote({
   // 另一个问题是 会创建顶层条目触发另一个插件的 closeOtherProgressWindows
   const note = await createNote(title);
   annotations = await convertHtml(annotations, note);
-  const getKeyGroup = (fn: (item: AnnotationRes) => string | number | symbol) =>
+  const getKeyGroup = (fn: (item: AnnotationRes) => string) =>
     groupBy(annotations, fn)
       .sort((a, b) => b.values.length - a.values.length)
       .slice(0, 5)
