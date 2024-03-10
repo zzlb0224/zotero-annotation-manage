@@ -9,7 +9,7 @@ import { config } from "../package.json";
 import { getString, initLocale } from "./utils/locale";
 import {
   registerPrefsScripts,
-  setDefaultPrefSettings,
+  initPrefSettings,
 } from "./modules/preferenceScript";
 import { createZToolkit } from "./utils/ztoolkit";
 import Annotations from "./modules/annotations";
@@ -30,7 +30,7 @@ async function onStartup() {
   }
 
   initLocale();
-  await setDefaultPrefSettings();
+  await initPrefSettings();
 
   BasicExampleFactory.registerPrefs();
 

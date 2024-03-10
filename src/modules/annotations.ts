@@ -1,9 +1,4 @@
-import {
-  ElementProps,
-  FragmentElementProps,
-  HTMLElementProps,
-  TagElementProps,
-} from "zotero-plugin-toolkit/dist/tools/ui";
+import { TagElementProps } from "zotero-plugin-toolkit/dist/tools/ui";
 import { config } from "../../package.json";
 import {
   sortByTAGs,
@@ -27,6 +22,7 @@ function register() {
     "createAnnotationContextMenu",
     createAnnotationContextMenu,
   );
+  allTagsInLibraryGet(2000);
 }
 function unregister() {
   ztoolkit.log("Annotations unregister");
@@ -138,21 +134,27 @@ function getLeftTop(temp4: HTMLElement) {
   }
 }
 
-async function getAllTags() {
-  if (Date.now() - allTagsInLibraryTime < 5000) return allTagsInLibrary;
-  allTagsInLibraryTime = Date.now();
-  const libraryID = Zotero.Libraries.getAll().map((a) => a.libraryID)[0];
-  const items = await Zotero.Items.getAll(libraryID, false, false, false);
-  const pdfIds = items
-    .filter((f) => !f.parentID && !f.isAttachment())
-    .flatMap((f) => f.getAttachments(false));
-  const pdfs = Zotero.Items.get(pdfIds);
-  const tags = pdfs
-    .filter((f) => f.isPDFAttachment())
-    .flatMap((f) => f.getAnnotations())
-    .flatMap((f) => f.getTags());
-  // ztoolkit.log(pdfs,tags)
-  return groupBy(tags, (t) => t.tag);
+function allTagsInLibraryGet(time = 1000) {
+  setTimeout(async () => await getAllTags(), time);
+  async function getAllTags() {
+    if (Date.now() - allTagsInLibraryTime < 5000) return allTagsInLibrary;
+    allTagsInLibraryTime = Date.now();
+    // const libraryID = Zotero.Libraries.getAll().map((a) => a.libraryID)[0];
+    const items = await Zotero.Items.getAll(1, false, false, false);
+    const pdfIds = items
+      .filter((f) => !f.parentID && !f.isAttachment())
+      .flatMap((f) => f.getAttachments(false));
+    const pdfs = Zotero.Items.get(pdfIds);
+    const tags = pdfs
+      .filter((f) => f.isPDFAttachment())
+      .flatMap((f) => f.getAnnotations())
+      .flatMap((f) => f.getTags());
+    // ztoolkit.log(pdfs,tags)
+
+    ztoolkit.log("重新加载getAllTags", tags);
+    allTagsInLibrary = groupBy(tags, (t) => t.tag);
+    return allTagsInLibrary;
+  }
 }
 let allTagsInLibraryTime = -1;
 let allTagsInLibrary: groupByResult<{
@@ -165,9 +167,9 @@ function createDiv(
   reader: _ZoteroTypes.ReaderInstance,
   params: any, // { annotation?: any; ids?: string[]; currentID?: string; x?: number; y?: number; },
 ) {
-  setTimeout(async () => {
-    allTagsInLibrary = await getAllTags();
-  }, 0);
+  // setTimeout(async () => {
+  //   allTagsInLibrary = await getAllTags();
+  // }, 0);
   const isExistAnno = !!params.ids;
 
   const doc = reader._iframeWindow?.document;
@@ -462,16 +464,24 @@ function createDiv(
   }
 
   function saveAnnotationTags() {
-    if (selectedTags.length == 0) {
+    if (selectedTags.length == 0 && searchTag) {
+      //未选中，并且文本框里也没有加
       return;
     }
+    if (searchTag)
+      selectedTags.push({ tag: searchTag, color: getFixedColor(searchTag) });
     if (isExistAnno) {
       for (const annotation of existAnnotations) {
-        for (const selectedTag of selectedTags) {
-          const tag = selectedTag.tag;
+        const nts2: string[] = getNestedTags(selectedTags.map((a) => a.tag));
+        const sts = uniqueBy(
+          [...selectedTags.map((a) => a.tag), ...nts2],
+          (u) => u,
+        );
+        for (const selectedTag of sts) {
+          const tag = selectedTag;
           if (isAllHave(tag)) {
             //全部都有则删除
-            annotation.removeTag(tag);
+            // annotation.removeTag(tag);
           } else {
             //部分有则添加
             if (!annotation.hasTag(tag)) {
@@ -479,14 +489,19 @@ function createDiv(
             }
           }
         }
+
         annotation.saveTx(); //增加每一个都要保存，为啥不能批量保存？
       }
       div?.remove();
     } else {
-      const tags = selectedTags.map((a) => ({ name: a.tag })); //[{ name: tags1[0].tag}];
       const color =
         selectedTags.map((a) => a.color).filter((f) => f)[0] ||
         getFixedColor(selectedTags.map((a) => a.tag)[0]);
+      const nts2: string[] = getNestedTags(selectedTags.map((a) => a.tag));
+      const tags = uniqueBy(
+        [...selectedTags.map((a) => a.tag), ...nts2],
+        (u) => u,
+      );
       // 因为线程不一样，不能采用直接修改params.annotation的方式，所以直接采用新建的方式保存笔记
       // 特意采用 Components.utils.cloneInto 方法
       reader._annotationManager.addAnnotation(
@@ -495,8 +510,27 @@ function createDiv(
       //@ts-ignore 隐藏弹出框
       reader._primaryView._onSetSelectionPopup(null);
     }
+    allTagsInLibraryGet(3000);
   }
 }
+function getNestedTags(arr: string[]) {
+  const filterArr = arr.filter(
+    (f) => f && !f.startsWith("#") && !f.includes("/"),
+  );
+  const list: string[] = [];
+  for (const t1 of filterArr) {
+    for (const t2 of filterArr) {
+      if (t1 != t2) {
+        const nTag = `#${t1}/${t2}`;
+        if (allTagsInLibrary.some((s) => s.key == nTag)) {
+          list.push(nTag);
+        }
+      }
+    }
+  }
+  return list;
+}
+
 function getPrimaryViewDoc(doc: Document) {
   const pvDoc =
     (doc.querySelector("#primary-view iframe") as HTMLIFrameElement)

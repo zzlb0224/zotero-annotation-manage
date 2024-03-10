@@ -69,8 +69,8 @@ function replaceElement(doc: Document) {
             },
             styles: {
               background: getFixedColor(tag),
-              padding: "5px",
-              margin: "5px 0",
+              padding: "5px 1px",
+              margin: "5px 1px",
             },
           })),
         },
@@ -78,160 +78,60 @@ function replaceElement(doc: Document) {
     },
     doc.getElementById(id)!,
   );
-  // if(ele)ele.id=id
 }
 
+function initOptionalColorLabel(doc: Document) {
+  const label = doc.getElementById(
+    `zotero-prefpane-${config.addonRef}-optional-color`,
+  );
+  if (label) {
+    const optionalColor = (getPref("optional-color") as string) || "";
+    label.style.background = optionalColor;
+  }
+}
 async function updatePrefsUI() {
   // You can initialize some UI elements on prefs window
   // with addon.data.prefs.window.document
   // Or bind some events to the elements
-  const renderLock = ztoolkit.getGlobal("Zotero").Promise.defer();
   if (addon.data.prefs?.window == undefined) return;
   const doc = addon.data.prefs.window?.document;
   if (!doc) {
     return;
   }
   replaceElement(doc);
-  changeOptionalColor();
-
-  // const tags =  doc.querySelector(`${config.addonRef}-tags`) as HTMLInputElement
-  // if(tags)
-  // {
-  // tags.value = getPref("tags") as string +"load"
-  // tags.addEventListener("change", (e: Event) => {
-  //     ztoolkit.log(e)
-  //   })
-  // }
-
-  const tableHelper = new ztoolkit.VirtualizedTable(addon.data.prefs?.window)
-    .setContainerId(`${config.addonRef}-table-container`)
-    .setProp({
-      id: `${config.addonRef}-prefs-table`,
-      // Do not use setLocale, as it modifies the Zotero.Intl.strings
-      // Set locales directly to columns
-      columns: addon.data.prefs?.columns,
-      showHeader: true,
-      multiSelect: true,
-      staticColumns: true,
-      disableFontSizeScaling: true,
-    })
-    .setProp("getRowCount", () => addon.data.prefs?.rows.length || 0)
-    .setProp(
-      "getRowData",
-      (index) =>
-        addon.data.prefs?.rows[index] || {
-          title: "no data",
-          detail: "no data",
-        },
-    )
-    // Show a progress window when selection changes
-    .setProp("onSelectionChange", (selection) => {
-      new ztoolkit.ProgressWindow(config.addonName)
-        .createLine({
-          text: `Selected line: ${addon.data.prefs?.rows
-            .filter((v, i) => selection.isSelected(i))
-            .map((row) => row.title)
-            .join(",")}`,
-          progress: 100,
-        })
-        .show();
-    })
-    // When pressing delete, delete selected line and refresh table.
-    // Returning false to prevent default event.
-    .setProp("onKeyDown", (event: KeyboardEvent) => {
-      if (event.key == "Delete" || (Zotero.isMac && event.key == "Backspace")) {
-        addon.data.prefs!.rows =
-          addon.data.prefs?.rows.filter(
-            (v, i) => !tableHelper.treeInstance.selection.isSelected(i),
-          ) || [];
-        tableHelper.render();
-        return false;
-      }
-      return true;
-    })
-    // For find-as-you-type
-    .setProp(
-      "getRowString",
-      (index) => addon.data.prefs?.rows[index].title || "",
-    )
-    // Render the table.
-    .render(-1, () => {
-      renderLock.resolve();
-    });
-  await renderLock.promise;
-  ztoolkit.log("Preference table rendered!");
+  initOptionalColorLabel(doc);
 }
 
 function bindPrefEvents() {
-  addon.data
-    .prefs!.window.document.querySelector(
-      `#zotero-prefpane-${config.addonRef}-enable`,
-    )
+  const doc = addon.data.prefs!.window.document;
+  if (!doc) return;
+  doc
+    .querySelector(`#zotero-prefpane-${config.addonRef}-enable`)
     ?.addEventListener("command", (e) => {
       ztoolkit.log(e, getPref("tags"));
-      // addon.data.prefs!.window.alert(
-      //   `Successfully changed to ${(e.target as XUL.Checkbox).checked}!`,
-      // );
     });
 
-  addon.data
-    .prefs!.window.document.querySelector(
-      `#zotero-prefpane-${config.addonRef}-tags`,
-    )
+  doc
+    .querySelector(`#zotero-prefpane-${config.addonRef}-tags`)
     ?.addEventListener("keyup", (e) => {
-      ztoolkit.log(e, getPref("tags"));
-
-      replaceElement(addon.data.prefs!.window.document);
-      // addon.data.prefs!.window.alert(
-      //   `Successfully changed to ${(e.target as HTMLInputElement).value}!`,
-      // );
+      // ztoolkit.log(e, getPref("tags"));
+      replaceElement(doc);
     });
 
-  addon.data
-    .prefs!.window.document.querySelector(
-      `#zotero-prefpane-${config.addonRef}-fixed-colors`,
-    )
+  doc
+    .querySelector(`#zotero-prefpane-${config.addonRef}-fixed-colors`)
     ?.addEventListener("keyup", (e) => {
-      ztoolkit.log(e, getPref("tags"));
-
-      replaceElement(addon.data.prefs!.window.document);
-      // addon.data.prefs!.window.alert(
-      //   `Successfully changed to ${(e.target as HTMLInputElement).value}!`,
-      // );
+      // ztoolkit.log(e, getPref("tags"));
+      replaceElement(doc);
     });
-  addon.data
-    .prefs!.window.document.querySelector(
-      `#zotero-prefpane-${config.addonRef}-optional-color`,
-    )
+  doc
+    .querySelector(`#zotero-prefpane-${config.addonRef}-optional-color`)
     ?.addEventListener("keyup", (e) => {
-      changeOptionalColor();
-    });
-
-  addon.data
-    .prefs!.window.document.querySelector(
-      `#zotero-prefpane-${config.addonRef}-input`,
-    )
-    ?.addEventListener("change", (e) => {
-      ztoolkit.log(e, getPref("tags"));
-      addon.data.prefs!.window.alert(
-        `Successfully changed to ${(e.target as HTMLInputElement).value}!`,
-      );
+      initOptionalColorLabel(doc);
     });
 }
-function changeOptionalColor() {
-  if (addon.data.prefs) {
-    const label = addon.data.prefs!.window.document.getElementById(
-      `zotero-prefpane-${config.addonRef}-optional-color-label`,
-    );
-    if (label) {
-      const optionalColor = (getPref("optional-color") as string) || "";
-      label.style.background = optionalColor;
-      label.textContent = optionalColor;
-    }
-  }
-}
 
-export async function setDefaultPrefSettings() {
+export async function initPrefSettings() {
   if (!getPref("tags")) {
     setPref("tags", getFixedTags().join(","));
   }

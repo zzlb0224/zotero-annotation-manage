@@ -22,7 +22,7 @@
       <vbox>
         <html:input
           id="zotero-prefpane-__addonRef__-tags"
-          style="width: 100%"
+          style="width: 100%; font-size: 13px"
           native="true"
           preference="__prefsPrefix__.tags"
         />
@@ -42,7 +42,10 @@
           preference="__prefsPrefix__.fixed-colors"
         />
       </vbox>
-      <html:div id="zotero-prefpane-__addonRef__-coloredTags"></html:div>
+      <html:div
+        id="zotero-prefpane-__addonRef__-coloredTags"
+        style="font-size: 12px"
+      ></html:div>
       <hbox>
         <html:label
           for="zotero-prefpane-__addonRef__-optional-color"
@@ -54,12 +57,12 @@
           native="true"
           preference="__prefsPrefix__.optional-color"
         />
-        <html:label
+        <!-- <html:label
           id="zotero-prefpane-__addonRef__-optional-color-label"
           for="zotero-prefpane-__addonRef__-optional-color"
           data-l10n-id="pref-optional-color-label"
         >
-        </html:label>
+        </html:label> -->
       </hbox>
       <checkbox
         id="zotero-prefpane-__addonRef__-selectedCollection"
