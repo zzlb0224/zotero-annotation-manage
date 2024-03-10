@@ -17,7 +17,14 @@ pref-showAllTags =
 
 pref-multipleTags = 
     .label = multiple tags
-pref-automatically-combine-nested-tags = 
-    .label =  automatically-combine-nested-tags 
+pref-combine-nested-tags = 
+    .label =  combine-nested-tags 
+
+pref-split-nested-tags-keep-first = 
+    .label = split nested tags and keep the first tag
+pref-split-nested-tags-keep-second = 
+    .label =  split nested tags and keep the second tag
+pref-split-nested-tags-keep-all = 
+    .label =   split nested tags and keep all tags
 
 pref-help = { $name } Build { $version } { $time }

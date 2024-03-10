@@ -469,18 +469,23 @@ function createDiv(
     }
     if (selectedTags.length == 0) return;
 
-    const automaticallyCombineNestedTags = !!getPref(
-      "automatically-combine-nested-tags",
+    const ct = !!getPref("combine-nested-tags");
+    const nf = !!getPref("split-nested-tags-keep-first");
+    const ns = !!getPref("split-nested-tags-keep-second");
+    const na = !!getPref("split-nested-tags-keep-all");
+    const sTags = selectedTags.map((a) => a.tag);
+    const splitTags = sTags
+      .filter((f) => f && f.startsWith("#") && f.includes("/"))
+      .map((a) => a.replace("#", "").split("/"))
+      .flatMap((a) => (na ? a : [nf ? a[0] : "", ns ? a[1] : ""]));
+    const nestedTags: string[] = ct ? getNestedTags(sTags) : [];
+
+    const sts = uniqueBy(
+      [...sTags, ...nestedTags, ...splitTags].filter((f) => f),
+      (u) => u,
     );
     if (isExistAnno) {
       for (const annotation of existAnnotations) {
-        const nts2: string[] = automaticallyCombineNestedTags
-          ? getNestedTags(selectedTags.map((a) => a.tag))
-          : [];
-        const sts = uniqueBy(
-          [...selectedTags.map((a) => a.tag), ...nts2],
-          (u) => u,
-        );
         for (const selectedTag of sts) {
           const tag = selectedTag;
           if (isAllHave(tag)) {
@@ -501,13 +506,7 @@ function createDiv(
       const color =
         selectedTags.map((a) => a.color).filter((f) => f)[0] ||
         getFixedColor(selectedTags.map((a) => a.tag)[0]);
-      const nts2: string[] = automaticallyCombineNestedTags
-        ? getNestedTags(selectedTags.map((a) => a.tag))
-        : [];
-      const tags = uniqueBy(
-        [...selectedTags.map((a) => a.tag), ...nts2],
-        (u) => u,
-      ).map((a) => ({ name: a }));
+      const tags = sts.map((a) => ({ name: a }));
       // 因为线程不一样，不能采用直接修改params.annotation的方式，所以直接采用新建的方式保存笔记
       // 特意采用 Components.utils.cloneInto 方法
       reader._annotationManager.addAnnotation(
