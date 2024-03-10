@@ -362,7 +362,7 @@ function createDiv(
             type: "click",
             listener: (e: Event) => {
               ztoolkit.log("增加标签", label, params, e);
-              onTagClick(tag, bgColor || "#f19837");
+              onTagClick(tag, bgColor );
             },
           },
         ],
