@@ -14,7 +14,7 @@
         preference="extensions.zotero.__addonRef__.enable" data-l10n-id="pref-enable" /> -->
       <vbox>
         <html:label
-          for="zotero-prefpane-__prefsPrefix__-tags"
+          for="zotero-prefpane-__addonRef__-tags"
           data-l10n-id="pref-tagsLabel"
         >
         </html:label>
@@ -27,7 +27,40 @@
           preference="__prefsPrefix__.tags"
         />
       </vbox>
+      <vbox>
+        <html:label
+          for="zotero-prefpane-__addonRef__-fixed-colors"
+          data-l10n-id="pref-fixed-colors"
+        >
+        </html:label>
+      </vbox>
+      <vbox>
+        <html:input
+          id="zotero-prefpane-__addonRef__-fixed-colors"
+          style="width: 100%"
+          native="true"
+          preference="__prefsPrefix__.fixed-colors"
+        />
+      </vbox>
       <html:div id="zotero-prefpane-__addonRef__-coloredTags"></html:div>
+      <hbox>
+        <html:label
+          for="zotero-prefpane-__addonRef__-optional-color"
+          data-l10n-id="pref-optional-color"
+        >
+        </html:label>
+        <html:input
+          id="zotero-prefpane-__addonRef__-optional-color"
+          native="true"
+          preference="__prefsPrefix__.optional-color"
+        />
+        <html:label
+          id="zotero-prefpane-__addonRef__-optional-color-label"
+          for="zotero-prefpane-__addonRef__-optional-color"
+          data-l10n-id="pref-optional-color-label"
+        >
+        </html:label>
+      </hbox>
       <checkbox
         id="zotero-prefpane-__addonRef__-selectedCollection"
         preference="__prefsPrefix__.selectedCollection"

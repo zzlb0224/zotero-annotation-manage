@@ -86,38 +86,37 @@ export function sortByTAGs<T>(a: groupByResult<T>, b: groupByResult<T>) {
   return b.values.length - a.values.length + (b.key > a.key ? -0.5 : 0.5);
 }
 
-export function getFixedTags() {
+export function getFixedTags(): string[] {
   const prefTags = ((getPref("tags") as string) || "")
     .split(",")
     .map((a) => a.trim())
     .filter((f) => f);
-  return prefTags && prefTags.length > 0
-    ? prefTags
-    : "目的,假设,框架,数据,量表,方法,理论,结论,贡献,不足,背景,现状,问题,对策".split(
+  if (prefTags && prefTags.length > 0) return prefTags;
+  return "目的,假设,框架,数据,量表,方法,理论,结论,贡献,不足,背景,现状,问题,对策".split(
+    ",",
+  );
+}
+export function getFixedColors(): string[] {
+  let fixedColor = ((getPref("fixed-colors") as string) || "")
+    .split(",")
+    .map((a) => a.trim())
+    .filter((f) => f);
+  if (!fixedColor || fixedColor.length == 0)
+    fixedColor =
+      "#ffd400,#ff6666,#5fb236,#2ea8e5,#a28ae5,#e56eee,#f19837,#aaaaaa".split(
         ",",
       );
-}
-export function getFixedColors() {
   const tags = getFixedTags();
   return Array.from({
-    length: tags.length / ANNOTATION_COLORS.length + 1,
-  }).flatMap((a) => ANNOTATION_COLORS);
+    length: tags.length / fixedColor.length + 1,
+  }).flatMap(() => fixedColor);
 }
 
-export function getFixedColor(tag: string, optional: string = "#ffc0cb") {
+export function getFixedColor(tag: string, optional?: string): string {
   const tags = getFixedTags();
   if (tags.includes(tag)) {
     return getFixedColors()[tags.indexOf(tag)];
   }
+  if (optional == undefined) return getPref("optional-color") as string;
   return optional;
 }
-const ANNOTATION_COLORS = [
-  "#ffd400",
-  "#ff6666",
-  "#5fb236",
-  "#2ea8e5",
-  "#a28ae5",
-  "#e56eee",
-  "#f19837",
-  "#aaaaaa",
-];

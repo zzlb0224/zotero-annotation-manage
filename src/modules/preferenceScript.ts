@@ -92,6 +92,7 @@ async function updatePrefsUI() {
     return;
   }
   replaceElement(doc);
+  changeOptionalColor();
 
   // const tags =  doc.querySelector(`${config.addonRef}-tags`) as HTMLInputElement
   // if(tags)
@@ -177,13 +178,33 @@ function bindPrefEvents() {
     .prefs!.window.document.querySelector(
       `#zotero-prefpane-${config.addonRef}-tags`,
     )
-    ?.addEventListener("change", (e) => {
+    ?.addEventListener("keyup", (e) => {
       ztoolkit.log(e, getPref("tags"));
 
       replaceElement(addon.data.prefs!.window.document);
       // addon.data.prefs!.window.alert(
       //   `Successfully changed to ${(e.target as HTMLInputElement).value}!`,
       // );
+    });
+
+  addon.data
+    .prefs!.window.document.querySelector(
+      `#zotero-prefpane-${config.addonRef}-fixed-colors`,
+    )
+    ?.addEventListener("keyup", (e) => {
+      ztoolkit.log(e, getPref("tags"));
+
+      replaceElement(addon.data.prefs!.window.document);
+      // addon.data.prefs!.window.alert(
+      //   `Successfully changed to ${(e.target as HTMLInputElement).value}!`,
+      // );
+    });
+  addon.data
+    .prefs!.window.document.querySelector(
+      `#zotero-prefpane-${config.addonRef}-optional-color`,
+    )
+    ?.addEventListener("keyup", (e) => {
+      changeOptionalColor();
     });
 
   addon.data
@@ -197,6 +218,19 @@ function bindPrefEvents() {
       );
     });
 }
+function changeOptionalColor() {
+  if (addon.data.prefs) {
+    const label = addon.data.prefs!.window.document.getElementById(
+      `zotero-prefpane-${config.addonRef}-optional-color-label`,
+    );
+    if (label) {
+      const optionalColor = (getPref("optional-color") as string) || "";
+      label.style.background = optionalColor;
+      label.textContent = optionalColor;
+    }
+  }
+}
+
 export async function setDefaultPrefSettings() {
   if (!getPref("tags")) {
     setPref("tags", getFixedTags().join(","));
@@ -206,5 +240,14 @@ export async function setDefaultPrefSettings() {
   }
   if (getPref("selectedCollection") == undefined) {
     setPref("selectedCollection", true);
+  }
+  if (getPref("fixed-colors") == undefined) {
+    setPref(
+      "fixed-colors",
+      "#ffd400,#ff6666,#5fb236,#2ea8e5,#a28ae5,#e56eee,#f19837,#aaaaaa",
+    );
+  }
+  if (getPref("optional-color") == undefined) {
+    setPref("optional-color", "#ffc0cb");
   }
 }

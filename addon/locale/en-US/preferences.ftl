@@ -3,7 +3,10 @@ pref-enable =
     .label = Enable 
 
 pref-input = this is a input
-pref-tagsLabel = TAGS
+pref-tagsLabel =fixed tags
+pref-fixed-colors = colors 
+pref-optional-color =optional color #ffc0cb 
+pref-optional-color-label =optional color #ffc0cb 
 
 pref-selectedCollection = 
     .label = relate tags in selected collection

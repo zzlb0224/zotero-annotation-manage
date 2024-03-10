@@ -161,7 +161,7 @@ let allTagsInLibrary: groupByResult<{
 }>[] = [];
 
 function createDiv(
-  doc: Document,
+  doc3: Document,
   reader: _ZoteroTypes.ReaderInstance,
   params: any, // { annotation?: any; ids?: string[]; currentID?: string; x?: number; y?: number; },
 ) {
@@ -169,8 +169,9 @@ function createDiv(
     allTagsInLibrary = await getAllTags();
   }, 0);
   const isExistAnno = !!params.ids;
-  //TODO doc 参数都是从reader里面出来的？那么这个参数是不是就没必要了，有待测试
-  // if (doc.getElementById(`${config.addonRef}-reader-div`))
+
+  const doc = reader._iframeWindow?.document;
+  if (!doc) return;
   if (
     doc.getElementById(`${config.addonRef}-reader-div`)?.parentElement
       ?.nodeName == "BODY"
@@ -181,6 +182,9 @@ function createDiv(
       .getElementById(`${config.addonRef}-reader-div`)
       ?.parentElement?.remove();
   const bShowAllTags = !!getPref("showAllTags");
+  const fontSize =
+    Zotero.Prefs.get(`extensions.zotero.ZoteroPDFTranslate.fontSize`, true) +
+    "px";
   const tags1 = bShowAllTags
     ? allTagsInLibrary
     : groupBy(relateTags(reader._item), (t) => t.tag);
@@ -199,14 +203,8 @@ function createDiv(
   } = getPrimaryViewDoc(doc);
   let maxWidth = 666;
   const styles: Partial<CSSStyleDeclaration> = {
-    display: "flex",
-    flexDirection: "row",
-    flexWrap: "wrap",
-    padding: "2px 5px",
-    marginLeft: "2px",
     // width: "calc(100% - 4px)",
     // maxWidth: maxWidth + "px",
-    justifyContent: "space-start",
     background: "#eeeeee",
     border: "#cc9999",
     // boxShadow: "#666666 0px 0px 6px 4px",
@@ -252,6 +250,7 @@ function createDiv(
     properties: {
       tabIndex: -1,
     },
+    styles,
     children: [createSearchDiv(), createTagsDiv()],
   });
   return div;
@@ -259,11 +258,17 @@ function createDiv(
   function createSearchDiv(): TagElementProps {
     return {
       tag: "div",
-      styles: { display: "flex", justifyContent: "space-between" },
+      styles: {
+        display: "flex",
+        flexDirection: "row",
+        flexWrap: "wrap",
+        justifyContent: "space-start",
+        maxWidth: maxWidth + "px",
+      },
       children: [
         {
           tag: "input",
-          styles: { flex: "1" },
+          styles: { flex: "1", fontSize },
           listeners: [
             {
               type: "keyup",
@@ -271,10 +276,11 @@ function createDiv(
                 const target = e.target as HTMLInputElement;
                 ztoolkit.log(e);
                 searchTag = target.value.trim();
-                if ((e as any).keyCode == 13) {
+                const { keyCode } = e as any;
+                if (keyCode == 13) {
                   onTagClick(searchTag);
                 }
-                if (doc.getElementById(`${config.addonRef}-reader-div-tags`)) {
+                if (doc?.getElementById(`${config.addonRef}-reader-div-tags`)) {
                   searchTagResult();
                   ztoolkit.UI.replaceElement(
                     createTagsDiv(),
@@ -288,23 +294,21 @@ function createDiv(
         },
         {
           tag: "div",
-          id: `${config.addonRef}-reader-div-selected-tags`,
-          styles: { display: "flex", justifyContent: "space-between" },
-        },
-        {
-          tag: "div",
-          styles,
+          styles: { display: "flex" },
           children: [
             {
               tag: "button",
               properties: {
-                textContent: getPref("multipleTags") ? "添加多标签" : "单标签",
+                textContent: getPref("multipleTags")
+                  ? "添加多个标签"
+                  : "单标签",
               },
               styles: {
                 margin: "2px",
                 padding: "2px",
                 border: "1px solid #dddddd",
                 background: "#99aa66",
+                fontSize,
               },
               listeners: [
                 {
@@ -316,7 +320,35 @@ function createDiv(
                 },
               ],
             },
+            {
+              tag: "button",
+              properties: {
+                textContent: "关闭",
+              },
+              styles: {
+                margin: "2px",
+                padding: "2px",
+                border: "1px solid #dddddd",
+                background: "#99aa66",
+                fontSize,
+              },
+              listeners: [
+                {
+                  type: "click",
+                  listener: (e: Event) => {
+                    div?.remove();
+                    //@ts-ignore 隐藏弹出框
+                    reader._primaryView._onSetSelectionPopup(null);
+                  },
+                },
+              ],
+            },
           ],
+        },
+        {
+          tag: "div",
+          id: `${config.addonRef}-reader-div-selected-tags`,
+          styles: { display: "flex", justifyContent: "space-between" },
         },
       ],
     };
@@ -328,7 +360,6 @@ function createDiv(
       ? tags2.filter((f) => RegExp(searchTag, "i").test(f.key))
       : tags1;
     tagsDisplay.splice(0, 1e6, ...tags3);
-    return tags3;
   }
 
   function createTagsDiv(): TagElementProps {
@@ -349,12 +380,7 @@ function createDiv(
           margin: "2px",
           padding: "2px",
           background: bgColor,
-          // fontSize: ((label.count-min)/(max-min)*10+15).toFixed()+ "px",
-          fontSize:
-            Zotero.Prefs.get(
-              `extensions.zotero.ZoteroPDFTranslate.fontSize`,
-              true,
-            ) + "px",
+          fontSize,
           boxShadow: "#999999 0px 0px 3px 3px",
         },
         listeners: [
@@ -372,7 +398,13 @@ function createDiv(
       tag: "div",
       namespace: "html",
       id: `${config.addonRef}-reader-div-tags`,
-      styles,
+      styles: {
+        display: "flex",
+        flexDirection: "row",
+        flexWrap: "wrap",
+        justifyContent: "space-start",
+        fontSize,
+      },
       children,
     };
   }
@@ -399,7 +431,7 @@ function createDiv(
     );
   }
   function onTagClick(tag: string, color: string = "") {
-    if (selectedTags.every((s) => s.tag != tag)) {
+    if (doc && selectedTags.every((s) => s.tag != tag)) {
       selectedTags.push({ tag, color: color || getFixedColor(tag) });
       ztoolkit.UI.appendElement(
         {
@@ -497,8 +529,10 @@ function renderTextSelectionPopup(
   //   event.params.annotation.tags,
   // );
   const div = createDiv(doc, reader, params);
-  setTimeout(() => updateDivWidth(div), 1000);
-  append(div);
+  if (div) {
+    setTimeout(() => updateDivWidth(div), 1000);
+    append(div);
+  }
 }
 function updateDivWidth(div: HTMLElement, n = 3) {
   //TODO 这样更新大小好像没起到效果。估计还要换个思路
@@ -549,8 +583,11 @@ function createAnnotationContextMenu(
     onCommand: () => {
       // ztoolkit.log("测试添加标签");
       const div = createDiv(doc, reader, params);
-      doc.body.appendChild(div);
-      setTimeout(() => div?.remove(), 10000);
+      if (div) {
+        doc.body.appendChild(div);
+
+        // setTimeout(() => div?.remove(), 10000);
+      }
     },
   });
 }
