@@ -26,10 +26,10 @@ pref-combine-nested-tags =
     .label =  添加多个标签的时候如果可以组合成Nested Tags，那么进行组合。比如“理论”+“TPB”组合成“#理论/TPB”，如果这个标签以前存在那么就添加
 
 pref-split-nested-tags-keep-first = 
-    .label =  拆分Nested Tags，并保留第一个
+    .label =  拆分Nested Tags，并保留第一个 “#理论/TPB” 将保留 “理论”
 pref-split-nested-tags-keep-second = 
-    .label =  拆分Nested Tags，并保留第二个
+    .label =  拆分Nested Tags，并保留第二个 “#理论/TPB” 将保留 “TPB”
 pref-split-nested-tags-keep-all = 
-    .label =  拆分Nested Tags，并保留全部
+    .label =  拆分Nested Tags，并保留全部   “#理论/TPB” 将保留 “理论” “TPB”
 
 pref-help = { $name } Build { $version } { $time }
