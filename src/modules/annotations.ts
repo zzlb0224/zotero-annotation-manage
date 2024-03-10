@@ -139,8 +139,8 @@ function getLeftTop(temp4: HTMLElement) {
 }
 
 async function getAllTags() {
-  if (Date.now() - allTagsGetTime < 5000) return allTags;
-  allTagsGetTime = Date.now();
+  if (Date.now() - allTagsInLibraryTime < 5000) return allTagsInLibrary;
+  allTagsInLibraryTime = Date.now();
   const libraryID = Zotero.Libraries.getAll().map((a) => a.libraryID)[0];
   const items = await Zotero.Items.getAll(libraryID, false, false, false);
   const pdfIds = items
@@ -154,8 +154,8 @@ async function getAllTags() {
   // ztoolkit.log(pdfs,tags)
   return groupBy(tags, (t) => t.tag);
 }
-let allTagsGetTime = -1;
-let allTags: groupByResult<{
+let allTagsInLibraryTime = -1;
+let allTagsInLibrary: groupByResult<{
   tag: string;
   type: number;
 }>[] = [];
@@ -166,7 +166,7 @@ function createDiv(
   params: any, // { annotation?: any; ids?: string[]; currentID?: string; x?: number; y?: number; },
 ) {
   setTimeout(async () => {
-    allTags = await getAllTags();
+    allTagsInLibrary = await getAllTags();
   }, 0);
   const isExistAnno = !!params.ids;
   //TODO doc 参数都是从reader里面出来的？那么这个参数是不是就没必要了，有待测试
@@ -182,7 +182,7 @@ function createDiv(
       ?.parentElement?.remove();
   const bShowAllTags = !!getPref("showAllTags");
   const tags1 = bShowAllTags
-    ? allTags
+    ? allTagsInLibrary
     : groupBy(relateTags(reader._item), (t) => t.tag);
   // ztoolkit.log(tags1,getPref("selectedCollection"),getPref("currentCollection"))
   includeTAGS(tags1);
@@ -242,7 +242,9 @@ function createDiv(
   }
   styles.maxWidth = maxWidth + "px";
   let searchTag = "";
-
+  const selectedTags: { tag: string; color: string }[] = [];
+  const tagsDisplay: groupByResult<{ tag: string; type: number }>[] = [];
+  searchTagResult();
   const div = ztoolkit.UI.createElement(doc, "div", {
     namespace: "html",
     id: `${config.addonRef}-reader-div`,
@@ -250,7 +252,7 @@ function createDiv(
     properties: {
       tabIndex: -1,
     },
-    children: [createTagsDiv(tags1), createSearchDiv()],
+    children: [createSearchDiv(), createTagsDiv()],
   });
   return div;
 
@@ -267,23 +269,27 @@ function createDiv(
               type: "keyup",
               listener: (e: Event) => {
                 const target = e.target as HTMLInputElement;
-
-                searchTag = target.value;
-                ztoolkit.log("keyup", searchTag);
+                ztoolkit.log(e);
+                searchTag = target.value.trim();
+                if ((e as any).keyCode == 13) {
+                  onTagClick(searchTag);
+                }
                 if (doc.getElementById(`${config.addonRef}-reader-div-tags`)) {
-                  const tags2 = allTags.length == 0 ? tags1 : allTags;
-                  const tags3 = searchTag
-                    ? tags2.filter((f) => RegExp(searchTag, "i").test(f.key))
-                    : tags1;
-                  ztoolkit.log(allTags, tags1, tags2, tags3);
+                  searchTagResult();
                   ztoolkit.UI.replaceElement(
-                    createTagsDiv(tags3),
+                    createTagsDiv(),
                     doc.getElementById(`${config.addonRef}-reader-div-tags`)!,
                   );
                 }
               },
             },
           ],
+          properties: { textContent: searchTag },
+        },
+        {
+          tag: "div",
+          id: `${config.addonRef}-reader-div-selected-tags`,
+          styles: { display: "flex", justifyContent: "space-between" },
         },
         {
           tag: "div",
@@ -291,7 +297,9 @@ function createDiv(
           children: [
             {
               tag: "button",
-              properties: { textContent: "确认" },
+              properties: {
+                textContent: getPref("multipleTags") ? "添加多标签" : "单标签",
+              },
               styles: {
                 margin: "2px",
                 padding: "2px",
@@ -302,8 +310,8 @@ function createDiv(
                 {
                   type: "click",
                   listener: (e: Event) => {
-                    const tag = searchTag.trim();
-                    if (tag) onTagClick(searchTag, getFixedColor(tag));
+                    // if (searchTag) onTagClick(searchTag, getFixedColor(searchTag));
+                    saveAnnotationTags();
                   },
                 },
               ],
@@ -314,51 +322,58 @@ function createDiv(
     };
   }
 
-  function createTagsDiv(
-    tags2: groupByResult<{ tag: string; type: number }>[],
-  ): TagElementProps {
-    // const tags2=searchTag? tags1.filter(f=>f.key.search(searchTag)>-1):tags1
-    ztoolkit.log(searchTag, tags2);
+  function searchTagResult() {
+    const tags2 = allTagsInLibrary.length == 0 ? tags1 : allTagsInLibrary;
+    const tags3 = searchTag
+      ? tags2.filter((f) => RegExp(searchTag, "i").test(f.key))
+      : tags1;
+    tagsDisplay.splice(0, 1e6, ...tags3);
+    return tags3;
+  }
+
+  function createTagsDiv(): TagElementProps {
+    const children = tagsDisplay.map((label) => {
+      const tag = label.key;
+      const allHave = isAllHave(tag);
+      const noneHave = isNoneHave(tag);
+      const someHave = strSomeHave(tag);
+      const bgColor = getFixedColor(tag, "");
+      return {
+        tag: "span",
+        namespace: "html",
+        classList: ["toolbarButton1"],
+        properties: {
+          textContent: `${allHave ? "[x]" : noneHave ? "" : `[${someHave}]`}[${label.values.length}]${tag}`,
+        },
+        styles: {
+          margin: "2px",
+          padding: "2px",
+          background: bgColor,
+          // fontSize: ((label.count-min)/(max-min)*10+15).toFixed()+ "px",
+          fontSize:
+            Zotero.Prefs.get(
+              `extensions.zotero.ZoteroPDFTranslate.fontSize`,
+              true,
+            ) + "px",
+          boxShadow: "#999999 0px 0px 3px 3px",
+        },
+        listeners: [
+          {
+            type: "click",
+            listener: (e: Event) => {
+              ztoolkit.log("增加标签", label, params, e);
+              onTagClick(tag, bgColor || "#f19837");
+            },
+          },
+        ],
+      };
+    });
     return {
       tag: "div",
+      namespace: "html",
       id: `${config.addonRef}-reader-div-tags`,
       styles,
-      children: tags2.map((label) => {
-        const tag = label.key;
-        const allHave = isAllHave(tag);
-        const noneHave = isNoneHave(tag);
-        const someHave = strSomeHave(tag);
-        const bgColor = getFixedColor(tag, "");
-        return {
-          tag: "span",
-          namespace: "html",
-          classList: ["toolbarButton1"],
-          properties: {
-            textContent: `${allHave ? "[x]" : noneHave ? "" : `[${someHave}]`}[${label.values.length}]${tag}`,
-          },
-          styles: {
-            margin: "2px",
-            padding: "2px",
-            background: bgColor,
-            // fontSize: ((label.count-min)/(max-min)*10+15).toFixed()+ "px",
-            fontSize:
-              Zotero.Prefs.get(
-                `extensions.zotero.ZoteroPDFTranslate.fontSize`,
-                true,
-              ) + "px",
-            boxShadow: "#999999 0px 0px 3px 3px",
-          },
-          listeners: [
-            {
-              type: "click",
-              listener: (e: Event) => {
-                ztoolkit.log("增加标签", label, params, e);
-                onTagClick(tag, bgColor || "#f19837");
-              },
-            },
-          ],
-        };
-      }),
+      children,
     };
   }
 
@@ -383,29 +398,63 @@ function createDiv(
       existAnnotations.every((a) => a.hasTag(tag))
     );
   }
+  function onTagClick(tag: string, color: string = "") {
+    if (selectedTags.every((s) => s.tag != tag)) {
+      selectedTags.push({ tag, color: color || getFixedColor(tag) });
+      ztoolkit.UI.appendElement(
+        {
+          tag: "span",
+          namespace: "html",
+          properties: { textContent: tag },
+          styles: { background: color, margin: "3px", padding: "2px" },
+          listeners: [
+            {
+              type: "click",
+              listener: (ev) => {
+                const ele = ev.target as HTMLSpanElement;
+                ele.remove();
+                selectedTags.splice(
+                  selectedTags.findIndex((f) => f.tag == tag),
+                  1,
+                );
+              },
+            },
+          ],
+        },
+        doc.getElementById(`${config.addonRef}-reader-div-selected-tags`)!,
+      );
+    }
+    if (!getPref("multipleTags")) {
+      saveAnnotationTags();
+    }
+  }
 
-  function onTagClick(tag: string, color: string) {
+  function saveAnnotationTags() {
+    if (selectedTags.length == 0) {
+      return;
+    }
     if (isExistAnno) {
       for (const annotation of existAnnotations) {
-        if (isAllHave(tag)) {
-          //全部都有则删除
-          annotation.removeTag(tag);
-        } else {
-          //部分有则添加
-          if (!annotation.hasTag(tag)) {
-            annotation.addTag(tag, 0);
+        for (const selectedTag of selectedTags) {
+          const tag = selectedTag.tag;
+          if (isAllHave(tag)) {
+            //全部都有则删除
+            annotation.removeTag(tag);
+          } else {
+            //部分有则添加
+            if (!annotation.hasTag(tag)) {
+              annotation.addTag(tag, 0);
+            }
           }
         }
         annotation.saveTx(); //增加每一个都要保存，为啥不能批量保存？
       }
-
       div?.remove();
     } else {
-      // Zotero.Tags.getColorByPosition()
-      Array.from({ length: 10 }).map((e, i) =>
-        Zotero.Tags.getColorByPosition(1, i),
-      );
-      const tags = [{ name: tag }];
+      const tags = selectedTags.map((a) => ({ name: a.tag })); //[{ name: tags1[0].tag}];
+      const color =
+        selectedTags.map((a) => a.color).filter((f) => f)[0] ||
+        getFixedColor(selectedTags.map((a) => a.tag)[0]);
       // 因为线程不一样，不能采用直接修改params.annotation的方式，所以直接采用新建的方式保存笔记
       // 特意采用 Components.utils.cloneInto 方法
       reader._annotationManager.addAnnotation(

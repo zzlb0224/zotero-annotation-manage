@@ -15,6 +15,7 @@ pref-currentCollection =
 pref-showAllTags = 
     .label =  显示库中的所有标签（会卡的吧）
 
-
+pref-multipleTags = 
+    .label =  同时添加多个标签
 
 pref-help = { $name } Build { $version } { $time }
