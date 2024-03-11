@@ -24,7 +24,8 @@ function register() {
     "createAnnotationContextMenu",
     createAnnotationContextMenu,
   );
-  allTagsInLibraryGet(2000, "初始化");
+  // allTagsInLibraryGet(2000, "初始化");
+  // allTagsInLibraryAsync()
 }
 function unregister() {
   ztoolkit.log("Annotations unregister");
@@ -135,10 +136,10 @@ function getLeftTop(temp4: HTMLElement) {
     return false;
   }
 }
-function allTagsInLibraryGet(time = 1000, msg = "") {
+function allTagsInLibraryGet1(time = 1000, msg = "") {
   setTimeout(async () => await getAllTags(), time);
   async function getAllTags() {
-    if (Date.now() - allTagsInLibraryTime < 10000) return allTagsInLibrary;
+    if (Date.now() - allTagsInLibraryTime < 10000) return allTagsInLibrary1;
     allTagsInLibraryTime = Date.now();
     // const libraryID = Zotero.Libraries.getAll().map((a) => a.libraryID)[0];
     const allItems = await Zotero.Items.getAll(1, false, false, false);
@@ -152,14 +153,14 @@ function allTagsInLibraryGet(time = 1000, msg = "") {
     const itemTags = getPref("item-tags")
       ? items.flatMap((f) => f.getTags())
       : [];
-    allTagsInLibrary = groupBy([...tags, ...itemTags], (t) => t.tag);
-    ztoolkit.log("重新加载getAllTags", msg, tags, itemTags, allTagsInLibrary);
+    allTagsInLibrary1 = groupBy([...tags, ...itemTags], (t) => t.tag);
+    // ztoolkit.log("重新加载getAllTags", msg, tags, itemTags, allTagsInLibrary);
     // allTagsInLibrary.sort(sortByTAGs) 会产生性能问题
-    return allTagsInLibrary;
+    // return allTagsInLibrary1;
   }
 }
 let allTagsInLibraryTime = -1;
-let allTagsInLibrary: groupByResult<{
+let allTagsInLibrary1: groupByResult<{
   tag: string;
   type: number;
 }>[] = [];
@@ -177,14 +178,29 @@ const allTagsInLibraryAsync = delayLoadAsync(async () => {
     : [];
   return groupBy([...tags, ...itemTags], (t) => t.tag);
 });
-
-function createDiv(
-  doc3: Document,
+ function createDiv( reader: _ZoteroTypes.ReaderInstance,
+  params: any,){
+      const doc = reader._iframeWindow?.document;
+  if (!doc) return;
+ const div = ztoolkit.UI.createElement(doc, "div", {
+    namespace: "html",
+    id: `${config.addonRef}-reader-div`,
+    classList: ["toolbar1", `${config.addonRef}-reader-div`],
+    properties: {
+      tabIndex: -1,
+    },  
+  });
+  //创建完成之后用异步来更新
+  setTimeout(async ()=>{
+   await updateDiv(reader,params)
+  },0)
+  return div;
+}
+async function updateDiv( 
   reader: _ZoteroTypes.ReaderInstance,
   params: any, // { annotation?: any; ids?: string[]; currentID?: string; x?: number; y?: number; },
 ) {
-  const isExistAnno = !!params.ids;
-  allTagsInLibraryGet(1, "选中文字弹出");
+  const isExistAnno = !!params.ids; 
   const doc = reader._iframeWindow?.document;
   if (!doc) return;
   if (
@@ -204,13 +220,8 @@ function createDiv(
     tag: string;
     type: number;
   }>[] = [];
-  if (bShowAllTags) {
-    if (allTagsInLibrary.length == 0) {
-      allTagsInLibraryGet(1000, "弹出窗口时发现为空");
-      tags1 = groupBy(relateTags(reader._item), (t) => t.tag);
-    } else {
-      tags1 = allTagsInLibrary;
-    }
+  if (bShowAllTags) { 
+      tags1 =await allTagsInLibraryAsync();    
   } else {
     tags1 = groupBy(relateTags(reader._item), (t) => t.tag);
   }
@@ -269,17 +280,15 @@ function createDiv(
   const selectedTags: { tag: string; color: string }[] = [];
   let tagsDisplay: groupByResult<{ tag: string; type: number }>[] = [];
   searchTagResult();
-  const div = ztoolkit.UI.createElement(doc, "div", {
-    namespace: "html",
+  const div=ztoolkit.UI.replaceElement({tag:"div",namespace: "html",
     id: `${config.addonRef}-reader-div`,
     classList: ["toolbar1", `${config.addonRef}-reader-div`],
     properties: {
       tabIndex: -1,
     },
     styles,
-    children: [createSearchDiv(), createTagsDiv()],
-  });
-  return div;
+    children: [createSearchDiv(), createTagsDiv()],},doc.getElementById(`${config.addonRef}-reader-div`)!)
+ return div
 
   function createSearchDiv(): TagElementProps {
     return {
@@ -380,11 +389,8 @@ function createDiv(
     };
   }
 
-  function searchTagResult() {
-    if (allTagsInLibrary.length == 0) {
-      allTagsInLibraryGet(1000, "查询时发现为空");
-    }
-    const tags2 = allTagsInLibrary.length == 0 ? tags1 : allTagsInLibrary;
+  async function searchTagResult() {
+    const tags2 =await allTagsInLibraryAsync() // allTagsInLibrary.length == 0 ? tags1 : allTagsInLibrary;
     const tags3 = searchTag
       ? tags2.filter((f) => RegExp(searchTag, "i").test(f.key))
       : tags1;
@@ -497,7 +503,7 @@ function createDiv(
     }
   }
 
-  function saveAnnotationTags() {
+  async function saveAnnotationTags() {
     if (selectedTags.length == 0 && searchTag) {
       selectedTags.push({ tag: searchTag, color: getFixedColor(searchTag) });
     }
@@ -514,7 +520,7 @@ function createDiv(
       .flatMap((a) =>
         bKeepAll ? a : [bKeepFirst ? a[0] : "", bKeepSecond ? a[1] : ""],
       );
-    const nestedTags: string[] = bCombine ? getNestedTags(sTags) : [];
+    const nestedTags: string[] = bCombine ? (await getNestedTags(sTags)) : [];
 
     const tagsRequired = uniqueBy(
       [...sTags, ...nestedTags, ...splitTags].filter((f) => f),
@@ -552,11 +558,11 @@ function createDiv(
       //@ts-ignore 隐藏弹出框
       reader._primaryView._onSetSelectionPopup(null);
     }
-    allTagsInLibraryGet(3000, "添加或者修改操作完毕");
+    allTagsInLibraryAsync()
   }
 }
 
-function getNestedTags(arr: string[]) {
+async function getNestedTags(arr: string[]) {
   const filterArr = arr.filter(
     (f) => f && !f.startsWith("#") && !f.includes("/"),
   );
@@ -565,7 +571,7 @@ function getNestedTags(arr: string[]) {
     for (const t2 of filterArr) {
       if (t1 != t2) {
         const nTag = `#${t1}/${t2}`;
-        if (allTagsInLibrary.some((s) => s.key == nTag)) {
+        if ((await allTagsInLibraryAsync()).some((s) => s.key == nTag)) {
           list.push(nTag);
         }
       }
@@ -605,7 +611,7 @@ function renderTextSelectionPopup(
   //   event,
   //   event.params.annotation.tags,
   // );
-  const div = createDiv(doc, reader, params);
+  const div = createDiv(reader, params);
   if (div) {
     setTimeout(() => updateDivWidth(div), 1000);
     append(div);
@@ -639,6 +645,7 @@ function updateDivWidth(div: HTMLElement, n = 3) {
     );
   }
 }
+
 function createAnnotationContextMenu(
   event: _ZoteroTypes.Reader.EventParams<"createAnnotationContextMenu">,
 ) {
@@ -659,7 +666,7 @@ function createAnnotationContextMenu(
     label: label,
     onCommand: () => {
       // ztoolkit.log("测试添加标签");
-      const div = createDiv(doc, reader, params);
+      const div = createDiv(reader, params);
       if (div) {
         doc.body.appendChild(div);
 
