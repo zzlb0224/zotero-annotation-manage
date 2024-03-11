@@ -56,7 +56,7 @@ function register() {
         label: "tag:量表",
         icon: iconBaseUrl + "favicon.png",
         commandListener: (ev) => {
-          exportTagsNote(["量表"], isCollection(ev));
+          exportSingleNote("量表", isCollection(ev));
         },
       },
       {
@@ -67,6 +67,7 @@ function register() {
           const target = ev.target as HTMLElement;
           const doc = target.ownerDocument;
           const selectedTags: string[] = [];
+          const ic = isCollection(ev);
           ztoolkit.log("自选标签", ev, doc);
           const d = ztoolkit.UI.appendElement(
             {
@@ -93,14 +94,15 @@ function register() {
                         ev.stopPropagation();
                         const target = ev.target as HTMLDivElement;
                         const index = selectedTags.findIndex((f) => f == t);
-                        target.style.background = index == -1 ? "#f00" : "#a99";
                         if (index == -1) {
                           selectedTags.push(t);
+                          target.style.background = "#f00";
                         } else {
                           selectedTags.splice(index, 1);
+                          target.style.background = "#a99";
                         }
-
-                        // exportTagsNote([t],isCollection(ev));
+                        ztoolkit.log(selectedTags);
+                        // exportTagsNote(selectedTags,isCollection(ev));
                         // target.remove();
                         return false;
                       },
@@ -123,7 +125,10 @@ function register() {
                       type: "click",
                       listener: (ev) => {
                         ev.stopPropagation();
-                        d.remove();
+                        if (selectedTags.length > 0) {
+                          exportTagsNote(selectedTags, ic);
+                          d.remove();
+                        }
                         return false;
                       },
                     },
@@ -225,6 +230,7 @@ interface AnnotationRes {
   type: _ZoteroTypes.Annotations.AnnotationType;
   comment: string;
   itemTags: string;
+  annotationTags: string;
   tag: { tag: string; type: number }; //flatMap
   tags: { tag: string; type: number }[];
   html: string;
@@ -369,7 +375,7 @@ async function exportNote({
   }
   if (annotations.length == 0) {
     popupWin
-      ?.createLine({ text: "没有找到标记，不创建笔记" })
+      ?.createLine({ text: `${items.length}个条目.没有找到标记，不创建笔记。` })
       .startCloseTimer(5e3);
     return;
   }
@@ -449,22 +455,46 @@ function exportNoteOnlyImage(isCollection: boolean = false) {
     },
   });
 }
+function exportSingleNote(tag: string, isCollection: boolean = false) {
+  if (tag)
+    exportNote({
+      filter: async (ans) =>
+        ans.filter((f) => f.tags.some((a) => (tag = a.tag))),
+      isCollection: isCollection,
+      toText: (ans) =>
+        groupBy(ans, (a) => a.pdfTitle)
+          .sort((a, b) => (a.key > b.key ? 1 : -1))
+          .flatMap((a, index, aa) => [
+            `<h1>(${index + 1}/${aa.length}) ${a.key} ${getCiteItemHtmlWithPage(a.values[0].ann)}</h1>`,
+            a.values
+              .map((b) => `<h2>${getCiteAnnotationHtml(b.ann)}</h2>`)
+              .join(" "),
+          ])
+          .join(""),
+    });
+}
 function exportTagsNote(tags: string[], isCollection: boolean = false) {
-  exportNote({
-    filter: async (ans) =>
-      ans.filter((f) => f.tags.some((a) => tags.includes(a.tag))),
-    isCollection: isCollection,
-    toText: (ans) =>
-      groupBy(ans, (a) => a.pdfTitle)
-        .sort((a, b) => (a.key > b.key ? 1 : -1))
-        .flatMap((a, index, aa) => [
-          `<h1>(${index + 1}/${aa.length}) ${a.key} ${getCiteItemHtmlWithPage(a.values[0].ann)}</h1>`,
-          a.values
-            .map((b) => `<h2>${getCiteAnnotationHtml(b.ann)}</h2>`)
-            .join(" "),
-        ])
-        .join(""),
-  });
+  if (tags.length > 0)
+    exportNote({
+      filter: async (ans) =>
+        ans
+          .filter((f) => f.tags.some((a) => tags.includes(a.tag)))
+          .map((a) => Object.assign(a, { tag: a.tag })),
+      isCollection: isCollection,
+      toText: (ans) =>
+        groupBy(ans, (a) => a.pdfTitle)
+          .sort((a, b) => (a.key > b.key ? 1 : -1))
+          .flatMap((a, index, aa) => [
+            `<h1>(${index + 1}/${aa.length}) ${a.key} ${getCiteItemHtmlWithPage(a.values[0].ann)}</h1>`,
+            a.values
+              .map(
+                (b) =>
+                  `<h2>[${b.annotationTags}]${getCiteAnnotationHtml(b.ann)}</h2>`,
+              )
+              .join(" "),
+          ])
+          .join(""),
+    });
 }
 
 function getCiteAnnotationHtml(annotation: Zotero.Item, text = "") {
