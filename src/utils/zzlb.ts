@@ -1,3 +1,4 @@
+import { cache } from "./Cache";
 import { getPref } from "./prefs";
 
 /* unique 采用set的比较方式*/
@@ -87,17 +88,22 @@ export function sortByTAGs<T>(a: groupByResult<T>, b: groupByResult<T>) {
 }
 // Zotero.Utilities.throttle(getFixedColor,1000,)
 export function delayLoad<T>(fn: () => T, time = 10000) {
-  const lastTime = -1;
+  let lastTime = -1;
   let value!: T;
   return () => {
-    if (Date.now() - lastTime < time) {
+    const now = Date.now();
+    if (now - lastTime < time) {
+      ztoolkit.log("缓存读取", value);
       return value;
     }
+    lastTime = now;
+    ztoolkit.log("直接读取", value);
     //@ts-ignore this
     return (value = fn.apply(this));
   };
 }
-export function delayLoadAsync<T>(fn: () => Promise<T>, time = 10000) {
+
+function delayLoadAsync<T>(fn: () => Promise<T>, time = 10000) {
   let lastTime = -1;
   let value!: T;
   return async () => {
@@ -113,7 +119,7 @@ export function delayLoadAsync<T>(fn: () => Promise<T>, time = 10000) {
     return value;
   };
 }
-export const getFixedTags = delayLoad(getFixedTags_);
+export const getFixedTags = () => cache.get("FixedTags", getFixedTags_, 10000); //delayLoad(getFixedTags_);
 
 function getFixedTags_(): string[] {
   const prefTags = ((getPref("tags") as string) || "")
@@ -149,4 +155,4 @@ export function getFixedColor(tag: string, optional?: string): string {
   if (optional == undefined) return getPref("optional-color") as string;
   return optional;
 }
-export const getFixedColors = delayLoad(getFixedColors_);
+export const getFixedColors = () => cache.get("FixedColors", getFixedColors_); //delayLoad(getFixedColors_);
