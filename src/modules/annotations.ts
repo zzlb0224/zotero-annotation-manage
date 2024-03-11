@@ -178,29 +178,7 @@ const allTagsInLibraryAsync = delayLoadAsync(async () => {
     : [];
   return groupBy([...tags, ...itemTags], (t) => t.tag);
 });
- function createDiv( reader: _ZoteroTypes.ReaderInstance,
-  params: any,){
-      const doc = reader._iframeWindow?.document;
-  if (!doc) return;
- const div = ztoolkit.UI.createElement(doc, "div", {
-    namespace: "html",
-    id: `${config.addonRef}-reader-div`,
-    classList: ["toolbar1", `${config.addonRef}-reader-div`],
-    properties: {
-      tabIndex: -1,
-    },  
-  });
-  //创建完成之后用异步来更新
-  setTimeout(async ()=>{
-   await updateDiv(reader,params)
-  },0)
-  return div;
-}
-async function updateDiv( 
-  reader: _ZoteroTypes.ReaderInstance,
-  params: any, // { annotation?: any; ids?: string[]; currentID?: string; x?: number; y?: number; },
-) {
-  const isExistAnno = !!params.ids; 
+function createDiv(reader: _ZoteroTypes.ReaderInstance, params: any) {
   const doc = reader._iframeWindow?.document;
   if (!doc) return;
   if (
@@ -212,6 +190,35 @@ async function updateDiv(
     doc
       .getElementById(`${config.addonRef}-reader-div`)
       ?.parentElement?.remove();
+  const div = ztoolkit.UI.createElement(doc, "div", {
+    namespace: "html",
+    id: `${config.addonRef}-reader-div`,
+    classList: ["toolbar1", `${config.addonRef}-reader-div`],
+    properties: {
+      tabIndex: -1,
+    },
+  });
+  //创建完成之后用异步来更新
+  setTimeout(async () => {
+    await updateDiv(reader, params);
+  }, 500);
+  return div;
+}
+async function updateDiv(
+  reader: _ZoteroTypes.ReaderInstance,
+  params: any, // { annotation?: any; ids?: string[]; currentID?: string; x?: number; y?: number; },
+) {
+  ztoolkit.log("updateDiv");
+  const doc = reader._iframeWindow?.document;
+  if (!doc) return;
+  const root = doc.getElementById(`${config.addonRef}-reader-div`);
+  if (!root || !root.parentNode) {
+    setTimeout(async () => {
+      await updateDiv(reader, params);
+    }, 500);
+    return;
+  }
+  const isExistAnno = !!params.ids;
   const bShowAllTags = !!getPref("showAllTags");
   const fontSize =
     Zotero.Prefs.get(`extensions.zotero.ZoteroPDFTranslate.fontSize`, true) +
@@ -220,17 +227,20 @@ async function updateDiv(
     tag: string;
     type: number;
   }>[] = [];
-  if (bShowAllTags) { 
-      tags1 =await allTagsInLibraryAsync();    
+  if (bShowAllTags) {
+    tags1 = await allTagsInLibraryAsync();
   } else {
     tags1 = groupBy(relateTags(reader._item), (t) => t.tag);
   }
-  // ztoolkit.log(tags1,getPref("selectedCollection"),getPref("currentCollection"))
   includeTAGS(tags1);
   tags1.sort(sortByTAGs);
   const existAnnotations = isExistAnno
     ? reader._item.getAnnotations().filter((f) => params.ids.includes(f.key))
     : [];
+
+  let searchTag = "";
+  const selectedTags: { tag: string; color: string }[] = [];
+  let tagsDisplay: groupByResult<{ tag: string; type: number }>[] = tags1;
 
   const {
     clientWidthWithoutSlider,
@@ -239,23 +249,20 @@ async function updateDiv(
     pageLeft,
   } = getPrimaryViewDoc(doc);
   let maxWidth = 666;
-  const styles: Partial<CSSStyleDeclaration> = {
-    // width: "calc(100% - 4px)",
-    // maxWidth: maxWidth + "px",
+  const rootStyle: Partial<CSSStyleDeclaration> = {
     background: "#eeeeee",
     border: "#cc9999",
-    // boxShadow: "#666666 0px 0px 6px 4px",
     overflowY: "scroll",
     maxHeight: "350px",
   };
   if (isExistAnno) {
-    styles.zIndex = "99990";
-    styles.position = "fixed";
-    styles.top = params.y + "px";
-    styles.left = params.x + "px"; //只有左边需要改，其它的固定
+    rootStyle.zIndex = "99990";
+    rootStyle.position = "fixed";
+    rootStyle.top = params.y + "px";
+    rootStyle.left = params.x + "px"; //只有左边需要改，其它的固定
     //对已有标签处理 防止出现右边超出边界
     if (params.x > clientWidthWithSlider - maxWidth) {
-      styles.left = clientWidthWithSlider - maxWidth - 23 + "px";
+      rootStyle.left = clientWidthWithSlider - maxWidth - 23 + "px";
     }
   } else {
     //找到弹出框的中心点
@@ -275,20 +282,23 @@ async function updateDiv(
       50;
     //这个应该可以更精准的计算。但是不会啊
   }
-  styles.maxWidth = maxWidth + "px";
-  let searchTag = "";
-  const selectedTags: { tag: string; color: string }[] = [];
-  let tagsDisplay: groupByResult<{ tag: string; type: number }>[] = [];
-  searchTagResult();
-  const div=ztoolkit.UI.replaceElement({tag:"div",namespace: "html",
-    id: `${config.addonRef}-reader-div`,
-    classList: ["toolbar1", `${config.addonRef}-reader-div`],
-    properties: {
-      tabIndex: -1,
+  rootStyle.maxWidth = maxWidth + "px";
+  const div = ztoolkit.UI.replaceElement(
+    {
+      tag: "div",
+      namespace: "html",
+      id: `${config.addonRef}-reader-div`,
+      // classList: ["toolbar1", `${config.addonRef}-reader-div`],
+      properties: {
+        tabIndex: -1,
+      },
+      styles: rootStyle,
+      children: [createSearchDiv(), createTagsDiv()],
     },
-    styles,
-    children: [createSearchDiv(), createTagsDiv()],},doc.getElementById(`${config.addonRef}-reader-div`)!)
- return div
+    root,
+  );
+  ztoolkit.log("append", div);
+  return div;
 
   function createSearchDiv(): TagElementProps {
     return {
@@ -307,7 +317,7 @@ async function updateDiv(
           listeners: [
             {
               type: "keyup",
-              listener: (e: Event) => {
+              listener: async (e: Event) => {
                 const target = e.target as HTMLInputElement;
                 ztoolkit.log(e);
                 searchTag = target.value.trim();
@@ -316,7 +326,7 @@ async function updateDiv(
                   onTagClick(searchTag);
                 }
                 if (doc?.getElementById(`${config.addonRef}-reader-div-tags`)) {
-                  searchTagResult();
+                  tagsDisplay = await searchTagResult();
                   ztoolkit.UI.replaceElement(
                     createTagsDiv(),
                     doc.getElementById(`${config.addonRef}-reader-div-tags`)!,
@@ -390,15 +400,17 @@ async function updateDiv(
   }
 
   async function searchTagResult() {
-    const tags2 =await allTagsInLibraryAsync() // allTagsInLibrary.length == 0 ? tags1 : allTagsInLibrary;
-    const tags3 = searchTag
-      ? tags2.filter((f) => RegExp(searchTag, "i").test(f.key))
-      : tags1;
-    tagsDisplay = tags3.slice(1, 100);
+    if (searchTag) {
+      const tags2 = bShowAllTags ? tags1 : await allTagsInLibraryAsync();
+      const tags3 = tags2.filter((f) => RegExp(searchTag, "i").test(f.key));
+      return tags3;
+    } else {
+      return tags1;
+    }
   }
 
   function createTagsDiv(): TagElementProps {
-    const children = tagsDisplay.map((label) => {
+    const children = tagsDisplay.slice(1, 200).map((label) => {
       const tag = label.key;
       const allHave = isAllHave(tag);
       const noneHave = isNoneHave(tag);
@@ -478,7 +490,8 @@ async function updateDiv(
             background: color,
             margin: "3px",
             padding: "2px",
-            borderRadius: "6px",
+            boxShadow: "#ffbccb 0px 0px 3px 3px",
+            // borderRadius: "666px",
             fontSize,
           },
           listeners: [
@@ -520,7 +533,7 @@ async function updateDiv(
       .flatMap((a) =>
         bKeepAll ? a : [bKeepFirst ? a[0] : "", bKeepSecond ? a[1] : ""],
       );
-    const nestedTags: string[] = bCombine ? (await getNestedTags(sTags)) : [];
+    const nestedTags: string[] = bCombine ? await getNestedTags(sTags) : [];
 
     const tagsRequired = uniqueBy(
       [...sTags, ...nestedTags, ...splitTags].filter((f) => f),
@@ -558,7 +571,7 @@ async function updateDiv(
       //@ts-ignore 隐藏弹出框
       reader._primaryView._onSetSelectionPopup(null);
     }
-    allTagsInLibraryAsync()
+    allTagsInLibraryAsync();
   }
 }
 

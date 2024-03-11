@@ -98,14 +98,19 @@ export function delayLoad<T>(fn: () => T, time = 10000) {
   };
 }
 export function delayLoadAsync<T>(fn: () => Promise<T>, time = 10000) {
-  const lastTime = -1;
+  let lastTime = -1;
   let value!: T;
   return async () => {
-    if (Date.now() - lastTime < time) {
+    const now = Date.now();
+    if (now - lastTime < time) {
+      ztoolkit.log("缓存读取", value);
       return value;
     }
+    lastTime = now;
     //@ts-ignore this
-    return (value = await fn.apply(this, args));
+    value = await fn.apply(this);
+    ztoolkit.log("直接读取", value);
+    return value;
   };
 }
 export const getFixedTags = delayLoad(getFixedTags_);
