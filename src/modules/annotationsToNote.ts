@@ -375,7 +375,7 @@ async function exportNote({
   }
   if (annotations.length == 0) {
     popupWin
-      ?.createLine({ text: `${items.length}个条目.没有找到标记，不创建笔记。` })
+      ?.createLine({ text: `${items.length}个条目。没有找到标记，不创建笔记。` })
       .startCloseTimer(5e3);
     return;
   }
