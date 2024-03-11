@@ -68,6 +68,11 @@ function register() {
           const doc = target.ownerDocument;
           const selectedTags: string[] = [];
           const ic = isCollection(ev);
+          const items= getSelectedItems(ic)
+          const annotations=getAllAnnotations(items).flatMap(f=>f.tags.map(t=>Object.assign(f,{tag:t})))
+          const tags=groupBy(annotations,a=>a.tag.tag)
+          tags.sort(sortByTAGs)
+          
           ztoolkit.log("自选标签", ev, doc);
           const d = ztoolkit.UI.appendElement(
             {
@@ -84,18 +89,18 @@ function register() {
                 flexWrap: "wrap",
               },
               children: [
-                ...getFixedTags().map((t) => ({
+                ...tags.splice(1,30).map((t) => ({
                   tag: "div",
-                  properties: { textContent: t },
+                  properties: { textContent:`[${t.values.length}]${t.key}`  },
                   listeners: [
                     {
                       type: "click",
                       listener: (ev: Event) => {
                         ev.stopPropagation();
                         const target = ev.target as HTMLDivElement;
-                        const index = selectedTags.findIndex((f) => f == t);
+                        const index = selectedTags.findIndex((f) => f == t.key);
                         if (index == -1) {
-                          selectedTags.push(t);
+                          selectedTags.push(t.key);
                           target.style.background = "#f00";
                         } else {
                           selectedTags.splice(index, 1);
@@ -126,7 +131,8 @@ function register() {
                       listener: (ev) => {
                         ev.stopPropagation();
                         if (selectedTags.length > 0) {
-                          exportTagsNote(selectedTags, ic);
+                         
+                          exportTagsNote(selectedTags, items);
                           d.remove();
                         }
                         return false;
@@ -342,33 +348,21 @@ function getTitleFromAnnotations(annotations: AnnotationRes[]) {
 //   return `<${tag} ${attrs}>${txt}</${tag}>`;
 // }
 async function exportNote({
-  toText,
-  isCollection = false,
+  toText, 
   filter = undefined,
+  items= undefined,
 }: {
   toText:
     | ((arg0: AnnotationRes[]) => string)
     | ((arg0: AnnotationRes[]) => Promise<string>);
-  isCollection?: boolean;
+  
   filter?:
     | ((arg0: AnnotationRes[]) => AnnotationRes[])
     | ((arg0: AnnotationRes[]) => Promise<AnnotationRes[]>);
+  items?:Zotero.Item[];
 }) {
   createPopupWin();
-
-  let items: Zotero.Item[] = [];
-  if (isCollection) {
-    const selectedCollection = ZoteroPane.getSelectedCollection();
-    if (selectedCollection) {
-      const cs = uniqueBy(
-        [selectedCollection, ...getChildCollections([selectedCollection])],
-        (u) => u.key,
-      );
-      items = cs.flatMap((f) => f.getChildItems(false, false));
-    }
-  } else {
-    items = ZoteroPane.getSelectedItems();
-  }
+  if(items==undefined ) return;
   let annotations = getAllAnnotations(items);
   if (filter) {
     annotations = await filter(annotations);
@@ -395,6 +389,23 @@ async function exportNote({
   ztoolkit.log("输出的html", txt);
   await saveNote(note, `<h2>${getKeyGroup((f) => f.year)}</h2>\n${txt}`);
 }
+function getSelectedItems(isCollection: boolean) {
+  let items: Zotero.Item[] = [];
+  if (isCollection) {
+    const selectedCollection = ZoteroPane.getSelectedCollection();
+    if (selectedCollection) {
+      const cs = uniqueBy(
+        [selectedCollection, ...getChildCollections([selectedCollection])],
+        (u) => u.key
+      );
+      items = cs.flatMap((f) => f.getChildItems(false, false));
+    }
+  } else {
+    items = ZoteroPane.getSelectedItems();
+  }
+  return items;
+}
+
 function exportNoteByTag(isCollection: boolean = false) {
   exportNote({
     filter: (ans) =>
@@ -409,7 +420,7 @@ function exportNoteByTag(isCollection: boolean = false) {
           ];
         })
         .join("\n"),
-    isCollection,
+    items:getSelectedItems(isCollection),
   });
 }
 function exportNoteByTagPdf(isCollection: boolean = false) {
@@ -431,7 +442,7 @@ function exportNoteByTagPdf(isCollection: boolean = false) {
           ];
         })
         .join("\n"),
-    isCollection,
+    items:getSelectedItems(isCollection),
   });
 }
 
@@ -448,7 +459,7 @@ function exportNoteOnlyImage(isCollection: boolean = false) {
           ]),
         ])
         .join("\n"),
-    isCollection,
+    items:getSelectedItems(isCollection),
     filter: (annotations) => {
       annotations = annotations.filter((f) => f.type == "image");
       return uniqueBy(annotations, (a) => a.ann.key);
@@ -460,7 +471,7 @@ function exportSingleNote(tag: string, isCollection: boolean = false) {
     exportNote({
       filter: async (ans) =>
         ans.filter((f) => f.tags.some((a) => (tag = a.tag))),
-      isCollection: isCollection,
+    items:getSelectedItems(isCollection),
       toText: (ans) =>
         groupBy(ans, (a) => a.pdfTitle)
           .sort((a, b) => (a.key > b.key ? 1 : -1))
@@ -473,14 +484,14 @@ function exportSingleNote(tag: string, isCollection: boolean = false) {
           .join(""),
     });
 }
-function exportTagsNote(tags: string[], isCollection: boolean = false) {
+function exportTagsNote(tags: string[], items:Zotero.Item[]) {
   if (tags.length > 0)
     exportNote({
       filter: async (ans) =>
         ans
           .filter((f) => f.tags.some((a) => tags.includes(a.tag)))
           .map((a) => Object.assign(a, { tag: a.tag })),
-      isCollection: isCollection,
+      items,
       toText: (ans) =>
         groupBy(ans, (a) => a.pdfTitle)
           .sort((a, b) => (a.key > b.key ? 1 : -1))
