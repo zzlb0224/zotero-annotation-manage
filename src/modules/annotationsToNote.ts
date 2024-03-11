@@ -56,7 +56,7 @@ function register() {
         label: "tag:量表",
         icon: iconBaseUrl + "favicon.png",
         commandListener: (ev) => {
-          exportNoteScale(isCollection(ev));
+          exportTagsNote(["量表"], isCollection(ev));
         },
       },
       {
@@ -66,7 +66,7 @@ function register() {
         commandListener: (ev) => {
           const target = ev.target as HTMLElement;
           const doc = target.ownerDocument;
-
+          const selectedTags: string[] = [];
           ztoolkit.log("自选标签", ev, doc);
           const d = ztoolkit.UI.appendElement(
             {
@@ -91,8 +91,17 @@ function register() {
                       type: "click",
                       listener: (ev: Event) => {
                         ev.stopPropagation();
-                        const target = ev.target as HTMLElement;
-                        target.remove();
+                        const target = ev.target as HTMLDivElement;
+                        const index = selectedTags.findIndex((f) => f == t);
+                        target.style.background = index == -1 ? "#f00" : "#a99";
+                        if (index == -1) {
+                          selectedTags.push(t);
+                        } else {
+                          selectedTags.splice(index, 1);
+                        }
+
+                        // exportTagsNote([t],isCollection(ev));
+                        // target.remove();
                         return false;
                       },
                     },
@@ -440,10 +449,10 @@ function exportNoteOnlyImage(isCollection: boolean = false) {
     },
   });
 }
-function exportNoteScale(isCollection: boolean = false) {
+function exportTagsNote(tags: string[], isCollection: boolean = false) {
   exportNote({
     filter: async (ans) =>
-      ans.filter((f) => f.tags.some((a) => a.tag == "量表")),
+      ans.filter((f) => f.tags.some((a) => tags.includes(a.tag))),
     isCollection: isCollection,
     toText: (ans) =>
       groupBy(ans, (a) => a.pdfTitle)
