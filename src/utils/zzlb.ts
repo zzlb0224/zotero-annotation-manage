@@ -10,7 +10,7 @@ export function uniqueBy<T>(arr: T[], fn: (item: T) => string) {
   const groupedBy: { [key: string]: T } = {};
   for (const curr of arr) {
     const groupKey = fn(curr);
-    if (groupKey in groupedBy) {
+    if (curr && !groupedBy[groupKey]) {
       groupedBy[groupKey] = curr;
     }
   }
@@ -85,8 +85,32 @@ export function sortByTAGs<T>(a: groupByResult<T>, b: groupByResult<T>) {
   }
   return b.values.length - a.values.length + (b.key > a.key ? -0.5 : 0.5);
 }
+// Zotero.Utilities.throttle(getFixedColor,1000,)
+export function delayLoad<T>(fn: () => T, time = 10000) {
+  const lastTime = -1;
+  let value!: T;
+  return () => {
+    if (Date.now() - lastTime < time) {
+      return value;
+    }
+    //@ts-ignore this
+    return (value = fn.apply(this, args));
+  };
+}
+export function delayLoadAsync<T>(fn: () => Promise<T>, time = 10000) {
+  const lastTime = -1;
+  let value!: T;
+  return async () => {
+    if (Date.now() - lastTime < time) {
+      return value;
+    }
+    //@ts-ignore this
+    return (value = await fn.apply(this, args));
+  };
+}
+export const getFixedTags = delayLoad(getFixedTags_);
 
-export function getFixedTags(): string[] {
+function getFixedTags_(): string[] {
   const prefTags = ((getPref("tags") as string) || "")
     .split(",")
     .map((a) => a.trim())
@@ -96,7 +120,7 @@ export function getFixedTags(): string[] {
     ",",
   );
 }
-export function getFixedColors(): string[] {
+function getFixedColors_(): string[] {
   let fixedColor = ((getPref("fixed-colors") as string) || "")
     .split(",")
     .map((a) => a.trim())
@@ -120,3 +144,4 @@ export function getFixedColor(tag: string, optional?: string): string {
   if (optional == undefined) return getPref("optional-color") as string;
   return optional;
 }
+export const getFixedColors = delayLoad(getFixedColors_);

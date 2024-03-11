@@ -26,5 +26,7 @@ pref-split-nested-tags-keep-second =
     .label =  split nested tags and keep the second tag
 pref-split-nested-tags-keep-all = 
     .label =   split nested tags and keep all tags
+pref-item-tags = 
+    .label =  并且包括条目的标签
 
 pref-help = { $name } Build { $version } { $time }

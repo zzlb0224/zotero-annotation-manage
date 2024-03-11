@@ -8,6 +8,8 @@ import {
   getChildCollections,
   uniqueBy,
   getFixedColor,
+  delayLoad,
+  delayLoadAsync,
 } from "../utils/zzlb";
 import { getPref } from "../utils/prefs";
 function register() {
@@ -22,7 +24,7 @@ function register() {
     "createAnnotationContextMenu",
     createAnnotationContextMenu,
   );
-  allTagsInLibraryGet(2000);
+  allTagsInLibraryGet(2000, "初始化");
 }
 function unregister() {
   ztoolkit.log("Annotations unregister");
@@ -133,8 +135,7 @@ function getLeftTop(temp4: HTMLElement) {
     return false;
   }
 }
-
-function allTagsInLibraryGet(time = 1000) {
+function allTagsInLibraryGet(time = 1000, msg = "") {
   setTimeout(async () => await getAllTags(), time);
   async function getAllTags() {
     if (Date.now() - allTagsInLibraryTime < 10000) return allTagsInLibrary;
@@ -152,7 +153,7 @@ function allTagsInLibraryGet(time = 1000) {
       ? items.flatMap((f) => f.getTags())
       : [];
     allTagsInLibrary = groupBy([...tags, ...itemTags], (t) => t.tag);
-    ztoolkit.log("重新加载getAllTags", tags, itemTags, allTagsInLibrary);
+    ztoolkit.log("重新加载getAllTags", msg, tags, itemTags, allTagsInLibrary);
     // allTagsInLibrary.sort(sortByTAGs) 会产生性能问题
     return allTagsInLibrary;
   }
@@ -162,6 +163,20 @@ let allTagsInLibrary: groupByResult<{
   tag: string;
   type: number;
 }>[] = [];
+const allTagsInLibraryAsync = delayLoadAsync(async () => {
+  const allItems = await Zotero.Items.getAll(1, false, false, false);
+  const items = allItems.filter((f) => !f.parentID && !f.isAttachment());
+  const pdfIds = items.flatMap((f) => f.getAttachments(false));
+  const pdfs = Zotero.Items.get(pdfIds);
+  const tags = pdfs
+    .filter((f) => f.isPDFAttachment())
+    .flatMap((f) => f.getAnnotations())
+    .flatMap((f) => f.getTags());
+  const itemTags = getPref("item-tags")
+    ? items.flatMap((f) => f.getTags())
+    : [];
+  return groupBy([...tags, ...itemTags], (t) => t.tag);
+});
 
 function createDiv(
   doc3: Document,
@@ -169,7 +184,7 @@ function createDiv(
   params: any, // { annotation?: any; ids?: string[]; currentID?: string; x?: number; y?: number; },
 ) {
   const isExistAnno = !!params.ids;
-  allTagsInLibraryGet(1);
+  allTagsInLibraryGet(1, "选中文字弹出");
   const doc = reader._iframeWindow?.document;
   if (!doc) return;
   if (
@@ -191,7 +206,7 @@ function createDiv(
   }>[] = [];
   if (bShowAllTags) {
     if (allTagsInLibrary.length == 0) {
-      allTagsInLibraryGet(1000);
+      allTagsInLibraryGet(1000, "弹出窗口时发现为空");
       tags1 = groupBy(relateTags(reader._item), (t) => t.tag);
     } else {
       tags1 = allTagsInLibrary;
@@ -367,7 +382,7 @@ function createDiv(
 
   function searchTagResult() {
     if (allTagsInLibrary.length == 0) {
-      allTagsInLibraryGet(1000);
+      allTagsInLibraryGet(1000, "查询时发现为空");
     }
     const tags2 = allTagsInLibrary.length == 0 ? tags1 : allTagsInLibrary;
     const tags3 = searchTag
@@ -481,24 +496,27 @@ function createDiv(
     }
     if (selectedTags.length == 0) return;
 
-    const ct = !!getPref("combine-nested-tags");
-    const nf = !!getPref("split-nested-tags-keep-first");
-    const ns = !!getPref("split-nested-tags-keep-second");
-    const na = !!getPref("split-nested-tags-keep-all");
+    const bCombine = !!getPref("combine-nested-tags");
+    const bKeepFirst = !!getPref("split-nested-tags-keep-first");
+    const bKeepSecond = !!getPref("split-nested-tags-keep-second");
+    const bKeepAll = !!getPref("split-nested-tags-keep-all");
     const sTags = selectedTags.map((a) => a.tag);
     const splitTags = sTags
       .filter((f) => f && f.startsWith("#") && f.includes("/"))
       .map((a) => a.replace("#", "").split("/"))
-      .flatMap((a) => (na ? a : [nf ? a[0] : "", ns ? a[1] : ""]));
-    const nestedTags: string[] = ct ? getNestedTags(sTags) : [];
+      .flatMap((a) =>
+        bKeepAll ? a : [bKeepFirst ? a[0] : "", bKeepSecond ? a[1] : ""],
+      );
+    const nestedTags: string[] = bCombine ? getNestedTags(sTags) : [];
 
-    const sts = uniqueBy(
+    const tagsRequired = uniqueBy(
       [...sTags, ...nestedTags, ...splitTags].filter((f) => f),
       (u) => u,
     );
+    ztoolkit.log("需要添加的tags", selectedTags, tagsRequired);
     if (isExistAnno) {
       for (const annotation of existAnnotations) {
-        for (const selectedTag of sts) {
+        for (const selectedTag of tagsRequired) {
           const tag = selectedTag;
           if (isAllHave(tag)) {
             //全部都有则删除
@@ -517,8 +535,8 @@ function createDiv(
     } else {
       const color =
         selectedTags.map((a) => a.color).filter((f) => f)[0] ||
-        getFixedColor(selectedTags.map((a) => a.tag)[0]);
-      const tags = sts.map((a) => ({ name: a }));
+        getFixedColor(tagsRequired[0]);
+      const tags = tagsRequired.map((a) => ({ name: a }));
       // 因为线程不一样，不能采用直接修改params.annotation的方式，所以直接采用新建的方式保存笔记
       // 特意采用 Components.utils.cloneInto 方法
       reader._annotationManager.addAnnotation(
@@ -527,9 +545,10 @@ function createDiv(
       //@ts-ignore 隐藏弹出框
       reader._primaryView._onSetSelectionPopup(null);
     }
-    allTagsInLibraryGet(3000);
+    allTagsInLibraryGet(3000, "添加或者修改操作完毕");
   }
 }
+
 function getNestedTags(arr: string[]) {
   const filterArr = arr.filter(
     (f) => f && !f.startsWith("#") && !f.includes("/"),
