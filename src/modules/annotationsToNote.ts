@@ -7,6 +7,7 @@ import {
   promiseAllWithProgress,
   sortByTAGs,
   getChildCollections,
+  getFixedTags,
 } from "../utils/zzlb";
 import { getPref } from "../utils/prefs";
 let popupWin: ProgressWindowHelper | undefined = undefined;
@@ -56,6 +57,66 @@ function register() {
         icon: iconBaseUrl + "favicon.png",
         commandListener: (ev) => {
           exportNoteScale(isCollection(ev));
+        },
+      },
+      {
+        tag: "menuitem",
+        label: "自选标签",
+        icon: iconBaseUrl + "favicon.png",
+        commandListener: (ev) => {
+          const target=(ev.target as HTMLElement)
+          const doc=target.ownerDocument
+          
+          ztoolkit.log("自选标签",ev,doc)
+          const d= ztoolkit.UI.appendElement({tag:"div" ,styles:{
+              padding:"20px",
+              position:"fixed",
+              left:"100px",
+              top:"100px",
+              zIndex:"9999",
+              width:"600px",
+               display:"flex",
+               background:"#a99",
+               flexWrap:"wrap"
+            },children:[
+              ...getFixedTags().map(t=>({
+            tag:"div",
+            properties:{textContent:t},
+            listeners:[{type:"click",listener:(ev:Event)=>{
+              ev.stopPropagation();
+              const target= (ev.target as HTMLElement)
+             target.remove();
+            return false
+          }}],
+           styles:{
+              padding:"6px",
+               background:"#099" 
+            }
+          })),{tag:"div",properties:{textContent:"确定生成"},
+           styles:{
+              padding:"6px",
+               background:"#f99" 
+            },listeners:[{type:"click",listener:(ev)=>{
+               ev.stopPropagation(); 
+             d.remove();
+            return false
+          }}],},{tag:"div",properties:{textContent:"取消"},
+           styles:{
+              padding:"6px",
+               background:"#f99" 
+            },listeners:[{type:"click",listener:(ev)=>{
+               ev.stopPropagation(); 
+             d.remove();
+            return false
+          }}],},],
+            listeners:[{type:"click",listener:(ev)=>{
+               ev.stopPropagation();
+               const target= (ev.target as HTMLElement)
+             target.remove();
+            return false
+          }}],},doc.querySelector("body,div")!)
+          ztoolkit.log("自选标签",d)
+          // setTimeout(()=>d.remove(),10000)
         },
       },
     ],
