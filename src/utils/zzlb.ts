@@ -94,7 +94,7 @@ export function delayLoad<T>(fn: () => T, time = 10000) {
       return value;
     }
     //@ts-ignore this
-    return (value = fn.apply(this, args));
+    return (value = fn.apply(this));
   };
 }
 export function delayLoadAsync<T>(fn: () => Promise<T>, time = 10000) {

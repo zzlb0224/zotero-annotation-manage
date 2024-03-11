@@ -411,6 +411,7 @@ function createDiv(
           background: bgColor,
           fontSize,
           boxShadow: "#999999 0px 0px 3px 3px",
+          borderRadius: "6px",
         },
         listeners: [
           {
@@ -467,7 +468,13 @@ function createDiv(
           tag: "span",
           namespace: "html",
           properties: { textContent: tag },
-          styles: { background: color, margin: "3px", padding: "2px" },
+          styles: {
+            background: color,
+            margin: "3px",
+            padding: "2px",
+            borderRadius: "6px",
+            fontSize,
+          },
           listeners: [
             {
               type: "click",

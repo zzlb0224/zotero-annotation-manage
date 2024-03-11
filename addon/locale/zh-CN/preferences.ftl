@@ -19,7 +19,7 @@ pref-showAllTags =
     .label =  显示库中的所有笔记的标签
 
 pref-item-tags = 
-    .label =  （接上条）并且包括条目的标签
+    .label =  （接上条）并且包括条目的标签（这个功能会卡，做了个间隔读取不管用，等以后有时间增加缓存和异步读取）
 pref-multipleTags = 
     .label =  同时添加多个标签
 
