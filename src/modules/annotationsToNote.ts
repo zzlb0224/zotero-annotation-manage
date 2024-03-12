@@ -17,11 +17,7 @@ function register() {
   // if (!getPref("exportenable")) return;
   //图标根目录 zotero-annotation-manage\addon\chrome\content\icons
   const iconBaseUrl = `chrome://${config.addonRef}/content/icons/`;
-  function isCollection(ev: Event) {
-    const pid = (ev.target as HTMLElement)?.parentElement?.parentElement?.id;
-    const isCollection = pid?.includes("collection") || false;
-    return isCollection;
-  }
+
   const menu: MenuitemOptions = {
     tag: "menu",
     label: "导出笔记z",
@@ -66,121 +62,8 @@ function register() {
         commandListener: (ev) => {
           const target = ev.target as HTMLElement;
           const doc = target.ownerDocument;
-          // Zotero.getMainWindow().document;
-          const selectedTags: string[] = [];
-          const ic = isCollection(ev);
-          const items = getSelectedItems(ic);
-          const annotations = getAllAnnotations(items).flatMap((f) =>
-            f.tags.map((t) => Object.assign(f, { tag: t })),
-          );
-          const tags = groupBy(annotations, (a) => a.tag.tag);
-          tags.sort(sortByTAGs);
-
-          ztoolkit.log("自选标签", ev, doc);
-          const d = ztoolkit.UI.appendElement(
-            {
-              tag: "div",
-              styles: {
-                padding: "20px",
-                position: "fixed",
-                left: "100px",
-                top: "100px",
-                zIndex: "9999",
-                width: "calc(100% - 200px)",
-                maxHeight: "calc(100% -200px)",
-                overflowY: "scroll",
-                display: "flex",
-                background: "#a99",
-                flexWrap: "wrap",
-              },
-              children: [
-                ...tags.splice(1, 30).map((t) => ({
-                  tag: "div",
-                  properties: { textContent: `[${t.values.length}]${t.key}` },
-                  listeners: [
-                    {
-                      type: "click",
-                      listener: (ev: Event) => {
-                        ev.stopPropagation();
-                        const target = ev.target as HTMLDivElement;
-                        const index = selectedTags.findIndex((f) => f == t.key);
-                        if (index == -1) {
-                          selectedTags.push(t.key);
-                          target.style.background = "#a00";
-                        } else {
-                          selectedTags.splice(index, 1);
-                          target.style.background = "#099";
-                        }
-                        ztoolkit.log(selectedTags);
-                        // exportTagsNote(selectedTags,isCollection(ev));
-                        // target.remove();
-                        return false;
-                      },
-                    },
-                  ],
-                  styles: {
-                    padding: "6px",
-                    background: "#099",
-                    margin: "1px",
-                  },
-                })),
-                {
-                  tag: "div",
-                  properties: { textContent: "确定生成" },
-                  styles: {
-                    padding: "6px",
-                    background: "#f99",
-                    margin: "1px",
-                  },
-                  listeners: [
-                    {
-                      type: "click",
-                      listener: (ev) => {
-                        ev.stopPropagation();
-                        if (selectedTags.length > 0) {
-                          exportTagsNote(selectedTags, items);
-                          d.remove();
-                        }
-                        return false;
-                      },
-                    },
-                  ],
-                },
-                {
-                  tag: "div",
-                  properties: { textContent: "取消" },
-                  styles: {
-                    padding: "6px",
-                    background: "#f99",
-                    margin: "1px",
-                  },
-                  listeners: [
-                    {
-                      type: "click",
-                      listener: (ev) => {
-                        ev.stopPropagation();
-                        d.remove();
-                        return false;
-                      },
-                    },
-                  ],
-                },
-              ],
-              listeners: [
-                {
-                  type: "click",
-                  listener: (ev) => {
-                    ev.stopPropagation();
-                    const target = ev.target as HTMLElement;
-                    target.remove();
-                    return false;
-                  },
-                },
-              ],
-            },
-            doc.querySelector("body,div")!,
-          );
-          ztoolkit.log("自选标签", d);
+          const div = createChooseTagsDiv(doc, isCollection(ev));
+          ztoolkit.log("自选标签", div);
           // setTimeout(()=>d.remove(),10000)
         },
       },
@@ -195,6 +78,126 @@ function register() {
     "collection",
     Object.assign({ id: `${config.addonRef}-create-note-collection` }, menu),
   );
+}
+function isCollection(ev: Event) {
+  const pid = (ev.target as HTMLElement)?.parentElement?.parentElement?.id;
+  const isCollection = pid?.includes("collection") || false;
+  return isCollection;
+}
+function createChooseTagsDiv(doc: Document, isCollection: boolean) {
+  const selectedTags: string[] = [];
+
+  const items = getSelectedItems(isCollection);
+  const annotations = getAllAnnotations(items).flatMap((f) =>
+    f.tags.map((t) => Object.assign(f, { tag: t })),
+  );
+  const tags = groupBy(annotations, (a) => a.tag.tag);
+  tags.sort(sortByTAGs);
+
+  const div = ztoolkit.UI.appendElement(
+    {
+      tag: "div",
+      styles: {
+        padding: "20px",
+        position: "fixed",
+        left: "100px",
+        top: "100px",
+        zIndex: "9999",
+        width: "calc(100% - 200px)",
+        maxHeight: "calc(100% -200px)",
+        overflowY: "scroll",
+        display: "flex",
+        background: "#a99",
+        flexWrap: "wrap",
+      },
+      children: [
+        ...tags.splice(1, 30).map((t) => ({
+          tag: "div",
+          properties: { textContent: `[${t.values.length}]${t.key}` },
+          listeners: [
+            {
+              type: "click",
+              listener: (ev: Event) => {
+                ev.stopPropagation();
+                const target = ev.target as HTMLDivElement;
+                const index = selectedTags.findIndex((f) => f == t.key);
+                if (index == -1) {
+                  selectedTags.push(t.key);
+                  target.style.background = "#a00";
+                } else {
+                  selectedTags.splice(index, 1);
+                  target.style.background = "#099";
+                }
+                ztoolkit.log(selectedTags);
+                // exportTagsNote(selectedTags,isCollection(ev));
+                // target.remove();
+                return false;
+              },
+            },
+          ],
+          styles: {
+            padding: "6px",
+            background: "#099",
+            margin: "1px",
+          },
+        })),
+        {
+          tag: "div",
+          properties: { textContent: "确定生成" },
+          styles: {
+            padding: "6px",
+            background: "#f99",
+            margin: "1px",
+          },
+          listeners: [
+            {
+              type: "click",
+              listener: (ev) => {
+                ev.stopPropagation();
+                if (selectedTags.length > 0) {
+                  exportTagsNote(selectedTags, items);
+                  div.remove();
+                }
+                return false;
+              },
+            },
+          ],
+        },
+        {
+          tag: "div",
+          properties: { textContent: "取消" },
+          styles: {
+            padding: "6px",
+            background: "#f99",
+            margin: "1px",
+          },
+          listeners: [
+            {
+              type: "click",
+              listener: (ev) => {
+                ev.stopPropagation();
+                div.remove();
+                return false;
+              },
+            },
+          ],
+        },
+      ],
+      listeners: [
+        {
+          type: "click",
+          listener: (ev) => {
+            ev.stopPropagation();
+            const target = ev.target as HTMLElement;
+            target.remove();
+            return false;
+          },
+        },
+      ],
+    },
+    doc.querySelector("body,div")!,
+  );
+  return div;
 }
 
 function unregister() {
@@ -509,7 +512,7 @@ function exportTagsNote(tags: string[], items: Zotero.Item[]) {
             a.values
               .map(
                 (b) =>
-                  `<h2>[${b.annotationTags}]${getCiteAnnotationHtml(b.ann)}</h2>`,
+                  `<p>[${b.annotationTags}]${getCiteAnnotationHtml(b.ann)}</p>`,
               )
               .join(" "),
           ])
