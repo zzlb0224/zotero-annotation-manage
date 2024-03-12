@@ -1,7 +1,12 @@
 import { config } from "../../package.json";
 import { getString } from "../utils/locale";
 import { getPref, setPref } from "../utils/prefs";
-import { getFixedColor, getFixedTags } from "../utils/zzlb";
+import {
+  FixedColorDefault,
+  FixedTagsDefault,
+  getFixedColor,
+  getFixedTags,
+} from "../utils/zzlb";
 
 export async function registerPrefsScripts(_window: Window) {
   // This function is called when the prefs window is opened
@@ -61,7 +66,7 @@ function replaceElement(doc: Document) {
             justifyContent: "flex-start",
             flexWrap: "wrap",
           },
-          children: getFixedTags().map((tag) => ({
+          children: getFixedTags.get().map((tag) => ({
             tag: "label",
             properties: {
               innerText: tag,
@@ -133,7 +138,7 @@ function bindPrefEvents() {
 
 export async function initPrefSettings() {
   if (!getPref("tags")) {
-    setPref("tags", getFixedTags().join(","));
+    setPref("tags", FixedTagsDefault);
   }
   if (getPref("currentCollection") == undefined) {
     setPref("currentCollection", true);
@@ -142,10 +147,7 @@ export async function initPrefSettings() {
     setPref("selectedCollection", true);
   }
   if (getPref("fixed-colors") == undefined) {
-    setPref(
-      "fixed-colors",
-      "#ffd400,#ff6666,#5fb236,#2ea8e5,#a28ae5,#e56eee,#f19837,#aaaaaa",
-    );
+    setPref("fixed-colors", FixedColorDefault);
   }
   if (getPref("optional-color") == undefined) {
     setPref("optional-color", "#ffc0cb");

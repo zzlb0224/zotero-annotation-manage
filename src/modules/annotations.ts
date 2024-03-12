@@ -8,9 +8,10 @@ import {
   getChildCollections,
   uniqueBy,
   getFixedColor,
+  sortByLength,
 } from "../utils/zzlb";
 import { getPref } from "../utils/prefs";
-import { cache, memoize } from "../utils/Cache";
+import { memoize } from "../utils/Memoize";
 function register() {
   // if (!getPref("enable")) return;
   // ztoolkit.UI.basicOptions.log.disableZLog = true;
@@ -59,7 +60,7 @@ function relateTags(item: Zotero.Item) {
       ? [...allCollections, ...getChildCollections(allCollections)]
       : allCollections;
     const collections2 = uniqueBy(collections, (u) => u.key);
-    getTagsInCollections(collections2);
+    return getTagsInCollections.get(collections2);
   }
 
   return [];
@@ -72,36 +73,21 @@ const getTagsInCollections = memoize(
       .sort()
       .join("_"),
   1e4,
-) as (collections: Zotero.Collection[]) => Promise<
-  {
-    tag: string;
-    type: number;
-  }[]
->;
+);
+
 function getTagsInCollections_(collections: Zotero.Collection[]) {
-  return cache.get(
-    [
-      "getTagsInCollections",
-      uniqueBy(
-        collections.map((a) => a.key),
-        (c) => c,
-      ),
-    ].join("_"),
-    () => {
-      const pdfIds = collections
-        .flatMap((c) => c.getChildItems())
-        .filter((f) => !f.isAttachment())
-        .flatMap((a) => a.getAttachments(false)); //为啥会出现
-      const pdfItems = Zotero.Items.get(pdfIds).filter(
-        (f) => f.isFileAttachment() && f.isAttachment(),
-      );
-      const annotations = pdfItems.flatMap((f) => f.getAnnotations(false));
-      return annotations.flatMap((f) => f.getTags());
-    },
+  const pdfIds = collections
+    .flatMap((c) => c.getChildItems())
+    .filter((f) => !f.isAttachment())
+    .flatMap((a) => a.getAttachments(false)); //为啥会出现
+  const pdfItems = Zotero.Items.get(pdfIds).filter(
+    (f) => f.isFileAttachment() && f.isAttachment(),
   );
+  const annotations = pdfItems.flatMap((f) => f.getAnnotations(false));
+  return annotations.flatMap((f) => f.getTags());
 }
 function includeTAGS<T>(tagGroup: groupByResult<T>[]) {
-  getFixedTags().forEach((tag) => {
+  getFixedTags.get().forEach((tag) => {
     if (tagGroup.findIndex((f) => f.key == tag) == -1) {
       tagGroup.push({ key: tag, values: [] });
     }
@@ -152,21 +138,20 @@ function getLeftTop(temp4: HTMLElement) {
   }
 }
 
-const allTagsInLibraryAsync = async () =>
-  await cache.get("allTagsInLibraryAsync", async () => {
-    const allItems = await Zotero.Items.getAll(1, false, false, false);
-    const items = allItems.filter((f) => !f.parentID && !f.isAttachment());
-    const pdfIds = items.flatMap((f) => f.getAttachments(false));
-    const pdfs = Zotero.Items.get(pdfIds);
-    const tags = pdfs
-      .filter((f) => f.isPDFAttachment())
-      .flatMap((f) => f.getAnnotations())
-      .flatMap((f) => f.getTags());
-    const itemTags = getPref("item-tags")
-      ? items.flatMap((f) => f.getTags())
-      : [];
-    return groupBy([...tags, ...itemTags], (t) => t.tag);
-  });
+const allTagsInLibraryAsync = memoize(async () => {
+  const allItems = await Zotero.Items.getAll(1, false, false, false);
+  const items = allItems.filter((f) => !f.parentID && !f.isAttachment());
+  const pdfIds = items.flatMap((f) => f.getAttachments(false));
+  const pdfs = Zotero.Items.get(pdfIds);
+  const tags = pdfs
+    .filter((f) => f.isPDFAttachment())
+    .flatMap((f) => f.getAnnotations())
+    .flatMap((f) => f.getTags());
+  const itemTags = getPref("item-tags")
+    ? items.flatMap((f) => f.getTags())
+    : [];
+  return groupBy([...tags, ...itemTags], (t) => t.tag);
+});
 function createDiv(reader: _ZoteroTypes.ReaderInstance, params: any) {
   const doc = reader._iframeWindow?.document;
   if (!doc) return;
@@ -197,7 +182,7 @@ async function updateDiv(
   reader: _ZoteroTypes.ReaderInstance,
   params: any, // { annotation?: any; ids?: string[]; currentID?: string; x?: number; y?: number; },
 ) {
-  ztoolkit.log("updateDiv", "读取asnyc", await allTagsInLibraryAsync);
+  ztoolkit.log("updateDiv", "读取asnyc", await allTagsInLibraryAsync.get());
 
   const doc = reader._iframeWindow?.document;
   if (!doc) return;
@@ -218,7 +203,7 @@ async function updateDiv(
     type: number;
   }>[] = [];
   if (bShowAllTags) {
-    tags1 = await allTagsInLibraryAsync();
+    tags1 = await allTagsInLibraryAsync.get();
   } else {
     tags1 = groupBy(relateTags(reader._item), (t) => t.tag);
   }
@@ -393,7 +378,7 @@ async function updateDiv(
 
   async function searchTagResult() {
     if (searchTag) {
-      const tags2 = bShowAllTags ? tags1 : await allTagsInLibraryAsync();
+      const tags2 = bShowAllTags ? tags1 : await allTagsInLibraryAsync.get();
       const tags3 = tags2.filter((f) => RegExp(searchTag, "i").test(f.key));
       return tags3;
     } else {
@@ -563,7 +548,7 @@ async function updateDiv(
       //@ts-ignore 隐藏弹出框
       reader._primaryView._onSetSelectionPopup(null);
     }
-    cache.remove("allTagsInLibraryAsync");
+    allTagsInLibraryAsync.remove();
   }
 }
 
@@ -576,7 +561,7 @@ async function getNestedTags(arr: string[]) {
     for (const t2 of filterArr) {
       if (t1 != t2) {
         const nTag = `#${t1}/${t2}`;
-        if ((await allTagsInLibraryAsync()).some((s) => s.key == nTag)) {
+        if ((await allTagsInLibraryAsync.get()).some((s) => s.key == nTag)) {
           list.push(nTag);
         }
       }
@@ -665,8 +650,13 @@ function createAnnotationContextMenu(
     annotations.flatMap((f) => f.getTags()),
     (t) => t.tag,
   ).sort(sortByTAGs);
-  const hasTags = tags1.map((f) => `${f.key}[${f.values.length}]`).join(",");
-  const label = hasTags ? `添加标签，已有【${hasTags}】` : "添加标签";
+  const hasTags = tags1
+    .sort(sortByLength)
+    .map((f) => `${f.key}[${f.values.length}]`)
+    .join(",");
+  const label = hasTags
+    ? `添加标签，已有${tags1.length}个Tag【${hasTags.length > 11 ? hasTags.slice(0, 10) + "..." : hasTags}】`
+    : "添加标签";
   append({
     label: label,
     onCommand: () => {

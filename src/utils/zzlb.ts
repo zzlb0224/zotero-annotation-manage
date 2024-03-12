@@ -1,4 +1,4 @@
-import { cache } from "./Cache";
+import { memoize } from "./Memoize";
 import { getPref } from "./prefs";
 
 /* unique 采用set的比较方式*/
@@ -58,23 +58,11 @@ export function getChildCollections(
   if (childCollections.length == 0) return [];
   return [...childCollections, ...getChildCollections(childCollections)];
 }
-function getCollections(collections: Zotero.Collection[]): Zotero.Collection[] {
-  function getChildCollections(
-    collections: Zotero.Collection[],
-  ): Zotero.Collection[] {
-    const cs = uniqueBy(collections, (a) => a.key).flatMap((a) =>
-      a.getChildCollections(false),
-    );
-    if (cs.length == 0) return collections;
-    return [...cs, ...getChildCollections(cs)];
-  }
-  return uniqueBy(
-    [...collections, ...getChildCollections(collections)],
-    (a) => a.key,
-  );
+export function sortByLength<T>(a: groupByResult<T>, b: groupByResult<T>) {
+  return b.values.length - a.values.length + (b.key > a.key ? -0.5 : 0.5);
 }
 export function sortByTAGs<T>(a: groupByResult<T>, b: groupByResult<T>) {
-  const tags = getFixedTags();
+  const tags = getFixedTags.get();
   if (tags.includes(a.key) && tags.includes(b.key)) {
     return tags.indexOf(a.key) - tags.indexOf(b.key);
   }
@@ -86,40 +74,10 @@ export function sortByTAGs<T>(a: groupByResult<T>, b: groupByResult<T>) {
   }
   return b.values.length - a.values.length + (b.key > a.key ? -0.5 : 0.5);
 }
-// Zotero.Utilities.throttle(getFixedColor,1000,)
-export function delayLoad<T>(fn: () => T, time = 10000) {
-  let lastTime = -1;
-  let value!: T;
-  return () => {
-    const now = Date.now();
-    if (now - lastTime < time) {
-      ztoolkit.log("缓存读取", value);
-      return value;
-    }
-    lastTime = now;
-    ztoolkit.log("直接读取", value);
-    //@ts-ignore this
-    return (value = fn.apply(this));
-  };
-}
-
-function delayLoadAsync<T>(fn: () => Promise<T>, time = 10000) {
-  let lastTime = -1;
-  let value!: T;
-  return async () => {
-    const now = Date.now();
-    if (now - lastTime < time) {
-      ztoolkit.log("缓存读取", value);
-      return value;
-    }
-    lastTime = now;
-    //@ts-ignore this
-    value = await fn.apply(this);
-    ztoolkit.log("直接读取", value);
-    return value;
-  };
-}
-export const getFixedTags = () => cache.get("FixedTags", getFixedTags_, 10000); //delayLoad(getFixedTags_);
+export const FixedTagsDefault =
+  "目的,假设,框架,数据,量表,方法,理论,结论,贡献,不足,背景,现状,问题,对策";
+export const FixedColorDefault =
+  "#ffd400,#ff6666,#5fb236,#2ea8e5,#a28ae5,#e56eee,#f19837,#aaaaaa";
 
 function getFixedTags_(): string[] {
   const prefTags = ((getPref("tags") as string) || "")
@@ -127,9 +85,7 @@ function getFixedTags_(): string[] {
     .map((a) => a.trim())
     .filter((f) => f);
   if (prefTags && prefTags.length > 0) return prefTags;
-  return "目的,假设,框架,数据,量表,方法,理论,结论,贡献,不足,背景,现状,问题,对策".split(
-    ",",
-  );
+  return FixedTagsDefault.split(",");
 }
 function getFixedColors_(): string[] {
   let fixedColor = ((getPref("fixed-colors") as string) || "")
@@ -137,22 +93,20 @@ function getFixedColors_(): string[] {
     .map((a) => a.trim())
     .filter((f) => f);
   if (!fixedColor || fixedColor.length == 0)
-    fixedColor =
-      "#ffd400,#ff6666,#5fb236,#2ea8e5,#a28ae5,#e56eee,#f19837,#aaaaaa".split(
-        ",",
-      );
-  const tags = getFixedTags();
+    fixedColor = FixedColorDefault.split(",");
+  const tags = getFixedTags.get();
   return Array.from({
     length: tags.length / fixedColor.length + 1,
   }).flatMap(() => fixedColor);
 }
 
 export function getFixedColor(tag: string, optional?: string): string {
-  const tags = getFixedTags();
+  const tags = getFixedTags.get();
   if (tags.includes(tag)) {
-    return getFixedColors()[tags.indexOf(tag)];
+    return getFixedColors.get()[tags.indexOf(tag)];
   }
   if (optional == undefined) return getPref("optional-color") as string;
   return optional;
 }
-export const getFixedColors = () => cache.get("FixedColors", getFixedColors_); //delayLoad(getFixedColors_);
+export const getFixedTags = memoize(getFixedTags_);
+export const getFixedColors = memoize(getFixedColors_);
