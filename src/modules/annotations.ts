@@ -37,8 +37,8 @@ function unregister() {
   );
 }
 
-function relateTags(item: Zotero.Item) {
-  const allCollectionIds: number[] = [];
+const getItemRelateCollections =(item: Zotero.Item)=>{
+   const allCollectionIds: number[] = [];
   const recursiveCollections = !!Zotero.Prefs.get("recursiveCollections");
   const prefSelectedCollection = !!getPref("selectedCollection");
   const prefCurrentCollection = !!getPref("currentCollection");
@@ -60,22 +60,18 @@ function relateTags(item: Zotero.Item) {
       ? [...allCollections, ...getChildCollections(allCollections)]
       : allCollections;
     const collections2 = uniqueBy(collections, (u) => u.key);
-    return getTagsInCollections.get(collections2);
+    return (collections2);
   }
-
-  return [];
+  return []
 }
-const getTagsInCollections = memoize(
-  getTagsInCollections_,
-  (c: Zotero.Collection[]) =>
-    c
-      .map((a) => a.key)
-      .sort()
-      .join("_"),
-  1e4,
-);
 
-function getTagsInCollections_(collections: Zotero.Collection[]) {
+const  {get:relateTags,remove:relateTagsRemove} = memoize((item: Zotero.Item)=> {
+ return getTagsInCollections(getItemRelateCollections(item))   
+})
+
+
+function getTagsInCollections(collections: Zotero.Collection[]) {
+  if(collections.length==0)return []
   const pdfIds = collections
     .flatMap((c) => c.getChildItems())
     .filter((f) => !f.isAttachment())
@@ -87,7 +83,7 @@ function getTagsInCollections_(collections: Zotero.Collection[]) {
   return annotations.flatMap((f) => f.getTags());
 }
 function includeTAGS<T>(tagGroup: groupByResult<T>[]) {
-  getFixedTags.get().forEach((tag) => {
+  getFixedTags().forEach((tag) => {
     if (tagGroup.findIndex((f) => f.key == tag) == -1) {
       tagGroup.push({ key: tag, values: [] });
     }
@@ -138,7 +134,7 @@ function getLeftTop(temp4: HTMLElement) {
   }
 }
 
-const allTagsInLibraryAsync = memoize(async () => {
+const {get:allTagsInLibraryAsync,remove:allTagsInLibraryAsyncRemove} = memoize(async () => {
   const allItems = await Zotero.Items.getAll(1, false, false, false);
   const items = allItems.filter((f) => !f.parentID && !f.isAttachment());
   const pdfIds = items.flatMap((f) => f.getAttachments(false));
@@ -181,8 +177,7 @@ function createDiv(reader: _ZoteroTypes.ReaderInstance, params: any) {
 async function updateDiv(
   reader: _ZoteroTypes.ReaderInstance,
   params: any, // { annotation?: any; ids?: string[]; currentID?: string; x?: number; y?: number; },
-) {
-  ztoolkit.log("updateDiv", "读取asnyc", await allTagsInLibraryAsync.get());
+) { 
 
   const doc = reader._iframeWindow?.document;
   if (!doc) return;
@@ -203,7 +198,7 @@ async function updateDiv(
     type: number;
   }>[] = [];
   if (bShowAllTags) {
-    tags1 = await allTagsInLibraryAsync.get();
+    tags1 = await allTagsInLibraryAsync();
   } else {
     tags1 = groupBy(relateTags(reader._item), (t) => t.tag);
   }
@@ -378,7 +373,7 @@ async function updateDiv(
 
   async function searchTagResult() {
     if (searchTag) {
-      const tags2 = bShowAllTags ? tags1 : await allTagsInLibraryAsync.get();
+      const tags2 = bShowAllTags ? tags1 : await allTagsInLibraryAsync();
       const tags3 = tags2.filter((f) => RegExp(searchTag, "i").test(f.key));
       return tags3;
     } else {
@@ -392,7 +387,7 @@ async function updateDiv(
       const allHave = isAllHave(tag);
       const noneHave = isNoneHave(tag);
       const someHave = strSomeHave(tag);
-      const bgColor = getFixedColor.get(tag, "");
+      const bgColor = getFixedColor(tag, "");
       return {
         tag: "span",
         namespace: "html",
@@ -459,7 +454,7 @@ async function updateDiv(
     if (doc && selectedTags.every((s) => s.tag != tag)) {
       selectedTags.push({
         tag,
-        color: color || getFixedColor.get(tag, undefined),
+        color: color || getFixedColor(tag, undefined),
       });
       ztoolkit.UI.appendElement(
         {
@@ -500,7 +495,7 @@ async function updateDiv(
     if (selectedTags.length == 0 && searchTag) {
       selectedTags.push({
         tag: searchTag,
-        color: getFixedColor.get(searchTag, undefined),
+        color: getFixedColor(searchTag, undefined),
       });
     }
     if (selectedTags.length == 0) return;
@@ -544,7 +539,7 @@ async function updateDiv(
     } else {
       const color =
         selectedTags.map((a) => a.color).filter((f) => f)[0] ||
-        getFixedColor.get(tagsRequired[0], undefined);
+        getFixedColor(tagsRequired[0], undefined);
       const tags = tagsRequired.map((a) => ({ name: a }));
       // 因为线程不一样，不能采用直接修改params.annotation的方式，所以直接采用新建的方式保存笔记
       // 特意采用 Components.utils.cloneInto 方法
@@ -554,7 +549,8 @@ async function updateDiv(
       //@ts-ignore 隐藏弹出框
       reader._primaryView._onSetSelectionPopup(null);
     }
-    allTagsInLibraryAsync.remove();
+    allTagsInLibraryAsyncRemove(); 
+    relateTagsRemove(reader._item.key) 
   }
 }
 
@@ -567,7 +563,7 @@ async function getNestedTags(arr: string[]) {
     for (const t2 of filterArr) {
       if (t1 != t2) {
         const nTag = `#${t1}/${t2}`;
-        if ((await allTagsInLibraryAsync.get()).some((s) => s.key == nTag)) {
+        if ((await allTagsInLibraryAsync()).some((s) => s.key == nTag)) {
           list.push(nTag);
         }
       }

@@ -62,7 +62,7 @@ export function sortByLength<T>(a: groupByResult<T>, b: groupByResult<T>) {
   return b.values.length - a.values.length + (b.key > a.key ? -0.5 : 0.5);
 }
 export function sortByTAGs<T>(a: groupByResult<T>, b: groupByResult<T>) {
-  const tags = getFixedTags.get();
+  const tags = getFixedTags();
   if (tags.includes(a.key) && tags.includes(b.key)) {
     return tags.indexOf(a.key) - tags.indexOf(b.key);
   }
@@ -94,25 +94,25 @@ function getFixedColors_(): string[] {
     .filter((f) => f);
   if (!fixedColor || fixedColor.length == 0)
     fixedColor = FixedColorDefault.split(",");
-  const tags = getFixedTags.get();
+  const tags = getFixedTags();
   return Array.from({
     length: tags.length / fixedColor.length + 1,
   }).flatMap(() => fixedColor);
 }
 
 function getFixedColor_(tag: string, optional: string | undefined): string {
-  const tags = getFixedTags.get();
+  const tags = getFixedTags();
   if (tags.includes(tag)) {
-    return getFixedColors.get()[tags.indexOf(tag)];
+    return getFixedColors()[tags.indexOf(tag)];
   }
-  if (optional == undefined) return getOptionalColor.get() as string;
+  if (optional == undefined) return getOptionalColor() as string;
   return optional;
 }
 
-export const getOptionalColor = memoize(() => getPref("optional-color"));
-export const getFixedColor = memoize(getFixedColor_);
-export const getFixedTags = memoize(getFixedTags_);
-export const getFixedColors = memoize(getFixedColors_);
+export const {get:getOptionalColor,remove:getOptionalColorRemove} = memoize(() => getPref("optional-color"));
+export const {get:getFixedColor,remove:getFixedColorRemove} = memoize(getFixedColor_); 
+export const {get:getFixedTags ,remove:getFixedTagsRemove}= memoize(getFixedTags_);
+export const {get:getFixedColors,remove:getFixedColorsRemove} = memoize(getFixedColors_);
 export const COLOR = {
   red: "#ff6666",
   orange: "#f19837",

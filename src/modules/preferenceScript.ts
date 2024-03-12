@@ -5,7 +5,11 @@ import {
   FixedColorDefault,
   FixedTagsDefault,
   getFixedColor,
+  getFixedColorRemove,
   getFixedTags,
+  getFixedTagsRemove,
+  getOptionalColor,
+  getOptionalColorRemove,
 } from "../utils/zzlb";
 
 export async function registerPrefsScripts(_window: Window) {
@@ -66,14 +70,14 @@ function replaceElement(doc: Document) {
             justifyContent: "flex-start",
             flexWrap: "wrap",
           },
-          children: getFixedTags.get().map((tag) => ({
+          children: getFixedTags().map((tag) => ({
             tag: "label",
             properties: {
               innerText: tag,
               TextContent: tag,
             },
             styles: {
-              background: getFixedColor.get(tag, undefined),
+              background: getFixedColor(tag, undefined),
               padding: "5px 1px",
               margin: "5px 1px",
             },
@@ -113,7 +117,7 @@ function bindPrefEvents() {
   doc
     .querySelector(`#zotero-prefpane-${config.addonRef}-enable`)
     ?.addEventListener("command", (e) => {
-      ztoolkit.log(e, getPref("tags"));
+      // ztoolkit.log(e, getPref("tags"));
     });
 
   doc
@@ -121,6 +125,7 @@ function bindPrefEvents() {
     ?.addEventListener("keyup", (e) => {
       // ztoolkit.log(e, getPref("tags"));
       replaceElement(doc);
+      getFixedTagsRemove()
     });
 
   doc
@@ -128,11 +133,13 @@ function bindPrefEvents() {
     ?.addEventListener("keyup", (e) => {
       // ztoolkit.log(e, getPref("tags"));
       replaceElement(doc);
-    });
+      getFixedColorRemove("")     });
   doc
     .querySelector(`#zotero-prefpane-${config.addonRef}-optional-color`)
     ?.addEventListener("keyup", (e) => {
-      initOptionalColorLabel(doc);
+      initOptionalColorLabel(doc);       
+      getFixedColorRemove("")
+      getOptionalColorRemove()
     });
 }
 
@@ -150,6 +157,6 @@ export async function initPrefSettings() {
     setPref("fixed-colors", FixedColorDefault);
   }
   if (getPref("optional-color") == undefined) {
-    setPref("optional-color", "#ffc0cb");
+    setPref("optional-color", "#ffc0cb"); 
   }
 }

@@ -1,16 +1,16 @@
 export function memoize<T>(func: () => T): {
   get: () => T;
-  remove: (cacheKey: string | RegExp) => void;
+  remove: () => void;
 };
 export function memoize<T>(
   func: () => T,
   keyfn: (() => string) | undefined | null,
-): { get: () => T; remove: (cacheKey: string | RegExp) => void };
+): { get: () => T; remove: () => void };
 export function memoize<T>(
   func: () => T,
   keyfn: (() => string) | undefined | null,
   cacheTime: number,
-): { get: () => T; remove: (cacheKey: string | RegExp) => void };
+): { get: () => T; remove: () => void };
 export function memoize<T, T1>(
   func: (arg1: T1) => T,
 ): { get: (arg1: T1) => T; remove: (cacheKey: string | RegExp) => void };

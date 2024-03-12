@@ -513,7 +513,7 @@ function exportTagsNote(tags: string[], items: Zotero.Item[]) {
             a.values
               .map(
                 (b) =>
-                  `<p>[${b.annotationTags}]${getCiteAnnotationHtml(b.ann)} ${b.tags.map((t) => `<span background="${getFixedColor.get(t.tag, undefined)}">${t}</span>`)}</p>`,
+                  `<p>[${b.annotationTags}]${getCiteAnnotationHtml(b.ann)} ${b.tags.map((t) => `<span background="${getFixedColor(t.tag, undefined)}">${t}</span>`)}</p>`,
               )
               .join(" "),
           ])
