@@ -73,7 +73,7 @@ function replaceElement(doc: Document) {
               TextContent: tag,
             },
             styles: {
-              background: getFixedColor(tag),
+              background: getFixedColor.get(tag, undefined),
               padding: "5px 1px",
               margin: "5px 1px",
             },

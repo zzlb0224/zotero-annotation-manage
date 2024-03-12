@@ -8,6 +8,7 @@ import {
   sortByTAGs,
   getChildCollections,
   getFixedTags,
+  getFixedColor,
 } from "../utils/zzlb";
 import { getPref } from "../utils/prefs";
 let popupWin: ProgressWindowHelper | undefined = undefined;
@@ -512,7 +513,7 @@ function exportTagsNote(tags: string[], items: Zotero.Item[]) {
             a.values
               .map(
                 (b) =>
-                  `<p>[${b.annotationTags}]${getCiteAnnotationHtml(b.ann)}</p>`,
+                  `<p>[${b.annotationTags}]${getCiteAnnotationHtml(b.ann)} ${b.tags.map((t) => `<span background="${getFixedColor.get(t.tag, undefined)}">${t}</span>`)}</p>`,
               )
               .join(" "),
           ])

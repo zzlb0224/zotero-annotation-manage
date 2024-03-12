@@ -392,7 +392,7 @@ async function updateDiv(
       const allHave = isAllHave(tag);
       const noneHave = isNoneHave(tag);
       const someHave = strSomeHave(tag);
-      const bgColor = getFixedColor(tag, "");
+      const bgColor = getFixedColor.get(tag, "");
       return {
         tag: "span",
         namespace: "html",
@@ -457,7 +457,10 @@ async function updateDiv(
   }
   function onTagClick(tag: string, color: string = "") {
     if (doc && selectedTags.every((s) => s.tag != tag)) {
-      selectedTags.push({ tag, color: color || getFixedColor(tag) });
+      selectedTags.push({
+        tag,
+        color: color || getFixedColor.get(tag, undefined),
+      });
       ztoolkit.UI.appendElement(
         {
           tag: "span",
@@ -495,7 +498,10 @@ async function updateDiv(
 
   async function saveAnnotationTags() {
     if (selectedTags.length == 0 && searchTag) {
-      selectedTags.push({ tag: searchTag, color: getFixedColor(searchTag) });
+      selectedTags.push({
+        tag: searchTag,
+        color: getFixedColor.get(searchTag, undefined),
+      });
     }
     if (selectedTags.length == 0) return;
 
@@ -538,7 +544,7 @@ async function updateDiv(
     } else {
       const color =
         selectedTags.map((a) => a.color).filter((f) => f)[0] ||
-        getFixedColor(tagsRequired[0]);
+        getFixedColor.get(tagsRequired[0], undefined);
       const tags = tagsRequired.map((a) => ({ name: a }));
       // 因为线程不一样，不能采用直接修改params.annotation的方式，所以直接采用新建的方式保存笔记
       // 特意采用 Components.utils.cloneInto 方法

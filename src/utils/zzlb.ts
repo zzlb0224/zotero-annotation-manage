@@ -100,13 +100,31 @@ function getFixedColors_(): string[] {
   }).flatMap(() => fixedColor);
 }
 
-export function getFixedColor(tag: string, optional?: string): string {
+function getFixedColor_(tag: string, optional: string | undefined): string {
   const tags = getFixedTags.get();
   if (tags.includes(tag)) {
     return getFixedColors.get()[tags.indexOf(tag)];
   }
-  if (optional == undefined) return getPref("optional-color") as string;
+  if (optional == undefined) return getOptionalColor.get() as string;
   return optional;
 }
+
+export const getOptionalColor = memoize(() => getPref("optional-color"));
+export const getFixedColor = memoize(getFixedColor_);
 export const getFixedTags = memoize(getFixedTags_);
 export const getFixedColors = memoize(getFixedColors_);
+export const COLOR = {
+  red: "#ff6666",
+  orange: "#f19837",
+  yellow: "#ffd400",
+  green: "#5fb236",
+  teal: "#008080",
+  blue: "#2ea8e5",
+  purple: "#a28ae5",
+  magenta: "#E4007F",
+  violet: "#e56eee",
+  maroon: "#f19837",
+  gray: "#aaaaaa",
+  black: "#000000",
+  white: "#ffffff",
+};
