@@ -109,10 +109,14 @@ function getFixedColor_(tag: string, optional: string | undefined): string {
   return optional;
 }
 
-export const {get:getOptionalColor,remove:getOptionalColorRemove} = memoize(() => getPref("optional-color"));
-export const {get:getFixedColor,remove:getFixedColorRemove} = memoize(getFixedColor_); 
-export const {get:getFixedTags ,remove:getFixedTagsRemove}= memoize(getFixedTags_);
-export const {get:getFixedColors,remove:getFixedColorsRemove} = memoize(getFixedColors_);
+export const { get: getOptionalColor, remove: getOptionalColorRemove } =
+  memoize(() => getPref("optional-color"));
+export const { get: getFixedColor, remove: getFixedColorRemove } =
+  memoize(getFixedColor_);
+export const { get: getFixedTags, remove: getFixedTagsRemove } =
+  memoize(getFixedTags_);
+export const { get: getFixedColors, remove: getFixedColorsRemove } =
+  memoize(getFixedColors_);
 export const COLOR = {
   red: "#ff6666",
   orange: "#f19837",

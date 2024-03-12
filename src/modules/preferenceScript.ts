@@ -125,7 +125,7 @@ function bindPrefEvents() {
     ?.addEventListener("keyup", (e) => {
       // ztoolkit.log(e, getPref("tags"));
       replaceElement(doc);
-      getFixedTagsRemove()
+      getFixedTagsRemove();
     });
 
   doc
@@ -133,13 +133,14 @@ function bindPrefEvents() {
     ?.addEventListener("keyup", (e) => {
       // ztoolkit.log(e, getPref("tags"));
       replaceElement(doc);
-      getFixedColorRemove("")     });
+      getFixedColorRemove("");
+    });
   doc
     .querySelector(`#zotero-prefpane-${config.addonRef}-optional-color`)
     ?.addEventListener("keyup", (e) => {
-      initOptionalColorLabel(doc);       
-      getFixedColorRemove("")
-      getOptionalColorRemove()
+      initOptionalColorLabel(doc);
+      getFixedColorRemove("");
+      getOptionalColorRemove();
     });
 }
 
@@ -157,6 +158,6 @@ export async function initPrefSettings() {
     setPref("fixed-colors", FixedColorDefault);
   }
   if (getPref("optional-color") == undefined) {
-    setPref("optional-color", "#ffc0cb"); 
+    setPref("optional-color", "#ffc0cb");
   }
 }

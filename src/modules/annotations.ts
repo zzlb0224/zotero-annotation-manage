@@ -37,8 +37,8 @@ function unregister() {
   );
 }
 
-const getItemRelateCollections =(item: Zotero.Item)=>{
-   const allCollectionIds: number[] = [];
+const getItemRelateCollections = (item: Zotero.Item) => {
+  const allCollectionIds: number[] = [];
   const recursiveCollections = !!Zotero.Prefs.get("recursiveCollections");
   const prefSelectedCollection = !!getPref("selectedCollection");
   const prefCurrentCollection = !!getPref("currentCollection");
@@ -60,18 +60,19 @@ const getItemRelateCollections =(item: Zotero.Item)=>{
       ? [...allCollections, ...getChildCollections(allCollections)]
       : allCollections;
     const collections2 = uniqueBy(collections, (u) => u.key);
-    return (collections2);
+    return collections2;
   }
-  return []
-}
+  return [];
+};
 
-const  {get:relateTags,remove:relateTagsRemove} = memoize((item: Zotero.Item)=> {
- return getTagsInCollections(getItemRelateCollections(item))   
-})
-
+const { get: relateTags, remove: relateTagsRemove } = memoize(
+  (item: Zotero.Item) => {
+    return getTagsInCollections(getItemRelateCollections(item));
+  },
+);
 
 function getTagsInCollections(collections: Zotero.Collection[]) {
-  if(collections.length==0)return []
+  if (collections.length == 0) return [];
   const pdfIds = collections
     .flatMap((c) => c.getChildItems())
     .filter((f) => !f.isAttachment())
@@ -134,20 +135,21 @@ function getLeftTop(temp4: HTMLElement) {
   }
 }
 
-const {get:allTagsInLibraryAsync,remove:allTagsInLibraryAsyncRemove} = memoize(async () => {
-  const allItems = await Zotero.Items.getAll(1, false, false, false);
-  const items = allItems.filter((f) => !f.parentID && !f.isAttachment());
-  const pdfIds = items.flatMap((f) => f.getAttachments(false));
-  const pdfs = Zotero.Items.get(pdfIds);
-  const tags = pdfs
-    .filter((f) => f.isPDFAttachment())
-    .flatMap((f) => f.getAnnotations())
-    .flatMap((f) => f.getTags());
-  const itemTags = getPref("item-tags")
-    ? items.flatMap((f) => f.getTags())
-    : [];
-  return groupBy([...tags, ...itemTags], (t) => t.tag);
-});
+const { get: allTagsInLibraryAsync, remove: allTagsInLibraryAsyncRemove } =
+  memoize(async () => {
+    const allItems = await Zotero.Items.getAll(1, false, false, false);
+    const items = allItems.filter((f) => !f.parentID && !f.isAttachment());
+    const pdfIds = items.flatMap((f) => f.getAttachments(false));
+    const pdfs = Zotero.Items.get(pdfIds);
+    const tags = pdfs
+      .filter((f) => f.isPDFAttachment())
+      .flatMap((f) => f.getAnnotations())
+      .flatMap((f) => f.getTags());
+    const itemTags = getPref("item-tags")
+      ? items.flatMap((f) => f.getTags())
+      : [];
+    return groupBy([...tags, ...itemTags], (t) => t.tag);
+  });
 function createDiv(reader: _ZoteroTypes.ReaderInstance, params: any) {
   const doc = reader._iframeWindow?.document;
   if (!doc) return;
@@ -177,8 +179,7 @@ function createDiv(reader: _ZoteroTypes.ReaderInstance, params: any) {
 async function updateDiv(
   reader: _ZoteroTypes.ReaderInstance,
   params: any, // { annotation?: any; ids?: string[]; currentID?: string; x?: number; y?: number; },
-) { 
-
+) {
   const doc = reader._iframeWindow?.document;
   if (!doc) return;
   const root = doc.getElementById(`${config.addonRef}-reader-div`);
@@ -549,8 +550,8 @@ async function updateDiv(
       //@ts-ignore 隐藏弹出框
       reader._primaryView._onSetSelectionPopup(null);
     }
-    allTagsInLibraryAsyncRemove(); 
-    relateTagsRemove(reader._item.key) 
+    allTagsInLibraryAsyncRemove();
+    relateTagsRemove(reader._item.key);
   }
 }
 
