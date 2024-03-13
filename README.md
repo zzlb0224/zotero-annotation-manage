@@ -5,8 +5,7 @@
 
 ## 有趣的图标
 
-<span style="font-size:3em">😺❎✅❌🐉🦀🐓🦋🌸⭐🌟✨📍🆑🅰️🈷️⛔🚫❓</span>
-<font size=30>😺❎✅❌🐉🦀🐓🦋🌸⭐🌟✨📍🆑🅰️🈷️⛔🚫❓</font>
+😺❎✅❌🐉🦀🐓🦋🌸⭐🌟✨📍🅰️⛔🚫❓
 
 ## TODO
 
@@ -15,7 +14,7 @@
 
 ## 注意
 
-- 需要安装 @windingwind的[BetterNotes](https://github.com/windingwind/zotero-better-notes/releases/) 才能使用导出功能。
+- 需要安装 [@windingwind](https://github.com/windingwind)的[BetterNotes](https://github.com/windingwind/zotero-better-notes/releases/) 才能使用导出功能。
 - 仅支持Zotero 7.0。
 
 ## 第一个功能 为注释添加标签
@@ -44,11 +43,13 @@
 
 ## 感谢
 
-本插件基于@windingwind的[zotero-plugin-template](https://github.com/windingwind/zotero-plugin-template)开发，在此表示感谢。
+本插件基于[@windingwind](https://github.com/windingwind)的[zotero-plugin-template](https://github.com/windingwind/zotero-plugin-template)开发，在此表示感谢。
 
-感谢@windingwind 开发工具箱，[Zotero Plugin Toolkit](https://github.com/windingwind/zotero-plugin-toolkit)。
+感谢[@windingwind](https://github.com/windingwind)开发工具箱，[Zotero Plugin Toolkit](https://github.com/windingwind/zotero-plugin-toolkit)。
 
-导出标签的灵感来自，[Ze-Notes](https://github.com/frianasoa/Ze-Notes)，非常好用的一个笔记整理方案
+导出标签的灵感来自，[Ze-Notes](https://github.com/frianasoa/Ze-Notes)，非常好用的一个笔记整理方案。
+
+Nested Tags 的灵感来自 [Zotero-Style](https://github.com/MuiseDestiny/zotero-style)，一直在用这个插件。Nested Tags 相关的内容仅仅为自己方便添加标签而设计。
 
 ## Reminder
 
