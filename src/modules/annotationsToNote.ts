@@ -80,6 +80,11 @@ function register() {
     Object.assign({ id: `${config.addonRef}-create-note-collection` }, menu),
   );
 }
+function unregister() {
+  ztoolkit.Menu.unregister(`${config.addonRef}-create-note`);
+  ztoolkit.Menu.unregister(`${config.addonRef}-create-note-collection`);
+}
+
 function isCollection(ev: Event) {
   const pid = (ev.target as HTMLElement)?.parentElement?.parentElement?.id;
   const isCollection = pid?.includes("collection") || false;
@@ -199,11 +204,6 @@ function createChooseTagsDiv(doc: Document, isCollection: boolean) {
     doc.querySelector("body,div")!,
   );
   return div;
-}
-
-function unregister() {
-  ztoolkit.Menu.unregister(`${config.addonRef}-create-note`);
-  ztoolkit.Menu.unregister(`${config.addonRef}-create-note-collection`);
 }
 
 async function saveNote(targetNoteItem: Zotero.Item, txt: string) {
@@ -511,9 +511,11 @@ function exportTagsNote(tags: string[], items: Zotero.Item[]) {
           .flatMap((a, index, aa) => [
             `<h1>(${index + 1}/${aa.length}) ${a.key} ${getCiteItemHtmlWithPage(a.values[0].ann)}</h1>`,
             a.values
-              .map(
-                (b) =>
-                  `<p>[${b.annotationTags}]${getCiteAnnotationHtml(b.ann)} ${b.tags.map((t) => `<span background="${getFixedColor(t.tag, undefined)}">${t}</span>`)}</p>`,
+              .map((b) =>
+                b.html.replace(
+                  /<\/p>$/,
+                  getColorTags(b.tags.map((c) => c.tag)) + "</p>",
+                ),
               )
               .join(" "),
           ])
@@ -521,6 +523,12 @@ function exportTagsNote(tags: string[], items: Zotero.Item[]) {
     });
 }
 
+function getColorTags(tags: string[]) {
+  return tags.map(
+    (t) =>
+      `<span style="background-color:${getFixedColor(t, undefined)};box-shadow: ${getFixedColor(t, undefined)} 0px 0px 5px 4px;">${t}</span>`,
+  );
+}
 function getCiteAnnotationHtml(annotation: Zotero.Item, text = "") {
   const attachmentItem = annotation.parentItem;
   if (!attachmentItem) return "";
