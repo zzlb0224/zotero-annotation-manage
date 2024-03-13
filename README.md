@@ -1,5 +1,9 @@
 # Zotero的笔记整理
 
+## 有趣的图标
+
+<font size="3em">😺❎✅❌🐉🦀🐓🦋🌸⭐🌟✨📍🆑🅰️🈷️⛔🚫❓</font>
+
 ## TODO
 
 1、增加配置页面
@@ -39,6 +43,8 @@
 本插件基于@windingwind的[zotero-plugin-template](https://github.com/windingwind/zotero-plugin-template)开发，在此表示感谢。
 
 感谢@windingwind 开发工具箱，[Zotero Plugin Toolkit](https://github.com/windingwind/zotero-plugin-toolkit)。
+
+导出标签的灵感来自，[Ze-Notes](https://github.com/frianasoa/Ze-Notes)，非常好用的一个笔记整理方案
 
 ## Reminder
 
