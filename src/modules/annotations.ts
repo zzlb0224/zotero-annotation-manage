@@ -150,13 +150,16 @@ const { get: allTagsInLibraryAsync, remove: allTagsInLibraryAsyncRemove } =
       : [];
     return groupBy([...tags, ...itemTags], (t) => t.tag);
   });
-  
+
 function getRootStyle(doc: Document, params: any) {
   const {
-    clientWidthWithoutSlider, scaleFactor, clientWidthWithSlider, pageLeft,
+    clientWidthWithoutSlider,
+    scaleFactor,
+    clientWidthWithSlider,
+    pageLeft,
   } = getPrimaryViewDoc(doc);
   let maxWidth = 666;
-  const isExistAnno=!!params.ids
+  const isExistAnno = !!params.ids;
   const rootStyle: Partial<CSSStyleDeclaration> = {
     background: "#eeeeee",
     border: "#cc9999",
@@ -175,23 +178,24 @@ function getRootStyle(doc: Document, params: any) {
     }
   } else {
     //找到弹出框的中心点
-    const centerX = ((params.annotation?.position?.rects[0][0] +
-      params.annotation?.position?.rects[0][2]) *
-      scaleFactor) /
-      2 +
+    const centerX =
+      ((params.annotation?.position?.rects[0][0] +
+        params.annotation?.position?.rects[0][2]) *
+        scaleFactor) /
+        2 +
       pageLeft;
     maxWidth =
       Math.min(
         centerX * 2,
         (clientWidthWithoutSlider - centerX) * 2,
-        clientWidthWithoutSlider
+        clientWidthWithoutSlider,
       ) *
-      0.75 +
+        0.75 +
       50;
     //这个应该可以更精准的计算。但是不会啊
   }
   rootStyle.width = maxWidth + "px";
-  return  rootStyle
+  return rootStyle;
 }
 
 function createDiv(reader: _ZoteroTypes.ReaderInstance, params: any) {
@@ -205,7 +209,7 @@ function createDiv(reader: _ZoteroTypes.ReaderInstance, params: any) {
   else
     doc
       .getElementById(`${config.addonRef}-reader-div`)
-      ?.parentElement?.remove(); 
+      ?.parentElement?.remove();
   const div = ztoolkit.UI.createElement(doc, "div", {
     namespace: "html",
     id: `${config.addonRef}-reader-div`,
@@ -213,7 +217,7 @@ function createDiv(reader: _ZoteroTypes.ReaderInstance, params: any) {
     properties: {
       tabIndex: -1,
     },
-    styles: getRootStyle(doc,  params), //创建的时候就要固定大小
+    styles: getRootStyle(doc, params), //创建的时候就要固定大小
   });
   //创建完成之后用异步来更新
   setTimeout(async () => {
@@ -256,7 +260,7 @@ async function updateDiv(
 
   let searchTag = "";
   const selectedTags: { tag: string; color: string }[] = [];
-  let tagsDisplay: groupByResult<{ tag: string; type: number }>[] = tags1; 
+  let tagsDisplay: groupByResult<{ tag: string; type: number }>[] = tags1;
   const div = ztoolkit.UI.replaceElement(
     {
       tag: "div",
@@ -266,7 +270,7 @@ async function updateDiv(
       properties: {
         tabIndex: -1,
       },
-      styles: getRootStyle(doc,  params),
+      styles: getRootStyle(doc, params),
       children: [createSearchDiv(), createTagsDiv()],
     },
     root,
