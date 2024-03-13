@@ -156,15 +156,17 @@ export function toggleProperty<T, K extends keyof NonNullable<T>>(
   key: K,
   values: NonNullable<T>[K][],
 ) {
-  if (obj) { 
-   return obj[key] = values[(values.indexOf(obj[key]) + 1)%values.length];
-  }  
+  if (obj) {
+    return (obj[key] = values[(values.indexOf(obj[key]) + 1) % values.length]);
+  }
 }
 
 export function setProperty<T, K extends keyof NonNullable<T>>(
   obj: NonNullable<T> | undefined,
   key: K,
   value: NonNullable<T>[K],
-){
-  if (obj) {return obj[key] = value}
+) {
+  if (obj) {
+    return (obj[key] = value);
+  }
 }

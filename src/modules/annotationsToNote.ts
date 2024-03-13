@@ -126,27 +126,36 @@ function createChooseTagsDiv(doc: Document, isCollection: boolean) {
     tag: "div",
     styles: { display: "flex", flexDirection: "column" },
     children: [
-      {tag:"div",children:[{
-        tag: "button",
-        properties: { textContent: "+点击展开可选标签" },
-        styles: { background:"#fff",padding:"6px" },
-        listeners: [
+      {
+        tag: "div",
+        children: [
           {
-            type: "click",
-            listener: (ev) => {
-              const t=toggleProperty(
-                document.getElementById(
-                  `${config.addonRef}-ann2note-ChooseTags-tags`,
-                )?.style,
-                "display",
-                ["none", "flex"],
-              );
-              setProperty((ev.target as HTMLButtonElement),'textContent',t=="none"?"+点击展开可选标签":"-点击隐藏可选标签")
-            },
+            tag: "button",
+            properties: { textContent: "+点击展开可选标签" },
+            styles: { background: "#fff", padding: "6px" },
+            listeners: [
+              {
+                type: "click",
+                listener: (ev) => {
+                  const t = toggleProperty(
+                    document.getElementById(
+                      `${config.addonRef}-ann2note-ChooseTags-tags`,
+                    )?.style,
+                    "display",
+                    ["none", "flex"],
+                  );
+                  setProperty(
+                    ev.target as HTMLButtonElement,
+                    "textContent",
+                    t == "none" ? "+点击展开可选标签" : "-点击隐藏可选标签",
+                  );
+                },
+              },
+            ],
           },
         ],
-      },]},
-      
+      },
+
       {
         tag: "div",
         styles: { display: "flex", flexWrap: "wrap" },
