@@ -280,12 +280,34 @@ async function updateDiv(
         tabIndex: -1,
       },
       styles: getRootStyle(doc, params),
-      children: [createSearchDiv(), createTagsDiv()],
+      children: [createCurrentTags(), createSearchDiv(), createTagsDiv()],
     },
     root,
   );
   ztoolkit.log("append", div);
   return div;
+  function createCurrentTags(): TagElementProps {
+    const ts = groupBy(
+      existAnnotations.flatMap((a) => a.getTags()),
+      (t) => t.tag,
+    ).sort(sortByLength);
+    if (ts.length == 0) return { tag: "" };
+    return {
+      tag: "div",
+      styles: { padding: "6px" },
+      children: ts.map((t) => ({
+        tag: "span",
+        properties: { textContent: `[${t.values.length}]${t.key}` },
+        styles: {
+          margin: "2px",
+          padding: "2px",
+          fontSize,
+          boxShadow: "#00ff00 0px 0px 4px 3px",
+          borderRadius: "6px",
+        },
+      })),
+    };
+  }
 
   function createSearchDiv(): TagElementProps {
     return {
