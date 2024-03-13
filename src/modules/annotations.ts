@@ -150,6 +150,50 @@ const { get: allTagsInLibraryAsync, remove: allTagsInLibraryAsyncRemove } =
       : [];
     return groupBy([...tags, ...itemTags], (t) => t.tag);
   });
+  
+function getRootStyle(doc: Document, params: any) {
+  const {
+    clientWidthWithoutSlider, scaleFactor, clientWidthWithSlider, pageLeft,
+  } = getPrimaryViewDoc(doc);
+  let maxWidth = 666;
+  const isExistAnno=!!params.ids
+  const rootStyle: Partial<CSSStyleDeclaration> = {
+    background: "#eeeeee",
+    border: "#cc9999",
+    overflowY: "scroll",
+    maxHeight: "350px",
+  };
+  if (isExistAnno) {
+    rootStyle.zIndex = "99990";
+    rootStyle.position = "fixed";
+    rootStyle.top = params.y + "px";
+    rootStyle.left = params.x + "px"; //只有左边需要改，其它的固定
+
+    //对已有标签处理 防止出现右边超出边界
+    if (params.x > clientWidthWithSlider - maxWidth) {
+      rootStyle.left = clientWidthWithSlider - maxWidth - 23 + "px";
+    }
+  } else {
+    //找到弹出框的中心点
+    const centerX = ((params.annotation?.position?.rects[0][0] +
+      params.annotation?.position?.rects[0][2]) *
+      scaleFactor) /
+      2 +
+      pageLeft;
+    maxWidth =
+      Math.min(
+        centerX * 2,
+        (clientWidthWithoutSlider - centerX) * 2,
+        clientWidthWithoutSlider
+      ) *
+      0.75 +
+      50;
+    //这个应该可以更精准的计算。但是不会啊
+  }
+  rootStyle.width = maxWidth + "px";
+  return  rootStyle
+}
+
 function createDiv(reader: _ZoteroTypes.ReaderInstance, params: any) {
   const doc = reader._iframeWindow?.document;
   if (!doc) return;
@@ -161,7 +205,7 @@ function createDiv(reader: _ZoteroTypes.ReaderInstance, params: any) {
   else
     doc
       .getElementById(`${config.addonRef}-reader-div`)
-      ?.parentElement?.remove();
+      ?.parentElement?.remove(); 
   const div = ztoolkit.UI.createElement(doc, "div", {
     namespace: "html",
     id: `${config.addonRef}-reader-div`,
@@ -169,6 +213,7 @@ function createDiv(reader: _ZoteroTypes.ReaderInstance, params: any) {
     properties: {
       tabIndex: -1,
     },
+    styles: getRootStyle(doc,  params), //创建的时候就要固定大小
   });
   //创建完成之后用异步来更新
   setTimeout(async () => {
@@ -211,49 +256,7 @@ async function updateDiv(
 
   let searchTag = "";
   const selectedTags: { tag: string; color: string }[] = [];
-  let tagsDisplay: groupByResult<{ tag: string; type: number }>[] = tags1;
-
-  const {
-    clientWidthWithoutSlider,
-    scaleFactor,
-    clientWidthWithSlider,
-    pageLeft,
-  } = getPrimaryViewDoc(doc);
-  let maxWidth = 666;
-  const rootStyle: Partial<CSSStyleDeclaration> = {
-    background: "#eeeeee",
-    border: "#cc9999",
-    overflowY: "scroll",
-    maxHeight: "350px",
-  };
-  if (isExistAnno) {
-    rootStyle.zIndex = "99990";
-    rootStyle.position = "fixed";
-    rootStyle.top = params.y + "px";
-    rootStyle.left = params.x + "px"; //只有左边需要改，其它的固定
-    //对已有标签处理 防止出现右边超出边界
-    if (params.x > clientWidthWithSlider - maxWidth) {
-      rootStyle.left = clientWidthWithSlider - maxWidth - 23 + "px";
-    }
-  } else {
-    //找到弹出框的中心点
-    const centerX =
-      ((params.annotation?.position?.rects[0][0] +
-        params.annotation?.position?.rects[0][2]) *
-        scaleFactor) /
-        2 +
-      pageLeft;
-    maxWidth =
-      Math.min(
-        centerX * 2,
-        (clientWidthWithoutSlider - centerX) * 2,
-        clientWidthWithoutSlider,
-      ) *
-        0.75 +
-      50;
-    //这个应该可以更精准的计算。但是不会啊
-  }
-  rootStyle.maxWidth = maxWidth + "px";
+  let tagsDisplay: groupByResult<{ tag: string; type: number }>[] = tags1; 
   const div = ztoolkit.UI.replaceElement(
     {
       tag: "div",
@@ -263,7 +266,7 @@ async function updateDiv(
       properties: {
         tabIndex: -1,
       },
-      styles: rootStyle,
+      styles: getRootStyle(doc,  params),
       children: [createSearchDiv(), createTagsDiv()],
     },
     root,
@@ -279,7 +282,7 @@ async function updateDiv(
         flexDirection: "row",
         flexWrap: "wrap",
         justifyContent: "space-start",
-        maxWidth: maxWidth + "px",
+        // maxWidth: maxWidth + "px",
       },
       children: [
         {
@@ -401,7 +404,7 @@ async function updateDiv(
           padding: "2px",
           background: bgColor,
           fontSize,
-          boxShadow: "#999999 0px 0px 3px 3px",
+          boxShadow: "#999999 0px 0px 4px 3px",
           borderRadius: "6px",
         },
         listeners: [
