@@ -1,4 +1,7 @@
-# Zotero的笔记整理
+# ![笔记标签整Zotero的笔记整理理](addon/chrome/content/icons/favicon.png)Zotero的笔记整理
+
+[![zotero target version](https://img.shields.io/badge/Zotero-7-green?style=flat-square&logo=zotero&logoColor=CC2936)](https://www.zotero.org)
+[![Using Zotero Plugin Template](https://img.shields.io/badge/Using-Zotero%20Plugin%20Template-blue?style=flat-square&logo=github)](https://github.com/windingwind/zotero-plugin-template)
 
 ## 有趣的图标
 
