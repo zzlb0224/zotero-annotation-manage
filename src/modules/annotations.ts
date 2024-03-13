@@ -653,6 +653,9 @@ function updateDivWidth(div: HTMLElement, n = 3) {
 function createAnnotationContextMenu(
   event: _ZoteroTypes.Reader.EventParams<"createAnnotationContextMenu">,
 ) {
+  if (getPref("hide-in-annotation-context-menu")) {
+    return;
+  }
   const { reader, params, append } = event;
   const doc = reader._iframeWindow?.document;
   if (!doc) return;

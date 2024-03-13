@@ -39,7 +39,9 @@ pref-split-nested-tags-keep-all =
 
 
 pref-hide-in-selection-popup = 
-    .label = 在选中弹出窗口不加载
+    .label = 在选中文本弹出窗口中不加载插件
+pref-hide-in-annotation-context-menu = 
+    .label = 在注释右键菜单中不加载插件
 
 
 pref-help = { $name } Build { $version } { $time }
