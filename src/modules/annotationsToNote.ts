@@ -9,6 +9,8 @@ import {
   getChildCollections,
   getFixedColor,
 } from "../utils/zzlb";
+import { TagElementProps } from "zotero-plugin-toolkit/dist/tools/ui";
+import { toggleProperty } from "../utils/zzlb";
 let popupWin: ProgressWindowHelper | undefined = undefined;
 let popupTime = -1;
 
@@ -88,6 +90,27 @@ function isCollection(ev: Event) {
   const isCollection = pid?.includes("collection") || false;
   return isCollection;
 }
+function asTagElementProps(
+  tag = "div",
+  textContent = "",
+  styles?: Partial<CSSStyleDeclaration>,
+  click?:
+    | EventListenerOrEventListenerObject
+    | ((e: Event) => void)
+    | null
+    | undefined,
+  other?: any,
+) {
+  return Object.assign(
+    {
+      tag,
+      properties: { textContent },
+      styles,
+      listeners: [{ type: "click", listener: click }],
+    },
+    other,
+  ) as TagElementProps;
+}
 function createChooseTagsDiv(doc: Document, isCollection: boolean) {
   const selectedTags: string[] = [];
 
@@ -97,6 +120,109 @@ function createChooseTagsDiv(doc: Document, isCollection: boolean) {
   );
   const tags = groupBy(annotations, (a) => a.tag.tag);
   tags.sort(sortByFixedTag2Length);
+
+  const tagsDiv: TagElementProps = {
+    tag: "div",
+    styles: { display: "flex", flexDirection: "column" },
+    children: [
+      {
+        tag: "div",
+        properties: { textContent: "展开可选标签" },
+        styles: { display: "flex" },
+        listeners: [
+          {
+            type: "click",
+            listener: () => {
+              toggleProperty(
+                document.getElementById(`${config.addonRef}-ann2note-show-tags`)
+                  ?.style,
+                "display",
+                "none",
+                "flex",
+              );
+            },
+          },
+        ],
+      },
+      {
+        tag: "div",
+        styles: { display: "flex", flexWrap: "wrap" },
+        id: `${config.addonRef}-ann2note-show-tags`,
+        children: tags.slice(0, 300).map((t) => ({
+          tag: "div",
+          properties: { textContent: `[${t.values.length}]${t.key}` },
+          styles: {
+            padding: "6px",
+            background: "#099",
+            margin: "1px",
+          },
+          listeners: [
+            {
+              type: "click",
+              listener: (ev) => {
+                const target = ev.target as HTMLDivElement;
+                const index = selectedTags.findIndex((f) => f == t.key);
+                if (index == -1) {
+                  selectedTags.push(t.key);
+                  target.style.background = "#a00";
+                } else {
+                  selectedTags.splice(index, 1);
+                  target.style.background = "#099";
+                }
+              },
+            },
+          ],
+        })),
+      },
+    ],
+  };
+  const actionDiv: TagElementProps = {
+    tag: "div",
+    styles: { display: "flex" },
+    children: [
+      {
+        tag: "div",
+        properties: { textContent: "确定生成" },
+        styles: {
+          padding: "6px",
+          background: "#f99",
+          margin: "1px",
+        },
+        listeners: [
+          {
+            type: "click",
+            listener: (ev) => {
+              ev.stopPropagation();
+              if (selectedTags.length > 0) {
+                exportTagsNote(selectedTags, items);
+                div.remove();
+              }
+              return false;
+            },
+          },
+        ],
+      },
+      {
+        tag: "div",
+        properties: { textContent: "取消" },
+        styles: {
+          padding: "6px",
+          background: "#f99",
+          margin: "1px",
+        },
+        listeners: [
+          {
+            type: "click",
+            listener: (ev) => {
+              ev.stopPropagation();
+              div.remove();
+              return false;
+            },
+          },
+        ],
+      },
+    ],
+  };
 
   const div = ztoolkit.UI.appendElement(
     {
@@ -113,11 +239,13 @@ function createChooseTagsDiv(doc: Document, isCollection: boolean) {
         display: "flex",
         background: "#a99",
         flexWrap: "wrap",
+        flexDirection: "column",
       },
       children: [
-        ...tags.splice(1, 300).map((t) => ({
-          tag: "div",
-          properties: { textContent: `[${t.values.length}]${t.key}` },
+        tagsDiv,
+        ...tags.slice(0, 300).map((t) => ({
+          tag: "span",
+          properties: { textContent: `[${t.values.length}]${t.key}11111` },
           listeners: [
             {
               type: "click",
@@ -145,47 +273,7 @@ function createChooseTagsDiv(doc: Document, isCollection: boolean) {
             margin: "1px",
           },
         })),
-        {
-          tag: "div",
-          properties: { textContent: "确定生成" },
-          styles: {
-            padding: "6px",
-            background: "#f99",
-            margin: "1px",
-          },
-          listeners: [
-            {
-              type: "click",
-              listener: (ev) => {
-                ev.stopPropagation();
-                if (selectedTags.length > 0) {
-                  exportTagsNote(selectedTags, items);
-                  div.remove();
-                }
-                return false;
-              },
-            },
-          ],
-        },
-        {
-          tag: "div",
-          properties: { textContent: "取消" },
-          styles: {
-            padding: "6px",
-            background: "#f99",
-            margin: "1px",
-          },
-          listeners: [
-            {
-              type: "click",
-              listener: (ev) => {
-                ev.stopPropagation();
-                div.remove();
-                return false;
-              },
-            },
-          ],
-        },
+        actionDiv,
       ],
       listeners: [
         {

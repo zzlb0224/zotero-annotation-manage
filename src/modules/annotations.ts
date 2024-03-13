@@ -218,6 +218,15 @@ function createDiv(reader: _ZoteroTypes.ReaderInstance, params: any) {
       tabIndex: -1,
     },
     styles: getRootStyle(doc, params), //创建的时候就要固定大小
+    children: [
+      {
+        tag: "link",
+        properties: {
+          rel: "stylesheet",
+          href: `chrome://${config.addonRef}/content/annotation.css`,
+        },
+      },
+    ],
   });
   //创建完成之后用异步来更新
   setTimeout(async () => {

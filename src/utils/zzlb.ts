@@ -78,6 +78,7 @@ export function sortByFixedTag2Length<T>(
   }
   return b.values.length - a.values.length + (b.key > a.key ? -0.5 : 0.5);
 }
+
 export function sortByFixedTag2TagName<T>(
   a: groupByResult<T>,
   b: groupByResult<T>,
@@ -149,3 +150,20 @@ export const getOptionalColor = memoize(() => getPref("optional-color"));
 export const getFixedColor = memoize(getFixedColor_);
 export const getFixedTags = memoize(getFixedTags_);
 export const getFixedColors = memoize(getFixedColors_);
+
+export function toggleProperty<T, K extends keyof NonNullable<T>>(
+  obj: NonNullable<T> | undefined,
+  key: K,
+  value1: NonNullable<T>[K],
+  value2: NonNullable<T>[K],
+): void {
+  if (obj) obj[key] = obj[key] == value1 ? value2 : value1;
+}
+
+export function setProperty<T, K extends keyof NonNullable<T>>(
+  obj: NonNullable<T> | undefined,
+  key: K,
+  value: NonNullable<T>[K],
+): void {
+  if (obj) obj[key] = value;
+}
