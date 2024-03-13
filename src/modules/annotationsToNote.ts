@@ -108,7 +108,7 @@ function createChooseTagsDiv(doc: Document, isCollection: boolean) {
         top: "100px",
         zIndex: "9999",
         width: "calc(100% - 200px)",
-        maxHeight: "calc(100% -200px)",
+        maxHeight: "400px",
         overflowY: "scroll",
         display: "flex",
         background: "#a99",
@@ -193,7 +193,7 @@ function createChooseTagsDiv(doc: Document, isCollection: boolean) {
           listener: (ev) => {
             ev.stopPropagation();
             const target = ev.target as HTMLElement;
-            target.remove();
+            // target.remove();
             return false;
           },
         },
