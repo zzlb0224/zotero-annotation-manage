@@ -7,42 +7,40 @@ export type MemoizedFn<TFunc extends (this: any, ...args: any[]) => any> = {
     ...args: Parameters<TFunc>
   ): ReturnType<TFunc>;
 };
-
-function memoize2<TFunc extends (this: any, ...newArgs: any[]) => any>(
+export function memoize2<TFunc extends (this: any, ...newArgs: any[]) => any>(
   resultFn: TFunc,
   keyFn?: (...newArgs: Parameters<TFunc>) => string,
-  timeout = 2233000, //
+  timeout = 600000,
 ): MemoizedFn<TFunc> {
   const cacheThis: any = {};
-  const cacheObj: any = {};
+  const cacheObje: any = {};
   const cacheTime: any = {};
-
-  // breaking cache when context (this) or arguments change
   function memoized(
     this: ThisParameterType<TFunc>,
     ...newArgs: Parameters<TFunc>
   ): ReturnType<TFunc> {
     const cacheKey = (keyFn && keyFn(...newArgs)) || "_";
     if (
-      cacheTime[cacheKey] === undefined ||
-      cacheThis[cacheThis] === this ||
-      cacheObj[cacheKey] === undefined ||
+      Object.prototype.hasOwnProperty.call(cacheTime, cacheKey) ||
+      Object.prototype.hasOwnProperty.call(cacheObje, cacheKey) ||
+      Object.prototype.hasOwnProperty.call(cacheThis, cacheKey) ||
+      cacheThis[cacheKey] === this ||
       Date.now() - cacheTime[cacheKey] > timeout
     ) {
       cacheTime[cacheKey] = Date.now();
       if (resultFn.constructor.name == "AsyncFunction") {
-        return (cacheObj[cacheKey] = (resultFn(...newArgs) as any).then(
-          (value: ReturnType<TFunc>) => (cacheObj[cacheKey] = value),
+        return (cacheObje[cacheKey] = (resultFn(...newArgs) as any).then(
+          (value: ReturnType<TFunc>) => (cacheObje[cacheKey] = value),
         ));
       } else {
-        return (cacheObj[cacheKey] = resultFn(...newArgs));
+        return (cacheObje[cacheKey] = resultFn(...newArgs));
       }
     }
-    return cacheObj[cacheKey] as ReturnType<TFunc>;
+    return cacheObje[cacheKey] as ReturnType<TFunc>;
   }
   function del(key: string) {
     delete cacheTime[key];
-    delete cacheObj[key];
+    delete cacheObje[key];
     delete cacheThis[key];
   }
   memoized.remove = (cacheKey: string | RegExp | undefined = undefined) =>
@@ -54,5 +52,4 @@ function memoize2<TFunc extends (this: any, ...newArgs: any[]) => any>(
 
   return memoized;
 }
-
 export default memoize2;

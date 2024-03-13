@@ -396,6 +396,55 @@ async function updateDiv(
       const noneHave = isNoneHave(tag);
       const someHave = strSomeHave(tag);
       const bgColor = getFixedColor(tag, "");
+      if (getFixedTags().includes(tag)) {
+        return {
+          tag: "span",
+          namespace: "html",
+          classList: ["toolbarButton1"],
+          styles: {
+            margin: "2px",
+            padding: "2px",
+            fontSize,
+            // boxShadow: "#999999 0px 0px 4px 3px",
+            borderRadius: "6px",
+          },
+          listeners: [
+            {
+              type: "click",
+              listener: (e: Event) => {
+                ztoolkit.log("增加标签", label, params, e);
+                const target = e.target as HTMLElement;
+                target.style.boxShadow = "#ff0000 0px 0px 4px 3px";
+                onTagClick(tag, bgColor);
+              },
+            },
+          ],
+          children: [
+            {
+              tag: "span",
+              namespace: "html",
+              properties: {
+                textContent: `[${label.values.length}]`,
+              },
+              styles: {
+                // margin: "2px",
+                padding: "2px",
+                background: bgColor,
+                fontSize,
+                boxShadow: "#999999 0px 0px 4px 3px",
+                borderRadius: "6px",
+              },
+            },
+            {
+              tag: "span",
+              namespace: "html",
+              properties: {
+                textContent: `${allHave ? "[x]" : noneHave ? "" : `[${someHave}]`}${tag}`,
+              },
+            },
+          ],
+        };
+      }
       return {
         tag: "span",
         namespace: "html",
@@ -416,6 +465,8 @@ async function updateDiv(
             type: "click",
             listener: (e: Event) => {
               ztoolkit.log("增加标签", label, params, e);
+              const target = e.target as HTMLElement;
+              target.style.boxShadow = "#ff0000 0px 0px 4px 3px";
               onTagClick(tag, bgColor);
             },
           },

@@ -24,6 +24,18 @@ function register() {
     children: [
       {
         tag: "menuitem",
+        label: "自选标签",
+        icon: iconBaseUrl + "favicon.png",
+        commandListener: (ev) => {
+          const target = ev.target as HTMLElement;
+          const doc = target.ownerDocument;
+          const div = createChooseTagsDiv(doc, isCollection(ev));
+          ztoolkit.log("自选标签", div);
+          // setTimeout(()=>d.remove(),10000)
+        },
+      },
+      {
+        tag: "menuitem",
         label: "按标签顺序",
         icon: iconBaseUrl + "favicon.png",
         commandListener: (ev) => {
@@ -52,18 +64,6 @@ function register() {
         icon: iconBaseUrl + "favicon.png",
         commandListener: (ev) => {
           exportSingleNote("量表", isCollection(ev));
-        },
-      },
-      {
-        tag: "menuitem",
-        label: "自选标签",
-        icon: iconBaseUrl + "favicon.png",
-        commandListener: (ev) => {
-          const target = ev.target as HTMLElement;
-          const doc = target.ownerDocument;
-          const div = createChooseTagsDiv(doc, isCollection(ev));
-          ztoolkit.log("自选标签", div);
-          // setTimeout(()=>d.remove(),10000)
         },
       },
     ],
