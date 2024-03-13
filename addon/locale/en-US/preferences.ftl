@@ -37,6 +37,9 @@ pref-hide-in-selection-popup =
     .label = hide in selection popup
 pref-hide-in-annotation-context-menu = 
     .label = hide in annotation context menu
+    
+pref-fixed-tags-style = 
+    .label = fixed tags style
 
 
 

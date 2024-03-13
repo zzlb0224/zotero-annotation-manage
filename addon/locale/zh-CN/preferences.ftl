@@ -42,6 +42,7 @@ pref-hide-in-selection-popup =
     .label = 在选中文本弹出窗口中不加载插件
 pref-hide-in-annotation-context-menu = 
     .label = 在注释右键菜单中不加载插件
-
+pref-fixed-tags-style = 
+    .label = 固定标签使用独立样式
 
 pref-help = { $name } Build { $version } { $time }

@@ -390,13 +390,14 @@ async function updateDiv(
   }
 
   function createTagsDiv(): TagElementProps {
+    const fixedTagsStyle = !!getPref("fixed-tags-style");
     const children = tagsDisplay.slice(0, 200).map((label) => {
       const tag = label.key;
       const allHave = isAllHave(tag);
       const noneHave = isNoneHave(tag);
       const someHave = strSomeHave(tag);
       const bgColor = getFixedColor(tag, "");
-      if (getFixedTags().includes(tag)) {
+      if (fixedTagsStyle && getFixedTags().includes(tag)) {
         return {
           tag: "span",
           namespace: "html",
