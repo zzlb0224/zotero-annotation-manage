@@ -12,6 +12,7 @@ import {
 } from "../utils/zzlb";
 import { getPref } from "../utils/prefs";
 import memoize from "../utils/memoize2";
+import { listeners } from "process";
 function register() {
   // if (!getPref("enable")) return;
   // ztoolkit.UI.basicOptions.log.disableZLog = true;
@@ -270,6 +271,7 @@ async function updateDiv(
   let searchTag = "";
   const selectedTags: { tag: string; color: string }[] = [];
   let tagsDisplay: groupByResult<{ tag: string; type: number }>[] = tags1;
+  const delTags: string[] = [];
   const div = ztoolkit.UI.replaceElement(
     {
       tag: "div",
@@ -305,6 +307,22 @@ async function updateDiv(
           boxShadow: "#00ff00 0px 0px 4px 3px",
           borderRadius: "6px",
         },
+        listeners: [
+          {
+            type: "click",
+            listener: (ev) => {
+              const target = ev.target as HTMLElement;
+              const index = delTags.findIndex((f) => f == t.key);
+              if (index == -1) {
+                delTags.push(t.key);
+                target.style.background = "#F88";
+              } else {
+                delTags.splice(index, 1);
+                target.style.background = "";
+              }
+            },
+          },
+        ],
       })),
     };
   }
@@ -354,7 +372,9 @@ async function updateDiv(
               tag: "button",
               properties: {
                 textContent: getPref("multipleTags")
-                  ? "添加多个标签"
+                  ? isExistAnno
+                    ? "修改标签"
+                    : "添加多个标签"
                   : "单标签",
               },
               styles: {
