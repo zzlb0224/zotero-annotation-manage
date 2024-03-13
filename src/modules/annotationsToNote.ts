@@ -8,6 +8,7 @@ import {
   sortByFixedTag2Length,
   getChildCollections,
   getFixedColor,
+  setProperty,
 } from "../utils/zzlb";
 import { TagElementProps } from "zotero-plugin-toolkit/dist/tools/ui";
 import { toggleProperty } from "../utils/zzlb";
@@ -125,29 +126,31 @@ function createChooseTagsDiv(doc: Document, isCollection: boolean) {
     tag: "div",
     styles: { display: "flex", flexDirection: "column" },
     children: [
-      {
-        tag: "div",
-        properties: { textContent: "展开可选标签" },
-        styles: { display: "flex" },
+      {tag:"div",children:[{
+        tag: "button",
+        properties: { textContent: "+点击展开可选标签" },
+        styles: { background:"#fff",padding:"6px" },
         listeners: [
           {
             type: "click",
-            listener: () => {
-              toggleProperty(
-                document.getElementById(`${config.addonRef}-ann2note-show-tags`)
-                  ?.style,
+            listener: (ev) => {
+              const t=toggleProperty(
+                document.getElementById(
+                  `${config.addonRef}-ann2note-ChooseTags-tags`,
+                )?.style,
                 "display",
-                "none",
-                "flex",
+                ["none", "flex"],
               );
+              setProperty((ev.target as HTMLButtonElement),'textContent',t=="none"?"+点击展开可选标签":"-点击隐藏可选标签")
             },
           },
         ],
-      },
+      },]},
+      
       {
         tag: "div",
         styles: { display: "flex", flexWrap: "wrap" },
-        id: `${config.addonRef}-ann2note-show-tags`,
+        id: `${config.addonRef}-ann2note-ChooseTags-tags`,
         children: tags.slice(0, 300).map((t) => ({
           tag: "div",
           properties: { textContent: `[${t.values.length}]${t.key}` },
@@ -241,40 +244,7 @@ function createChooseTagsDiv(doc: Document, isCollection: boolean) {
         flexWrap: "wrap",
         flexDirection: "column",
       },
-      children: [
-        tagsDiv,
-        ...tags.slice(0, 300).map((t) => ({
-          tag: "span",
-          properties: { textContent: `[${t.values.length}]${t.key}11111` },
-          listeners: [
-            {
-              type: "click",
-              listener: (ev: Event) => {
-                ev.stopPropagation();
-                const target = ev.target as HTMLDivElement;
-                const index = selectedTags.findIndex((f) => f == t.key);
-                if (index == -1) {
-                  selectedTags.push(t.key);
-                  target.style.background = "#a00";
-                } else {
-                  selectedTags.splice(index, 1);
-                  target.style.background = "#099";
-                }
-                ztoolkit.log(selectedTags);
-                // exportTagsNote(selectedTags,isCollection(ev));
-                // target.remove();
-                return false;
-              },
-            },
-          ],
-          styles: {
-            padding: "6px",
-            background: "#099",
-            margin: "1px",
-          },
-        })),
-        actionDiv,
-      ],
+      children: [tagsDiv, actionDiv],
       listeners: [
         {
           type: "click",

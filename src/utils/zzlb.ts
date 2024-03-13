@@ -154,16 +154,17 @@ export const getFixedColors = memoize(getFixedColors_);
 export function toggleProperty<T, K extends keyof NonNullable<T>>(
   obj: NonNullable<T> | undefined,
   key: K,
-  value1: NonNullable<T>[K],
-  value2: NonNullable<T>[K],
-): void {
-  if (obj) obj[key] = obj[key] == value1 ? value2 : value1;
+  values: NonNullable<T>[K][],
+) {
+  if (obj) { 
+   return obj[key] = values[(values.indexOf(obj[key]) + 1)%values.length];
+  }  
 }
 
 export function setProperty<T, K extends keyof NonNullable<T>>(
   obj: NonNullable<T> | undefined,
   key: K,
   value: NonNullable<T>[K],
-): void {
-  if (obj) obj[key] = value;
+){
+  if (obj) {return obj[key] = value}
 }
