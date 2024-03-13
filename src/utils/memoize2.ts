@@ -2,7 +2,6 @@ function keyFnDefault(newInputs: readonly unknown[]): string {
   return ["", ...newInputs, ""].join("_");
 }
 
-
 export type MemoizedFn<TFunc extends (this: any, ...args: any[]) => any> = {
   clear: () => void;
   remove: (key: string | RegExp) => void;
@@ -14,7 +13,7 @@ export type MemoizedFn<TFunc extends (this: any, ...args: any[]) => any> = {
 
 function memoizeOne<TFunc extends (this: any, ...newArgs: any[]) => any>(
   resultFn: TFunc,
-  keyFn?: ((...newArgs:(Parameters<TFunc>))=>string),
+  keyFn?: (...newArgs: Parameters<TFunc>) => string,
   timeout = 60000,
 ): MemoizedFn<TFunc> {
   const cacheThis: any = {};

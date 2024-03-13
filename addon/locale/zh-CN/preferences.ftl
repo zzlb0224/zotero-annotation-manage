@@ -37,4 +37,9 @@ pref-split-nested-tags-keep-second =
 pref-split-nested-tags-keep-all = 
     .label =  拆分Nested Tags，并保留全部。   “#理论/TPB” 将保留 “理论” “TPB”
 
+
+pref-hide-in-selection-popup = 
+    .label = 在选中弹出窗口不加载
+
+
 pref-help = { $name } Build { $version } { $time }

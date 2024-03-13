@@ -607,6 +607,9 @@ function getPrimaryViewDoc(doc: Document) {
 function renderTextSelectionPopup(
   event: _ZoteroTypes.Reader.EventParams<"renderTextSelectionPopup">,
 ) {
+  if (getPref("hide-in-selection-popup")) {
+    return;
+  }
   const { append, reader, doc, params } = event;
   // ztoolkit.log(
   //   "renderTextSelectionPopup show",

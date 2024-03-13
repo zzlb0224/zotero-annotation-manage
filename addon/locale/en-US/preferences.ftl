@@ -33,5 +33,8 @@ pref-split-nested-tags-keep-second =
 pref-split-nested-tags-keep-all = 
     .label =   split nested tags and keep all tags
 
+pref-hide-in-selection-popup = 
+    .label = hide in selection popup
+
 
 pref-help = { $name } Build { $version } { $time }
