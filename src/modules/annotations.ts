@@ -1,7 +1,7 @@
 import { TagElementProps } from "zotero-plugin-toolkit/dist/tools/ui";
 import { config } from "../../package.json";
 import {
-  sortByTAGs,
+  sortByFixedTag2Length,
   groupBy,
   groupByResult,
   getFixedTags,
@@ -69,6 +69,7 @@ const { get: relateTags, remove: relateTagsRemove } = memoize(
   (item: Zotero.Item) => {
     return getTagsInCollections(getItemRelateCollections(item));
   },
+  (item) => item.key,
 );
 
 function getTagsInCollections(collections: Zotero.Collection[]) {
@@ -253,7 +254,7 @@ async function updateDiv(
     tags1 = groupBy(relateTags(reader._item), (t) => t.tag);
   }
   includeTAGS(tags1);
-  tags1.sort(sortByTAGs);
+  tags1.sort(sortByFixedTag2Length);
   const existAnnotations = isExistAnno
     ? reader._item.getAnnotations().filter((f) => params.ids.includes(f.key))
     : [];
@@ -558,6 +559,7 @@ async function updateDiv(
       reader._primaryView._onSetSelectionPopup(null);
     }
     allTagsInLibraryAsyncRemove();
+
     relateTagsRemove(reader._item.key);
   }
 }
@@ -659,7 +661,7 @@ function createAnnotationContextMenu(
   const tags1 = groupBy(
     annotations.flatMap((f) => f.getTags()),
     (t) => t.tag,
-  ).sort(sortByTAGs);
+  ).sort(sortByFixedTag2Length);
   const hasTags = tags1
     .sort(sortByLength)
     .map((f) => `${f.key}[${f.values.length}]`)

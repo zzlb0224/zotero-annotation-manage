@@ -5,12 +5,10 @@ import {
   groupBy,
   uniqueBy,
   promiseAllWithProgress,
-  sortByTAGs,
+  sortByFixedTag2Length,
   getChildCollections,
-  getFixedTags,
   getFixedColor,
 } from "../utils/zzlb";
-import { getPref } from "../utils/prefs";
 let popupWin: ProgressWindowHelper | undefined = undefined;
 let popupTime = -1;
 
@@ -98,7 +96,7 @@ function createChooseTagsDiv(doc: Document, isCollection: boolean) {
     f.tags.map((t) => Object.assign(f, { tag: t })),
   );
   const tags = groupBy(annotations, (a) => a.tag.tag);
-  tags.sort(sortByTAGs);
+  tags.sort(sortByFixedTag2Length);
 
   const div = ztoolkit.UI.appendElement(
     {
@@ -117,7 +115,7 @@ function createChooseTagsDiv(doc: Document, isCollection: boolean) {
         flexWrap: "wrap",
       },
       children: [
-        ...tags.splice(1, 30).map((t) => ({
+        ...tags.splice(1, 300).map((t) => ({
           tag: "div",
           properties: { textContent: `[${t.values.length}]${t.key}` },
           listeners: [
@@ -425,7 +423,7 @@ function exportNoteByTag(isCollection: boolean = false) {
       ans.flatMap((an) => an.tags.map((tag) => Object.assign({}, an, { tag }))),
     toText: (annotations) =>
       groupBy(annotations, (a) => a.tag.tag)
-        .sort(sortByTAGs)
+        .sort(sortByFixedTag2Length)
         .flatMap((tag, index) => {
           return [
             `<h1>(${index + 1}) ${tag.key} (${tag.values.length})</h1>`,
@@ -442,7 +440,7 @@ function exportNoteByTagPdf(isCollection: boolean = false) {
       ans.flatMap((an) => an.tags.map((tag) => Object.assign({}, an, { tag }))),
     toText: (annotations) =>
       groupBy(annotations, (a) => a.tag.tag)
-        .sort(sortByTAGs)
+        .sort(sortByFixedTag2Length)
         .flatMap((tag, index) => {
           return [
             `<h1> (${index + 1}) 标签：${tag.key}  (${tag.values.length})</h1>`,

@@ -61,7 +61,10 @@ export function getChildCollections(
 export function sortByLength<T>(a: groupByResult<T>, b: groupByResult<T>) {
   return b.values.length - a.values.length + (b.key > a.key ? -0.5 : 0.5);
 }
-export function sortByTAGs<T>(a: groupByResult<T>, b: groupByResult<T>) {
+export function sortByFixedTag2Length<T>(
+  a: groupByResult<T>,
+  b: groupByResult<T>,
+) {
   const tags = getFixedTags();
   if (tags.includes(a.key) && tags.includes(b.key)) {
     return tags.indexOf(a.key) - tags.indexOf(b.key);
@@ -73,6 +76,22 @@ export function sortByTAGs<T>(a: groupByResult<T>, b: groupByResult<T>) {
     return 1;
   }
   return b.values.length - a.values.length + (b.key > a.key ? -0.5 : 0.5);
+}
+export function sortByFixedTag2TagName<T>(
+  a: groupByResult<T>,
+  b: groupByResult<T>,
+) {
+  const tags = getFixedTags();
+  if (tags.includes(a.key) && tags.includes(b.key)) {
+    return tags.indexOf(a.key) - tags.indexOf(b.key);
+  }
+  if (tags.includes(a.key)) {
+    return -1;
+  }
+  if (tags.includes(b.key)) {
+    return 1;
+  }
+  return b.key > a.key ? -0.5 : 0.5;
 }
 export const FixedTagsDefault =
   "目的,假设,框架,数据,量表,方法,理论,结论,贡献,不足,背景,现状,问题,对策";
@@ -132,3 +151,6 @@ export const COLOR = {
   black: "#000000",
   white: "#ffffff",
 };
+import memoizeOne from "memoize-one";
+const add2 = memoizeOne((a: number, b: number) => 123 + a + b);
+add2;
