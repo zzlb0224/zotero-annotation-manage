@@ -1,5 +1,6 @@
-import { memoize } from "./Memoize";
+// import { memoize } from "./Memoize";
 import { getPref } from "./prefs";
+import memoize from "./memoize2";
 
 /* unique 采用set的比较方式*/
 export function unique<T>(arr: T[]) {
@@ -128,14 +129,6 @@ function getFixedColor_(tag: string, optional: string | undefined): string {
   return optional;
 }
 
-export const { get: getOptionalColor, remove: getOptionalColorRemove } =
-  memoize(() => getPref("optional-color"));
-export const { get: getFixedColor, remove: getFixedColorRemove } =
-  memoize(getFixedColor_);
-export const { get: getFixedTags, remove: getFixedTagsRemove } =
-  memoize(getFixedTags_);
-export const { get: getFixedColors, remove: getFixedColorsRemove } =
-  memoize(getFixedColors_);
 export const COLOR = {
   red: "#ff6666",
   orange: "#f19837",
@@ -151,6 +144,8 @@ export const COLOR = {
   black: "#000000",
   white: "#ffffff",
 };
-import memoizeOne from "memoize-one";
-const add2 = memoizeOne((a: number, b: number) => 123 + a + b);
-add2;
+
+export const getOptionalColor = memoize(() => getPref("optional-color"));
+export const getFixedColor = memoize(getFixedColor_);
+export const getFixedTags = memoize(getFixedTags_);
+export const getFixedColors = memoize(getFixedColors_);

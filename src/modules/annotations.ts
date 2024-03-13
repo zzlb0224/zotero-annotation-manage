@@ -11,7 +11,7 @@ import {
   sortByLength,
 } from "../utils/zzlb";
 import { getPref } from "../utils/prefs";
-import { memoize } from "../utils/Memoize";
+import memoize from "../utils/memoize2";
 function register() {
   // if (!getPref("enable")) return;
   // ztoolkit.UI.basicOptions.log.disableZLog = true;
@@ -65,7 +65,7 @@ const getItemRelateCollections = (item: Zotero.Item) => {
   return [];
 };
 
-const { get: relateTags, remove: relateTagsRemove } = memoize(
+const relateTags = memoize(
   (item: Zotero.Item) => {
     return getTagsInCollections(getItemRelateCollections(item));
   },
@@ -136,21 +136,20 @@ function getLeftTop(temp4: HTMLElement) {
   }
 }
 
-const { get: allTagsInLibraryAsync, remove: allTagsInLibraryAsyncRemove } =
-  memoize(async () => {
-    const allItems = await Zotero.Items.getAll(1, false, false, false);
-    const items = allItems.filter((f) => !f.parentID && !f.isAttachment());
-    const pdfIds = items.flatMap((f) => f.getAttachments(false));
-    const pdfs = Zotero.Items.get(pdfIds);
-    const tags = pdfs
-      .filter((f) => f.isPDFAttachment())
-      .flatMap((f) => f.getAnnotations())
-      .flatMap((f) => f.getTags());
-    const itemTags = getPref("item-tags")
-      ? items.flatMap((f) => f.getTags())
-      : [];
-    return groupBy([...tags, ...itemTags], (t) => t.tag);
-  });
+const allTagsInLibraryAsync = memoize(async () => {
+  const allItems = await Zotero.Items.getAll(1, false, false, false);
+  const items = allItems.filter((f) => !f.parentID && !f.isAttachment());
+  const pdfIds = items.flatMap((f) => f.getAttachments(false));
+  const pdfs = Zotero.Items.get(pdfIds);
+  const tags = pdfs
+    .filter((f) => f.isPDFAttachment())
+    .flatMap((f) => f.getAnnotations())
+    .flatMap((f) => f.getTags());
+  const itemTags = getPref("item-tags")
+    ? items.flatMap((f) => f.getTags())
+    : [];
+  return groupBy([...tags, ...itemTags], (t) => t.tag);
+});
 
 function getRootStyle(doc: Document, params: any) {
   const {
@@ -558,9 +557,9 @@ async function updateDiv(
       //@ts-ignore 隐藏弹出框
       reader._primaryView._onSetSelectionPopup(null);
     }
-    allTagsInLibraryAsyncRemove();
+    allTagsInLibraryAsync.clear();
 
-    relateTagsRemove(reader._item.key);
+    relateTags.remove(reader._item.key);
   }
 }
 

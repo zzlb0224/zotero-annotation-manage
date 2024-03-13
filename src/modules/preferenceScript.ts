@@ -5,11 +5,8 @@ import {
   FixedColorDefault,
   FixedTagsDefault,
   getFixedColor,
-  getFixedColorRemove,
   getFixedTags,
-  getFixedTagsRemove,
   getOptionalColor,
-  getOptionalColorRemove,
 } from "../utils/zzlb";
 
 export async function registerPrefsScripts(_window: Window) {
@@ -125,7 +122,7 @@ function bindPrefEvents() {
     ?.addEventListener("keyup", (e) => {
       // ztoolkit.log(e, getPref("tags"));
       replaceElement(doc);
-      getFixedTagsRemove();
+      getFixedTags.clear();
     });
 
   doc
@@ -133,14 +130,14 @@ function bindPrefEvents() {
     ?.addEventListener("keyup", (e) => {
       // ztoolkit.log(e, getPref("tags"));
       replaceElement(doc);
-      getFixedColorRemove("");
+      getFixedColor.clear();
     });
   doc
     .querySelector(`#zotero-prefpane-${config.addonRef}-optional-color`)
     ?.addEventListener("keyup", (e) => {
       initOptionalColorLabel(doc);
-      getFixedColorRemove("");
-      getOptionalColorRemove();
+      getFixedColor.clear();
+      getOptionalColor.clear();
     });
 }
 

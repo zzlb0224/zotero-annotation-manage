@@ -33,7 +33,6 @@
   },
   "homepage": "https://github.com/zzlb0224/zotero-annotation-manage#readme",
   "dependencies": {
-    "memoize-one": "^6.0.0",
     "zotero-plugin-toolkit": "^2.3.23"
   },
   "devDependencies": {

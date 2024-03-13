@@ -1,6 +1,4 @@
-function keyFnDefault(newInputs: readonly unknown[]): string {
-  return ["", ...newInputs, ""].join("_");
-}
+// 参考https://github.com/alexreardon/memoize-one设计的二代缓存
 
 export type MemoizedFn<TFunc extends (this: any, ...args: any[]) => any> = {
   clear: () => void;
@@ -11,10 +9,10 @@ export type MemoizedFn<TFunc extends (this: any, ...args: any[]) => any> = {
   ): ReturnType<TFunc>;
 };
 
-function memoizeOne<TFunc extends (this: any, ...newArgs: any[]) => any>(
+function memoize2<TFunc extends (this: any, ...newArgs: any[]) => any>(
   resultFn: TFunc,
   keyFn?: (...newArgs: Parameters<TFunc>) => string,
-  timeout = 60000,
+  timeout = 2233000, //
 ): MemoizedFn<TFunc> {
   const cacheThis: any = {};
   const cacheObj: any = {};
@@ -43,20 +41,16 @@ function memoizeOne<TFunc extends (this: any, ...newArgs: any[]) => any>(
     }
     return cacheObj[cacheKey] as ReturnType<TFunc>;
   }
-
-  // Adding the ability to clear the cache of a memoized function
-  memoized.clear = function clear() {
-    Object.keys(cacheTime).forEach((k) => delete cacheTime[k]);
+  memoized.clear = () => {
+    memoized.remove("");
   };
-  memoized.remove = function remove(key: string | RegExp) {
-    key instanceof RegExp || key == ""
+  memoized.remove = (cacheKey: string | RegExp = "") =>
+    cacheKey instanceof RegExp || cacheKey == ""
       ? Object.keys(cacheTime).forEach((key2) => {
-          (key == "" || key.test(key2)) && delete cacheTime[key2];
+          (cacheKey == "" || cacheKey.test(key2)) && delete cacheTime[key2];
         })
-      : delete cacheTime[key];
-  };
-
+      : delete cacheTime[cacheKey];
   return memoized;
 }
 
-export default memoizeOne;
+export default memoize2;
