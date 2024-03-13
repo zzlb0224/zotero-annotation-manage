@@ -557,7 +557,7 @@ async function updateDiv(
       //@ts-ignore 隐藏弹出框
       reader._primaryView._onSetSelectionPopup(null);
     }
-    allTagsInLibraryAsync.clear();
+    allTagsInLibraryAsync.remove();
 
     relateTags.remove(reader._item.key);
   }

@@ -122,7 +122,7 @@ function bindPrefEvents() {
     ?.addEventListener("keyup", (e) => {
       // ztoolkit.log(e, getPref("tags"));
       replaceElement(doc);
-      getFixedTags.clear();
+      getFixedTags.remove();
     });
 
   doc
@@ -130,14 +130,14 @@ function bindPrefEvents() {
     ?.addEventListener("keyup", (e) => {
       // ztoolkit.log(e, getPref("tags"));
       replaceElement(doc);
-      getFixedColor.clear();
+      getFixedColor.remove();
     });
   doc
     .querySelector(`#zotero-prefpane-${config.addonRef}-optional-color`)
     ?.addEventListener("keyup", (e) => {
       initOptionalColorLabel(doc);
-      getFixedColor.clear();
-      getOptionalColor.clear();
+      getFixedColor.remove();
+      getOptionalColor.remove();
     });
 }
 

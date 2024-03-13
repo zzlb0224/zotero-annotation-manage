@@ -1,8 +1,7 @@
 // 参考https://github.com/alexreardon/memoize-one设计的二代缓存
 
 export type MemoizedFn<TFunc extends (this: any, ...args: any[]) => any> = {
-  clear: () => void;
-  remove: (key: string | RegExp) => void;
+  remove: (key?: string | RegExp) => void;
   (
     this: ThisParameterType<TFunc>,
     ...args: Parameters<TFunc>
@@ -41,15 +40,18 @@ function memoize2<TFunc extends (this: any, ...newArgs: any[]) => any>(
     }
     return cacheObj[cacheKey] as ReturnType<TFunc>;
   }
-  memoized.clear = () => {
-    memoized.remove("");
-  };
-  memoized.remove = (cacheKey: string | RegExp = "") =>
-    cacheKey instanceof RegExp || cacheKey == ""
+  function del(key: string) {
+    delete cacheTime[key];
+    delete cacheObj[key];
+    delete cacheThis[key];
+  }
+  memoized.remove = (cacheKey: string | RegExp | undefined = undefined) =>
+    cacheKey instanceof RegExp || cacheKey === undefined
       ? Object.keys(cacheTime).forEach((key2) => {
-          (cacheKey == "" || cacheKey.test(key2)) && delete cacheTime[key2];
+          (cacheKey === undefined || cacheKey.test(key2)) && del(key2);
         })
-      : delete cacheTime[cacheKey];
+      : del(cacheKey);
+
   return memoized;
 }
 
