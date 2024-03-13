@@ -2,7 +2,7 @@
 
 ## 有趣的图标
 
-<font size=10>😺❎✅❌🐉🦀🐓🦋🌸⭐🌟✨📍🆑🅰️🈷️⛔🚫❓</font>
+<span style="font-size:3em">😺❎✅❌🐉🦀🐓🦋🌸⭐🌟✨📍🆑🅰️🈷️⛔🚫❓</span>
 <font size=30>😺❎✅❌🐉🦀🐓🦋🌸⭐🌟✨📍🆑🅰️🈷️⛔🚫❓</font>
 
 ## TODO
