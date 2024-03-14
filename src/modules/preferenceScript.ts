@@ -157,4 +157,7 @@ export async function initPrefSettings() {
   if (getPref("optional-color") == undefined) {
     setPref("optional-color", "#ffc0cb");
   }
+  if (getPref("count-down-close") == undefined) {
+    setPref("count-down-close", 10);
+  }
 }

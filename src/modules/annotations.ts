@@ -211,6 +211,7 @@ function createDiv(reader: _ZoteroTypes.ReaderInstance, params: any) {
     doc
       .getElementById(`${config.addonRef}-reader-div`)
       ?.parentElement?.remove();
+  closeCountDown && clearTimeout(closeCountDown);
   const div = ztoolkit.UI.createElement(doc, "div", {
     namespace: "html",
     id: `${config.addonRef}-reader-div`,
@@ -235,6 +236,7 @@ function createDiv(reader: _ZoteroTypes.ReaderInstance, params: any) {
   }, 500);
   return div;
 }
+let closeCountDown: NodeJS.Timeout | null = null;
 async function updateDiv(
   reader: _ZoteroTypes.ReaderInstance,
   params: any, // { annotation?: any; ids?: string[]; currentID?: string; x?: number; y?: number; },
@@ -287,8 +289,7 @@ async function updateDiv(
         {
           type: "click",
           listener: (ev) => {
-            closeTimeout = 10;
-            tRemove && clearTimeout(tRemove);
+            closeCountDown && clearTimeout(closeCountDown);
             const btnClose = doc.getElementById(
               `${config.addonRef}-reader-div-close`,
             ) as HTMLButtonElement;
@@ -301,29 +302,34 @@ async function updateDiv(
     },
     root,
   );
-  let closeTimeout = 10;
-  function countDown(doc: Document) {
-    return setTimeout(() => {
-      const btnClose = doc.getElementById(
-        `${config.addonRef}-reader-div-close`,
-      ) as HTMLButtonElement;
-      if (btnClose) {
-        btnClose.textContent = `自动关闭（${closeTimeout--}）`;
-      } else {
-        tRemove && clearTimeout(tRemove);
-        return;
-      }
-      if (closeTimeout < 0) {
-        doc?.getElementById(`${config.addonRef}-reader-div`)?.remove();
-        return;
-      }
-      tRemove = countDown(doc);
-    }, 1000);
-  }
-  let tRemove = countDown(doc);
+  updateCloseCountDown(doc);
 
   ztoolkit.log("append", div);
   return div;
+
+  function updateCloseCountDown(doc: Document) {
+    let closeTimeout = getPref("count-down-close") as number;
+    function countDown(doc: Document) {
+      return setTimeout(() => {
+        const btnClose = doc.getElementById(
+          `${config.addonRef}-reader-div-close`,
+        ) as HTMLButtonElement;
+        if (btnClose) {
+          btnClose.textContent = `自动关闭（${closeTimeout--}）`;
+        } else {
+          closeCountDown && clearTimeout(closeCountDown);
+          return;
+        }
+        if (closeTimeout <= 0) {
+          doc?.getElementById(`${config.addonRef}-reader-div`)?.remove();
+          return;
+        }
+        closeCountDown = countDown(doc);
+      }, 1000);
+    }
+    closeCountDown = closeTimeout > 0 ? countDown(doc) : null;
+  }
+
   function createCurrentTags(): TagElementProps {
     const ts = groupBy(
       existAnnotations.flatMap((a) => a.getTags()),

@@ -40,7 +40,8 @@ pref-hide-in-annotation-context-menu =
     
 pref-fixed-tags-style = 
     .label = fixed tags style
-
+    
+pref-count-down-close = count down close second
 
 
 pref-help = { $name } Build { $version } { $time }

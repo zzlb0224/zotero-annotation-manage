@@ -45,4 +45,6 @@ pref-hide-in-annotation-context-menu =
 pref-fixed-tags-style = 
     .label = 固定标签使用独立样式
 
+pref-count-down-close = 自动关闭弹出窗口时长（秒）
+
 pref-help = { $name } Build { $version } { $time }
