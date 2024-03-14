@@ -395,10 +395,11 @@ async function updateDiv(
         display: "flex",
         flexDirection: "row",
         flexWrap: "wrap",
-        justifyContent: "space-start",
+        // justifyContent: "space-start",
         // maxWidth: maxWidth + "px",
       },
       children: [
+        { tag: "span", properties: { textContent: "已有的tag，选中后删除。" } },
         {
           tag: "input",
           styles: { flex: "1", fontSize },
