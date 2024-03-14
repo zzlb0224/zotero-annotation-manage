@@ -211,7 +211,6 @@ function createDiv(reader: _ZoteroTypes.ReaderInstance, params: any) {
     doc
       .getElementById(`${config.addonRef}-reader-div`)
       ?.parentElement?.remove();
-  closeCountDown && clearTimeout(closeCountDown);
   const div = ztoolkit.UI.createElement(doc, "div", {
     namespace: "html",
     id: `${config.addonRef}-reader-div`,
@@ -236,7 +235,32 @@ function createDiv(reader: _ZoteroTypes.ReaderInstance, params: any) {
   }, 500);
   return div;
 }
-let closeCountDown: NodeJS.Timeout | null = null;
+
+let intervalId: NodeJS.Timeout | null;
+function countDown(
+  seconds = 15,
+  stop = false,
+  callback: ((remainingTime: number) => any) | undefined,
+) {
+  let remainingTime = seconds;
+  if (intervalId) {
+    clearInterval(intervalId);
+  }
+  if (stop) return;
+
+  intervalId = setInterval(() => {
+    if (remainingTime <= 0 || stop) {
+      7946521;
+      intervalId && clearInterval(intervalId);
+      // ztoolkit.log('倒计时结束');
+      callback && callback(remainingTime);
+    } else {
+      // console.log(`剩余时间： ${remainingTime}秒`);
+      callback && callback(remainingTime);
+      remainingTime--;
+    }
+  }, 1000);
+}
 async function updateDiv(
   reader: _ZoteroTypes.ReaderInstance,
   params: any, // { annotation?: any; ids?: string[]; currentID?: string; x?: number; y?: number; },
@@ -289,7 +313,7 @@ async function updateDiv(
         {
           type: "click",
           listener: (ev) => {
-            closeCountDown && clearTimeout(closeCountDown);
+            countDown(99, true, undefined);
             const btnClose = doc.getElementById(
               `${config.addonRef}-reader-div-close`,
             ) as HTMLButtonElement;
@@ -302,33 +326,23 @@ async function updateDiv(
     },
     root,
   );
-  updateCloseCountDown(doc);
-
-  ztoolkit.log("append", div);
-  return div;
-
-  function updateCloseCountDown(doc: Document) {
-    let closeTimeout = getPref("count-down-close") as number;
-    function countDown(doc: Document) {
-      return setTimeout(() => {
+  const closeTimeout = (getPref("count-down-close") as number) || 15;
+  if (closeTimeout > 5)
+    countDown(closeTimeout, false, (remainingTime) => {
+      if (remainingTime > 0) {
         const btnClose = doc.getElementById(
           `${config.addonRef}-reader-div-close`,
         ) as HTMLButtonElement;
         if (btnClose) {
-          btnClose.textContent = `自动关闭（${closeTimeout--}）`;
-        } else {
-          closeCountDown && clearTimeout(closeCountDown);
-          return;
+          btnClose.textContent = `自动关闭（${remainingTime--}）`;
         }
-        if (closeTimeout <= 0) {
-          doc?.getElementById(`${config.addonRef}-reader-div`)?.remove();
-          return;
-        }
-        closeCountDown = countDown(doc);
-      }, 1000);
-    }
-    closeCountDown = closeTimeout > 0 ? countDown(doc) : null;
-  }
+      } else {
+        doc?.getElementById(`${config.addonRef}-reader-div`)?.remove();
+      }
+    });
+
+  ztoolkit.log("append", div, closeTimeout);
+  return div;
 
   function createCurrentTags(): TagElementProps {
     const ts = groupBy(

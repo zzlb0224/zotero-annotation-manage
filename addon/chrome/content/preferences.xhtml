@@ -32,8 +32,7 @@
         <html:label
           for="zotero-prefpane-__addonRef__-fixed-colors"
           data-l10n-id="pref-fixed-colors"
-        >
-        </html:label>
+        />
       </vbox>
       <vbox>
         <html:input
@@ -51,19 +50,12 @@
         <html:label
           for="zotero-prefpane-__addonRef__-optional-color"
           data-l10n-id="pref-optional-color"
-        >
-        </html:label>
+        />
         <html:input
           id="zotero-prefpane-__addonRef__-optional-color"
           native="true"
           preference="__prefsPrefix__.optional-color"
         />
-        <!-- <html:label
-          id="zotero-prefpane-__addonRef__-optional-color-label"
-          for="zotero-prefpane-__addonRef__-optional-color"
-          data-l10n-id="pref-optional-color-label"
-        >
-        </html:label> -->
       </hbox>
       <checkbox
         id="zotero-prefpane-__addonRef__-selectedCollection"
@@ -138,22 +130,29 @@
         data-l10n-id="pref-fixed-tags-style"
         native="true"
       />
-      <input
-        type="number"
-        id="zotero-prefpane-__addonRef__-count-down-close"
-        preference="__prefsPrefix__.count-down-close"
-        data-l10n-id="pref-count-down-close"
-        native="true"
-      />
+      <hbox>
+        <html:label
+          for="zotero-prefpane-__addonRef__-count-down-close"
+          data-l10n-id="pref-count-down-close"
+        />
+        <html:input
+          type="text"
+          id="zotero-prefpane-__addonRef__-count-down-close"
+          preference="__prefsPrefix__.count-down-close"
+          native="true"
+          style="width: 60px"
+        />
+      </hbox>
     </vbox>
   </groupbox>
 </vbox>
+
 <vbox>
   <html:label
+    style="margin: 40px 0; font-size: 18px"
     data-l10n-id="pref-help"
     data-l10n-args='{"time": "__buildTime__","name": "__addonName__","version":"__buildVersion__"}'
-  >
-  </html:label>
+  />
   <vbox align="start">
     <label
       style="margin: 6px 5px; text-decoration: none; font-size: 42px"
