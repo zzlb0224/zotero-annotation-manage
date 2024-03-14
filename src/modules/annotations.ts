@@ -247,15 +247,15 @@ function countDown(
     clearInterval(intervalId);
   }
   if (stop) {
-     intervalId && clearInterval(intervalId);
+    intervalId && clearInterval(intervalId);
     return;
   }
 
   intervalId = setInterval(() => {
-    if (remainingTime <= 0 || stop) { 
-      intervalId && clearInterval(intervalId); 
+    if (remainingTime <= 0 || stop) {
+      intervalId && clearInterval(intervalId);
       callback && callback(remainingTime);
-    } else { 
+    } else {
       callback && callback(remainingTime);
       remainingTime--;
     }
@@ -310,7 +310,6 @@ async function updateDiv(
       styles: getRootStyle(doc, params),
       children: [createCurrentTags(), createSearchDiv(), createTagsDiv()],
       listeners: [
-       
         {
           type: "click",
           listener: (ev) => {
@@ -358,35 +357,41 @@ async function updateDiv(
         display: "flex",
         flexWrap: "wrap",
         // justifyContent: "space-between",
-        background:"#00990022"
+        background: "#00990022",
       },
-      children: [{ tag: "button",  properties: { textContent: "标签：",title:"选中后删除" }},...ts.map((t) => ({
-        tag: "span",
-        properties: { textContent: `[${t.values.length}]${t.key}` },
-        styles: {
-          margin: "1px",
-          padding: "1px",
-          fontSize,
-          boxShadow: "#009900 0px 0px 4px 3px",
-          borderRadius: "3px",
+      children: [
+        {
+          tag: "button",
+          properties: { textContent: "标签：", title: "选中后删除" },
         },
-        listeners: [
-          {
-            type: "click",
-            listener: (ev:Event) => {
-              const target = ev.target as HTMLElement;
-              const index = delTags.findIndex((f) => f == t.key);
-              if (index == -1) {
-                delTags.push(t.key);
-                target.style.background = "#F88";
-              } else {
-                delTags.splice(index, 1);
-                target.style.background = "";
-              }
-            },
+        ...ts.map((t) => ({
+          tag: "span",
+          properties: { textContent: `[${t.values.length}]${t.key}` },
+          styles: {
+            margin: "1px",
+            padding: "1px",
+            fontSize,
+            boxShadow: "#009900 0px 0px 4px 3px",
+            borderRadius: "3px",
           },
-        ],
-      }))],
+          listeners: [
+            {
+              type: "click",
+              listener: (ev: Event) => {
+                const target = ev.target as HTMLElement;
+                const index = delTags.findIndex((f) => f == t.key);
+                if (index == -1) {
+                  delTags.push(t.key);
+                  target.style.background = "#F88";
+                } else {
+                  delTags.splice(index, 1);
+                  target.style.background = "";
+                }
+              },
+            },
+          ],
+        })),
+      ],
     };
   }
 
@@ -401,7 +406,7 @@ async function updateDiv(
         // maxWidth: maxWidth + "px",
       },
       children: [
-         {
+        {
           tag: "input",
           styles: { flex: "1", fontSize },
           listeners: [
@@ -425,7 +430,7 @@ async function updateDiv(
               },
             },
           ],
-          properties: { textContent: searchTag,title:"敲回车增加标签"},
+          properties: { textContent: searchTag, title: "敲回车增加标签" },
         },
         {
           tag: "div",
