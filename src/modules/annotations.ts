@@ -159,7 +159,7 @@ function getRootStyle(doc: Document, params: any) {
     clientWidthWithSlider,
     pageLeft,
   } = getPrimaryViewDoc(doc);
-  let maxWidth = 666;
+  let maxWidth = 888;
   const isExistAnno = !!params.ids;
   const rootStyle: Partial<CSSStyleDeclaration> = {
     background: "#eeeeee",
@@ -283,9 +283,45 @@ async function updateDiv(
       },
       styles: getRootStyle(doc, params),
       children: [createCurrentTags(), createSearchDiv(), createTagsDiv()],
+      listeners: [
+        {
+          type: "click",
+          listener: (ev) => {
+            closeTimeout = 10;
+            tRemove && clearTimeout(tRemove);
+            const btnClose = doc.getElementById(
+              `${config.addonRef}-reader-div-close`,
+            ) as HTMLButtonElement;
+            if (btnClose) {
+              btnClose.textContent = `手动关闭`;
+            }
+          },
+        },
+      ],
     },
     root,
   );
+  let closeTimeout = 10;
+  function countDown(doc: Document) {
+    return setTimeout(() => {
+      const btnClose = doc.getElementById(
+        `${config.addonRef}-reader-div-close`,
+      ) as HTMLButtonElement;
+      if (btnClose) {
+        btnClose.textContent = `自动关闭（${closeTimeout--}）`;
+      } else {
+        tRemove && clearTimeout(tRemove);
+        return;
+      }
+      if (closeTimeout < 0) {
+        doc?.getElementById(`${config.addonRef}-reader-div`)?.remove();
+        return;
+      }
+      tRemove = countDown(doc);
+    }, 1000);
+  }
+  let tRemove = countDown(doc);
+
   ztoolkit.log("append", div);
   return div;
   function createCurrentTags(): TagElementProps {
@@ -296,16 +332,21 @@ async function updateDiv(
     if (ts.length == 0) return { tag: "" };
     return {
       tag: "div",
-      styles: { padding: "6px" },
+      styles: {
+        padding: "3px 12px",
+        display: "flex",
+        flexWrap: "wrap",
+        justifyContent: "space-between",
+      },
       children: ts.map((t) => ({
         tag: "span",
         properties: { textContent: `[${t.values.length}]${t.key}` },
         styles: {
-          margin: "2px",
-          padding: "2px",
+          margin: "1px",
+          padding: "1px",
           fontSize,
-          boxShadow: "#00ff00 0px 0px 4px 3px",
-          borderRadius: "6px",
+          boxShadow: "#009900 0px 0px 4px 3px",
+          borderRadius: "3px",
         },
         listeners: [
           {
@@ -396,6 +437,7 @@ async function updateDiv(
             },
             {
               tag: "button",
+              id: `${config.addonRef}-reader-div-close`,
               properties: {
                 textContent: "关闭",
               },
@@ -609,7 +651,7 @@ async function updateDiv(
         color: getFixedColor(searchTag, undefined),
       });
     }
-    if (selectedTags.length == 0) return;
+    if (delTags.length == 0 && selectedTags.length == 0) return;
 
     const bCombine = !!getPref("combine-nested-tags");
     const bKeepFirst = !!getPref("split-nested-tags-keep-first");
@@ -624,34 +666,34 @@ async function updateDiv(
       );
     const nestedTags: string[] = bCombine ? await getNestedTags(sTags) : [];
 
-    const tagsRequired = uniqueBy(
+    const tagsRequire = uniqueBy(
       [...sTags, ...nestedTags, ...splitTags].filter((f) => f),
       (u) => u,
     );
-    ztoolkit.log("需要添加的tags", selectedTags, tagsRequired);
+
+    const tagsRemove = delTags.filter((f) => !tagsRequire.includes(f));
+
+    ztoolkit.log("需要添加的tags", tagsRequire, "需要删除的", tagsRemove);
     if (isExistAnno) {
       for (const annotation of existAnnotations) {
-        for (const selectedTag of tagsRequired) {
-          const tag = selectedTag;
-          if (isAllHave(tag)) {
-            //全部都有则删除
-            // annotation.removeTag(tag);
-          } else {
-            //部分有则添加
-            if (!annotation.hasTag(tag)) {
-              annotation.addTag(tag, 0);
-            }
+        for (const tag of tagsRequire) {
+          if (!annotation.hasTag(tag)) {
+            annotation.addTag(tag, 0);
           }
         }
-
+        for (const tag of tagsRemove) {
+          if (annotation.hasTag(tag)) {
+            annotation.removeTag(tag);
+          }
+        }
         annotation.saveTx(); //增加每一个都要保存，为啥不能批量保存？
       }
       doc?.getElementById(`${config.addonRef}-reader-div`)?.remove();
     } else {
       const color =
         selectedTags.map((a) => a.color).filter((f) => f)[0] ||
-        getFixedColor(tagsRequired[0], undefined);
-      const tags = tagsRequired.map((a) => ({ name: a }));
+        getFixedColor(tagsRequire[0], undefined);
+      const tags = tagsRequire.map((a) => ({ name: a }));
       // 因为线程不一样，不能采用直接修改params.annotation的方式，所以直接采用新建的方式保存笔记
       // 特意采用 Components.utils.cloneInto 方法
       reader._annotationManager.addAnnotation(
@@ -661,8 +703,12 @@ async function updateDiv(
       reader._primaryView._onSetSelectionPopup(null);
     }
     allTagsInLibraryAsync.remove();
-
     relateTags.remove(reader._item.key);
+  }
+  function hidePopup(reader: _ZoteroTypes.ReaderInstance) {
+    //@ts-ignore 隐藏弹出框
+    reader._primaryView._onSetSelectionPopup(null);
+    doc?.getElementById(`${config.addonRef}-reader-div`)?.remove();
   }
 }
 
