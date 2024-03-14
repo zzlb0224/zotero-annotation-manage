@@ -246,16 +246,16 @@ function countDown(
   if (intervalId) {
     clearInterval(intervalId);
   }
-  if (stop) return;
+  if (stop) {
+     intervalId && clearInterval(intervalId);
+    return;
+  }
 
   intervalId = setInterval(() => {
-    if (remainingTime <= 0 || stop) {
-      7946521;
-      intervalId && clearInterval(intervalId);
-      // ztoolkit.log('倒计时结束');
+    if (remainingTime <= 0 || stop) { 
+      intervalId && clearInterval(intervalId); 
       callback && callback(remainingTime);
-    } else {
-      // console.log(`剩余时间： ${remainingTime}秒`);
+    } else { 
       callback && callback(remainingTime);
       remainingTime--;
     }
@@ -310,6 +310,7 @@ async function updateDiv(
       styles: getRootStyle(doc, params),
       children: [createCurrentTags(), createSearchDiv(), createTagsDiv()],
       listeners: [
+       
         {
           type: "click",
           listener: (ev) => {
@@ -356,9 +357,10 @@ async function updateDiv(
         padding: "3px 12px",
         display: "flex",
         flexWrap: "wrap",
-        justifyContent: "space-between",
+        // justifyContent: "space-between",
+        background:"#00990022"
       },
-      children: ts.map((t) => ({
+      children: [{ tag: "button",  properties: { textContent: "标签：",title:"选中后删除" }},...ts.map((t) => ({
         tag: "span",
         properties: { textContent: `[${t.values.length}]${t.key}` },
         styles: {
@@ -371,7 +373,7 @@ async function updateDiv(
         listeners: [
           {
             type: "click",
-            listener: (ev) => {
+            listener: (ev:Event) => {
               const target = ev.target as HTMLElement;
               const index = delTags.findIndex((f) => f == t.key);
               if (index == -1) {
@@ -384,7 +386,7 @@ async function updateDiv(
             },
           },
         ],
-      })),
+      }))],
     };
   }
 
@@ -395,12 +397,11 @@ async function updateDiv(
         display: "flex",
         flexDirection: "row",
         flexWrap: "wrap",
-        // justifyContent: "space-start",
+        justifyContent: "space-start",
         // maxWidth: maxWidth + "px",
       },
       children: [
-        { tag: "span", properties: { textContent: "已有的tag，选中后删除。" } },
-        {
+         {
           tag: "input",
           styles: { flex: "1", fontSize },
           listeners: [
@@ -424,7 +425,7 @@ async function updateDiv(
               },
             },
           ],
-          properties: { textContent: searchTag },
+          properties: { textContent: searchTag,title:"敲回车增加标签"},
         },
         {
           tag: "div",
