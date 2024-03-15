@@ -12,9 +12,9 @@ export function memoize2<TFunc extends (this: any, ...newArgs: any[]) => any>(
   keyFn?: (...newArgs: Parameters<TFunc>) => string,
   timeout = 600000,
 ): MemoizedFn<TFunc> {
-  const cacheThis: {[key:string]:ThisParameterType<TFunc>} = {};
-  const cacheObj:  {[key:string]:ReturnType<TFunc>} = {};
-  const cacheTime: {[key:string]:number} = {};
+  const cacheThis: { [key: string]: ThisParameterType<TFunc> } = {};
+  const cacheObj: { [key: string]: ReturnType<TFunc> } = {};
+  const cacheTime: { [key: string]: number } = {};
   function memoized(
     this: ThisParameterType<TFunc>,
     ...newArgs: Parameters<TFunc>

@@ -1,6 +1,6 @@
 // import { memoize } from "./Memoize";
 import { getPref } from "./prefs";
-import memoize from "./memoize2"; 
+import memoize from "./memoize2";
 
 /* unique 采用set的比较方式*/
 export function unique<T>(arr: T[]) {
@@ -177,14 +177,15 @@ export function includeTAGSGroupByResult<T>(tagGroup: groupByResult<T>[]) {
     }
   });
   return tagGroup;
-}export function getCssTranslate(t1: HTMLElement) {
+}
+export function getCssTranslate(t1: HTMLElement) {
   for (const k in t1.style) {
     const v = t1.style[k];
     if (k == "transform" && v) {
       //没有附加到Dom无法调用 new WebKitCSSMatrix，只能这样使用
       ("translate(26.0842px, 108.715px)");
       const translateLeftTop = v.match(
-        /translate[(]([\d.]*)px,\s?([\d.]*)px[)]/
+        /translate[(]([\d.]*)px,\s?([\d.]*)px[)]/,
       );
       //['translate(26.0842px, 108.715px)', '26.0842', '108.715', index: 0, input: 'translate(26.0842px, 108.715px)', groups: undefined]
       if (translateLeftTop && translateLeftTop.length > 2) {
@@ -215,7 +216,7 @@ export const getRelateTags = memoize(
   (item: Zotero.Item) => {
     return getTagsInCollections(getItemRelateCollections(item));
   },
-  (item) => item.key
+  (item) => item.key,
 );
 function getItemRelateCollections(item: Zotero.Item) {
   const allCollectionIds: number[] = [];
@@ -234,7 +235,7 @@ function getItemRelateCollections(item: Zotero.Item) {
   }
   if (allCollectionIds.length > 0) {
     const allCollections = Zotero.Collections.get(
-      allCollectionIds
+      allCollectionIds,
     ) as Zotero.Collection[];
     const collections = childrenCollections
       ? [...allCollections, ...getChildCollections(allCollections)]
@@ -251,9 +252,8 @@ function getTagsInCollections(collections: Zotero.Collection[]) {
     .filter((f) => !f.isAttachment())
     .flatMap((a) => a.getAttachments(false)); //为啥会出现
   const pdfItems = Zotero.Items.get(pdfIds).filter(
-    (f) => f.isFileAttachment() && f.isAttachment()
+    (f) => f.isFileAttachment() && f.isAttachment(),
   );
   const annotations = pdfItems.flatMap((f) => f.getAnnotations(false));
   return annotations.flatMap((f) => f.getTags());
 }
-
