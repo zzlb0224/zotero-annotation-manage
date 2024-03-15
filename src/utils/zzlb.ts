@@ -100,7 +100,6 @@ export const FixedTagsDefault =
 export const FixedColorDefault =
   "#ffd400,#ff6666,#5fb236,#2ea8e5,#a28ae5,#e56eee,#f19837,#aaaaaa";
 
-
 export const COLOR = {
   red: "#ff6666",
   orange: "#f19837",
@@ -122,22 +121,25 @@ export const getOptionalColor = memoize(
     (getPref("optional-color") as string)?.match(/#[0-9A-F]{6}/g)?.[0] ||
     "#ffc0cb",
 );
-export const getFixedColor = memoize((tag: string, optional: string | undefined): string=> {
-  const tags = getFixedTags();
-  if (tags.includes(tag)) {
-    return getFixedColors()[tags.indexOf(tag)];
-  }
-  if (optional == undefined) return getOptionalColor() as string;
-  return optional;
-});
-export const getFixedTags = memoize((): string[] =>{
+export const getFixedColor = memoize(
+  (tag: string, optional: string | undefined): string => {
+    const tags = getFixedTags();
+    if (tags.includes(tag)) {
+      return getFixedColors()[tags.indexOf(tag)];
+    }
+    if (optional == undefined) return getOptionalColor() as string;
+    return optional;
+  },
+);
+export const getFixedTags = memoize((): string[] => {
   const prefTags = ((getPref("tags") as string) || "")
     .split(",")
     .map((a) => a.trim())
     .filter((f) => f);
   if (prefTags && prefTags.length > 0) return prefTags;
-  return FixedTagsDefault.split(",")});
-export const getFixedColors = memoize((): string[] =>{ 
+  return FixedTagsDefault.split(",");
+});
+export const getFixedColors = memoize((): string[] => {
   let fixedColor =
     (getPref("fixed-colors") as string)
       ?.match(/#[0-9A-F]{6}/g)
@@ -217,7 +219,7 @@ export const getRelateTags = memoize(
   },
   (item) => item.key,
 );
-function getItemRelateCollections(item: Zotero.Item):Zotero.Collection[] {
+function getItemRelateCollections(item: Zotero.Item): Zotero.Collection[] {
   const allCollectionIds: number[] = [];
   const childrenCollections = !!getPref("children-collection");
   const prefSelectedCollection = !!getPref("selectedCollection");
