@@ -12,9 +12,9 @@ export function memoize2<TFunc extends (this: any, ...newArgs: any[]) => any>(
   keyFn?: (...newArgs: Parameters<TFunc>) => string,
   timeout = 600000,
 ): MemoizedFn<TFunc> {
-  const cacheThis: any = {};
-  const cacheObje: any = {};
-  const cacheTime: any = {};
+  const cacheThis: {[key:string]:ThisParameterType<TFunc>} = {};
+  const cacheObj:  {[key:string]:ReturnType<TFunc>} = {};
+  const cacheTime: {[key:string]:number} = {};
   function memoized(
     this: ThisParameterType<TFunc>,
     ...newArgs: Parameters<TFunc>
@@ -22,25 +22,25 @@ export function memoize2<TFunc extends (this: any, ...newArgs: any[]) => any>(
     const cacheKey = (keyFn && keyFn(...newArgs)) || "_";
     if (
       Object.prototype.hasOwnProperty.call(cacheTime, cacheKey) ||
-      Object.prototype.hasOwnProperty.call(cacheObje, cacheKey) ||
+      Object.prototype.hasOwnProperty.call(cacheObj, cacheKey) ||
       Object.prototype.hasOwnProperty.call(cacheThis, cacheKey) ||
       cacheThis[cacheKey] === this ||
       Date.now() - cacheTime[cacheKey] > timeout
     ) {
       cacheTime[cacheKey] = Date.now();
       if (resultFn.constructor.name == "AsyncFunction") {
-        return (cacheObje[cacheKey] = (resultFn(...newArgs) as any).then(
-          (value: ReturnType<TFunc>) => (cacheObje[cacheKey] = value),
+        return (cacheObj[cacheKey] = (resultFn(...newArgs) as any).then(
+          (value: ReturnType<TFunc>) => (cacheObj[cacheKey] = value),
         ));
       } else {
-        return (cacheObje[cacheKey] = resultFn(...newArgs));
+        return (cacheObj[cacheKey] = resultFn(...newArgs));
       }
     }
-    return cacheObje[cacheKey] as ReturnType<TFunc>;
+    return cacheObj[cacheKey] as ReturnType<TFunc>;
   }
   function del(key: string) {
     delete cacheTime[key];
-    delete cacheObje[key];
+    delete cacheObj[key];
     delete cacheThis[key];
   }
   memoized.remove = (cacheKey: string | RegExp | undefined = undefined) =>

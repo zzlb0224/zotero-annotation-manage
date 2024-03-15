@@ -12,6 +12,9 @@ pref-selectedCollection =
     .label = relate tags in selected collection
 pref-currentCollection = 
     .label = relate tags in current collection
+pref-children-collection = 
+    .label = children collection
+
 pref-showAllTags = 
     .label =  all tags 
 

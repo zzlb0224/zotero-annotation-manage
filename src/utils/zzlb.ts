@@ -1,6 +1,6 @@
 // import { memoize } from "./Memoize";
 import { getPref } from "./prefs";
-import memoize from "./memoize2";
+import memoize from "./memoize2"; 
 
 /* unique 采用set的比较方式*/
 export function unique<T>(arr: T[]) {
@@ -177,4 +177,83 @@ export function includeTAGSGroupByResult<T>(tagGroup: groupByResult<T>[]) {
     }
   });
   return tagGroup;
+}export function getCssTranslate(t1: HTMLElement) {
+  for (const k in t1.style) {
+    const v = t1.style[k];
+    if (k == "transform" && v) {
+      //没有附加到Dom无法调用 new WebKitCSSMatrix，只能这样使用
+      ("translate(26.0842px, 108.715px)");
+      const translateLeftTop = v.match(
+        /translate[(]([\d.]*)px,\s?([\d.]*)px[)]/
+      );
+      //['translate(26.0842px, 108.715px)', '26.0842', '108.715', index: 0, input: 'translate(26.0842px, 108.715px)', groups: undefined]
+      if (translateLeftTop && translateLeftTop.length > 2) {
+        return {
+          x: parseFloat(translateLeftTop[1]),
+          y: parseFloat(translateLeftTop[2]),
+        };
+      }
+    }
+  }
+  return { x: 0, y: 0 };
 }
+export const getAllTagsInLibraryAsync = memoize(async () => {
+  const allItems = await Zotero.Items.getAll(1, false, false, false);
+  const items = allItems.filter((f) => !f.parentID && !f.isAttachment());
+  const pdfIds = items.flatMap((f) => f.getAttachments(false));
+  const pdfs = Zotero.Items.get(pdfIds);
+  const tags = pdfs
+    .filter((f) => f.isPDFAttachment())
+    .flatMap((f) => f.getAnnotations())
+    .flatMap((f) => f.getTags());
+  const itemTags = getPref("item-tags")
+    ? items.flatMap((f) => f.getTags())
+    : [];
+  return groupBy([...tags, ...itemTags], (t) => t.tag);
+});
+export const getRelateTags = memoize(
+  (item: Zotero.Item) => {
+    return getTagsInCollections(getItemRelateCollections(item));
+  },
+  (item) => item.key
+);
+function getItemRelateCollections(item: Zotero.Item) {
+  const allCollectionIds: number[] = [];
+  const childrenCollections = !!getPref("children-collection");
+  const prefSelectedCollection = !!getPref("selectedCollection");
+  const prefCurrentCollection = !!getPref("currentCollection");
+  if (prefSelectedCollection) {
+    const selectedCollectionId = ZoteroPane.getSelectedCollection(true);
+    if (selectedCollectionId) allCollectionIds.push(selectedCollectionId);
+  }
+  if (prefCurrentCollection) {
+    const currentCollectionIds = item.parentItem
+      ? item.parentItem.getCollections()
+      : item.getCollections();
+    allCollectionIds.push(...currentCollectionIds);
+  }
+  if (allCollectionIds.length > 0) {
+    const allCollections = Zotero.Collections.get(
+      allCollectionIds
+    ) as Zotero.Collection[];
+    const collections = childrenCollections
+      ? [...allCollections, ...getChildCollections(allCollections)]
+      : allCollections;
+    const collections2 = uniqueBy(collections, (u) => u.key);
+    return collections2;
+  }
+  return [];
+}
+function getTagsInCollections(collections: Zotero.Collection[]) {
+  if (collections.length == 0) return [];
+  const pdfIds = collections
+    .flatMap((c) => c.getChildItems())
+    .filter((f) => !f.isAttachment())
+    .flatMap((a) => a.getAttachments(false)); //为啥会出现
+  const pdfItems = Zotero.Items.get(pdfIds).filter(
+    (f) => f.isFileAttachment() && f.isAttachment()
+  );
+  const annotations = pdfItems.flatMap((f) => f.getAnnotations(false));
+  return annotations.flatMap((f) => f.getTags());
+}
+

@@ -14,6 +14,8 @@ pref-selectedCollection =
     .label =  显示选中文件夹（collection）的相关标签
 pref-currentCollection = 
     .label =  显示当前条目所在文件夹（collection）的相关标签（一个条目可以属于多个文件夹）
+pref-children-collection = 
+    .label =  始终显示选中文件夹和当前文件夹的子文件夹的相关标签
     
 pref-showAllTags = 
     .label =  显示库中的所有笔记的标签
