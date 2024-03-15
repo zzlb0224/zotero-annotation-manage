@@ -193,7 +193,7 @@ class PopupDiv {
     );
 
     const closeTimeout = (getPref("count-down-close") as number) || 15;
-    if (closeTimeout > 5)
+    if (this.isExistAnno && closeTimeout > 5)
       this.countDown(closeTimeout, false, (remainingTime) => {
         if (remainingTime > 0) {
           const btnClose = doc.getElementById(
@@ -898,7 +898,7 @@ async function updateDiv(
   );
 
   const closeTimeout = (getPref("count-down-close") as number) || 15;
-  if (closeTimeout > 5)
+  if (isExistAnno && closeTimeout > 5)
     countDown(closeTimeout, false, (remainingTime) => {
       if (remainingTime > 0) {
         const btnClose = doc.getElementById(
