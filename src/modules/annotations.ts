@@ -271,7 +271,7 @@ class PopupDiv {
     const ts = groupBy(tags, (t) => t.tag).sort(sortByLength);
     const annLen =
       this.existAnnotations.length > 0
-        ? `${this.existAnnotations.length}个注释，`
+        ? `[${this.existAnnotations.length}]注释，`
         : "";
     return {
       tag: "div",
@@ -286,7 +286,7 @@ class PopupDiv {
         {
           tag: "button",
           properties: {
-            textContent: annLen + `${tags.length}个标签：`,
+            textContent: `${annLen}[${tags.length}]标签：`,
             title: "选中后删除",
           },
         },
