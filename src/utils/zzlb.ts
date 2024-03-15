@@ -170,3 +170,11 @@ export function setProperty<T, K extends keyof NonNullable<T>>(
     return (obj[key] = value);
   }
 }
+export function includeTAGSGroupByResult<T>(tagGroup: groupByResult<T>[]) {
+  getFixedTags().forEach((tag) => {
+    if (tagGroup.findIndex((f) => f.key == tag) == -1) {
+      tagGroup.push({ key: tag, values: [] });
+    }
+  });
+  return tagGroup;
+}

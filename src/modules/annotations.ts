@@ -13,6 +13,7 @@ import {
 import { getPref } from "../utils/prefs";
 import memoize from "../utils/memoize2";
 import { listeners } from "process";
+import { includeTAGSGroupByResult } from "../utils/zzlb";
 function register() {
   // if (!getPref("enable")) return;
   // ztoolkit.UI.basicOptions.log.disableZLog = true;
@@ -38,18 +39,591 @@ function unregister() {
   );
 }
 //TODO 太复杂了，需要改为类的方式处理
-class PopupDiv{
-  public constructor(){
-
+class PopupDiv {
+  reader: _ZoteroTypes.ReaderInstance;
+  params: any;
+  doc?: Document;
+  isExistAnno: boolean;
+  existAnnotations: Zotero.Item[];
+  rootDiv?: HTMLElement; //占位div
+  fontSize: string = "18px";
+  relateTags: groupByResult<{ tag: string; type: number }>[] = [];
+  tagsDisplay: groupByResult<{ tag: string; type: number }>[] = [];
+  searchTag = "";
+  selectedTags: { tag: string; color: string }[] = [];
+  delTags: string[] = [];
+  idRootDiv = `${config.addonRef}-PopupDiv-`;
+  idCloseButton = `${config.addonRef}-PopupDiv-close`;
+  public constructor(reader: _ZoteroTypes.ReaderInstance, params: any) {
+    this.reader = reader;
+    this.params = params;
+    this.doc = this.reader._iframeWindow?.document;
+    this.isExistAnno = !!params.ids;
+    this.existAnnotations = this.isExistAnno
+      ? this.reader._item
+          .getAnnotations()
+          .filter((f) => this.params.ids.includes(f.key))
+      : [];
+    this.fontSize =
+      (Zotero.Prefs.get(
+        `extensions.zotero.ZoteroPDFTranslate.fontSize`,
+        true,
+      ) || 18) + "px";
   }
-  public update(){
+  intervalId?: NodeJS.Timeout;
+  countDown(
+    seconds = 15,
+    stop = false,
+    callback: ((remainingTime: number) => any) | undefined,
+  ) {
+    let remainingTime = seconds;
+    if (intervalId) {
+      clearInterval(intervalId);
+    }
+    if (stop) {
+      intervalId && clearInterval(intervalId);
+      return;
+    }
 
+    intervalId = setInterval(() => {
+      if (remainingTime <= 0 || stop) {
+        intervalId && clearInterval(intervalId);
+        callback && callback(remainingTime);
+      } else {
+        callback && callback(remainingTime);
+        remainingTime--;
+      }
+    }, 1000);
   }
-  public remove(){
+  public clearDiv() {
+    if (!this.doc) return;
+    if (
+      this.doc.getElementById(this.idRootDiv)?.parentElement?.nodeName == "BODY"
+    ) {
+      this.doc.getElementById(this.idRootDiv)?.remove();
+    } else {
+      this.doc.getElementById(this.idRootDiv)?.parentElement?.remove();
+      //@ts-ignore 隐藏弹出框
+      reader._primaryView._onSetSelectionPopup(null);
+    }
+  }
+  public createDiv() {
+    if (!this.doc) return;
+    this.clearDiv();
+    const div = ztoolkit.UI.createElement(this.doc, "div", {
+      namespace: "html",
+      id: this.idRootDiv,
+      classList: ["toolbar1"],
+      properties: {
+        tabIndex: -1,
+      },
+      styles: getRootStyle(this.doc, this.params), //创建的时候就要固定大小
+      children: [
+        {
+          tag: "link",
+          properties: {
+            rel: "stylesheet",
+            href: `chrome://${config.addonRef}/content/annotation.css`,
+          },
+        },
+      ],
+    });
+    //创建完成之后用异步来更新
+    setTimeout(async () => {
+      await this.updateDiv();
+    }, 500);
+    return div;
+  }
 
+  async updateDiv() {
+    const doc = this.doc;
+    if (!doc) return;
+    const root = doc.getElementById(this.idRootDiv);
+    if (!root || !root.parentNode) {
+      setTimeout(async () => {
+        await this.updateDiv();
+      }, 500);
+      return;
+    }
+    let relateTags: groupByResult<{
+      tag: string;
+      type: number;
+    }>[] = [];
+    if (getPref("showAllTags")) {
+      relateTags = await allTagsInLibraryAsync();
+    } else {
+      relateTags = groupBy(getRelateTags(this.reader._item), (t) => t.tag);
+    }
+    includeTAGSGroupByResult(relateTags);
+    relateTags.sort(sortByFixedTag2Length);
+    this.relateTags = relateTags;
+    this.tagsDisplay = relateTags;
+
+    const div = ztoolkit.UI.replaceElement(
+      {
+        tag: "div",
+        namespace: "html",
+        id: this.idRootDiv,
+        // classList: ["toolbar1", `${config.addonRef}-reader-div`],
+        properties: {
+          tabIndex: -1,
+        },
+        styles: getRootStyle(doc, this.params),
+        children: [
+          this.createCurrentTags(),
+          this.createSearchDiv(),
+          this.createTagsDiv(),
+        ],
+        listeners: [
+          {
+            type: "click",
+            listener: (ev) => {
+              this.countDown(99, true, undefined);
+              const btnClose = doc.getElementById(
+                this.idCloseButton,
+              ) as HTMLButtonElement;
+              if (btnClose) {
+                btnClose.textContent = `手动关闭`;
+              }
+            },
+          },
+        ],
+      },
+      root,
+    );
+
+    const closeTimeout = (getPref("count-down-close") as number) || 15;
+    if (closeTimeout > 5)
+      this.countDown(closeTimeout, false, (remainingTime) => {
+        if (remainingTime > 0) {
+          const btnClose = doc.getElementById(
+            this.idCloseButton,
+          ) as HTMLButtonElement;
+          if (btnClose) {
+            btnClose.textContent = `自动关闭（${remainingTime--}）`;
+          }
+        } else {
+          doc?.getElementById(`${config.addonRef}-reader-div`)?.remove();
+        }
+      });
+
+    ztoolkit.log("append", div, closeTimeout);
+    return div;
+  }
+  createCurrentTags(): TagElementProps {
+    const ts = groupBy(
+      this.existAnnotations.flatMap((a) => a.getTags()),
+      (t) => t.tag,
+    ).sort(sortByLength);
+    if (ts.length == 0) return { tag: "" };
+    return {
+      tag: "div",
+      styles: {
+        padding: "3px 12px",
+        display: "flex",
+        flexWrap: "wrap",
+        // justifyContent: "space-between",
+        background: "#00990022",
+      },
+      children: [
+        {
+          tag: "button",
+          properties: { textContent: "标签：", title: "选中后删除" },
+        },
+        ...ts.map((t) => ({
+          tag: "span",
+          properties: { textContent: `[${t.values.length}]${t.key}` },
+          styles: {
+            margin: "1px",
+            padding: "1px",
+            fontSize: this.fontSize,
+            boxShadow: "#009900 0px 0px 4px 3px",
+            borderRadius: "3px",
+          },
+          listeners: [
+            {
+              type: "click",
+              listener: (ev: Event) => {
+                const target = ev.target as HTMLElement;
+                const index = this.delTags.findIndex((f) => f == t.key);
+                if (index == -1) {
+                  this.delTags.push(t.key);
+                  target.style.background = "#F88";
+                } else {
+                  this.delTags.splice(index, 1);
+                  target.style.background = "";
+                }
+              },
+            },
+          ],
+        })),
+      ],
+    };
+  }
+
+  createSearchDiv(): TagElementProps {
+    return {
+      tag: "div",
+      styles: {
+        display: "flex",
+        flexDirection: "row",
+        flexWrap: "wrap",
+        justifyContent: "space-start",
+        // maxWidth: maxWidth + "px",
+      },
+      children: [
+        {
+          tag: "input",
+          styles: { flex: "1", fontSize: this.fontSize },
+          listeners: [
+            {
+              type: "keyup",
+              listener: async (e: Event) => {
+                const target = e.target as HTMLInputElement;
+                ztoolkit.log(e);
+                this.searchTag = target.value.trim();
+                const { keyCode } = e as any;
+                if (keyCode == 13) {
+                  this.onTagClick(this.searchTag);
+                }
+                if (
+                  this.doc?.getElementById(`${config.addonRef}-reader-div-tags`)
+                ) {
+                  this.tagsDisplay = await this.searchTagResult();
+                  ztoolkit.UI.replaceElement(
+                    this.createTagsDiv(),
+                    this.doc.getElementById(
+                      `${config.addonRef}-reader-div-tags`,
+                    )!,
+                  );
+                }
+              },
+            },
+          ],
+          properties: { textContent: this.searchTag, title: "敲回车增加标签" },
+        },
+        {
+          tag: "div",
+          styles: { display: "flex" },
+          children: [
+            {
+              tag: "button",
+              properties: {
+                textContent: getPref("multipleTags")
+                  ? this.isExistAnno
+                    ? "修改标签"
+                    : "添加多个标签"
+                  : "单标签",
+              },
+              styles: {
+                margin: "2px",
+                padding: "2px",
+                border: "1px solid #dddddd",
+                background: "#99aa66",
+                fontSize: this.fontSize,
+              },
+              listeners: [
+                {
+                  type: "click",
+                  listener: (e: Event) => {
+                    // if (searchTag) onTagClick(searchTag, getFixedColor(searchTag));
+                    this.saveAnnotationTags();
+                  },
+                },
+              ],
+            },
+            {
+              tag: "button",
+              id: this.idCloseButton,
+              properties: {
+                textContent: "关闭",
+              },
+              styles: {
+                margin: "2px",
+                padding: "2px",
+                border: "1px solid #dddddd",
+                background: "#99aa66",
+                fontSize: this.fontSize,
+              },
+              listeners: [
+                {
+                  type: "click",
+                  listener: (e: Event) => {
+                    this.doc
+                      ?.getElementById(`${config.addonRef}-reader-div`)
+                      ?.remove();
+                    //@ts-ignore 隐藏弹出框
+                    reader._primaryView._onSetSelectionPopup(null);
+                  },
+                },
+              ],
+            },
+          ],
+        },
+        {
+          tag: "div",
+          id: `${config.addonRef}-reader-div-selected-tags`,
+          styles: { display: "flex", justifyContent: "space-between" },
+        },
+      ],
+    };
+  }
+
+  async searchTagResult() {
+    if (this.searchTag) {
+      const tags2 = getPref("showAllTags")
+        ? this.relateTags
+        : await allTagsInLibraryAsync();
+      const tags3 = tags2.filter((f) =>
+        RegExp(this.searchTag, "i").test(f.key),
+      );
+      return tags3;
+    } else {
+      return this.relateTags;
+    }
+  }
+
+  createTagsDiv(): TagElementProps {
+    const fixedTagsStyle = !!getPref("fixed-tags-style");
+    const children = this.tagsDisplay.slice(0, 200).map((label) => {
+      const tag = label.key;
+      const allHave = this.isAllHave(tag);
+      const noneHave = this.isNoneHave(tag);
+      const someHave = this.strSomeHave(tag);
+      const bgColor = getFixedColor(tag, "");
+      if (fixedTagsStyle && getFixedTags().includes(tag)) {
+        return {
+          tag: "span",
+          namespace: "html",
+          classList: ["toolbarButton1"],
+          styles: {
+            margin: "2px",
+            padding: "2px",
+            fontSize: this.fontSize,
+            // boxShadow: "#999999 0px 0px 4px 3px",
+            borderRadius: "6px",
+          },
+          listeners: [
+            {
+              type: "click",
+              listener: (e: Event) => {
+                ztoolkit.log("增加标签", label, this.params, e);
+                const target = e.target as HTMLElement;
+                target.style.boxShadow = "#ff0000 0px 0px 4px 3px";
+                this.onTagClick(tag, bgColor);
+              },
+            },
+          ],
+          children: [
+            {
+              tag: "span",
+              namespace: "html",
+              properties: {
+                textContent: `[${label.values.length}]`,
+              },
+              styles: {
+                // margin: "2px",
+                padding: "2px",
+                background: bgColor,
+                fontSize: this.fontSize,
+                boxShadow: "#999999 0px 0px 4px 3px",
+                borderRadius: "6px",
+              },
+            },
+            {
+              tag: "span",
+              namespace: "html",
+              properties: {
+                textContent: `${allHave ? "[x]" : noneHave ? "" : `[${someHave}]`}${tag}`,
+              },
+            },
+          ],
+        };
+      }
+      return {
+        tag: "span",
+        namespace: "html",
+        classList: ["toolbarButton1"],
+        properties: {
+          textContent: `${allHave ? "[x]" : noneHave ? "" : `[${someHave}]`}[${label.values.length}]${tag}`,
+        },
+        styles: {
+          margin: "2px",
+          padding: "2px",
+          background: bgColor,
+          fontSize: this.fontSize,
+          boxShadow: "#999999 0px 0px 4px 3px",
+          borderRadius: "6px",
+        },
+        listeners: [
+          {
+            type: "click",
+            listener: (e: Event) => {
+              ztoolkit.log("增加标签", label, this.params, e);
+              const target = e.target as HTMLElement;
+              target.style.boxShadow = "#ff0000 0px 0px 4px 3px";
+              this.onTagClick(tag, bgColor);
+            },
+          },
+        ],
+      };
+    });
+    return {
+      tag: "div",
+      namespace: "html",
+      id: `${config.addonRef}-reader-div-tags`,
+      styles: {
+        display: "flex",
+        flexDirection: "row",
+        flexWrap: "wrap",
+        justifyContent: "space-start",
+        fontSize: this.fontSize,
+      },
+      children,
+    };
+  }
+
+  strSomeHave(tag: string) {
+    return (
+      this.existAnnotations.filter((a) => a.hasTag(tag)).length +
+      "/" +
+      this.existAnnotations.length
+    );
+  }
+
+  isNoneHave(tag: string) {
+    return (
+      this.existAnnotations.length == 0 ||
+      this.existAnnotations.every((a) => !a.hasTag(tag))
+    );
+  }
+
+  isAllHave(tag: string) {
+    return (
+      this.existAnnotations.length > 0 &&
+      this.existAnnotations.every((a) => a.hasTag(tag))
+    );
+  }
+  onTagClick(tag: string, color: string = "") {
+    if (this.doc && this.selectedTags.every((s) => s.tag != tag)) {
+      this.selectedTags.push({
+        tag,
+        color: color || getFixedColor(tag, undefined),
+      });
+      ztoolkit.UI.appendElement(
+        {
+          tag: "span",
+          namespace: "html",
+          properties: { textContent: tag },
+          styles: {
+            background: color,
+            margin: "3px",
+            padding: "2px",
+            boxShadow: "#ffbccb 0px 0px 3px 3px",
+            // borderRadius: "666px",
+            fontSize: this.fontSize,
+          },
+          listeners: [
+            {
+              type: "click",
+              listener: (ev) => {
+                const ele = ev.target as HTMLSpanElement;
+                ele.remove();
+                this.selectedTags.splice(
+                  this.selectedTags.findIndex((f) => f.tag == tag),
+                  1,
+                );
+              },
+            },
+          ],
+        },
+        this.doc.getElementById(`${config.addonRef}-reader-div-selected-tags`)!,
+      );
+    }
+    if (!getPref("multipleTags")) {
+      this.saveAnnotationTags();
+    }
+  }
+
+  async saveAnnotationTags() {
+    if (this.selectedTags.length == 0 && this.searchTag) {
+      this.selectedTags.push({
+        tag: this.searchTag,
+        color: getFixedColor(this.searchTag, undefined),
+      });
+    }
+    if (this.delTags.length == 0 && this.selectedTags.length == 0) return;
+
+    const tagsRequire = await this.getTagsRequire();
+
+    const tagsRemove = this.delTags.filter((f) => !tagsRequire.includes(f));
+
+    ztoolkit.log("需要添加的tags", tagsRequire, "需要删除的", tagsRemove);
+    if (this.isExistAnno) {
+      for (const annotation of this.existAnnotations) {
+        for (const tag of tagsRequire) {
+          if (!annotation.hasTag(tag)) {
+            annotation.addTag(tag, 0);
+          }
+        }
+        for (const tag of tagsRemove) {
+          if (annotation.hasTag(tag)) {
+            annotation.removeTag(tag);
+          }
+        }
+        annotation.saveTx(); //增加每一个都要保存，为啥不能批量保存？
+      }
+      this.doc?.getElementById(`${config.addonRef}-reader-div`)?.remove();
+    } else {
+      const color =
+        this.selectedTags.map((a) => a.color).filter((f) => f)[0] ||
+        getFixedColor(tagsRequire[0], undefined);
+      const tags = tagsRequire.map((a) => ({ name: a }));
+      // 因为线程不一样，不能采用直接修改params.annotation的方式，所以直接采用新建的方式保存笔记
+      // 特意采用 Components.utils.cloneInto 方法
+      this.reader._annotationManager.addAnnotation(
+        Components.utils.cloneInto(
+          { ...this.params.annotation, color, tags },
+          this.doc,
+        ),
+      );
+      //@ts-ignore 隐藏弹出框
+      reader._primaryView._onSetSelectionPopup(null);
+    }
+    allTagsInLibraryAsync.remove();
+    getRelateTags.remove(this.reader._item.key);
+  }
+
+  private async getTagsRequire() {
+    const bCombine = !!getPref("combine-nested-tags");
+    const bKeepFirst = !!getPref("split-nested-tags-keep-first");
+    const bKeepSecond = !!getPref("split-nested-tags-keep-second");
+    const bKeepAll = !!getPref("split-nested-tags-keep-all");
+    const sTags = this.selectedTags.map((a) => a.tag);
+    const splitTags = sTags
+      .filter((f) => f && f.startsWith("#") && f.includes("/"))
+      .map((a) => a.replace("#", "").split("/"))
+      .flatMap((a) =>
+        bKeepAll ? a : [bKeepFirst ? a[0] : "", bKeepSecond ? a[1] : ""],
+      );
+    const nestedTags: string[] = bCombine ? await getNestedTags(sTags) : [];
+
+    const tagsRequire = uniqueBy(
+      [...sTags, ...nestedTags, ...splitTags].filter((f) => f),
+      (u) => u,
+    );
+    return tagsRequire;
   }
 }
-const getItemRelateCollections = (item: Zotero.Item) => {
+
+const getRelateTags = memoize(
+  (item: Zotero.Item) => {
+    return getTagsInCollections(getItemRelateCollections(item));
+  },
+  (item) => item.key,
+);
+
+function getItemRelateCollections(item: Zotero.Item) {
   const allCollectionIds: number[] = [];
   const recursiveCollections = !!Zotero.Prefs.get("recursiveCollections");
   const prefSelectedCollection = !!getPref("selectedCollection");
@@ -75,14 +649,7 @@ const getItemRelateCollections = (item: Zotero.Item) => {
     return collections2;
   }
   return [];
-};
-
-const relateTags = memoize(
-  (item: Zotero.Item) => {
-    return getTagsInCollections(getItemRelateCollections(item));
-  },
-  (item) => item.key,
-);
+}
 
 function getTagsInCollections(collections: Zotero.Collection[]) {
   if (collections.length == 0) return [];
@@ -95,14 +662,6 @@ function getTagsInCollections(collections: Zotero.Collection[]) {
   );
   const annotations = pdfItems.flatMap((f) => f.getAnnotations(false));
   return annotations.flatMap((f) => f.getTags());
-}
-function includeTAGS<T>(tagGroup: groupByResult<T>[]) {
-  getFixedTags().forEach((tag) => {
-    if (tagGroup.findIndex((f) => f.key == tag) == -1) {
-      tagGroup.push({ key: tag, values: [] });
-    }
-  });
-  return tagGroup;
 }
 function getTranslate(t1: HTMLElement) {
   for (const k in t1.style) {
@@ -297,9 +856,9 @@ async function updateDiv(
   if (bShowAllTags) {
     tags1 = await allTagsInLibraryAsync();
   } else {
-    tags1 = groupBy(relateTags(reader._item), (t) => t.tag);
+    tags1 = groupBy(getRelateTags(reader._item), (t) => t.tag);
   }
-  includeTAGS(tags1);
+  includeTAGSGroupByResult(tags1);
   tags1.sort(sortByFixedTag2Length);
   const existAnnotations = isExistAnno
     ? reader._item.getAnnotations().filter((f) => params.ids.includes(f.key))
@@ -337,7 +896,7 @@ async function updateDiv(
     },
     root,
   );
-  
+
   const closeTimeout = (getPref("count-down-close") as number) || 15;
   if (closeTimeout > 5)
     countDown(closeTimeout, false, (remainingTime) => {
@@ -742,7 +1301,7 @@ async function updateDiv(
       reader._primaryView._onSetSelectionPopup(null);
     }
     allTagsInLibraryAsync.remove();
-    relateTags.remove(reader._item.key);
+    getRelateTags.remove(reader._item.key);
   }
   function hidePopup(reader: _ZoteroTypes.ReaderInstance) {
     //@ts-ignore 隐藏弹出框
@@ -803,41 +1362,12 @@ function renderTextSelectionPopup(
   //   event,
   //   event.params.annotation.tags,
   // );
+  // const dd=new PopupDiv(reader,params).rootDiv
   const div = createDiv(reader, params);
   if (div) {
-    setTimeout(() => updateDivWidth(div), 1000);
     append(div);
   }
 }
-function updateDivWidth(div: HTMLElement, n = 3) {
-  //TODO 这样更新大小好像没起到效果。估计还要换个思路
-  if (n < 0) return;
-  if (!div.parentElement || div.ownerDocument == null) {
-    setTimeout(() => updateDivWidth(div, n - 1), 1000);
-    return;
-  }
-  const leftTop = getLeftTop(div);
-
-  // ztoolkit.log(div.clientWidth, d, n);
-  if (!leftTop || !leftTop.clientWidth) {
-    setTimeout(() => updateDivWidth(div, n - 1), 1000);
-    return;
-  }
-  const centerX = div.clientWidth / 2 + leftTop.left;
-  if (centerX > 0) {
-    const maxWidth =
-      Math.min(centerX, leftTop.clientWidth - centerX) * 2 + "px";
-    // div.style.setProperty("max-width", maxWidth);
-    // div.style.maxWidth = maxWidth;
-    ztoolkit.log(
-      "updateDivWidth",
-      // div.style,
-      { centerX, maxWidth, n },
-      leftTop,
-    );
-  }
-}
-
 function createAnnotationContextMenu(
   event: _ZoteroTypes.Reader.EventParams<"createAnnotationContextMenu">,
 ) {
