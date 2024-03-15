@@ -37,7 +37,18 @@ function unregister() {
     createAnnotationContextMenu,
   );
 }
+//TODO 太复杂了，需要改为类的方式处理
+class PopupDiv{
+  public constructor(){
 
+  }
+  public update(){
+
+  }
+  public remove(){
+
+  }
+}
 const getItemRelateCollections = (item: Zotero.Item) => {
   const allCollectionIds: number[] = [];
   const recursiveCollections = !!Zotero.Prefs.get("recursiveCollections");
@@ -326,6 +337,7 @@ async function updateDiv(
     },
     root,
   );
+  
   const closeTimeout = (getPref("count-down-close") as number) || 15;
   if (closeTimeout > 5)
     countDown(closeTimeout, false, (remainingTime) => {
