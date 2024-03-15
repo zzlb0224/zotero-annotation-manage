@@ -266,11 +266,13 @@ class PopupDiv {
     return rootStyle;
   }
   createCurrentTags(): TagElementProps {
+    const tags=this.existAnnotations.flatMap((a) => a.getTags())
+    if (tags.length == 0) return { tag: "" };
     const ts = groupBy(
-      this.existAnnotations.flatMap((a) => a.getTags()),
+       tags,
       (t) => t.tag,
     ).sort(sortByLength);
-    if (ts.length == 0) return { tag: "" };
+    const annLen= (this.existAnnotations.length>0?`${this.existAnnotations.length}个注释，`:"")
     return {
       tag: "div",
       styles: {
@@ -283,7 +285,7 @@ class PopupDiv {
       children: [
         {
           tag: "button",
-          properties: { textContent: "标签：", title: "选中后删除" },
+          properties: { textContent: annLen+`${tags.length}个标签：`, title: "选中后删除" },
         },
         ...ts.map((t) => ({
           tag: "span",
@@ -404,7 +406,7 @@ class PopupDiv {
                 {
                   type: "click",
                   listener: (e: Event) => {
-                    this.doc?.getElementById(this.idRootDiv)?.remove();
+                    this.doc?.getElementById(this.idRootDiv)?.remove(); 
                     //@ts-ignore 隐藏弹出框
                     this.reader._primaryView._onSetSelectionPopup(null);
                   },
