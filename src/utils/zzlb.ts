@@ -109,10 +109,14 @@ function getFixedTags_(): string[] {
   return FixedTagsDefault.split(",");
 }
 function getFixedColors_(): string[] {
-  let fixedColor = ((getPref("fixed-colors") as string) || "")
-    .split(",")
-    .map((a) => a.trim())
-    .filter((f) => f);
+  // let fixedColor = ((getPref("fixed-colors") as string) || "")
+  //   .split(",")
+  //   .map((a) => a.trim())
+  //   .filter((f) => f);
+  let fixedColor =
+    (getPref("fixed-colors") as string)
+      ?.match(/#[0-9A-F]{6}/g)
+      ?.map((a) => a) || [];
   if (!fixedColor || fixedColor.length == 0)
     fixedColor = FixedColorDefault.split(",");
   const tags = getFixedTags();
@@ -146,7 +150,11 @@ export const COLOR = {
   white: "#ffffff",
 };
 
-export const getOptionalColor = memoize(() => getPref("optional-color"));
+export const getOptionalColor = memoize(
+  () =>
+    (getPref("optional-color") as string)?.match(/#[0-9A-F]{6}/g)?.[0] ||
+    "#ffc0cb",
+);
 export const getFixedColor = memoize(getFixedColor_);
 export const getFixedTags = memoize(getFixedTags_);
 export const getFixedColors = memoize(getFixedColors_);

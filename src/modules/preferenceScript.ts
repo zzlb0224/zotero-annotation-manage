@@ -91,8 +91,7 @@ function initOptionalColorLabel(doc: Document) {
     `zotero-prefpane-${config.addonRef}-optional-color`,
   );
   if (label) {
-    const optionalColor = (getPref("optional-color") as string) || "";
-    label.style.background = optionalColor;
+    label.style.background = getOptionalColor();
   }
 }
 async function updatePrefsUI() {
@@ -120,17 +119,15 @@ function bindPrefEvents() {
   doc
     .querySelector(`#zotero-prefpane-${config.addonRef}-tags`)
     ?.addEventListener("keyup", (e) => {
-      // ztoolkit.log(e, getPref("tags"));
-      replaceElement(doc);
       getFixedTags.remove();
+      replaceElement(doc);
     });
 
   doc
     .querySelector(`#zotero-prefpane-${config.addonRef}-fixed-colors`)
     ?.addEventListener("keyup", (e) => {
-      // ztoolkit.log(e, getPref("tags"));
-      replaceElement(doc);
       getFixedColor.remove();
+      replaceElement(doc);
     });
   doc
     .querySelector(`#zotero-prefpane-${config.addonRef}-optional-color`)
