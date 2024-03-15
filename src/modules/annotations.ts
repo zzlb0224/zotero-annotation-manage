@@ -10,7 +10,7 @@ import {
   sortByLength,
 } from "../utils/zzlb";
 import { getPref } from "../utils/prefs";
-import { includeTAGSGroupByResult } from "../utils/zzlb";
+import { groupByResultIncludeFixedTags } from "../utils/zzlb";
 import { getAllTagsInLibraryAsync } from "../utils/zzlb";
 import { getRelateTags } from "../utils/zzlb";
 function register() {
@@ -155,7 +155,7 @@ class PopupDiv {
     } else {
       relateTags = groupBy(getRelateTags(this.reader._item), (t) => t.tag);
     }
-    includeTAGSGroupByResult(relateTags);
+    groupByResultIncludeFixedTags(relateTags);
     relateTags.sort(sortByFixedTag2Length);
     this.relateTags = relateTags;
     this.tagsDisplay = relateTags;

@@ -100,39 +100,6 @@ export const FixedTagsDefault =
 export const FixedColorDefault =
   "#ffd400,#ff6666,#5fb236,#2ea8e5,#a28ae5,#e56eee,#f19837,#aaaaaa";
 
-function getFixedTags_(): string[] {
-  const prefTags = ((getPref("tags") as string) || "")
-    .split(",")
-    .map((a) => a.trim())
-    .filter((f) => f);
-  if (prefTags && prefTags.length > 0) return prefTags;
-  return FixedTagsDefault.split(",");
-}
-function getFixedColors_(): string[] {
-  // let fixedColor = ((getPref("fixed-colors") as string) || "")
-  //   .split(",")
-  //   .map((a) => a.trim())
-  //   .filter((f) => f);
-  let fixedColor =
-    (getPref("fixed-colors") as string)
-      ?.match(/#[0-9A-F]{6}/g)
-      ?.map((a) => a) || [];
-  if (!fixedColor || fixedColor.length == 0)
-    fixedColor = FixedColorDefault.split(",");
-  const tags = getFixedTags();
-  return Array.from({
-    length: tags.length / fixedColor.length + 1,
-  }).flatMap(() => fixedColor);
-}
-
-function getFixedColor_(tag: string, optional: string | undefined): string {
-  const tags = getFixedTags();
-  if (tags.includes(tag)) {
-    return getFixedColors()[tags.indexOf(tag)];
-  }
-  if (optional == undefined) return getOptionalColor() as string;
-  return optional;
-}
 
 export const COLOR = {
   red: "#ff6666",
@@ -155,9 +122,33 @@ export const getOptionalColor = memoize(
     (getPref("optional-color") as string)?.match(/#[0-9A-F]{6}/g)?.[0] ||
     "#ffc0cb",
 );
-export const getFixedColor = memoize(getFixedColor_);
-export const getFixedTags = memoize(getFixedTags_);
-export const getFixedColors = memoize(getFixedColors_);
+export const getFixedColor = memoize((tag: string, optional: string | undefined): string=> {
+  const tags = getFixedTags();
+  if (tags.includes(tag)) {
+    return getFixedColors()[tags.indexOf(tag)];
+  }
+  if (optional == undefined) return getOptionalColor() as string;
+  return optional;
+});
+export const getFixedTags = memoize((): string[] =>{
+  const prefTags = ((getPref("tags") as string) || "")
+    .split(",")
+    .map((a) => a.trim())
+    .filter((f) => f);
+  if (prefTags && prefTags.length > 0) return prefTags;
+  return FixedTagsDefault.split(",")});
+export const getFixedColors = memoize((): string[] =>{ 
+  let fixedColor =
+    (getPref("fixed-colors") as string)
+      ?.match(/#[0-9A-F]{6}/g)
+      ?.map((a) => a) || [];
+  if (!fixedColor || fixedColor.length == 0)
+    fixedColor = FixedColorDefault.split(",");
+  const tags = getFixedTags();
+  return Array.from({
+    length: tags.length / fixedColor.length + 1,
+  }).flatMap(() => fixedColor);
+});
 
 export function toggleProperty<T, K extends keyof NonNullable<T>>(
   obj: NonNullable<T> | undefined,
@@ -178,7 +169,7 @@ export function setProperty<T, K extends keyof NonNullable<T>>(
     return (obj[key] = value);
   }
 }
-export function includeTAGSGroupByResult<T>(tagGroup: groupByResult<T>[]) {
+export function groupByResultIncludeFixedTags<T>(tagGroup: groupByResult<T>[]) {
   getFixedTags().forEach((tag) => {
     if (tagGroup.findIndex((f) => f.key == tag) == -1) {
       tagGroup.push({ key: tag, values: [] });
@@ -226,7 +217,7 @@ export const getRelateTags = memoize(
   },
   (item) => item.key,
 );
-function getItemRelateCollections(item: Zotero.Item) {
+function getItemRelateCollections(item: Zotero.Item):Zotero.Collection[] {
   const allCollectionIds: number[] = [];
   const childrenCollections = !!getPref("children-collection");
   const prefSelectedCollection = !!getPref("selectedCollection");
