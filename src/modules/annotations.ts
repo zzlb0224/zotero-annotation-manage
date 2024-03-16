@@ -414,13 +414,14 @@ class PopupDiv {
 
   async searchTagResult() {
     if (this.searchTag) {
-      const tags2 = getPref("showAllTags")
-        ? this.relateTags
-        : await getAllTagsDB();
-      const tags3 = tags2.filter((f) =>
+      const searchIn = await getAllTagsDB();
+      //  getPref("showAllTags")
+      //   ? this.relateTags
+      //   : await getAllTagsDB();
+      const searchResult = searchIn.filter((f) =>
         RegExp(this.searchTag, "i").test(f.key),
       );
-      return tags3;
+      return searchResult;
     } else {
       return this.relateTags;
     }
