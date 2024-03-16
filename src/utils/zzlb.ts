@@ -122,7 +122,7 @@ export const getOptionalColor = memoize(
     "#ffc0cb",
 );
 export const getFixedColor = memoize(
-  (tag: string, optional: string | undefined): string => {
+  (tag: string, optional: string | undefined = undefined): string => {
     const tags = getFixedTags();
     if (tags.includes(tag)) {
       return getFixedColors()[tags.indexOf(tag)];
@@ -130,6 +130,8 @@ export const getFixedColor = memoize(
     if (optional == undefined) return getOptionalColor() as string;
     return optional;
   },
+  (tag: string, optional: string | undefined = undefined) =>
+    tag + "_" + optional,
 );
 export const getFixedTags = memoize((): string[] => {
   const prefTags = ((getPref("tags") as string) || "")
@@ -199,7 +201,8 @@ export function getCssTranslate(t1: HTMLElement) {
   }
   return { x: 0, y: 0 };
 }
-export const getAllTagsInLibraryAsync = memoize(async () => {
+//使用条目、pdf、annotation、tag的关系进行读取
+const getAllTagsInLibraryAsync = memoize(async () => {
   const allItems = await Zotero.Items.getAll(1, false, false, false);
   const items = allItems.filter((f) => !f.parentID && !f.isAttachment());
   const pdfIds = items.flatMap((f) => f.getAttachments(false));
@@ -213,8 +216,21 @@ export const getAllTagsInLibraryAsync = memoize(async () => {
     : [];
   return groupBy([...tags, ...itemTags], (t) => t.tag);
 });
+//使用查询优化性能
+export const getAllTagsDB = memoize(async () => {
+  const rows = await Zotero.DB.queryAsync(
+    "select name as tag,type from itemTags it join tags t on it.tagID=t.tagID",
+  );
+  const lines: { tag: string; type: number }[] = [];
+  for (const row of rows) {
+    lines.push({ tag: row.tag, type: row.type });
+  }
+  ztoolkit.log(lines.length, lines);
+  return groupBy(lines, (t) => t.tag);
+});
 export const getRelateTags = memoize(
   (item: Zotero.Item) => {
+    if (!getPref("show-relate-tags")) return [];
     return getTagsInCollections(getItemRelateCollections(item));
   },
   (item) => item.key,

@@ -142,6 +142,9 @@ export async function initPrefSettings() {
   if (!getPref("tags")) {
     setPref("tags", FixedTagsDefault);
   }
+  if (getPref("show-relate-tags") == undefined) {
+    setPref("show-relate-tags", true);
+  }
   if (getPref("currentCollection") == undefined) {
     setPref("currentCollection", true);
   }

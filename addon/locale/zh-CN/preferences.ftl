@@ -6,19 +6,20 @@ pref-input = 输入
 
 pref-tagsLabel = 固定输出标签，以英文逗号分隔
 pref-fixed-colors = 固定颜色，以英文逗号分隔，使用六位的颜色如#ffc0cb
-pref-optional-color = 备选颜色
-pref-optional-color-label = 备选颜色
+pref-optional-color = 备选颜色 
 
 
+pref-show-relate-tags = 
+    .label =  显示相关标签
 pref-selectedCollection = 
-    .label =  显示选中文件夹（collection）的相关标签
+    .label =  与选中文件夹相关
 pref-currentCollection = 
-    .label =  显示当前条目所在文件夹（collection）的相关标签（一个条目可以属于多个文件夹）
+    .label =  与当前条目所在文件夹（一个条目可以属于多个文件夹）相关
 pref-children-collection = 
-    .label =  始终显示选中文件夹和当前文件夹的子文件夹的相关标签
+    .label =  判断相关时包含子文件夹
     
 pref-showAllTags = 
-    .label =  显示库中的所有笔记的标签
+    .label =  与库中的所有标签相关
 
 pref-item-tags = 
     .label =  （接上条）并且包括条目的标签（这个功能会卡，做了个间隔读取不管用，等以后有时间增加缓存和异步读取）

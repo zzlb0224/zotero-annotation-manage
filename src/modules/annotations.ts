@@ -11,7 +11,7 @@ import {
 } from "../utils/zzlb";
 import { getPref } from "../utils/prefs";
 import { groupByResultIncludeFixedTags } from "../utils/zzlb";
-import { getAllTagsInLibraryAsync } from "../utils/zzlb";
+import { getAllTagsDB } from "../utils/zzlb";
 import { getRelateTags } from "../utils/zzlb";
 function register() {
   // if (!getPref("enable")) return;
@@ -128,12 +128,23 @@ class PopupDiv {
           },
         },
       ],
+      listeners: [
+        {
+          type: "click",
+          listener: (ev) => {
+            this.countDown(99, true, undefined);
+            if (this.btnClose) {
+              this.btnClose.textContent = `手动关闭`;
+            }
+          },
+        },
+      ],
     });
+    this.rootDiv = div;
     //创建完成之后用异步来更新
     setTimeout(async () => {
       await this.updateDiv();
     }, 500);
-    this.rootDiv = div;
     return div;
   }
   async updateDiv() {
@@ -150,8 +161,9 @@ class PopupDiv {
       tag: string;
       type: number;
     }>[] = [];
+
     if (getPref("showAllTags")) {
-      relateTags = await getAllTagsInLibraryAsync();
+      relateTags = await getAllTagsDB();
     } else {
       relateTags = groupBy(getRelateTags(this.reader._item), (t) => t.tag);
     }
@@ -159,43 +171,12 @@ class PopupDiv {
     relateTags.sort(sortByFixedTag2Length);
     this.relateTags = relateTags;
     this.tagsDisplay = relateTags;
-
-    ztoolkit.UI.replaceElement(
-      {
-        tag: "div",
-        namespace: "html",
-        id: this.idRootDiv,
-        // classList: ["toolbar1", `${config.addonRef}-reader-div`],
-        properties: {
-          tabIndex: -1,
-        },
-        styles: this.getRootStyle(),
-        children: [
-          {
-            tag: "link",
-            properties: {
-              rel: "stylesheet",
-              href: `chrome://${config.addonRef}/content/annotation.css`,
-            },
-          },
-          this.createCurrentTags(),
-          this.createSearchDiv(),
-          this.createTagsDiv(),
-        ],
-        listeners: [
-          {
-            type: "click",
-            listener: (ev) => {
-              this.countDown(99, true, undefined);
-              if (this.btnClose) {
-                this.btnClose.textContent = `手动关闭`;
-              }
-            },
-          },
-        ],
-      },
-      root,
-    ) as HTMLElement;
+    // ztoolkit.log(1,root,this.createCurrentTags())
+    ztoolkit.UI.appendElement(this.createCurrentTags(), root);
+    // ztoolkit.log(2)
+    ztoolkit.UI.appendElement(this.createSearchDiv(), root);
+    // ztoolkit.log(3)
+    ztoolkit.UI.appendElement(this.createTagsDiv(), root);
 
     const closeTimeout = (getPref("count-down-close") as number) || 15;
     if (this.isExistAnno && closeTimeout > 5)
@@ -210,11 +191,12 @@ class PopupDiv {
         }
       });
 
-    this.rootDiv = doc.getElementById(this.idRootDiv) as HTMLElement;
-    this.btnClose = this.rootDiv.querySelector(
-      "#" + this.idCloseButton,
-    ) as HTMLElement;
-    ztoolkit.log("append", this.rootDiv, closeTimeout, this.btnClose);
+    // this.rootDiv = doc.getElementById(this.idRootDiv) as HTMLElement;
+    if (this.rootDiv)
+      this.btnClose = this.rootDiv.querySelector(
+        "#" + this.idCloseButton,
+      ) as HTMLElement;
+    // ztoolkit.log("append", this.rootDiv, closeTimeout, this.btnClose);
     return this.rootDiv;
   }
 
@@ -267,7 +249,7 @@ class PopupDiv {
   }
   createCurrentTags(): TagElementProps {
     const tags = this.existAnnotations.flatMap((a) => a.getTags());
-    if (tags.length == 0) return { tag: "" };
+    if (tags.length == 0) return { tag: "span" };
     const ts = groupBy(tags, (t) => t.tag).sort(sortByLength);
     const annLen =
       this.existAnnotations.length > 0
@@ -285,6 +267,7 @@ class PopupDiv {
       children: [
         {
           tag: "button",
+          namespace: "html",
           properties: {
             textContent: `${annLen}[${tags.length}]标签：`,
             title: "选中后删除",
@@ -368,6 +351,7 @@ class PopupDiv {
           children: [
             {
               tag: "button",
+              namespace: "html",
               properties: {
                 textContent: getPref("multipleTags")
                   ? this.isExistAnno
@@ -394,6 +378,7 @@ class PopupDiv {
             },
             {
               tag: "button",
+              namespace: "html",
               id: this.idCloseButton,
               properties: {
                 textContent: "关闭",
@@ -431,7 +416,7 @@ class PopupDiv {
     if (this.searchTag) {
       const tags2 = getPref("showAllTags")
         ? this.relateTags
-        : await getAllTagsInLibraryAsync();
+        : await getAllTagsDB();
       const tags3 = tags2.filter((f) =>
         RegExp(this.searchTag, "i").test(f.key),
       );
@@ -648,7 +633,7 @@ class PopupDiv {
       //@ts-ignore 隐藏弹出框
       this.reader._primaryView._onSetSelectionPopup(null);
     }
-    getAllTagsInLibraryAsync.remove();
+    getAllTagsDB.remove();
     getRelateTags.remove(this.reader._item.key);
   }
 
@@ -679,7 +664,7 @@ class PopupDiv {
       (f) => f && !f.startsWith("#") && !f.includes("/"),
     );
     const list: string[] = [];
-    const allTags = await getAllTagsInLibraryAsync();
+    const allTags = await getAllTagsDB();
     for (const t1 of filterArr) {
       for (const t2 of filterArr) {
         if (t1 != t2) {

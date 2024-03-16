@@ -1,7 +1,6 @@
 // 参考https://github.com/alexreardon/memoize-one设计的二代缓存
-
 export type MemoizedFn<TFunc extends (this: any, ...args: any[]) => any> = {
-  remove: (key?: string | RegExp) => void;
+  remove: (key?: string | RegExp | undefined) => void;
   (
     this: ThisParameterType<TFunc>,
     ...args: Parameters<TFunc>
@@ -19,15 +18,33 @@ export function memoize2<TFunc extends (this: any, ...newArgs: any[]) => any>(
     this: ThisParameterType<TFunc>,
     ...newArgs: Parameters<TFunc>
   ): ReturnType<TFunc> {
-    const cacheKey = (keyFn && keyFn(...newArgs)) || "_";
+    //清理不需要的缓存
+    Object.keys(cacheTime).forEach((key) => {
+      if (Date.now() - cacheTime[key] > timeout) {
+        ztoolkit.log("删除缓存", key);
+        del(key);
+      }
+    });
+    const cacheKey =
+      (keyFn && keyFn(...newArgs)) || ["_", ...newArgs].join("_");
+
     if (
-      Object.prototype.hasOwnProperty.call(cacheTime, cacheKey) ||
-      Object.prototype.hasOwnProperty.call(cacheObj, cacheKey) ||
-      Object.prototype.hasOwnProperty.call(cacheThis, cacheKey) ||
-      cacheThis[cacheKey] === this ||
+      cacheThis[cacheKey] != this ||
+      cacheObj[cacheKey] == undefined ||
       Date.now() - cacheTime[cacheKey] > timeout
     ) {
+      ztoolkit.log("cache2", {
+        cacheKey,
+        this: cacheThis[cacheKey],
+        obj: cacheObj[cacheKey],
+        start: cacheTime[cacheKey],
+        time2: Date.now() - cacheTime[cacheKey],
+        timeout,
+        thiseq: cacheThis[cacheKey] != this,
+      });
+      // ztoolkit.log("建立缓存",cacheKey)
       cacheTime[cacheKey] = Date.now();
+      cacheThis[cacheKey] = this;
       if (resultFn.constructor.name == "AsyncFunction") {
         return (cacheObj[cacheKey] = (resultFn(...newArgs) as any).then(
           (value: ReturnType<TFunc>) => (cacheObj[cacheKey] = value),
@@ -49,7 +66,6 @@ export function memoize2<TFunc extends (this: any, ...newArgs: any[]) => any>(
           (cacheKey === undefined || cacheKey.test(key2)) && del(key2);
         })
       : del(cacheKey);
-
   return memoized;
 }
 export default memoize2;
