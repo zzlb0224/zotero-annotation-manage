@@ -143,17 +143,17 @@ class PopupDiv {
     this.rootDiv = div;
     //创建完成之后用异步来更新
     setTimeout(async () => {
-      await this.updateDiv();
+      await this.updateDiv(div);
     }, 500);
     return div;
   }
-  async updateDiv() {
+  async updateDiv(root: HTMLDivElement) {
     const doc = this.doc;
     if (!doc) return;
-    const root = doc.getElementById(this.idRootDiv);
+    // const root = doc.getElementById(this.idRootDiv);
     if (!root || !root.parentNode) {
       setTimeout(async () => {
-        await this.updateDiv();
+        await this.updateDiv(root);
       }, 500);
       return;
     }
@@ -171,12 +171,12 @@ class PopupDiv {
     relateTags.sort(sortByFixedTag2Length);
     this.relateTags = relateTags;
     this.tagsDisplay = relateTags;
-    // ztoolkit.log(1,root,this.createCurrentTags())
-    ztoolkit.UI.appendElement(this.createCurrentTags(), root);
-    // ztoolkit.log(2)
-    ztoolkit.UI.appendElement(this.createSearchDiv(), root);
-    // ztoolkit.log(3)
-    ztoolkit.UI.appendElement(this.createTagsDiv(), root);
+    if (!root.querySelector("#" + this.idCloseButton)) {
+      //按说不会出现重复添加现象，
+      ztoolkit.UI.appendElement(this.createCurrentTags(), root);
+      ztoolkit.UI.appendElement(this.createSearchDiv(), root);
+      ztoolkit.UI.appendElement(this.createTagsDiv(), root);
+    }
 
     const closeTimeout = (getPref("count-down-close") as number) || 15;
     if (this.isExistAnno && closeTimeout > 5)
@@ -191,13 +191,8 @@ class PopupDiv {
         }
       });
 
-    // this.rootDiv = doc.getElementById(this.idRootDiv) as HTMLElement;
-    if (this.rootDiv)
-      this.btnClose = this.rootDiv.querySelector(
-        "#" + this.idCloseButton,
-      ) as HTMLElement;
+    this.btnClose = root.querySelector("#" + this.idCloseButton) as HTMLElement;
     // ztoolkit.log("append", this.rootDiv, closeTimeout, this.btnClose);
-    return this.rootDiv;
   }
 
   getRootStyle() {
