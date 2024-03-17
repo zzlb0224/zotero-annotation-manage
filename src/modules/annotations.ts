@@ -655,7 +655,7 @@ class PopupDiv {
     getAllTagsDB.remove();
     getRelateTags.remove(this.item?.key);
   }
-
+ //测试预览
   private async getTagsRequire() {
     const bCombine = !!getPref("combine-nested-tags");
     const bKeepFirst = !!getPref("split-nested-tags-keep-first");
