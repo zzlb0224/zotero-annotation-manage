@@ -148,9 +148,35 @@
         />
       </hbox>
     </vbox>
+    <hbox>
+      <html:label
+        for="zotero-prefpane-__addonRef__-max-show"
+        data-l10n-id="pref-max-show"
+      />
+      <html:input
+        type="text"
+        id="zotero-prefpane-__addonRef__-max-show"
+        preference="__prefsPrefix__.max-show"
+        native="true"
+        style="width: 160px"
+      />
+    </hbox>
+    <vbox>
+      <html:label
+        for="zotero-prefpane-__addonRef__-tags-exclude"
+        data-l10n-id="pref-tags-exclude"
+      />
+    </vbox>
+    <html:input
+      type="text"
+      id="zotero-prefpane-__addonRef__-tags-exclude"
+      preference="__prefsPrefix__.tags-exclude"
+      native="true"
+      style="width: 100%"
+    />
   </groupbox>
   <vbox>
-    <html:label data-l10n-id="pref-test-label" />
+    <html:label data-l10n-id="pref-search-preview" />
     <hbox>
       <html:label
         for="zotero-prefpane-__addonRef__-search-input"
@@ -163,7 +189,7 @@
         preference="__prefsPrefix__.search-input"
       />
     </hbox>
-    <html:label data-l10n-id="pref-test-label" />
+    <html:div id="zotero-prefpane-__addonRef__-search-preview" />
   </vbox>
 </vbox>
 

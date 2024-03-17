@@ -46,6 +46,9 @@ pref-fixed-tags-style =
     .label = fixed tags style
     
 pref-count-down-close = count down close second
-
+pref-tags-exclude = tags-exclude
+pref-max-show = max-show
+pref-search-preview = search-preview 
+pref-search-input = search-input
 
 pref-help = { $name } Build { $version } { $time }
