@@ -167,8 +167,8 @@ class PopupDiv {
     } else {
       relateTags = groupBy(getRelateTags(this.reader._item), (t) => t.tag);
     }
-
     groupByResultIncludeFixedTags(relateTags);
+
     relateTags.sort(sortByFixedTag2Length);
     this.relateTags = relateTags;
     this.tagsDisplay = relateTags;
