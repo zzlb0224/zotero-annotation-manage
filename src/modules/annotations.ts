@@ -644,7 +644,7 @@ class PopupDiv {
       // 特意采用 Components.utils.cloneInto 方法
       this.reader?._annotationManager.addAnnotation(
         Components.utils.cloneInto(
-          { ...this.params.annotation, color, tags },
+          { ...this.params?.annotation, color, tags },
           this.doc,
         ),
       );
