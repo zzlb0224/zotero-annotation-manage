@@ -49,10 +49,12 @@ pref-fixed-tags-style =
     .label = 固定标签使用独立样式
 
 pref-count-down-close = 自动关闭弹出窗口时长（至少5秒）
+
+
 pref-tags-exclude = 使用正则排除不喜欢的标签
 pref-max-show = 最大显示标签数
-pref-search-preview = 测试一下搜索
-pref-search-input = 测试一下搜索
+pref-search-preview = 相关标签预览
+pref-search-input = 输入任意文字测试搜索
 
 
 pref-help = { $name } Build { $version } { $time }
