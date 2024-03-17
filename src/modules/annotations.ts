@@ -38,8 +38,14 @@ function unregister() {
   );
 }
 class PopupDiv {
-  reader: _ZoteroTypes.ReaderInstance;
-  params: any;
+  reader?: _ZoteroTypes.ReaderInstance;
+  params?: {
+    annotation?: _ZoteroTypes.Annotations.AnnotationJson;
+    ids?: any;
+    currentID?: string;
+    x?: number;
+    y?: number;
+  };
   doc?: Document;
   isExistAnno: boolean;
   existAnnotations: Zotero.Item[];
@@ -53,15 +59,30 @@ class PopupDiv {
   idRootDiv = `${config.addonRef}-PopupDiv-`;
   idCloseButton = `${config.addonRef}-PopupDiv-close`;
   btnClose?: HTMLElement;
-  public constructor(reader: _ZoteroTypes.ReaderInstance, params: any) {
+  item?: Zotero.Item;
+  onHidePopup?: () => void;
+  intervalId?: NodeJS.Timeout;
+  public constructor(
+    reader?: _ZoteroTypes.ReaderInstance,
+    params?: {
+      annotation?: _ZoteroTypes.Annotations.AnnotationJson;
+      ids?: any;
+      currentID?: string;
+      x?: number;
+      y?: number;
+    },
+    item?: Zotero.Item,
+    doc?: Document,
+  ) {
     this.reader = reader;
     this.params = params;
-    this.doc = this.reader._iframeWindow?.document;
-    this.isExistAnno = !!params.ids;
+    this.item = item || this.reader?._item || undefined;
+    this.doc = doc || this.reader?._iframeWindow?.document;
+    this.isExistAnno = !!params?.ids;
     this.existAnnotations = this.isExistAnno
-      ? this.reader._item
-          .getAnnotations()
-          .filter((f) => this.params.ids.includes(f.key))
+      ? this.item!.getAnnotations().filter((f) =>
+          this.params?.ids.includes(f.key),
+        )
       : [];
     this.fontSize =
       (Zotero.Prefs.get(
@@ -70,32 +91,8 @@ class PopupDiv {
       ) || 18) + "px";
     ztoolkit.log("初始化", this.createDiv());
   }
-  intervalId?: NodeJS.Timeout;
-  countDown(
-    seconds = 15,
-    stop = false,
-    callback: ((remainingTime: number) => any) | undefined,
-  ) {
-    let remainingTime = seconds;
-    if (this.intervalId) {
-      clearInterval(this.intervalId);
-    }
-    if (stop) {
-      this.intervalId && clearInterval(this.intervalId);
-      return;
-    }
 
-    this.intervalId = setInterval(() => {
-      if (remainingTime <= 0 || stop) {
-        this.intervalId && clearInterval(this.intervalId);
-        callback && callback(remainingTime);
-      } else {
-        callback && callback(remainingTime);
-        remainingTime--;
-      }
-    }, 1000);
-  }
-  public clearDiv() {
+  private clearDiv() {
     if (!this.doc) return;
     if (
       this.doc.getElementById(this.idRootDiv)?.parentElement?.nodeName == "BODY"
@@ -106,11 +103,11 @@ class PopupDiv {
     }
   }
 
-  public hideDiv() {
+  public removeDiv() {
     if (!this.doc) return;
     this.doc.getElementById(this.idRootDiv)?.remove();
     //@ts-ignore 隐藏弹出框
-    this.reader._primaryView._onSetSelectionPopup(null);
+    this.reader?._primaryView._onSetSelectionPopup(null);
   }
   public createDiv() {
     if (!this.doc) return;
@@ -132,7 +129,7 @@ class PopupDiv {
         {
           type: "click",
           listener: (ev) => {
-            this.countDown(99, true, undefined);
+            this.startCountDown(true);
             if (this.btnClose) {
               this.btnClose.textContent = `手动关闭`;
             }
@@ -147,7 +144,7 @@ class PopupDiv {
     }, 500);
     return div;
   }
-  async updateDiv(root: HTMLDivElement) {
+  private async updateDiv(root: HTMLDivElement) {
     const doc = this.doc;
     if (!doc) return;
     // const root = doc.getElementById(this.idRootDiv);
@@ -165,7 +162,7 @@ class PopupDiv {
     if (getPref("showAllTags")) {
       relateTags = await getAllTagsDB();
     } else {
-      relateTags = groupBy(getRelateTags(this.reader._item), (t) => t.tag);
+      relateTags = groupBy(getRelateTags(this.item), (t) => t.tag);
     }
     groupByResultIncludeFixedTags(relateTags);
 
@@ -179,9 +176,19 @@ class PopupDiv {
       ztoolkit.UI.appendElement(this.createTagsDiv(), root);
     }
 
-    const closeTimeout = (getPref("count-down-close") as number) || 15;
-    if (this.isExistAnno && closeTimeout > 5)
-      this.countDown(closeTimeout, false, (remainingTime) => {
+    this.btnClose = root.querySelector("#" + this.idCloseButton) as HTMLElement;
+    // ztoolkit.log("append", this.rootDiv, closeTimeout, this.btnClose);
+  }
+
+  public startCountDown(
+    stop = false,
+    closeTimeout?: number,
+    callback?: ((remainingTime: number) => void) | undefined,
+  ) {
+    let remainingTime =
+      closeTimeout || (getPref("count-down-close") as number) || 15;
+    if (callback == undefined)
+      callback = (remainingTime: number) => {
         if (remainingTime > 0) {
           if (this.btnClose) {
             this.btnClose.textContent = `自动关闭（${remainingTime--}）`;
@@ -190,10 +197,24 @@ class PopupDiv {
           this.rootDiv?.remove();
           // doc?.getElementById(`${config.addonRef}-reader-div`)?.remove();
         }
-      });
+      };
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+    }
+    if (stop) {
+      this.intervalId && clearInterval(this.intervalId);
+      return;
+    }
 
-    this.btnClose = root.querySelector("#" + this.idCloseButton) as HTMLElement;
-    // ztoolkit.log("append", this.rootDiv, closeTimeout, this.btnClose);
+    this.intervalId = setInterval(() => {
+      if (remainingTime <= 0 || stop) {
+        this.intervalId && clearInterval(this.intervalId);
+        callback && callback(remainingTime);
+      } else {
+        callback && callback(remainingTime);
+        remainingTime--;
+      }
+    }, 1000);
   }
 
   getRootStyle() {
@@ -215,21 +236,20 @@ class PopupDiv {
     if (this.isExistAnno) {
       rootStyle.zIndex = "99990";
       rootStyle.position = "fixed";
-      rootStyle.top = this.params.y + "px";
-      rootStyle.left = this.params.x + "px"; //只有左边需要改，其它的固定
+      rootStyle.top = this.params?.y + "px";
+      rootStyle.left = this.params?.x + "px"; //只有左边需要改，其它的固定
 
       //对已有标签处理 防止出现右边超出边界
-      if (this.params.x > clientWidthWithSlider - maxWidth) {
+      if (this.params?.x || 0 > clientWidthWithSlider - maxWidth) {
         rootStyle.left = clientWidthWithSlider - maxWidth - 23 + "px";
       }
     } else {
       //找到弹出框的中心点
-      const centerX =
-        ((this.params.annotation?.position?.rects[0][0] +
-          this.params.annotation?.position?.rects[0][2]) *
-          scaleFactor) /
-          2 +
-        pageLeft;
+      const centerLeft =
+        this.params?.annotation?.position?.rects?.[0]?.[0] || 0;
+      const centerRight =
+        this.params?.annotation?.position?.rects?.[0]?.[0] || 0;
+      const centerX = ((centerLeft + centerRight) * scaleFactor) / 2 + pageLeft;
       maxWidth =
         Math.min(
           centerX * 2,
@@ -391,8 +411,9 @@ class PopupDiv {
                   type: "click",
                   listener: (e: Event) => {
                     this.doc?.getElementById(this.idRootDiv)?.remove();
+                    this.onHidePopup?.apply(this);
                     //@ts-ignore 隐藏弹出框
-                    this.reader._primaryView._onSetSelectionPopup(null);
+                    this.reader?._primaryView._onSetSelectionPopup(null);
                   },
                 },
               ],
@@ -621,17 +642,18 @@ class PopupDiv {
       const tags = tagsRequire.map((a) => ({ name: a }));
       // 因为线程不一样，不能采用直接修改params.annotation的方式，所以直接采用新建的方式保存笔记
       // 特意采用 Components.utils.cloneInto 方法
-      this.reader._annotationManager.addAnnotation(
+      this.reader?._annotationManager.addAnnotation(
         Components.utils.cloneInto(
           { ...this.params.annotation, color, tags },
           this.doc,
         ),
       );
+      this.onHidePopup?.apply(this);
       //@ts-ignore 隐藏弹出框
-      this.reader._primaryView._onSetSelectionPopup(null);
+      this.reader?._primaryView._onSetSelectionPopup(null);
     }
     getAllTagsDB.remove();
-    getRelateTags.remove(this.reader._item.key);
+    getRelateTags.remove(this.item?.key);
   }
 
   private async getTagsRequire() {
@@ -741,7 +763,9 @@ function createAnnotationContextMenu(
     label: label,
     onCommand: () => {
       // const div = createDiv(reader, params);
-      const div = new PopupDiv(reader, params).rootDiv;
+      const popDiv = new PopupDiv(reader, params);
+      const div = popDiv.rootDiv;
+      popDiv.startCountDown();
       if (div) {
         doc.body.appendChild(div);
       }

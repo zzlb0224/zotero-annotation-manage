@@ -229,13 +229,14 @@ export const getAllTagsDB = memoize(async () => {
   return groupBy(lines, (t) => t.tag);
 });
 export const getRelateTags = memoize(
-  (item: Zotero.Item) => {
+  (item?: Zotero.Item) => {
     if (!getPref("show-relate-tags")) return [];
     return getTagsInCollections(getItemRelateCollections(item));
   },
-  (item) => item.key,
+  (item) => item?.key || "",
 );
-function getItemRelateCollections(item: Zotero.Item): Zotero.Collection[] {
+function getItemRelateCollections(item?: Zotero.Item): Zotero.Collection[] {
+  if (!item) return [];
   const allCollectionIds: number[] = [];
   const childrenCollections = !!getPref("children-collection");
   const prefSelectedCollection = !!getPref("selectedCollection");
