@@ -6,6 +6,7 @@ import {
   FixedTagsDefault,
   getChildCollections,
   getFixedColor,
+  getFixedColors,
   getFixedTags,
   getOptionalColor,
   getRelateTags,
@@ -125,6 +126,8 @@ function bindPrefEvents() {
     .querySelector(`#zotero-prefpane-${config.addonRef}-tags`)
     ?.addEventListener("keyup", (e) => {
       getFixedTags.remove();
+      getFixedColors.remove();
+      getFixedColor.remove();
       replaceColorTagsElement(doc);
       replaceTagsPreviewDiv(doc);
     });
@@ -133,6 +136,7 @@ function bindPrefEvents() {
     .querySelector(`#zotero-prefpane-${config.addonRef}-fixed-colors`)
     ?.addEventListener("keyup", (e) => {
       getFixedColor.remove();
+      getFixedColors.remove(); 
       replaceColorTagsElement(doc);
       replaceTagsPreviewDiv(doc);
     });
@@ -142,12 +146,12 @@ function bindPrefEvents() {
       initOptionalColorLabel(doc);
       getFixedColor.remove();
       getOptionalColor.remove();
+      replaceTagsPreviewDiv(doc);
     });
 
   doc
     .querySelector(`#zotero-prefpane-${config.addonRef}-tags-exclude`)
-    ?.addEventListener("command", (e) => {
-      getOptionalColor.remove();
+    ?.addEventListener("keyup", (e) => { 
       replaceTagsPreviewDiv(doc);
     });
   doc
@@ -209,8 +213,10 @@ async function replaceTagsPreviewDiv(doc?: Document) {
       }
     }
     if (!ann) {
-      const pdfs = ZoteroPane.getSelectedCollection()
-        ?.getChildItems(false, false)
+      
+      const sc = ZoteroPane.getSelectedCollection();
+      if (sc) {
+      const pdfs = sc.getChildItems(false, false)
         .flatMap((f) => f.getAttachments());
       if (pdfs) {
         ann = Zotero.Items.get(pdfs)
@@ -218,9 +224,10 @@ async function replaceTagsPreviewDiv(doc?: Document) {
           .flatMap((f) => f.getAnnotations())
           .filter((f) => f.getTags().length > 0)[0];
         if (ann) {
-          from = "当前文件夹的标签";
+          from = `当前文件夹[${sc.name}]的标签`;
         }
       }
+    }
     }
     if (!ann) {
       const sc = ZoteroPane.getSelectedCollection();
@@ -233,7 +240,7 @@ async function replaceTagsPreviewDiv(doc?: Document) {
           .flatMap((f) => f.getAnnotations())
           .filter((f) => f.getTags().length > 0)[0];
         if (ann) {
-          from = "当前文件夹的子文件夹标签";
+          from = `当前文件夹[${sc.name}]的子文件夹标签`;
         }
       }
     }
@@ -250,10 +257,11 @@ async function replaceTagsPreviewDiv(doc?: Document) {
   };
   const { ann, from } = await getAnn();
   ztoolkit.log(ann, ann.parentItem, ann.parentItem?.parentItem);
-
+  
   for (const child of preview.children) {
     child.remove();
   }
+  if(ann){
   const popup = new AnnotationPopup(
     undefined,
     { ids: ann.id + "" },
@@ -263,46 +271,18 @@ async function replaceTagsPreviewDiv(doc?: Document) {
   const rootDiv = popup.rootDiv;
   popup.tagsDisplay = await popup.searchTagResult();
   if (!rootDiv) return;
-  // ztoolkit.log("replaceTagsPreviewDiv")
-  preview.appendChild(rootDiv);
-  rootDiv.innerText =
-    "预览标签来自：" +
-    from +
-    "。条目：" +
-    ann.parentItem?.parentItem?.getDisplayTitle();
-  rootDiv.style.position = "";
-  rootDiv.style.width = "";
-  rootDiv.style.maxHeight = "400px";
-
-  // ztoolkit.UI.appendElement(
-  //   {
-  //     tag: "div",
-  //     properties: {
-  //       textContent:
-  //         "对应标签" +
-  //         ann.id +
-  //         "类型" +
-  //         ann.itemTypeID +
-  //         "pdf" +
-  //         ann.parentItem?.getDisplayTitle() +
-  //         "条目" +
-  //         ann.parentItem?.parentItem?.getDisplayTitle(),
-  //     },
-  //   },
-  //   rootDiv,
-  // );
-  // ztoolkit.UI.appendElement(popup.createCurrentTags(), rootDiv);
-  // ztoolkit.UI.appendElement(
-  //   { tag: "div", properties: { textContent: "搜索窗口" } },
-  //   rootDiv,
-  // );
-  // ztoolkit.UI.appendElement(popup.createSearchDiv(), rootDiv);
-  // ztoolkit.UI.appendElement(
-  //   { tag: "div", properties: { textContent: "选择的窗口" } },
-  //   rootDiv,
-  // );
-  // ztoolkit.UI.appendElement(popup.createTagsDiv(), rootDiv);
-  // ztoolkit.log("replaceTagsPreviewDiv", preview.innerHTML, rootDiv);
+    // ztoolkit.log("replaceTagsPreviewDiv")
+    preview.appendChild(rootDiv);
+    rootDiv.innerText =
+      `预览注释来自：${from}。条目：${ann.parentItem?.parentItem?.getDisplayTitle()}。
+      包含标签:[${ann.getTags().map(a=>a.tag).join(",")}]内容：${ann.annotationType} ${ann.annotationText} ${ann.annotationComment} 
+      `;
+    rootDiv.style.position = "";
+    rootDiv.style.width = "";
+    rootDiv.style.maxHeight = "400px";
+  }else{
+    ztoolkit.UI.appendElement({tag:"div",properties:{textContent:"请创建一个注释，并给他加上标签后再尝试此功能"}},preview) 
+  }
 }
 
 export async function initPrefSettings() {

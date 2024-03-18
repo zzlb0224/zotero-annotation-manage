@@ -31,7 +31,7 @@ pref-multipleTags =
 
     
 pref-combine-nested-tags = 
-    .label =  添加多个标签的时候如果可以组合成Nested Tags，那么进行组合。比如“理论”+“TPB”组合成“#理论/TPB”，如果这个标签以前存在那么就添加
+    .label =  组合Nested Tags，添加多个标签的时候如果可以组合成一个Nested Tags，那么进行组合。比如“理论”+“TPB”组合成“#理论/TPB”，如果这个标签以前存在那么就添加
 
 pref-split-nested-tags-keep-first = 
     .label =  拆分Nested Tags，并保留第一个。 “#理论/TPB” 将保留 “理论”
@@ -51,8 +51,9 @@ pref-fixed-tags-style =
 pref-count-down-close = 自动关闭弹出窗口时长（至少5秒）
 
 
-pref-tags-exclude = 使用正则排除不喜欢的标签
+pref-tags-exclude = 使用正则排除不喜欢的相关标签。搜索结果不排除。使用^代表开头，使用$代表结尾，出现/要使用\/代替，.*代表所有字符，\d代表数字。例如：^zotero:// ^# #\/ 分别排除一些系统的Tags
 pref-max-show = 最大显示标签数
+pref-reload-search-preview = 重新加载预览
 pref-search-preview = 相关标签预览
 pref-search-input = 输入任意文字测试搜索
 

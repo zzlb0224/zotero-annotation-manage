@@ -50,5 +50,6 @@ pref-tags-exclude = tags-exclude
 pref-max-show = max-show
 pref-search-preview = search-preview 
 pref-search-input = search-input
+pref-reload-search-preview = 重新加载预览
 
 pref-help = { $name } Build { $version } { $time }

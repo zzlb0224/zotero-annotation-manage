@@ -432,11 +432,18 @@ export class AnnotationPopup {
     }>[],
   ) {
     const tagsExclude = (getPref("tags-exclude") as string) || "";
-    const tagsExcludes = tagsExclude
+    const rs:RegExp[]=[] 
+      for(const te of  tagsExclude
       .split("\n")
-      .filter((f) => f)
-      .map((f) => RegExp(f, "i"));
-    return from.filter((f) => !tagsExcludes.some((s) => s.test(f.key)));
+      .filter((f) => f)){
+        try {
+          rs.push(RegExp(te, "i"))
+        } catch (error) {
+          ztoolkit.log(error)
+        }
+
+      } 
+    return from.filter((f) => !rs.some((s) => s.test(f.key)));
   }
 
   async searchTagResult() {
@@ -448,7 +455,7 @@ export class AnnotationPopup {
       const searchResult = searchIn.filter((f) =>
         RegExp(this.searchTag, "i").test(f.key),
       );
-      return this.excludeTags(searchResult);
+      return (searchResult);
     } else {
       return this.relateTags;
     }
