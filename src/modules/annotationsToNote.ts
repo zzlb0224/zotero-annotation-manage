@@ -27,6 +27,15 @@ function register() {
     children: [
       {
         tag: "menuitem",
+        label: "测试分割线",
+        icon: iconBaseUrl + "favicon.png",
+        commandListener: (ev) => {},
+      },
+      {
+        tag: "menuseparator",
+      },
+      {
+        tag: "menuitem",
         label: "自选标签",
         icon: iconBaseUrl + "favicon.png",
         commandListener: (ev) => {
