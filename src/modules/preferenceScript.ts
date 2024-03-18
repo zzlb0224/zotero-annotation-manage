@@ -156,7 +156,7 @@ function bindPrefEvents() {
     });
   doc
     .querySelector(`#zotero-prefpane-${config.addonRef}-max-show`)
-    ?.addEventListener("command", (e) => {
+    ?.addEventListener("keyup", (e) => {
       getOptionalColor.remove();
       replaceTagsPreviewDiv(doc);
     });
