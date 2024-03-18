@@ -131,6 +131,7 @@ function createChooseTagsDiv(doc: Document, isCollection: boolean) {
         children: [
           {
             tag: "button",
+            namespace: "html",
             properties: { textContent: "+点击展开可选标签" },
             styles: { background: "#fff", padding: "6px" },
             listeners: [
@@ -415,8 +416,8 @@ function getTitleFromAnnotations(annotations: AnnotationRes[]) {
   // const pdfLength = uniqueBy(annotations, (a) => a.pdf.key).length;
   const annotationLength = uniqueBy(annotations, (a) => a.ann.key).length;
   // const tagLength = uniqueBy(annotations, (a) => a.tag.tag).length;
-
-  const title = `注释 (${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}) ${itemsLength}-${annotationLength}`;
+  // ${itemsLength}-${annotationLength}
+  const title = `注释 (${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}) `;
   return title;
 }
 
@@ -454,7 +455,7 @@ async function exportNote({
   const title = getTitleFromAnnotations(annotations);
   //createNote 一定要在 getSelectedItems 之后，不然获取不到选择的条目
   // 另一个问题是 会创建顶层条目触发另一个插件的 closeOtherProgressWindows
-  const note = await createNote(title);
+  const note = await createNote();
   annotations = await convertHtml(annotations, note);
   const getKeyGroup = (fn: (item: AnnotationRes) => string) =>
     groupBy(annotations, fn)
@@ -464,8 +465,8 @@ async function exportNote({
       .join("  ");
 
   const txt = await toText(annotations);
-  ztoolkit.log("输出的html", txt);
-  await saveNote(note, `<h2>${getKeyGroup((f) => f.year)}</h2>\n${txt}`);
+  // ztoolkit.log("输出的html", title+txt);
+  await saveNote(note, `${title}${txt}`);
 }
 function getSelectedItems(isCollection: boolean) {
   let items: Zotero.Item[] = [];
@@ -563,7 +564,7 @@ function exportSingleNote(tag: string, isCollection: boolean = false) {
     });
 }
 function exportTagsNote(tags: string[], items: Zotero.Item[]) {
-  if (tags.length > 0)
+  if (tags.length > 0) {
     exportNote({
       filter: async (ans) =>
         ans
@@ -571,6 +572,12 @@ function exportTagsNote(tags: string[], items: Zotero.Item[]) {
           .map((a) => Object.assign(a, { tag: a.tag })),
       items,
       toText: (ans) =>
+        `${groupBy(
+          ans.flatMap((a) => a.tags),
+          (a) => a.tag,
+        )
+          .map((a) => `[${a.values.length}]${a.key}`)
+          .join(",")}\n` +
         groupBy(ans, (a) => a.pdfTitle)
           .sort((a, b) => (a.key > b.key ? 1 : -1))
           .flatMap((a, index, aa) => [
@@ -586,6 +593,7 @@ function exportTagsNote(tags: string[], items: Zotero.Item[]) {
           ])
           .join(""),
     });
+  }
 }
 
 function getColorTags(tags: string[]) {
