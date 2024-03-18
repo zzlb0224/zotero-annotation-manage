@@ -264,7 +264,7 @@ async function replaceTagsPreviewDiv(doc?: Document) {
   if (ann) {
     const popup = new AnnotationPopup(
       undefined,
-      { ids: ann.id + "" },
+      { ids: [ann.key] },
       ann.parentItem,
       doc,
     );
@@ -279,7 +279,7 @@ async function replaceTagsPreviewDiv(doc?: Document) {
         .map((a) => a.tag)
         .join(
           ",",
-        )}]内容：${ann.annotationType} ${ann.annotationText} ${ann.annotationComment} 
+        )}]内容：${ann.annotationType} ${ann.annotationText || ""} ${ann.annotationComment || ""} 
       `;
     rootDiv.style.position = "";
     rootDiv.style.width = "";

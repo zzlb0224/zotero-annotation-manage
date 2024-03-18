@@ -86,6 +86,7 @@ export class AnnotationPopup {
           this.params?.ids.includes(f.key),
         )
       : [];
+    ztoolkit.log(this, this.existAnnotations);
     this.fontSize =
       (Zotero.Prefs.get(
         `extensions.zotero.ZoteroPDFTranslate.fontSize`,
