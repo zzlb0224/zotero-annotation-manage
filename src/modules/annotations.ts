@@ -166,6 +166,7 @@ export class AnnotationPopup {
     } else {
       relateTags = groupBy(getRelateTags(this.item), (t) => t.tag);
     }
+    if(getPref("show-relate-tags"))
     groupByResultIncludeFixedTags(relateTags);
 
     relateTags.sort(sortByFixedTag2Length);
