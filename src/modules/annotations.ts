@@ -169,7 +169,7 @@ export class AnnotationPopup {
 
     relateTags.sort(sortByFixedTag2Length);
     this.relateTags = relateTags;
-    this.tagsDisplay = relateTags;
+    this.tagsDisplay = this.excludeTags(relateTags);
     if (!root.querySelector("#" + this.idCloseButton)) {
       //按说不会出现重复添加现象，
       ztoolkit.UI.appendElement(this.createCurrentTags(), root);
@@ -425,6 +425,19 @@ export class AnnotationPopup {
       ],
     };
   }
+  excludeTags(
+    from: groupByResult<{
+      tag: string;
+      type: number;
+    }>[],
+  ) {
+    const tagsExclude = (getPref("tags-exclude") as string) || "";
+    const tagsExcludes = tagsExclude
+      .split("\n")
+      .filter((f) => f)
+      .map((f) => RegExp(f, "i"));
+    return from.filter((f) => !tagsExcludes.some((s) => s.test(f.key)));
+  }
 
   async searchTagResult() {
     if (this.searchTag) {
@@ -435,7 +448,7 @@ export class AnnotationPopup {
       const searchResult = searchIn.filter((f) =>
         RegExp(this.searchTag, "i").test(f.key),
       );
-      return searchResult;
+      return this.excludeTags(searchResult);
     } else {
       return this.relateTags;
     }
@@ -443,22 +456,76 @@ export class AnnotationPopup {
 
   createTagsDiv(): TagElementProps {
     const fixedTagsStyle = !!getPref("fixed-tags-style");
-    const children = this.tagsDisplay.slice(0, 200).map((label) => {
-      const tag = label.key;
-      const allHave = this.isAllHave(tag);
-      const noneHave = this.isNoneHave(tag);
-      const someHave = this.strSomeHave(tag);
-      const bgColor = getFixedColor(tag, "");
-      if (fixedTagsStyle && getFixedTags().includes(tag)) {
+    const children = this.tagsDisplay
+      .slice(0, (getPref("max-show") as number) || 200)
+      .map((label) => {
+        const tag = label.key;
+        const allHave = this.isAllHave(tag);
+        const noneHave = this.isNoneHave(tag);
+        const someHave = this.strSomeHave(tag);
+        const bgColor = getFixedColor(tag, "");
+        if (fixedTagsStyle && getFixedTags().includes(tag)) {
+          return {
+            tag: "span",
+            namespace: "html",
+            classList: ["toolbarButton1"],
+            styles: {
+              margin: "2px",
+              padding: "2px",
+              fontSize: this.fontSize,
+              // boxShadow: "#999999 0px 0px 4px 3px",
+              borderRadius: "6px",
+            },
+            listeners: [
+              {
+                type: "click",
+                listener: (e: Event) => {
+                  ztoolkit.log("增加标签", label, this.params, e);
+                  const target = e.target as HTMLElement;
+                  target.style.boxShadow = "#ff0000 0px 0px 4px 3px";
+                  this.onTagClick(tag, bgColor);
+                },
+              },
+            ],
+            children: [
+              {
+                tag: "span",
+                namespace: "html",
+                properties: {
+                  textContent: `[${label.values.length}]`,
+                },
+                styles: {
+                  // margin: "2px",
+                  padding: "2px",
+                  background: bgColor,
+                  fontSize: this.fontSize,
+                  boxShadow: "#999999 0px 0px 4px 3px",
+                  borderRadius: "6px",
+                },
+              },
+              {
+                tag: "span",
+                namespace: "html",
+                properties: {
+                  textContent: `${allHave ? "[x]" : noneHave ? "" : `[${someHave}]`}${tag}`,
+                },
+              },
+            ],
+          };
+        }
         return {
           tag: "span",
           namespace: "html",
           classList: ["toolbarButton1"],
+          properties: {
+            textContent: `${allHave ? "[x]" : noneHave ? "" : `[${someHave}]`}[${label.values.length}]${tag}`,
+          },
           styles: {
             margin: "2px",
             padding: "2px",
+            background: bgColor,
             fontSize: this.fontSize,
-            // boxShadow: "#999999 0px 0px 4px 3px",
+            boxShadow: "#999999 0px 0px 4px 3px",
             borderRadius: "6px",
           },
           listeners: [
@@ -472,60 +539,8 @@ export class AnnotationPopup {
               },
             },
           ],
-          children: [
-            {
-              tag: "span",
-              namespace: "html",
-              properties: {
-                textContent: `[${label.values.length}]`,
-              },
-              styles: {
-                // margin: "2px",
-                padding: "2px",
-                background: bgColor,
-                fontSize: this.fontSize,
-                boxShadow: "#999999 0px 0px 4px 3px",
-                borderRadius: "6px",
-              },
-            },
-            {
-              tag: "span",
-              namespace: "html",
-              properties: {
-                textContent: `${allHave ? "[x]" : noneHave ? "" : `[${someHave}]`}${tag}`,
-              },
-            },
-          ],
         };
-      }
-      return {
-        tag: "span",
-        namespace: "html",
-        classList: ["toolbarButton1"],
-        properties: {
-          textContent: `${allHave ? "[x]" : noneHave ? "" : `[${someHave}]`}[${label.values.length}]${tag}`,
-        },
-        styles: {
-          margin: "2px",
-          padding: "2px",
-          background: bgColor,
-          fontSize: this.fontSize,
-          boxShadow: "#999999 0px 0px 4px 3px",
-          borderRadius: "6px",
-        },
-        listeners: [
-          {
-            type: "click",
-            listener: (e: Event) => {
-              ztoolkit.log("增加标签", label, this.params, e);
-              const target = e.target as HTMLElement;
-              target.style.boxShadow = "#ff0000 0px 0px 4px 3px";
-              this.onTagClick(tag, bgColor);
-            },
-          },
-        ],
-      };
-    });
+      });
     return {
       tag: "div",
       namespace: "html",

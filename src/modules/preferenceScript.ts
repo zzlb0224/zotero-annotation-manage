@@ -239,7 +239,7 @@ async function replaceTagsPreviewDiv(doc?: Document) {
     child.remove();
   }
   const rootDiv = popup.rootDiv;
-  popup.searchTag;
+  popup.tagsDisplay = await popup.searchTagResult();
   if (!rootDiv) return;
   // ztoolkit.log("replaceTagsPreviewDiv")
   preview.appendChild(rootDiv);
