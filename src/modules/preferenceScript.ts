@@ -301,22 +301,22 @@ export async function initPrefSettings() {
   if (!getPref("tags")) {
     setPref("tags", FixedTagsDefault);
   }
-  if (getPref("show-relate-tags") == undefined) {
-    setPref("show-relate-tags", true);
-  }
-  if (getPref("currentCollection") == undefined) {
-    setPref("currentCollection", true);
-  }
-  if (getPref("selectedCollection") == undefined) {
-    setPref("selectedCollection", true);
-  }
   if (getPref("fixed-colors") == undefined) {
     setPref("fixed-colors", FixedColorDefault);
   }
-  if (getPref("optional-color") == undefined) {
-    setPref("optional-color", "#ffc0cb");
-  }
-  if (getPref("count-down-close") == undefined) {
-    setPref("count-down-close", 15);
-  }
+  // if (getPref("optional-color") == undefined) {
+  //   setPref("optional-color", "#ffc0cb");
+  // }
+  // if (getPref("show-relate-tags") == undefined) {
+  //   setPref("show-relate-tags", true);
+  // }
+  // if (getPref("currentCollection") == undefined) {
+  //   setPref("currentCollection", true);
+  // }
+  // if (getPref("selectedCollection") == undefined) {
+  //   setPref("selectedCollection", true);
+  // }
+  // if (getPref("count-down-close") == undefined) {
+  //   setPref("count-down-close", 15);
+  // }
 }
