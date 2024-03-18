@@ -589,7 +589,7 @@ function exportTagsNote(tags: string[], items: Zotero.Item[]) {
                   getColorTags(b.tags.map((c) => c.tag)) + "</p>",
                 ),
               )
-              .map((b) => b.replace(/<p><\/p>/g, ""))
+              .map((b) => b.replace(/<p>[\r\n]*<\/p>/g, ""))
               .join(" "),
           ])
           .join(""),

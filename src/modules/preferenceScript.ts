@@ -8,6 +8,7 @@ import {
   getFixedColor,
   getFixedTags,
   getOptionalColor,
+  getRelateTags,
 } from "../utils/zzlb";
 import { AnnotationPopup } from "./annotations";
 
@@ -147,21 +148,25 @@ function bindPrefEvents() {
     .querySelector(`#zotero-prefpane-${config.addonRef}-tags-exclude`)
     ?.addEventListener("command", (e) => {
       getOptionalColor.remove();
+      replaceTagsPreviewDiv(doc);
     });
   doc
     .querySelector(`#zotero-prefpane-${config.addonRef}-max-show`)
     ?.addEventListener("command", (e) => {
       getOptionalColor.remove();
+      replaceTagsPreviewDiv(doc);
     });
   doc
     .querySelector(`#zotero-prefpane-${config.addonRef}-showAllTags`)
     ?.addEventListener("command", (e) => {
       getOptionalColor.remove();
+      replaceTagsPreviewDiv(doc);
     });
   doc
     .querySelector(`#zotero-prefpane-${config.addonRef}-children-collection`)
     ?.addEventListener("command", (e) => {
       getOptionalColor.remove();
+      replaceTagsPreviewDiv(doc);
     });
   doc
     .querySelector(`#zotero-prefpane-${config.addonRef}-preview-button`)
@@ -172,11 +177,14 @@ function bindPrefEvents() {
     .querySelector(`#zotero-prefpane-${config.addonRef}-currentCollection`)
     ?.addEventListener("command", (e) => {
       getOptionalColor.remove();
+      replaceTagsPreviewDiv(doc);
     });
   doc
     .querySelector(`#zotero-prefpane-${config.addonRef}-show-relate-tags`)
     ?.addEventListener("command", (e) => {
       getOptionalColor.remove();
+      replaceTagsPreviewDiv(doc);
+      getRelateTags.remove();
     });
 }
 async function replaceTagsPreviewDiv(doc?: Document) {
@@ -188,13 +196,17 @@ async function replaceTagsPreviewDiv(doc?: Document) {
   preview.children[0]?.remove();
   const getAnn = async () => {
     let ann: Zotero.Item | undefined = undefined;
+    let from = "";
     const selected = ZoteroPane.getSelectedItems()?.[0];
     if (selected) {
       const item = selected.parentItem ? selected.parentItem : selected;
-      const ann = Zotero.Items.get(item.getAttachments(false))
+      ann = Zotero.Items.get(item.getAttachments(false))
         .filter((f) => f.isPDFAttachment())
         .flatMap((f) => f.getAnnotations())
         .filter((f) => f.getTags().length > 0)[0];
+      if (ann) {
+        from = "当前选择的条目";
+      }
     }
     if (!ann) {
       const pdfs = ZoteroPane.getSelectedCollection()
@@ -205,6 +217,9 @@ async function replaceTagsPreviewDiv(doc?: Document) {
           .filter((f) => f.isPDFAttachment())
           .flatMap((f) => f.getAnnotations())
           .filter((f) => f.getTags().length > 0)[0];
+        if (ann) {
+          from = "当前文件夹的标签";
+        }
       }
     }
     if (!ann) {
@@ -217,6 +232,9 @@ async function replaceTagsPreviewDiv(doc?: Document) {
           .filter((f) => f.isPDFAttachment())
           .flatMap((f) => f.getAnnotations())
           .filter((f) => f.getTags().length > 0)[0];
+        if (ann) {
+          from = "当前文件夹的子文件夹标签";
+        }
       }
     }
     if (!ann) {
@@ -224,59 +242,67 @@ async function replaceTagsPreviewDiv(doc?: Document) {
       ann = all
         .filter((f) => f.itemTypeID == 1)
         .filter((f) => f.getTags().length > 0)[0];
+      if (ann) {
+        from = "全库的标签";
+      }
     }
-    return ann;
+    return { ann, from };
   };
-  const ann = await getAnn();
+  const { ann, from } = await getAnn();
   ztoolkit.log(ann, ann.parentItem, ann.parentItem?.parentItem);
+
+  for (const child of preview.children) {
+    child.remove();
+  }
   const popup = new AnnotationPopup(
     undefined,
     { ids: ann.id + "" },
     ann.parentItem,
     doc,
   );
-  for (const child of preview.children) {
-    child.remove();
-  }
   const rootDiv = popup.rootDiv;
   popup.tagsDisplay = await popup.searchTagResult();
   if (!rootDiv) return;
   // ztoolkit.log("replaceTagsPreviewDiv")
   preview.appendChild(rootDiv);
-  rootDiv.innerText = "动态生成内容222";
+  rootDiv.innerText =
+    "预览标签来自：" +
+    from +
+    "。条目：" +
+    ann.parentItem?.parentItem?.getDisplayTitle();
   rootDiv.style.position = "";
   rootDiv.style.width = "";
   rootDiv.style.maxHeight = "400px";
 
-  ztoolkit.UI.appendElement(
-    {
-      tag: "div",
-      properties: {
-        textContent:
-          "对应标签" +
-          ann.id +
-          "类型" +
-          ann.itemTypeID +
-          "pdf" +
-          ann.parentItem?.getDisplayTitle() +
-          "条目" +
-          ann.parentItem?.parentItem?.getDisplayTitle(),
-      },
-    },
-    rootDiv,
-  );
-  ztoolkit.UI.appendElement(popup.createCurrentTags(), rootDiv);
-  ztoolkit.UI.appendElement(
-    { tag: "div", properties: { textContent: "搜索窗口" } },
-    rootDiv,
-  );
-  ztoolkit.UI.appendElement(popup.createSearchDiv(), rootDiv);
-  ztoolkit.UI.appendElement(
-    { tag: "div", properties: { textContent: "选择的窗口" } },
-    rootDiv,
-  );
-  ztoolkit.UI.appendElement(popup.createTagsDiv(), rootDiv);
-  ztoolkit.log("replaceTagsPreviewDiv", preview.innerHTML, rootDiv);
+  // ztoolkit.UI.appendElement(
+  //   {
+  //     tag: "div",
+  //     properties: {
+  //       textContent:
+  //         "对应标签" +
+  //         ann.id +
+  //         "类型" +
+  //         ann.itemTypeID +
+  //         "pdf" +
+  //         ann.parentItem?.getDisplayTitle() +
+  //         "条目" +
+  //         ann.parentItem?.parentItem?.getDisplayTitle(),
+  //     },
+  //   },
+  //   rootDiv,
+  // );
+  // ztoolkit.UI.appendElement(popup.createCurrentTags(), rootDiv);
+  // ztoolkit.UI.appendElement(
+  //   { tag: "div", properties: { textContent: "搜索窗口" } },
+  //   rootDiv,
+  // );
+  // ztoolkit.UI.appendElement(popup.createSearchDiv(), rootDiv);
+  // ztoolkit.UI.appendElement(
+  //   { tag: "div", properties: { textContent: "选择的窗口" } },
+  //   rootDiv,
+  // );
+  // ztoolkit.UI.appendElement(popup.createTagsDiv(), rootDiv);
+  // ztoolkit.log("replaceTagsPreviewDiv", preview.innerHTML, rootDiv);
 }
 
 export async function initPrefSettings() {

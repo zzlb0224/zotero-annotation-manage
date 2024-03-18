@@ -63,6 +63,7 @@ export class AnnotationPopup {
   item?: Zotero.Item;
   onHidePopup?: () => void;
   intervalId?: NodeJS.Timeout;
+  idSelectedTags = `${config.addonRef}-reader-div-selected-tags`;
   public constructor(
     reader?: _ZoteroTypes.ReaderInstance,
     params?: {
@@ -196,7 +197,6 @@ export class AnnotationPopup {
           }
         } else {
           this.rootDiv?.remove();
-          // doc?.getElementById(`${config.addonRef}-reader-div`)?.remove();
         }
       };
     if (this.intervalId) {
@@ -419,7 +419,7 @@ export class AnnotationPopup {
         },
         {
           tag: "div",
-          id: `${config.addonRef}-reader-div-selected-tags`,
+          id: this.idSelectedTags,
           styles: { display: "flex", justifyContent: "space-between" },
         },
       ],
@@ -578,7 +578,11 @@ export class AnnotationPopup {
     );
   }
   onTagClick(tag: string, color: string = "") {
-    if (this.doc && this.selectedTags.every((s) => s.tag != tag)) {
+    if (
+      this.doc &&
+      this.rootDiv &&
+      this.selectedTags.every((s) => s.tag != tag)
+    ) {
       this.selectedTags.push({
         tag,
         color: color || getFixedColor(tag, undefined),
@@ -610,7 +614,7 @@ export class AnnotationPopup {
             },
           ],
         },
-        this.doc.getElementById(`${config.addonRef}-reader-div-selected-tags`)!,
+        this.rootDiv.querySelector("#" + this.idSelectedTags)!,
       );
     }
     if (!getPref("multipleTags")) {
@@ -630,42 +634,44 @@ export class AnnotationPopup {
     const tagsRequire = await this.getTagsRequire();
 
     const tagsRemove = this.delTags.filter((f) => !tagsRequire.includes(f));
-
     ztoolkit.log("需要添加的tags", tagsRequire, "需要删除的", tagsRemove);
-    if (this.isExistAnno) {
-      for (const annotation of this.existAnnotations) {
-        for (const tag of tagsRequire) {
-          if (!annotation.hasTag(tag)) {
-            annotation.addTag(tag, 0);
+    if (this.reader) {
+      if (this.isExistAnno) {
+        for (const annotation of this.existAnnotations) {
+          for (const tag of tagsRequire) {
+            if (!annotation.hasTag(tag)) {
+              annotation.addTag(tag, 0);
+            }
           }
-        }
-        for (const tag of tagsRemove) {
-          if (annotation.hasTag(tag)) {
-            annotation.removeTag(tag);
+          for (const tag of tagsRemove) {
+            if (annotation.hasTag(tag)) {
+              annotation.removeTag(tag);
+            }
           }
+          annotation.saveTx(); //增加每一个都要保存，为啥不能批量保存？
         }
-        annotation.saveTx(); //增加每一个都要保存，为啥不能批量保存？
+        this.doc?.getElementById(this.idRootDiv)?.remove();
+      } else {
+        const color =
+          this.selectedTags.map((a) => a.color).filter((f) => f)[0] ||
+          getFixedColor(tagsRequire[0], undefined);
+        const tags = tagsRequire.map((a) => ({ name: a }));
+        // 因为线程不一样，不能采用直接修改params.annotation的方式，所以直接采用新建的方式保存笔记
+        // 特意采用 Components.utils.cloneInto 方法
+        this.reader?._annotationManager.addAnnotation(
+          Components.utils.cloneInto(
+            { ...this.params?.annotation, color, tags },
+            this.doc,
+          ),
+        );
+        this.onHidePopup?.apply(this);
+        //@ts-ignore 隐藏弹出框
+        this.reader?._primaryView._onSetSelectionPopup(null);
       }
-      this.doc?.getElementById(this.idRootDiv)?.remove();
-    } else {
-      const color =
-        this.selectedTags.map((a) => a.color).filter((f) => f)[0] ||
-        getFixedColor(tagsRequire[0], undefined);
-      const tags = tagsRequire.map((a) => ({ name: a }));
-      // 因为线程不一样，不能采用直接修改params.annotation的方式，所以直接采用新建的方式保存笔记
-      // 特意采用 Components.utils.cloneInto 方法
-      this.reader?._annotationManager.addAnnotation(
-        Components.utils.cloneInto(
-          { ...this.params?.annotation, color, tags },
-          this.doc,
-        ),
-      );
-      this.onHidePopup?.apply(this);
-      //@ts-ignore 隐藏弹出框
-      this.reader?._primaryView._onSetSelectionPopup(null);
+
+      getAllTagsDB.remove();
+      getRelateTags.remove(this.item?.key);
     }
-    getAllTagsDB.remove();
-    getRelateTags.remove(this.item?.key);
   }
   //测试预览
   private async getTagsRequire() {

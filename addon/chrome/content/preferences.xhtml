@@ -57,6 +57,12 @@
         />
       </hbox>
       <checkbox
+        id="zotero-prefpane-__addonRef__-multipleTags"
+        preference="__prefsPrefix__.multipleTags"
+        data-l10n-id="pref-multipleTags"
+        native="true"
+      />
+      <checkbox
         id="zotero-prefpane-__addonRef__-show-relate-tags"
         preference="__prefsPrefix__.show-relate-tags"
         data-l10n-id="pref-show-relate-tags"
@@ -100,6 +106,7 @@
           style="width: 160px"
         />
       </hbox>
+
       <vbox>
         <html:label
           for="zotero-prefpane-__addonRef__-tags-exclude"
@@ -115,17 +122,7 @@
       />
       <vbox>
         <html:label data-l10n-id="pref-search-preview" />
-        <!-- <hbox>
-          <html:label
-            for="zotero-prefpane-__addonRef__-search-input"
-            data-l10n-id="pref-search-input"
-          />
-          <html:input
-            id="zotero-prefpane-__addonRef__-search-input"
-            style="width: 100%"
-            native="true"
-          />
-        </hbox> -->
+
         <button
           type="button"
           id="zotero-prefpane-__addonRef__-preview-button"
@@ -140,12 +137,6 @@
         >
       </vbox>
 
-      <checkbox
-        id="zotero-prefpane-__addonRef__-multipleTags"
-        preference="__prefsPrefix__.multipleTags"
-        data-l10n-id="pref-multipleTags"
-        native="true"
-      />
       <checkbox
         id="zotero-prefpane-__addonRef__-combine-nested-tags"
         preference="__prefsPrefix__.combine-nested-tags"
