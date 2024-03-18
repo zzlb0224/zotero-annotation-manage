@@ -70,7 +70,7 @@ export class BasicExampleFactory {
     Zotero.Notifier.unregisterObserver(notifierID);
   }
 
-  @example
+  // @example
   static registerPrefs() {
     const prefOptions = {
       pluginID: config.addonID,
