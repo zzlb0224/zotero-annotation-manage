@@ -112,10 +112,10 @@ function asTagElementProps(
     other,
   ) as TagElementProps;
 }
-function createChooseTagsDiv(doc: Document, isCollection: boolean) {
+async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
   const selectedTags: string[] = [];
 
-  const items = getSelectedItems(isCollection);
+  const items = await getSelectedItems(isCollection);
   const annotations = getAllAnnotations(items).flatMap((f) =>
     f.tags.map((t) => Object.assign(f, { tag: t })),
   );
@@ -289,7 +289,8 @@ async function saveNote(targetNoteItem: Zotero.Item, txt: string) {
 async function createNote(txt = "") {
   const targetNoteItem = new Zotero.Item("note");
   targetNoteItem.libraryID = ZoteroPane.getSelectedLibraryID();
-  targetNoteItem.setCollections([ZoteroPane.getSelectedCollection(true) || 0]);
+  const selectedCollection = ZoteroPane.getSelectedCollection(true);
+  if (selectedCollection) targetNoteItem.setCollections([selectedCollection]);
   if (txt) await Zotero.BetterNotes.api.note.insert(targetNoteItem, txt, -1);
   targetNoteItem.addTag("生成的笔记", 0);
   //必须保存后面才能保存图片
@@ -468,16 +469,21 @@ async function exportNote({
   // ztoolkit.log("输出的html", title+txt);
   await saveNote(note, `${title}${txt}`);
 }
-function getSelectedItems(isCollection: boolean) {
+async function getSelectedItems(isCollection: boolean) {
   let items: Zotero.Item[] = [];
   if (isCollection) {
     const selectedCollection = ZoteroPane.getSelectedCollection();
+    ztoolkit.log(isCollection, selectedCollection);
     if (selectedCollection) {
       const cs = uniqueBy(
         [selectedCollection, ...getChildCollections([selectedCollection])],
         (u) => u.key,
       );
       items = cs.flatMap((f) => f.getChildItems(false, false));
+    } else {
+      const itemsAll = await Zotero.Items.getAll(1, false, false, false);
+      const itemTypes = ["journalArticle", "thesis"]; //期刊和博硕论文
+      items = itemsAll.filter((f) => itemTypes.includes(f.itemType));
     }
   } else {
     items = ZoteroPane.getSelectedItems();
@@ -485,7 +491,7 @@ function getSelectedItems(isCollection: boolean) {
   return items;
 }
 
-function exportNoteByTag(isCollection: boolean = false) {
+async function exportNoteByTag(isCollection: boolean = false) {
   exportNote({
     filter: (ans) =>
       ans.flatMap((an) => an.tags.map((tag) => Object.assign({}, an, { tag }))),
@@ -499,10 +505,10 @@ function exportNoteByTag(isCollection: boolean = false) {
           ];
         })
         .join("\n"),
-    items: getSelectedItems(isCollection),
+    items: await getSelectedItems(isCollection),
   });
 }
-function exportNoteByTagPdf(isCollection: boolean = false) {
+async function exportNoteByTagPdf(isCollection: boolean = false) {
   exportNote({
     filter: (ans) =>
       ans.flatMap((an) => an.tags.map((tag) => Object.assign({}, an, { tag }))),
@@ -521,11 +527,11 @@ function exportNoteByTagPdf(isCollection: boolean = false) {
           ];
         })
         .join("\n"),
-    items: getSelectedItems(isCollection),
+    items: await getSelectedItems(isCollection),
   });
 }
 
-function exportNoteOnlyImage(isCollection: boolean = false) {
+async function exportNoteOnlyImage(isCollection: boolean = false) {
   exportNote({
     toText: (annotations) =>
       groupBy(annotations, (a) => a.pdfTitle)
@@ -538,19 +544,19 @@ function exportNoteOnlyImage(isCollection: boolean = false) {
           ]),
         ])
         .join("\n"),
-    items: getSelectedItems(isCollection),
+    items: await getSelectedItems(isCollection),
     filter: (annotations) => {
       annotations = annotations.filter((f) => f.type == "image");
       return uniqueBy(annotations, (a) => a.ann.key);
     },
   });
 }
-function exportSingleNote(tag: string, isCollection: boolean = false) {
+async function exportSingleNote(tag: string, isCollection: boolean = false) {
   if (tag)
     exportNote({
       filter: async (ans) =>
         ans.filter((f) => f.tags.some((a) => (tag = a.tag))),
-      items: getSelectedItems(isCollection),
+      items: await getSelectedItems(isCollection),
       toText: (ans) =>
         groupBy(ans, (a) => a.pdfTitle)
           .sort((a, b) => (a.key > b.key ? 1 : -1))
