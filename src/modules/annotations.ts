@@ -37,7 +37,7 @@ function unregister() {
     createAnnotationContextMenu,
   );
 }
-class PopupDiv {
+export class AnnotationPopup {
   reader?: _ZoteroTypes.ReaderInstance;
   params?: {
     annotation?: _ZoteroTypes.Annotations.AnnotationJson;
@@ -56,8 +56,9 @@ class PopupDiv {
   searchTag = "";
   selectedTags: { tag: string; color: string }[] = [];
   delTags: string[] = [];
-  idRootDiv = `${config.addonRef}-PopupDiv-`;
+  idRootDiv = `${config.addonRef}-PopupDiv`;
   idCloseButton = `${config.addonRef}-PopupDiv-close`;
+  idTagsDiv = `${config.addonRef}-PopupDiv-tags-div`;
   btnClose?: HTMLElement;
   item?: Zotero.Item;
   onHidePopup?: () => void;
@@ -345,16 +346,12 @@ class PopupDiv {
                 if (keyCode == 13) {
                   this.onTagClick(this.searchTag);
                 }
-                if (
-                  this.doc?.getElementById(`${config.addonRef}-reader-div-tags`)
-                ) {
+                const tagDiv = this.rootDiv?.querySelector(
+                  "#" + this.idTagsDiv,
+                );
+                if (tagDiv) {
                   this.tagsDisplay = await this.searchTagResult();
-                  ztoolkit.UI.replaceElement(
-                    this.createTagsDiv(),
-                    this.doc.getElementById(
-                      `${config.addonRef}-reader-div-tags`,
-                    )!,
-                  );
+                  ztoolkit.UI.replaceElement(this.createTagsDiv(), tagDiv);
                 }
               },
             },
@@ -532,7 +529,7 @@ class PopupDiv {
     return {
       tag: "div",
       namespace: "html",
-      id: `${config.addonRef}-reader-div-tags`,
+      id: this.idTagsDiv,
       styles: {
         display: "flex",
         flexDirection: "row",
@@ -708,8 +705,10 @@ class PopupDiv {
           "--scale-factor",
         ),
       ) || 1;
-    const clientWidthWithSlider = doc.body.clientWidth; //包括侧边栏的宽度
-    const clientWidthWithoutSlider = pvDoc.body.clientWidth; //不包括侧边栏的宽度
+    const clientWidthWithSlider =
+      doc.querySelector("body,div,hbox,vbox")?.clientWidth || 666; //包括侧边栏的宽度
+    const clientWidthWithoutSlider =
+      pvDoc.querySelector("body,div,hbox,vbox")?.clientWidth || 666; //不包括侧边栏的宽度
     const pageLeft =
       (pvDoc.querySelector("#viewer .page") as HTMLElement)?.offsetLeft || 0;
     return {
@@ -728,7 +727,7 @@ function renderTextSelectionPopup(
     return;
   }
   const { append, reader, doc, params } = event;
-  const div = new PopupDiv(reader, params).rootDiv;
+  const div = new AnnotationPopup(reader, params).rootDiv;
   // const div = createDiv(reader, params);
   if (div) {
     append(div);
@@ -763,7 +762,7 @@ function createAnnotationContextMenu(
     label: label,
     onCommand: () => {
       // const div = createDiv(reader, params);
-      const popDiv = new PopupDiv(reader, params);
+      const popDiv = new AnnotationPopup(reader, params);
       const div = popDiv.rootDiv;
       popDiv.startCountDown();
       if (div) {
