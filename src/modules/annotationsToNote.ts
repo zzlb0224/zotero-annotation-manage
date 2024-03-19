@@ -22,9 +22,15 @@ function register() {
 
   const menu: MenuitemOptions = {
     tag: "menu",
-    label: "导出笔记z",
+    label: "笔记管理",
     icon: iconBaseUrl + "favicon.png",
     children: [
+      {
+        tag: "menuitem",
+        label: "分割标签",
+        icon: iconBaseUrl + "favicon.png",
+        commandListener: (ev) => {},
+      },
       {
         tag: "menuitem",
         label: "测试分割线",
