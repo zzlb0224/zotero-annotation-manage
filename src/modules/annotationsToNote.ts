@@ -27,13 +27,13 @@ function register() {
     children: [
       {
         tag: "menuitem",
-        label: "分割标签",
+        label: "分割标签（未完成）",
         icon: iconBaseUrl + "favicon.png",
         commandListener: (ev) => {},
       },
       {
         tag: "menuitem",
-        label: "测试分割线",
+        label: "替换标签（未完成）",
         icon: iconBaseUrl + "favicon.png",
         commandListener: (ev) => {},
       },
@@ -49,6 +49,18 @@ function register() {
           const doc = target.ownerDocument;
           const div = createChooseTagsDiv(doc, isCollection(ev));
           ztoolkit.log("自选标签", div);
+          // setTimeout(()=>d.remove(),10000)
+        },
+      },
+      {
+        tag: "menuitem",
+        label: "查找注释文字和标签进行导出（未完成）",
+        icon: iconBaseUrl + "favicon.png",
+        commandListener: (ev) => {
+          const target = ev.target as HTMLElement;
+          const doc = target.ownerDocument;
+          // const div = createChooseTagsDiv(doc, isCollection(ev));
+          // ztoolkit.log("自选标签", div);
           // setTimeout(()=>d.remove(),10000)
         },
       },
@@ -169,38 +181,24 @@ async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
               },
             ],
           },
+          {
+            tag: "input",
+            namespace: "html",
+            listeners: [
+              {
+                type: "keyup",
+                listener: (ev) => {
+                  const value = (ev.target as HTMLInputElement).value;
+                  createTags(value.trim());
+                },
+              },
+            ],
+          },
         ],
       },
-
       {
         tag: "div",
-        styles: { display: "flex", flexWrap: "wrap" },
         id: `${config.addonRef}-ann2note-ChooseTags-tags`,
-        children: tags.slice(0, 300).map((t) => ({
-          tag: "div",
-          properties: { textContent: `[${t.values.length}]${t.key}` },
-          styles: {
-            padding: "6px",
-            background: "#099",
-            margin: "1px",
-          },
-          listeners: [
-            {
-              type: "click",
-              listener: (ev) => {
-                const target = ev.target as HTMLDivElement;
-                const index = selectedTags.findIndex((f) => f == t.key);
-                if (index == -1) {
-                  selectedTags.push(t.key);
-                  target.style.background = "#a00";
-                } else {
-                  selectedTags.splice(index, 1);
-                  target.style.background = "#099";
-                }
-              },
-            },
-          ],
-        })),
       },
     ],
   };
@@ -284,7 +282,47 @@ async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
     },
     doc.querySelector("body,div")!,
   );
+  createTags();
   return div;
+
+  function createTags(searchTag: string = "") {
+    ztoolkit.UI.replaceElement(
+      {
+        tag: "div",
+        styles: { display: "flex", flexWrap: "wrap" },
+        id: `${config.addonRef}-ann2note-ChooseTags-tags`,
+        children: tags
+          .filter((f) => new RegExp(searchTag, "i").test(f.key))
+          .slice(0, 300)
+          .map((t) => ({
+            tag: "div",
+            properties: { textContent: `[${t.values.length}]${t.key}` },
+            styles: {
+              padding: "6px",
+              background: "#099",
+              margin: "1px",
+            },
+            listeners: [
+              {
+                type: "click",
+                listener: (ev) => {
+                  const target = ev.target as HTMLDivElement;
+                  const index = selectedTags.findIndex((f) => f == t.key);
+                  if (index == -1) {
+                    selectedTags.push(t.key);
+                    target.style.background = "#a00";
+                  } else {
+                    selectedTags.splice(index, 1);
+                    target.style.background = "#099";
+                  }
+                },
+              },
+            ],
+          })),
+      },
+      doc.getElementById(`${config.addonRef}-ann2note-ChooseTags-tags`)!,
+    );
+  }
 }
 
 async function saveNote(targetNoteItem: Zotero.Item, txt: string) {

@@ -270,8 +270,8 @@ export class AnnotationPopup {
     if (tags.length == 0) return { tag: "span" };
     const ts = groupBy(tags, (t) => t.tag).sort(sortByLength);
     const annLen =
-      this.existAnnotations.length > 0
-        ? `[${this.existAnnotations.length}]注释，`
+      this.existAnnotations.length > 1
+        ? `选中${this.existAnnotations.length}注释，`
         : "";
     return {
       tag: "div",
@@ -287,7 +287,7 @@ export class AnnotationPopup {
           tag: "button",
           namespace: "html",
           properties: {
-            textContent: `${annLen}[${tags.length}]标签：`,
+            textContent: `${annLen}包含[${tags.length}]标签：`,
             title: "选中后删除",
           },
         },
