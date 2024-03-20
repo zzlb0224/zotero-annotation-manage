@@ -7,7 +7,7 @@ import {
   promiseAllWithProgress,
   sortByFixedTag2Length,
   getChildCollections,
-  getFixedColor,
+  memFixedColor,
   setProperty,
 } from "../utils/zzlb";
 import { TagElementProps } from "zotero-plugin-toolkit/dist/tools/ui";
@@ -621,7 +621,7 @@ function exportTagsNote(tags: string[], items: Zotero.Item[]) {
 function getColorTags(tags: string[]) {
   return tags.map(
     (t) =>
-      `<span style="background-color:${getFixedColor(t, undefined)};box-shadow: ${getFixedColor(t, undefined)} 0px 0px 5px 4px;">${t}</span>`,
+      `<span style="background-color:${memFixedColor(t, undefined)};box-shadow: ${memFixedColor(t, undefined)} 0px 0px 5px 4px;">${t}</span>`,
   );
 }
 function getCiteAnnotationHtml(annotation: Zotero.Item, text = "") {

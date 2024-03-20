@@ -4,15 +4,15 @@ import {
   sortByFixedTag2Length,
   groupBy,
   groupByResult,
-  getFixedTags,
+  memFixedTags,
   uniqueBy,
-  getFixedColor,
+  memFixedColor,
   sortByLength,
 } from "../utils/zzlb";
 import { getPref } from "../utils/prefs";
 import { groupByResultIncludeFixedTags } from "../utils/zzlb";
-import { getAllTagsDB } from "../utils/zzlb";
-import { getRelateTags } from "../utils/zzlb";
+import { memAllTagsDB } from "../utils/zzlb";
+import { memRelateTags } from "../utils/zzlb";
 function register() {
   // if (!getPref("enable")) return;
   // ztoolkit.UI.basicOptions.log.disableZLog = true;
@@ -163,9 +163,9 @@ export class AnnotationPopup {
     }>[] = [];
 
     if (getPref("showAllTags")) {
-      relateTags = await getAllTagsDB();
+      relateTags = await memAllTagsDB();
     } else {
-      relateTags = groupBy(getRelateTags(this.item), (t) => t.tag);
+      relateTags = groupBy(memRelateTags(this.item), (t) => t.tag);
     }
     if (getPref("show-relate-tags")) groupByResultIncludeFixedTags(relateTags);
 
@@ -449,7 +449,7 @@ export class AnnotationPopup {
 
   async searchTagResult() {
     if (this.searchTag) {
-      const searchIn = await getAllTagsDB();
+      const searchIn = await memAllTagsDB();
       //  getPref("showAllTags")
       //   ? this.relateTags
       //   : await getAllTagsDB();
@@ -471,8 +471,8 @@ export class AnnotationPopup {
         const allHave = this.isAllHave(tag);
         const noneHave = this.isNoneHave(tag);
         const someHave = this.strSomeHave(tag);
-        const bgColor = getFixedColor(tag, "");
-        if (fixedTagsStyle && getFixedTags().includes(tag)) {
+        const bgColor = memFixedColor(tag, "");
+        if (fixedTagsStyle && memFixedTags().includes(tag)) {
           return {
             tag: "span",
             namespace: "html",
@@ -593,7 +593,7 @@ export class AnnotationPopup {
     ) {
       this.selectedTags.push({
         tag,
-        color: color || getFixedColor(tag, undefined),
+        color: color || memFixedColor(tag, undefined),
       });
       ztoolkit.UI.appendElement(
         {
@@ -634,7 +634,7 @@ export class AnnotationPopup {
     if (this.selectedTags.length == 0 && this.searchTag) {
       this.selectedTags.push({
         tag: this.searchTag,
-        color: getFixedColor(this.searchTag, undefined),
+        color: memFixedColor(this.searchTag, undefined),
       });
     }
     if (this.delTags.length == 0 && this.selectedTags.length == 0) return;
@@ -662,7 +662,7 @@ export class AnnotationPopup {
       } else {
         const color =
           this.selectedTags.map((a) => a.color).filter((f) => f)[0] ||
-          getFixedColor(tagsRequire[0], undefined);
+          memFixedColor(tagsRequire[0], undefined);
         const tags = tagsRequire.map((a) => ({ name: a }));
         // 因为线程不一样，不能采用直接修改params.annotation的方式，所以直接采用新建的方式保存笔记
         // 特意采用 Components.utils.cloneInto 方法
@@ -677,8 +677,8 @@ export class AnnotationPopup {
         this.reader?._primaryView._onSetSelectionPopup(null);
       }
 
-      getAllTagsDB.remove();
-      getRelateTags.remove(this.item?.key);
+      memAllTagsDB.remove();
+      memRelateTags.remove(this.item?.key);
     }
   }
   //测试预览
@@ -709,7 +709,7 @@ export class AnnotationPopup {
       (f) => f && !f.startsWith("#") && !f.includes("/"),
     );
     const list: string[] = [];
-    const allTags = await getAllTagsDB();
+    const allTags = await memAllTagsDB();
     for (const t1 of filterArr) {
       for (const t2 of filterArr) {
         if (t1 != t2) {

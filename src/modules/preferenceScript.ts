@@ -5,11 +5,11 @@ import {
   FixedColorDefault,
   FixedTagsDefault,
   getChildCollections,
-  getFixedColor,
-  getFixedColors,
-  getFixedTags,
-  getOptionalColor,
-  getRelateTags,
+  memFixedColor,
+  memFixedColors,
+  memFixedTags,
+  memOptionalColor,
+  memRelateTags,
 } from "../utils/zzlb";
 import { AnnotationPopup } from "./annotations";
 
@@ -71,7 +71,7 @@ function replaceColorTagsElement(doc: Document) {
             justifyContent: "flex-start",
             flexWrap: "wrap",
           },
-          children: getFixedTags().map((tag) => ({
+          children: memFixedTags().map((tag) => ({
             tag: "label",
             namespace: "html",
             properties: {
@@ -79,7 +79,7 @@ function replaceColorTagsElement(doc: Document) {
               TextContent: tag,
             },
             styles: {
-              background: getFixedColor(tag, undefined),
+              background: memFixedColor(tag, undefined),
               padding: "5px 1px",
               margin: "5px 1px",
             },
@@ -96,7 +96,7 @@ function initOptionalColorLabel(doc: Document) {
     `zotero-prefpane-${config.addonRef}-optional-color`,
   );
   if (label) {
-    label.style.background = getOptionalColor();
+    label.style.background = memOptionalColor();
   }
 }
 async function updatePrefsUI() {
@@ -125,9 +125,9 @@ function bindPrefEvents() {
   doc
     .querySelector(`#zotero-prefpane-${config.addonRef}-tags`)
     ?.addEventListener("keyup", (e) => {
-      getFixedTags.remove();
-      getFixedColors.remove();
-      getFixedColor.remove();
+      memFixedTags.remove();
+      memFixedColors.remove();
+      memFixedColor.remove();
       replaceColorTagsElement(doc);
       replaceTagsPreviewDiv(doc);
     });
@@ -135,8 +135,8 @@ function bindPrefEvents() {
   doc
     .querySelector(`#zotero-prefpane-${config.addonRef}-fixed-colors`)
     ?.addEventListener("keyup", (e) => {
-      getFixedColor.remove();
-      getFixedColors.remove();
+      memFixedColor.remove();
+      memFixedColors.remove();
       replaceColorTagsElement(doc);
       replaceTagsPreviewDiv(doc);
     });
@@ -144,8 +144,8 @@ function bindPrefEvents() {
     .querySelector(`#zotero-prefpane-${config.addonRef}-optional-color`)
     ?.addEventListener("keyup", (e) => {
       initOptionalColorLabel(doc);
-      getFixedColor.remove();
-      getOptionalColor.remove();
+      memFixedColor.remove();
+      memOptionalColor.remove();
       replaceTagsPreviewDiv(doc);
     });
 
@@ -157,19 +157,19 @@ function bindPrefEvents() {
   doc
     .querySelector(`#zotero-prefpane-${config.addonRef}-max-show`)
     ?.addEventListener("keyup", (e) => {
-      getOptionalColor.remove();
+      memOptionalColor.remove();
       replaceTagsPreviewDiv(doc);
     });
   doc
     .querySelector(`#zotero-prefpane-${config.addonRef}-showAllTags`)
     ?.addEventListener("command", (e) => {
-      getOptionalColor.remove();
+      memOptionalColor.remove();
       replaceTagsPreviewDiv(doc);
     });
   doc
     .querySelector(`#zotero-prefpane-${config.addonRef}-children-collection`)
     ?.addEventListener("command", (e) => {
-      getOptionalColor.remove();
+      memOptionalColor.remove();
       replaceTagsPreviewDiv(doc);
     });
   doc
@@ -180,15 +180,15 @@ function bindPrefEvents() {
   doc
     .querySelector(`#zotero-prefpane-${config.addonRef}-currentCollection`)
     ?.addEventListener("command", (e) => {
-      getOptionalColor.remove();
+      memOptionalColor.remove();
       replaceTagsPreviewDiv(doc);
     });
   doc
     .querySelector(`#zotero-prefpane-${config.addonRef}-show-relate-tags`)
     ?.addEventListener("command", (e) => {
-      getOptionalColor.remove();
+      memOptionalColor.remove();
       replaceTagsPreviewDiv(doc);
-      getRelateTags.remove();
+      memRelateTags.remove();
     });
 }
 async function replaceTagsPreviewDiv(doc?: Document) {

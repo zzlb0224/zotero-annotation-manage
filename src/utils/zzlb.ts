@@ -66,7 +66,7 @@ export function sortByFixedTag2Length<T>(
   a: groupByResult<T>,
   b: groupByResult<T>,
 ) {
-  const tags = getFixedTags();
+  const tags = memFixedTags();
   if (tags.includes(a.key) && tags.includes(b.key)) {
     return tags.indexOf(a.key) - tags.indexOf(b.key);
   }
@@ -83,7 +83,7 @@ export function sortByFixedTag2TagName<T>(
   a: groupByResult<T>,
   b: groupByResult<T>,
 ) {
-  const tags = getFixedTags();
+  const tags = memFixedTags();
   if (tags.includes(a.key) && tags.includes(b.key)) {
     return tags.indexOf(a.key) - tags.indexOf(b.key);
   }
@@ -116,24 +116,24 @@ export const COLOR = {
   white: "#ffffff",
 };
 
-export const getOptionalColor = memoize(
+export const memOptionalColor = memoize(
   () =>
     (getPref("optional-color") as string)?.match(/#[0-9A-F]{6}/g)?.[0] ||
     "#ffc0cb",
 );
-export const getFixedColor = memoize(
+export const memFixedColor = memoize(
   (tag: string, optional: string | undefined = undefined): string => {
-    const tags = getFixedTags();
+    const tags = memFixedTags();
     if (tags.includes(tag)) {
-      return getFixedColors()[tags.indexOf(tag)];
+      return memFixedColors()[tags.indexOf(tag)];
     }
-    if (optional == undefined) return getOptionalColor() as string;
+    if (optional == undefined) return memOptionalColor() as string;
     return optional;
   },
   (tag: string, optional: string | undefined = undefined) =>
     tag + "_" + optional,
 );
-export const getFixedTags = memoize((): string[] => {
+export const memFixedTags = memoize((): string[] => {
   const prefTags = ((getPref("tags") as string) || "")
     .split(",")
     .map((a) => a.trim())
@@ -141,14 +141,14 @@ export const getFixedTags = memoize((): string[] => {
   if (prefTags && prefTags.length > 0) return prefTags;
   return FixedTagsDefault.split(",");
 });
-export const getFixedColors = memoize((): string[] => {
+export const memFixedColors = memoize((): string[] => {
   let fixedColor =
     (getPref("fixed-colors") as string)
       ?.match(/#[0-9A-F]{6}/g)
       ?.map((a) => a) || [];
   if (!fixedColor || fixedColor.length == 0)
     fixedColor = FixedColorDefault.split(",");
-  const tags = getFixedTags();
+  const tags = memFixedTags();
   return Array.from({
     length: tags.length / fixedColor.length + 1,
   }).flatMap(() => fixedColor);
@@ -174,7 +174,7 @@ export function setProperty<T, K extends keyof NonNullable<T>>(
   }
 }
 export function groupByResultIncludeFixedTags<T>(tagGroup: groupByResult<T>[]) {
-  getFixedTags().forEach((tag) => {
+  memFixedTags().forEach((tag) => {
     if (tagGroup.findIndex((f) => f.key == tag) == -1) {
       tagGroup.push({ key: tag, values: [] });
     }
@@ -202,7 +202,7 @@ export function getCssTranslate(t1: HTMLElement) {
   return { x: 0, y: 0 };
 }
 //使用条目、pdf、annotation、tag的关系进行读取
-const getAllTagsInLibraryAsync = memoize(async () => {
+const memAllTagsInLibraryAsync = memoize(async () => {
   const allItems = await Zotero.Items.getAll(1, false, false, false);
   const items = allItems.filter((f) => !f.parentID && !f.isAttachment());
   const pdfIds = items.flatMap((f) => f.getAttachments(false));
@@ -217,7 +217,7 @@ const getAllTagsInLibraryAsync = memoize(async () => {
   return groupBy([...tags, ...itemTags], (t) => t.tag);
 });
 //使用查询优化性能
-export const getAllTagsDB = memoize(async () => {
+export const memAllTagsDB = memoize(async () => {
   const rows = await Zotero.DB.queryAsync(
     "select name as tag,type from itemTags it join tags t on it.tagID=t.tagID",
   );
@@ -228,7 +228,7 @@ export const getAllTagsDB = memoize(async () => {
   ztoolkit.log(lines.length, lines);
   return groupBy(lines, (t) => t.tag);
 });
-export const getRelateTags = memoize(
+export const memRelateTags = memoize(
   (item?: Zotero.Item) => {
     if (!getPref("show-relate-tags")) return [];
     return getTagsInCollections(getItemRelateCollections(item));
