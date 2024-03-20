@@ -9,9 +9,11 @@ import {
   getChildCollections,
   memFixedColor,
   setProperty,
+  memAllTagsDB,
 } from "../utils/zzlb";
 import { TagElementProps } from "zotero-plugin-toolkit/dist/tools/ui";
 import { toggleProperty } from "../utils/zzlb";
+import { str2RegExp } from "../utils/zzlb";
 let popupWin: ProgressWindowHelper | undefined = undefined;
 let popupTime = -1;
 
@@ -59,7 +61,7 @@ function register() {
         commandListener: (ev) => {
           const target = ev.target as HTMLElement;
           const doc = target.ownerDocument;
-          // const div = createChooseTagsDiv(doc, isCollection(ev));
+          const div = createChooseAnnDiv(doc, isCollection(ev));
           // ztoolkit.log("自选标签", div);
           // setTimeout(()=>d.remove(),10000)
         },
@@ -138,6 +140,146 @@ function asTagElementProps(
     },
     other,
   ) as TagElementProps;
+}
+async function createChooseAnnDiv(doc: Document, isCollection: boolean) {
+  let include: RegExp[] = [];
+  const items = await getSelectedItems(isCollection);
+  const annotations = getAllAnnotations(items);
+  let ans: AnnotationRes[] = annotations;
+  const resultId = `${config.addonRef}-ann2note-ChooseTags-tags-rrr`;
+
+  const inputDiv: TagElementProps = {
+    tag: "div",
+    styles: { display: "flex", flexDirection: "column" },
+    children: [
+      {
+        tag: "div",
+        children: [
+          {
+            tag: "textArea",
+            namespace: "html",
+            listeners: [
+              {
+                type: "keyup",
+                listener: (ev) => {
+                  const value = (ev.target as HTMLInputElement).value;
+                  const res: RegExp[] = str2RegExp(value);
+                  include = res;
+                  ans =
+                    include.length == 0
+                      ? annotations
+                      : annotations.filter((f) =>
+                          include.some(
+                            (a) =>
+                              a.test(f.comment) ||
+                              a.test(f.text) ||
+                              a.test(f.annotationTags),
+                          ),
+                        );
+                  ztoolkit.log(value, res, ans.length);
+                  createResultDiv();
+                },
+              },
+            ],
+          },
+        ],
+      },
+      {
+        tag: "div",
+        id: resultId,
+      },
+    ],
+  };
+  const actionDiv: TagElementProps = {
+    tag: "div",
+    styles: { display: "flex" },
+    children: [
+      {
+        tag: "div",
+        properties: { textContent: "确定生成" },
+        styles: {
+          padding: "6px",
+          background: "#f99",
+          margin: "1px",
+        },
+        listeners: [
+          {
+            type: "click",
+            listener: (ev) => {
+              exportNote({ filter: () => ans, toText: toText1 });
+              div.remove();
+            },
+          },
+        ],
+      },
+      {
+        tag: "div",
+        properties: { textContent: "取消" },
+        styles: {
+          padding: "6px",
+          background: "#f99",
+          margin: "1px",
+        },
+        listeners: [
+          {
+            type: "click",
+            listener: (ev) => {
+              div.remove();
+            },
+          },
+        ],
+      },
+    ],
+  };
+
+  const div = ztoolkit.UI.appendElement(
+    {
+      tag: "div",
+      styles: {
+        padding: "20px",
+        position: "fixed",
+        left: "100px",
+        top: "100px",
+        zIndex: "9999",
+        width: "calc(100% - 200px)",
+        maxHeight: "400px",
+        overflowY: "scroll",
+        display: "flex",
+        background: "#a99",
+        flexWrap: "wrap",
+        flexDirection: "column",
+      },
+      children: [inputDiv, actionDiv],
+      listeners: [
+        {
+          type: "click",
+          listener: (ev) => {
+            ev.stopPropagation();
+            const target = ev.target as HTMLElement;
+            // target.remove();
+            return false;
+          },
+        },
+      ],
+    },
+    doc.querySelector("body,div")!,
+  );
+
+  function createResultDiv() {
+    if (doc.getElementById(resultId))
+      ztoolkit.UI.replaceElement(
+        {
+          tag: "div",
+          namespace: "html",
+          id: resultId,
+          properties: {
+            textContent: `总${annotations.length}条笔记，筛选出了${ans.length}条`,
+          },
+        },
+        doc.getElementById(resultId)!,
+      );
+  }
+  createResultDiv();
 }
 async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
   const selectedTags: string[] = [];
@@ -493,15 +635,14 @@ async function exportNote({
   items?: Zotero.Item[];
 }) {
   createPopupWin();
-  if (items == undefined) return;
-  let annotations = getAllAnnotations(items);
+  let annotations = items ? getAllAnnotations(items) : [];
   if (filter) {
     annotations = await filter(annotations);
   }
   if (annotations.length == 0) {
     popupWin
       ?.createLine({
-        text: `${items.length}个条目。没有找到标记，不创建笔记。`,
+        text: `没有找到标记，不创建笔记。`,
       })
       .startCloseTimer(5e3);
     return;
@@ -630,30 +771,36 @@ function exportTagsNote(tags: string[], items: Zotero.Item[]) {
           .filter((f) => f.tags.some((a) => tags.includes(a.tag)))
           .map((a) => Object.assign(a, { tag: a.tag })),
       items,
-      toText: (ans) =>
-        `${groupBy(
-          ans.flatMap((a) => a.tags),
-          (a) => a.tag,
-        )
-          .map((a) => `[${a.values.length}]${a.key}`)
-          .join(",")}\n` +
-        groupBy(ans, (a) => a.pdfTitle)
-          .sort((a, b) => (a.key > b.key ? 1 : -1))
-          .flatMap((a, index, aa) => [
-            `<h1>(${index + 1}/${aa.length}) ${a.key} ${getCiteItemHtmlWithPage(a.values[0].ann)}</h1>`,
-            a.values
-              .map((b) =>
-                b.html.replace(
-                  /<\/p>$/,
-                  getColorTags(b.tags.map((c) => c.tag)) + "</p>",
-                ),
-              )
-              .map((b) => b.replace(/<p>[\r\n]*<\/p>/g, ""))
-              .join(" "),
-          ])
-          .join(""),
+      toText: toText1,
     });
   }
+}
+
+function toText1(ans: AnnotationRes[]) {
+  return (
+    groupBy(
+      ans.flatMap((a) => a.tags),
+      (a) => a.tag,
+    )
+      .map((a) => `[${a.values.length}]${a.key}`)
+      .join(",") +
+    "\n" +
+    groupBy(ans, (a) => a.pdfTitle)
+      .sort((a, b) => (a.key > b.key ? 1 : -1))
+      .flatMap((a, index, aa) => [
+        `<h1>(${index + 1}/${aa.length}) ${a.key} ${getCiteItemHtmlWithPage(a.values[0].ann)}</h1>`,
+        a.values
+          .map((b) =>
+            b.html.replace(
+              /<\/p>$/,
+              getColorTags(b.tags.map((c) => c.tag)) + "</p>",
+            ),
+          )
+          .map((b) => b.replace(/<p>[\r\n]*<\/p>/g, ""))
+          .join(" "),
+      ])
+      .join("")
+  );
 }
 
 function getColorTags(tags: string[]) {

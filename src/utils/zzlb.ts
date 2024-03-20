@@ -275,3 +275,18 @@ function getTagsInCollections(collections: Zotero.Collection[]) {
   const annotations = pdfItems.flatMap((f) => f.getAnnotations(false));
   return annotations.flatMap((f) => f.getTags());
 }
+export function str2RegExp(value: string) {
+  const res: RegExp[] = [];
+  value
+    .split("\n")
+    .map((a) => a.trim())
+    .filter((f) => f)
+    .forEach((f) => {
+      try {
+        res.push(new RegExp(f, "i"));
+      } catch (error) {
+        ztoolkit.log(error);
+      }
+    });
+  return res;
+}

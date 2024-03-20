@@ -8,6 +8,7 @@ import {
   uniqueBy,
   memFixedColor,
   sortByLength,
+  str2RegExp,
 } from "../utils/zzlb";
 import { getPref } from "../utils/prefs";
 import { groupByResultIncludeFixedTags } from "../utils/zzlb";
@@ -433,17 +434,7 @@ export class AnnotationPopup {
     }>[],
   ) {
     const tagsExclude = (getPref("tags-exclude") as string) || "";
-    const rs: RegExp[] = [];
-    for (const te of tagsExclude
-      .split("\n")
-      .map((a) => a.trim())
-      .filter((f) => f)) {
-      try {
-        rs.push(new RegExp(te, "i"));
-      } catch (error) {
-        ztoolkit.log(error);
-      }
-    }
+    const rs = str2RegExp(tagsExclude);
     return from.filter((f) => !rs.some((s) => s.test(f.key)));
   }
 
