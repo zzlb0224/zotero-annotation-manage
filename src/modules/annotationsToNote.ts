@@ -1,19 +1,18 @@
-import { config } from "../../package.json";
 import { ProgressWindowHelper } from "zotero-plugin-toolkit/dist/helpers/progressWindow";
 import { MenuitemOptions } from "zotero-plugin-toolkit/dist/managers/menu";
-import {
-  groupBy,
-  uniqueBy,
-  promiseAllWithProgress,
-  sortByFixedTag2Length,
-  getChildCollections,
-  memFixedColor,
-  setProperty,
-  memAllTagsDB,
-} from "../utils/zzlb";
 import { TagElementProps } from "zotero-plugin-toolkit/dist/tools/ui";
-import { toggleProperty } from "../utils/zzlb";
-import { str2RegExp } from "../utils/zzlb";
+import { config } from "../../package.json";
+import {
+  getChildCollections,
+  groupBy,
+  memFixedColor,
+  promiseAllWithProgress,
+  setProperty,
+  sortByFixedTag2Length,
+  str2RegExp,
+  toggleProperty,
+  uniqueBy,
+} from "../utils/zzlb";
 let popupWin: ProgressWindowHelper | undefined = undefined;
 let popupTime = -1;
 
@@ -391,39 +390,9 @@ async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
       },
     ],
   };
+  const children = [tagsDiv, actionDiv];
 
-  const div = ztoolkit.UI.appendElement(
-    {
-      tag: "div",
-      styles: {
-        padding: "20px",
-        position: "fixed",
-        left: "100px",
-        top: "100px",
-        zIndex: "9999",
-        width: "calc(100% - 200px)",
-        maxHeight: "400px",
-        overflowY: "scroll",
-        display: "flex",
-        background: "#a99",
-        flexWrap: "wrap",
-        flexDirection: "column",
-      },
-      children: [tagsDiv, actionDiv],
-      listeners: [
-        {
-          type: "click",
-          listener: (ev) => {
-            ev.stopPropagation();
-            const target = ev.target as HTMLElement;
-            // target.remove();
-            return false;
-          },
-        },
-      ],
-    },
-    doc.querySelector("body,div")!,
-  );
+  const div = createTopDiv(children, doc);
   createTags();
   return div;
 
@@ -465,6 +434,30 @@ async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
       doc.getElementById(`${config.addonRef}-ann2note-ChooseTags-tags`)!,
     );
   }
+}
+
+function createTopDiv(children: TagElementProps[], doc: Document) {
+  return ztoolkit.UI.appendElement(
+    {
+      tag: "div",
+      styles: {
+        padding: "20px",
+        position: "fixed",
+        left: "100px",
+        top: "100px",
+        zIndex: "9999",
+        width: "calc(100% - 200px)",
+        maxHeight: "400px",
+        overflowY: "scroll",
+        display: "flex",
+        background: "#a99",
+        flexWrap: "wrap",
+        flexDirection: "column",
+      },
+      children: children,
+    },
+    doc.querySelector("body,div")!,
+  );
 }
 
 async function saveNote(targetNoteItem: Zotero.Item, txt: string) {

@@ -1,19 +1,19 @@
 import { TagElementProps } from "zotero-plugin-toolkit/dist/tools/ui";
 import { config } from "../../package.json";
+import { getPref } from "../utils/prefs";
 import {
-  sortByFixedTag2Length,
   groupBy,
   groupByResult,
-  memFixedTags,
-  uniqueBy,
+  groupByResultIncludeFixedTags,
+  memAllTagsDB,
   memFixedColor,
+  memFixedTags,
+  memRelateTags,
+  sortByFixedTag2Length,
   sortByLength,
   str2RegExp,
+  uniqueBy,
 } from "../utils/zzlb";
-import { getPref } from "../utils/prefs";
-import { groupByResultIncludeFixedTags } from "../utils/zzlb";
-import { memAllTagsDB } from "../utils/zzlb";
-import { memRelateTags } from "../utils/zzlb";
 function register() {
   // if (!getPref("enable")) return;
   // ztoolkit.UI.basicOptions.log.disableZLog = true;
