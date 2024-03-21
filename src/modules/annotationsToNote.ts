@@ -142,7 +142,8 @@ function asTagElementProps(
   ) as TagElementProps;
 }
 async function createChooseAnnDiv(doc: Document, isCollection: boolean) {
-  let include: RegExp[] = [];
+  let text = "";
+  let tag = "";
   const items = await getSelectedItems(isCollection);
   const annotations = getAllAnnotations(items);
   let ans: AnnotationRes[] = annotations;
@@ -155,28 +156,30 @@ async function createChooseAnnDiv(doc: Document, isCollection: boolean) {
       {
         tag: "div",
         children: [
+          { tag: "span", properties: { textContent: "注释、笔记搜索" } },
           {
-            tag: "textArea",
+            tag: "input",
             namespace: "html",
             listeners: [
               {
                 type: "keyup",
                 listener: (ev) => {
-                  const value = (ev.target as HTMLInputElement).value;
-                  const res: RegExp[] = str2RegExp(value);
-                  include = res;
-                  ans =
-                    include.length == 0
-                      ? annotations
-                      : annotations.filter((f) =>
-                          include.some(
-                            (a) =>
-                              a.test(f.comment) ||
-                              a.test(f.text) ||
-                              a.test(f.annotationTags),
-                          ),
-                        );
-                  ztoolkit.log(value, res, ans.length);
+                  text = (ev.target as HTMLInputElement).value;
+
+                  createResultDiv();
+                },
+              },
+            ],
+          },
+          { tag: "span", properties: { textContent: "标签" } },
+          {
+            tag: "input",
+            namespace: "html",
+            listeners: [
+              {
+                type: "keyup",
+                listener: (ev) => {
+                  tag = (ev.target as HTMLInputElement).value.trim();
                   createResultDiv();
                 },
               },
@@ -250,22 +253,19 @@ async function createChooseAnnDiv(doc: Document, isCollection: boolean) {
         flexDirection: "column",
       },
       children: [inputDiv, actionDiv],
-      listeners: [
-        {
-          type: "click",
-          listener: (ev) => {
-            ev.stopPropagation();
-            const target = ev.target as HTMLElement;
-            // target.remove();
-            return false;
-          },
-        },
-      ],
     },
     doc.querySelector("body,div")!,
   );
 
   function createResultDiv() {
+    const txtReg = str2RegExp(text);
+    const tagReg = str2RegExp(tag);
+    ans = annotations.filter(
+      (f) =>
+        (txtReg.length > 0 ||
+          txtReg.some((a) => a.test(f.comment) || a.test(f.text))) &&
+        (tagReg.length > 0 || tagReg.some((a) => a.test(f.annotationTags))),
+    );
     if (doc.getElementById(resultId))
       ztoolkit.UI.replaceElement(
         {
