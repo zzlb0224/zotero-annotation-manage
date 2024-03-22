@@ -11,14 +11,14 @@ pref-optional-color = 备选颜色
 
 pref-show-relate-tags = 
     .label =  显示相关标签
-pref-selectedCollection = 
+pref-selected-collection = 
     .label =  与选中文件夹相关
-pref-currentCollection = 
+pref-current-collection = 
     .label =  与当前条目所在文件夹（一个条目可以属于多个文件夹）相关
 pref-children-collection = 
     .label =  判断相关时包含子文件夹
     
-pref-showAllTags = 
+pref-show-all-tags = 
     .label =  与库中的所有标签相关
 
 pref-item-tags = 

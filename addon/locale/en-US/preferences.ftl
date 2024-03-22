@@ -9,14 +9,14 @@ pref-optional-color =optional color #ffc0cb
 
 pref-show-relate-tags = 
     .label =  show-relate-tags
-pref-selectedCollection = 
+pref-selected-collection = 
     .label = relate tags in selected collection
-pref-currentCollection = 
+pref-current-collection = 
     .label = relate tags in current collection
 pref-children-collection = 
     .label = children collection
 
-pref-showAllTags = 
+pref-show-all-tags = 
     .label =  all tags 
 
 pref-item-tags = 

@@ -119,36 +119,21 @@ function isCollection(ev: Event) {
   const isCollection = pid?.includes("collection") || false;
   return isCollection;
 }
-function asTagElementProps(
-  tag = "div",
-  textContent = "",
-  styles?: Partial<CSSStyleDeclaration>,
-  click?:
-    | EventListenerOrEventListenerObject
-    | ((e: Event) => void)
-    | null
-    | undefined,
-  other?: any,
-) {
-  return Object.assign(
-    {
-      tag,
-      properties: { textContent },
-      styles,
-      listeners: [{ type: "click", listener: click }],
-    },
-    other,
-  ) as TagElementProps;
-}
+const ID = {
+  root: `${config.addonRef}-ann2note-ChooseTags-root`,
+  action: `${config.addonRef}-ann2note-ChooseTags-root-action`,
+  input: `${config.addonRef}-ann2note-ChooseTags-root-input`,
+  result: `${config.addonRef}-ann2note-ChooseTags-root-result`,
+};
 async function createChooseAnnDiv(doc: Document, isCollection: boolean) {
   let text = "";
   let tag = "";
   const items = await getSelectedItems(isCollection);
   const annotations = getAllAnnotations(items);
   let ans: AnnotationRes[] = annotations;
-  const resultId = `${config.addonRef}-ann2note-ChooseTags-tags-rrr`;
+  const resultId = ID.result;
 
-  const inputDiv: TagElementProps = {
+  const inputTag: TagElementProps = {
     tag: "div",
     styles: { display: "flex", flexDirection: "column" },
     children: [
@@ -192,69 +177,16 @@ async function createChooseAnnDiv(doc: Document, isCollection: boolean) {
       },
     ],
   };
-  const actionDiv: TagElementProps = {
-    tag: "div",
-    styles: { display: "flex" },
-    children: [
-      {
-        tag: "div",
-        properties: { textContent: "确定生成" },
-        styles: {
-          padding: "6px",
-          background: "#f99",
-          margin: "1px",
-        },
-        listeners: [
-          {
-            type: "click",
-            listener: (ev) => {
-              exportNote({ filter: () => ans, toText: toText1 });
-              div.remove();
-            },
-          },
-        ],
-      },
-      {
-        tag: "div",
-        properties: { textContent: "取消" },
-        styles: {
-          padding: "6px",
-          background: "#f99",
-          margin: "1px",
-        },
-        listeners: [
-          {
-            type: "click",
-            listener: (ev) => {
-              div.remove();
-            },
-          },
-        ],
-      },
-    ],
-  };
-
-  const div = ztoolkit.UI.appendElement(
-    {
-      tag: "div",
-      styles: {
-        padding: "20px",
-        position: "fixed",
-        left: "100px",
-        top: "100px",
-        zIndex: "9999",
-        width: "calc(100% - 200px)",
-        maxHeight: "400px",
-        overflowY: "scroll",
-        display: "flex",
-        background: "#a99",
-        flexWrap: "wrap",
-        flexDirection: "column",
-      },
-      children: [inputDiv, actionDiv],
+  const actionTag = createActionTag(
+    () => {
+      exportNote({ filter: () => ans, toText: toText1 });
+      div?.remove();
     },
-    doc.querySelector("body,div")!,
+    () => div?.remove(),
   );
+
+  const div = createTopDiv(doc, [inputTag, actionTag]);
+  createResultDiv();
 
   function createResultDiv() {
     const txtReg = str2RegExp(text);
@@ -272,17 +204,23 @@ async function createChooseAnnDiv(doc: Document, isCollection: boolean) {
           namespace: "html",
           id: resultId,
           properties: {
-            textContent: `总${annotations.length}条笔记，筛选出了${ans.length}条`,
+            textContent: `总${annotations.length}条笔记，筛选出了${ans.length}条。预览前10条。`,
           },
+          children: ans.slice(0, 10).map((a) => ({
+            tag: "span",
+            namespace: "html",
+            properties: {
+              textContent: a.text + a.comment + a.annotationTags,
+            },
+          })),
         },
         doc.getElementById(resultId)!,
       );
   }
-  createResultDiv();
 }
 async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
   const selectedTags: string[] = [];
-
+  const idTags = ID.result;
   const items = await getSelectedItems(isCollection);
   const annotations = getAllAnnotations(items).flatMap((f) =>
     f.tags.map((t) => Object.assign(f, { tag: t })),
@@ -290,7 +228,7 @@ async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
   const tags = groupBy(annotations, (a) => a.tag.tag);
   tags.sort(sortByFixedTag2Length);
 
-  const tagsDiv: TagElementProps = {
+  const tagsTag: TagElementProps = {
     tag: "div",
     styles: { display: "flex", flexDirection: "column" },
     children: [
@@ -307,9 +245,7 @@ async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
                 type: "click",
                 listener: (ev) => {
                   const t = toggleProperty(
-                    document.getElementById(
-                      `${config.addonRef}-ann2note-ChooseTags-tags`,
-                    )?.style,
+                    document.getElementById(idTags)?.style,
                     "display",
                     ["none", "flex"],
                   );
@@ -339,60 +275,22 @@ async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
       },
       {
         tag: "div",
-        id: `${config.addonRef}-ann2note-ChooseTags-tags`,
+        id: idTags,
       },
     ],
   };
-  const actionDiv: TagElementProps = {
-    tag: "div",
-    styles: { display: "flex" },
-    children: [
-      {
-        tag: "div",
-        properties: { textContent: "确定生成" },
-        styles: {
-          padding: "6px",
-          background: "#f99",
-          margin: "1px",
-        },
-        listeners: [
-          {
-            type: "click",
-            listener: (ev) => {
-              ev.stopPropagation();
-              if (selectedTags.length > 0) {
-                exportTagsNote(selectedTags, items);
-                div.remove();
-              }
-              return false;
-            },
-          },
-        ],
-      },
-      {
-        tag: "div",
-        properties: { textContent: "取消" },
-        styles: {
-          padding: "6px",
-          background: "#f99",
-          margin: "1px",
-        },
-        listeners: [
-          {
-            type: "click",
-            listener: (ev) => {
-              ev.stopPropagation();
-              div.remove();
-              return false;
-            },
-          },
-        ],
-      },
-    ],
-  };
-  const children = [tagsDiv, actionDiv];
+  const actionTag = createActionTag(
+    () => {
+      if (selectedTags.length > 0) {
+        exportTagsNote(selectedTags, items);
+        div?.remove();
+      }
+    },
+    () => div?.remove(),
+  );
+  const children = [tagsTag, actionTag];
 
-  const div = createTopDiv(children, doc);
+  const div = createTopDiv(doc, children);
   createTags();
   return div;
 
@@ -401,7 +299,7 @@ async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
       {
         tag: "div",
         styles: { display: "flex", flexWrap: "wrap" },
-        id: `${config.addonRef}-ann2note-ChooseTags-tags`,
+        id: idTags,
         children: tags
           .filter((f) => new RegExp(searchTag, "i").test(f.key))
           .slice(0, 300)
@@ -431,12 +329,58 @@ async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
             ],
           })),
       },
-      doc.getElementById(`${config.addonRef}-ann2note-ChooseTags-tags`)!,
+      doc.getElementById(idTags)!,
     );
   }
 }
 
-function createTopDiv(children: TagElementProps[], doc: Document) {
+function createActionTag(action: () => void, cancel?: () => void) {
+  const actionDiv: TagElementProps = {
+    tag: "div",
+    styles: { display: "flex" },
+    children: [
+      {
+        tag: "div",
+        properties: { textContent: "确定生成" },
+        styles: {
+          padding: "6px",
+          background: "#f99",
+          margin: "1px",
+        },
+        listeners: [
+          {
+            type: "click",
+            listener: (ev) => {
+              action();
+            },
+          },
+        ],
+      },
+      cancel
+        ? {
+            tag: "div",
+            properties: { textContent: "取消" },
+            styles: {
+              padding: "6px",
+              background: "#f99",
+              margin: "1px",
+            },
+            listeners: [
+              {
+                type: "click",
+                listener: (ev) => {
+                  cancel();
+                },
+              },
+            ],
+          }
+        : { tag: "span" },
+    ],
+  };
+  return actionDiv;
+}
+function createTopDiv(doc?: Document, children?: TagElementProps[]) {
+  if (!doc) return;
   return ztoolkit.UI.appendElement(
     {
       tag: "div",
@@ -477,8 +421,8 @@ async function saveNote(targetNoteItem: Zotero.Item, txt: string) {
 async function createNote(txt = "") {
   const targetNoteItem = new Zotero.Item("note");
   targetNoteItem.libraryID = ZoteroPane.getSelectedLibraryID();
-  const selectedCollection = ZoteroPane.getSelectedCollection(true);
-  if (selectedCollection) targetNoteItem.setCollections([selectedCollection]);
+  const selected = ZoteroPane.getSelectedCollection(true);
+  if (selected) targetNoteItem.setCollections([selected]);
   if (txt) await Zotero.BetterNotes.api.note.insert(targetNoteItem, txt, -1);
   targetNoteItem.addTag("生成的笔记", 0);
   //必须保存后面才能保存图片
@@ -659,11 +603,11 @@ async function exportNote({
 async function getSelectedItems(isCollection: boolean) {
   let items: Zotero.Item[] = [];
   if (isCollection) {
-    const selectedCollection = ZoteroPane.getSelectedCollection();
-    ztoolkit.log(isCollection, selectedCollection);
-    if (selectedCollection) {
+    const selected = ZoteroPane.getSelectedCollection();
+    ztoolkit.log(isCollection, selected);
+    if (selected) {
       const cs = uniqueBy(
-        [selectedCollection, ...getChildCollections([selectedCollection])],
+        [selected, ...getChildCollections([selected])],
         (u) => u.key,
       );
       items = cs.flatMap((f) => f.getChildItems(false, false));

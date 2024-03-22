@@ -239,8 +239,8 @@ function getItemRelateCollections(item?: Zotero.Item): Zotero.Collection[] {
   if (!item) return [];
   const allCollectionIds: number[] = [];
   const childrenCollections = !!getPref("children-collection");
-  const prefSelectedCollection = !!getPref("selectedCollection");
-  const prefCurrentCollection = !!getPref("currentCollection");
+  const prefSelectedCollection = !!getPref("selected-collection");
+  const prefCurrentCollection = !!getPref("current-collection");
   if (prefSelectedCollection) {
     const selectedCollectionId = ZoteroPane.getSelectedCollection(true);
     if (selectedCollectionId) allCollectionIds.push(selectedCollectionId);

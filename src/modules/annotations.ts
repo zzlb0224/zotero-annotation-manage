@@ -163,7 +163,7 @@ export class AnnotationPopup {
       type: number;
     }>[] = [];
 
-    if (getPref("showAllTags")) {
+    if (getPref("show-all-tags")) {
       relateTags = await memAllTagsDB();
     } else {
       relateTags = groupBy(memRelateTags(this.item), (t) => t.tag);
@@ -324,6 +324,9 @@ export class AnnotationPopup {
   }
 
   createSearchDiv(): TagElementProps {
+    let selectionStart = 0;
+    let shiftStart = false;
+    let selectionCount = 0;
     return {
       tag: "div",
       styles: {
@@ -339,15 +342,83 @@ export class AnnotationPopup {
           styles: { flex: "1", fontSize: this.fontSize },
           listeners: [
             {
+              type: "keydown",
+              listener: async (e: Event) => {
+                const event = e as KeyboardEvent;
+                const input = event.target as HTMLInputElement;
+                if (!input) return;
+                if (!event) return;
+                if (event.key === "Shift") {
+                  // 按下Shift键时，记录起始位置
+                  shiftStart = true;
+                  selectionStart = input.selectionStart || input.value.length;
+                  selectionCount = 0;
+                }
+              },
+            },
+            {
               type: "keyup",
               listener: async (e: Event) => {
-                const target = e.target as HTMLInputElement;
-                ztoolkit.log(e);
-                this.searchTag = target.value.trim();
-                const { keyCode } = e as any;
-                if (keyCode == 13) {
-                  this.onTagClick(this.searchTag);
+                const event = e as KeyboardEvent;
+                const input = event.target as HTMLInputElement;
+                if (!input) return;
+                if (!event) return;
+
+                if (event.key === "Shift") {
+                  shiftStart = false;
+                } else if (event.key === "ArrowLeft") {
+                  if (shiftStart) {
+                    selectionCount--;
+                    const arg = [
+                      selectionStart,
+                      selectionStart + selectionCount,
+                    ].sort((a, b) => a - b);
+                    const d = selectionCount > 0 ? "forward" : "backward";
+                    input.setSelectionRange(arg[0], arg[1], d);
+                  } else {
+                    const arr =
+                      Math.max(
+                        input.selectionDirection == "backward"
+                          ? input.selectionStart || 0
+                          : input.selectionEnd || 0,
+                        1,
+                      ) - 1;
+                    input.selectionStart = input.selectionEnd = arr;
+                  }
+                  return;
+                } else if (event.key === "ArrowRight") {
+                  if (shiftStart) {
+                    selectionCount++;
+                    const arg = [
+                      selectionStart,
+                      selectionStart + selectionCount,
+                    ].sort((a, b) => a - b);
+                    const d = selectionCount > 0 ? "forward" : "backward";
+                    input.setSelectionRange(arg[0], arg[1], d);
+                  } else {
+                    const arr =
+                      Math.min(
+                        input.selectionDirection == "backward"
+                          ? input.selectionStart || 0
+                          : input.selectionEnd || 0 || 0,
+                        input.value.length - 1,
+                      ) + 1;
+                    input.selectionStart = input.selectionEnd = arr;
+                  }
+                  return;
                 }
+                this.searchTag = input.value.trim();
+                if (event.key === "Enter") {
+                  this.onTagClick(this.searchTag);
+                  return;
+                }
+                ztoolkit.log(
+                  event,
+                  input.value.trim(),
+                  input.selectionStart,
+                  input.selectionEnd,
+                  input.selectionDirection,
+                );
                 const tagDiv = this.rootDiv?.querySelector(
                   "#" + this.idTagsDiv,
                 );
@@ -355,6 +426,7 @@ export class AnnotationPopup {
                   this.tagsDisplay = await this.searchTagResult();
                   ztoolkit.UI.replaceElement(this.createTagsDiv(), tagDiv);
                 }
+                return true;
               },
             },
           ],
@@ -441,7 +513,7 @@ export class AnnotationPopup {
   async searchTagResult() {
     if (this.searchTag) {
       const searchIn = await memAllTagsDB();
-      //  getPref("showAllTags")
+      //  getPref("show-all-tags")
       //   ? this.relateTags
       //   : await getAllTagsDB();
       const searchResult = searchIn.filter((f) =>
