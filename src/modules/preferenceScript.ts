@@ -140,6 +140,12 @@ function bindPrefEvents() {
       replaceColorTagsElement(doc);
       replaceTagsPreviewDiv(doc);
     });
+
+  doc
+    .querySelector(`#zotero-prefpane-${config.addonRef}-sort`)
+    ?.addEventListener("command", (e) => {
+      replaceTagsPreviewDiv(doc);
+    });
   doc
     .querySelector(`#zotero-prefpane-${config.addonRef}-optional-color`)
     ?.addEventListener("keyup", (e) => {

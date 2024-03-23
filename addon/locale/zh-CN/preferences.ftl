@@ -10,11 +10,11 @@ pref-optional-color = 备选颜色
 
 pref-sort = 自定义排序
 pref-sort-1 =
-    .label = 固定标签（固定排序） 其它标签（按使用次数排序）
+    .label = 固定tag（固定排序）-其它tag（按使用次数排序）
 pref-sort-2 =
-    .label = 固定标签（固定排序） 最近的标签（按使用时间排序） 
+    .label = 固定tag（固定排序）-最近使用过的tag（按使用时间排序） 
 pref-sort-3 = 
-    .label = 固定标签（固定排序） pdf中使用的标签（按字母排序）  最近的标签（按使用时间排序）
+    .label = 固定tag（固定排序）-本篇文献使用过的tag（按字母排序）-最近使用过的tag（按使用时间排序）
 pref-sort-rect-n =最近N条标签
 
 pref-show-relate-tags = 
@@ -59,7 +59,9 @@ pref-fixed-tags-style =
 pref-count-down-close = 自动关闭弹出窗口时长（至少5秒）
 
 
-pref-tags-exclude = 使用正则排除不喜欢的相关标签。搜索结果不排除。使用^代表开头，使用$代表结尾，出现/要使用\/代替，.*代表所有字符，\d代表数字。例如：^zotero:// ^# #\/ 分别排除一些系统的Tags
+
+
+pref-tags-exclude = 使用正则排除不喜欢的相关标签。搜索结果不排除。使用^代表开头，使用$代表结尾，出现/要使用\/代替，.*代表所有字符，\d代表数字。例如：可以使用①^zotero:// ②^# ③# ④\/ 分别排除一些系统的Tags
 pref-max-show = 最大显示标签数
 pref-reload-search-preview = 重新加载预览
 pref-search-preview = 相关标签预览

@@ -8,12 +8,12 @@ import {
   memFixedColor,
   memFixedTags,
   promiseAllWithProgress,
-  setProperty, 
+  setProperty,
   str2RegExp,
   toggleProperty,
   uniqueBy,
 } from "../utils/zzlb";
-import { sortAsc, sortByTags, sortDesc } from '../utils/sort';
+import { sortAsc, sortByTags, sortDesc } from "../utils/sort";
 let popupWin: ProgressWindowHelper | undefined = undefined;
 let popupTime = -1;
 
@@ -227,7 +227,11 @@ async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
     f.tags.map((t) => Object.assign(f, { tag: t })),
   );
   const tags = groupBy(annotations, (a) => a.tag.tag);
-  tags.sort((a,b)=>sortByTags(memFixedTags(),a.key,b.key)*100+sortDesc(a.values.length,b.values.length));
+  tags.sort(
+    (a, b) =>
+      sortByTags(memFixedTags(), a.key, b.key) * 100 +
+      sortDesc(a.values.length, b.values.length),
+  );
 
   const tagsTag: TagElementProps = {
     tag: "div",
@@ -629,7 +633,11 @@ async function exportNoteByTag(isCollection: boolean = false) {
       ans.flatMap((an) => an.tags.map((tag) => Object.assign({}, an, { tag }))),
     toText: (annotations) =>
       groupBy(annotations, (a) => a.tag.tag)
-        .sort((a,b)=>sortByTags(memFixedTags(),a.key,b.key)*100+sortAsc(a.key,b.key))
+        .sort(
+          (a, b) =>
+            sortByTags(memFixedTags(), a.key, b.key) * 100 +
+            sortAsc(a.key, b.key),
+        )
         .flatMap((tag, index) => {
           return [
             `<h1>(${index + 1}) ${tag.key} (${tag.values.length})</h1>`,
@@ -646,7 +654,11 @@ async function exportNoteByTagPdf(isCollection: boolean = false) {
       ans.flatMap((an) => an.tags.map((tag) => Object.assign({}, an, { tag }))),
     toText: (annotations) =>
       groupBy(annotations, (a) => a.tag.tag)
-        .sort((a,b)=>sortByTags(memFixedTags(),a.key,b.key)*100+sortDesc(a.values.length,b.values.length))
+        .sort(
+          (a, b) =>
+            sortByTags(memFixedTags(), a.key, b.key) * 100 +
+            sortDesc(a.values.length, b.values.length),
+        )
         .flatMap((tag, index) => {
           return [
             `<h1> (${index + 1}) 标签：${tag.key}  (${tag.values.length})</h1>`,

@@ -53,10 +53,12 @@ pref-fixed-tags-style =
     .label = fixed tags style
     
 pref-count-down-close = count down close second
-pref-tags-exclude = tags-exclude
-pref-max-show = max-show
-pref-search-preview = search-preview 
-pref-search-input = search-input
-pref-reload-search-preview = 重新加载预览
+
+
+pref-tags-exclude = Use Re to exclude related labels that you don't like. Search results are not excluded. Use ^ for the beginning, use $for the end, appear/to use \/ instead,.* for all characters, and \d for numbers. For example, you can use ①^zotero://②^#③#④\/ to exclude some system Tags separately
+pref-max-show = Maximum number of labels to be displayed
+pref-reload-search-preview = Reload preview
+pref-search-preview = Related label preview
+pref-search-input = Enter any text to test the search
 
 pref-help = { $name } Build { $version } { $time }

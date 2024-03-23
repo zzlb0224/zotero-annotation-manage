@@ -59,13 +59,10 @@ export function getChildCollections(
   if (childCollections.length == 0) return [];
   return [...childCollections, ...getChildCollections(childCollections)];
 }
- function sortByLength<T>(a: groupByResult<T>, b: groupByResult<T>) {
+function sortByLength<T>(a: groupByResult<T>, b: groupByResult<T>) {
   return b.values.length - a.values.length + (b.key > a.key ? -0.5 : 0.5);
 }
- function sortByFixedTag2Length<T>(
-  a: groupByResult<T>,
-  b: groupByResult<T>,
-) {
+function sortByFixedTag2Length<T>(a: groupByResult<T>, b: groupByResult<T>) {
   const tags = memFixedTags();
   if (tags.includes(a.key) && tags.includes(b.key)) {
     return tags.indexOf(a.key) - tags.indexOf(b.key);
@@ -195,23 +192,19 @@ const memAllTagsInLibraryAsync = memoize(async () => {
     .filter((f) => f.isPDFAttachment())
     .flatMap((f) => f.getAnnotations())
     .flatMap((f) =>
-      f
-        .getTags()
-        .map((a) => ({
+      f.getTags().map((a) => ({
+        tag: a.tag,
+        type: a.type,
+        dateModified: f.dateModified,
+      })),
+    );
+  const itemTags = getPref("item-tags")
+    ? items.flatMap((f) =>
+        f.getTags().map((a) => ({
           tag: a.tag,
           type: a.type,
           dateModified: f.dateModified,
         })),
-    );
-  const itemTags = getPref("item-tags")
-    ? items.flatMap((f) =>
-        f
-          .getTags()
-          .map((a) => ({
-            tag: a.tag,
-            type: a.type,
-            dateModified: f.dateModified,
-          })),
       )
     : [];
   return groupBy([...tags, ...itemTags], (t) => t.tag);

@@ -8,10 +8,9 @@ export function sortByTags(fixed: string[], a: string, b: string) {
   }
   return 0;
 }
-export function sortAsc(a: string|number, b: string|number) {
-  return a==b?0: a > b ? -1 : 1;
+export function sortAsc(a: string | number, b: string | number) {
+  return a == b ? 0 : a > b ? -1 : 1;
 }
-export function sortDesc(a: string|number, b: string|number) {
-  return  a==b?0: a > b ? -1 : 1;
+export function sortDesc(a: string | number, b: string | number) {
+  return a == b ? 0 : a > b ? -1 : 1;
 }
- 
