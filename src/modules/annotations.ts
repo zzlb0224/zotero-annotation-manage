@@ -8,12 +8,11 @@ import {
   memAllTagsDB,
   memFixedColor,
   memFixedTags,
-  memRelateTags,
-  sortByFixedTag2Length,
-  sortByLength,
+  memRelateTags, 
   str2RegExp,
   uniqueBy,
 } from "../utils/zzlb";
+import { sortAsc, sortByTags, sortDesc } from "../utils/sort";
 function register() {
   // if (!getPref("enable")) return;
   // ztoolkit.UI.basicOptions.log.disableZLog = true;
@@ -161,6 +160,7 @@ export class AnnotationPopup {
     let relateTags: groupByResult<{
       tag: string;
       type: number;
+      dateModified: string;
     }>[] = [];
 
     if (getPref("show-all-tags")) {
@@ -169,8 +169,68 @@ export class AnnotationPopup {
       relateTags = groupBy(memRelateTags(this.item), (t) => t.tag);
     }
     if (getPref("show-relate-tags")) groupByResultIncludeFixedTags(relateTags);
+    if (getPref("sort") == "2") {
+      const fixedTags = memFixedTags();
+       relateTags = relateTags
+        .map((r) => ({
+          key: r.key,
+          dateModified: r.values
+            .map((v) => v.dateModified)
+            .sort((a, b) => (b > a ? -1 : 1))[0],
+          values: r.values,
+        }))
+        .sort((a, b) => {
+          return (
+            sortByTags(fixedTags, a.key, b.key) * 100 + 
+            sortDesc(a.dateModified, b.dateModified) * 10 +
+            sortAsc(a.key, b.key)
+          );
+        });
+    } else if (getPref("sort") == "3") {
+      const itemAnnTags = this.item
+        ? Zotero.Items.get(this.item.getAttachments())
+            .flatMap((f) => f.getAnnotations())
+            .flatMap((f) => f.getTags())
+            .map((a) => a.tag)
+            .sort(sortAsc)
+        : [];
+      const fixedTags = memFixedTags();
+      relateTags = relateTags
+        .map((r) => ({
+          key: r.key,
+          dateModified: r.values
+            .map((v) => v.dateModified)
+            .sort((a, b) => (b > a ? -1 : 1))[0],
+          values: r.values,
+        }))
+        .sort((a, b) => {
+          return (
+            sortByTags(fixedTags, a.key, b.key) * 1000 +
+            sortByTags(itemAnnTags, a.key, b.key) * 100 +
+            sortDesc(a.dateModified, b.dateModified) * 10 +
+            sortAsc(a.key, b.key)
+          );
+        });
+    } else {
+       const fixedTags = memFixedTags();
+      relateTags = relateTags
+        .map((r) => ({
+          key: r.key,
+          dateModified: r.values
+            .map((v) => v.dateModified)
+            .sort((a, b) => (b > a ? -1 : 1))[0],
+          values: r.values,
+        }))
+        .sort((a, b) => {
+          return (
+            sortByTags(fixedTags, a.key, b.key) * 1000 + 
+            sortDesc(a.values.length, b.values.length) * 10 +
+            sortAsc(a.key, b.key)
+          );
+        });
+      // relateTags.sort(sortByFixedTag2Length);
+    }
 
-    relateTags.sort(sortByFixedTag2Length);
     this.relateTags = relateTags;
     this.tagsDisplay = this.excludeTags(relateTags);
     if (!root.querySelector("#" + this.idCloseButton)) {
@@ -269,7 +329,7 @@ export class AnnotationPopup {
   createCurrentTags(): TagElementProps {
     const tags = this.existAnnotations.flatMap((a) => a.getTags());
     if (tags.length == 0) return { tag: "span" };
-    const ts = groupBy(tags, (t) => t.tag).sort(sortByLength);
+    const ts = groupBy(tags, (t) => t.tag).sort((a,b)=>sortDesc(a.values.length,b.values.length));
     const annLen =
       this.existAnnotations.length > 1
         ? `选中${this.existAnnotations.length}注释，`
@@ -841,9 +901,8 @@ function createAnnotationContextMenu(
   const currentTags = groupBy(
     currentAnnotations.flatMap((f) => f.getTags()),
     (t) => t.tag,
-  ).sort(sortByFixedTag2Length);
-  const currentTagsString = currentTags
-    .sort(sortByLength)
+  ).sort((a,b)=>sortDesc(a.values.length,b.values.length))
+  const currentTagsString = currentTags 
     .map((f) => `${f.key}[${f.values.length}]`)
     .join(",");
   const label =

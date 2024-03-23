@@ -59,10 +59,10 @@ export function getChildCollections(
   if (childCollections.length == 0) return [];
   return [...childCollections, ...getChildCollections(childCollections)];
 }
-export function sortByLength<T>(a: groupByResult<T>, b: groupByResult<T>) {
+ function sortByLength<T>(a: groupByResult<T>, b: groupByResult<T>) {
   return b.values.length - a.values.length + (b.key > a.key ? -0.5 : 0.5);
 }
-export function sortByFixedTag2Length<T>(
+ function sortByFixedTag2Length<T>(
   a: groupByResult<T>,
   b: groupByResult<T>,
 ) {
@@ -79,22 +79,6 @@ export function sortByFixedTag2Length<T>(
   return b.values.length - a.values.length + (b.key > a.key ? -0.5 : 0.5);
 }
 
-export function sortByFixedTag2TagName<T>(
-  a: groupByResult<T>,
-  b: groupByResult<T>,
-) {
-  const tags = memFixedTags();
-  if (tags.includes(a.key) && tags.includes(b.key)) {
-    return tags.indexOf(a.key) - tags.indexOf(b.key);
-  }
-  if (tags.includes(a.key)) {
-    return -1;
-  }
-  if (tags.includes(b.key)) {
-    return 1;
-  }
-  return b.key > a.key ? -0.5 : 0.5;
-}
 export const FixedTagsDefault =
   "目的,假设,框架,数据,量表,方法,理论,结论,贡献,不足,背景,现状,问题,对策";
 export const FixedColorDefault =
@@ -210,20 +194,40 @@ const memAllTagsInLibraryAsync = memoize(async () => {
   const tags = pdfs
     .filter((f) => f.isPDFAttachment())
     .flatMap((f) => f.getAnnotations())
-    .flatMap((f) => f.getTags());
+    .flatMap((f) =>
+      f
+        .getTags()
+        .map((a) => ({
+          tag: a.tag,
+          type: a.type,
+          dateModified: f.dateModified,
+        })),
+    );
   const itemTags = getPref("item-tags")
-    ? items.flatMap((f) => f.getTags())
+    ? items.flatMap((f) =>
+        f
+          .getTags()
+          .map((a) => ({
+            tag: a.tag,
+            type: a.type,
+            dateModified: f.dateModified,
+          })),
+      )
     : [];
   return groupBy([...tags, ...itemTags], (t) => t.tag);
 });
 //使用查询优化性能
 export const memAllTagsDB = memoize(async () => {
   const rows = await Zotero.DB.queryAsync(
-    "select name as tag,type from itemTags it join tags t on it.tagID=t.tagID",
+    "select name as tag,type,ann.dateModified from itemTags it join tags t on it.tagID=t.tagID join items ann on it.itemID=ann.itemID",
   );
-  const lines: { tag: string; type: number }[] = [];
+  const lines: { tag: string; type: number; dateModified: string }[] = [];
   for (const row of rows) {
-    lines.push({ tag: row.tag, type: row.type });
+    lines.push({
+      tag: row.tag,
+      type: row.type,
+      dateModified: row.dateModified,
+    });
   }
   ztoolkit.log(lines.length, lines);
   return groupBy(lines, (t) => t.tag);
@@ -273,7 +277,11 @@ function getTagsInCollections(collections: Zotero.Collection[]) {
     (f) => f.isFileAttachment() && f.isAttachment(),
   );
   const annotations = pdfItems.flatMap((f) => f.getAnnotations(false));
-  return annotations.flatMap((f) => f.getTags());
+  return annotations.flatMap((f) =>
+    f
+      .getTags()
+      .map((a) => ({ tag: a.tag, type: a.type, dateModified: f.dateModified })),
+  );
 }
 export function str2RegExp(value: string) {
   const res: RegExp[] = [];

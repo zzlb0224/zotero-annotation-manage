@@ -23,7 +23,14 @@ pref-item-tags =
     .label =  item-tags
 
 pref-max-show-tags=  max-show-tags
-
+pref-sort = Custom sort
+pref-sort-1 =
+    .label = Fixed tags (fixed sort) Other tags (sorted by number of uses)
+pref-sort-2 =
+    .label = Fixed Tags (Fixed sort) Recent tags (sorted by time of use)
+pref-sort-3 = 
+    .label = Fixed Tags (Fixed sort) Tags used in pdf (sorted alphabetically) Most Recent tags (sorted by time of use)
+pref-sort-rect-n =最近N条标签
 
 pref-multipleTags = 
     .label = multiple tags

@@ -8,6 +8,14 @@ pref-tagsLabel = 固定输出标签，以英文逗号分隔
 pref-fixed-colors = 固定颜色，以英文逗号分隔，使用六位的颜色如#ffc0cb
 pref-optional-color = 备选颜色 
 
+pref-sort = 自定义排序
+pref-sort-1 =
+    .label = 固定标签（固定排序） 其它标签（按使用次数排序）
+pref-sort-2 =
+    .label = 固定标签（固定排序） 最近的标签（按使用时间排序） 
+pref-sort-3 = 
+    .label = 固定标签（固定排序） pdf中使用的标签（按字母排序）  最近的标签（按使用时间排序）
+pref-sort-rect-n =最近N条标签
 
 pref-show-relate-tags = 
     .label =  显示相关标签
