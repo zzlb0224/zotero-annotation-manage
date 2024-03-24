@@ -12,7 +12,14 @@ import {
   str2RegExp,
   uniqueBy,
 } from "../utils/zzlb";
-import { sortAsc, sortByTags, sortDesc } from "../utils/sort";
+import {
+  sortAsc,
+  sortKey,
+  sortModified,
+  sortTags,
+  sortTagsKey,
+  sortValuesLength,
+} from "../utils/sort";
 function register() {
   // if (!getPref("enable")) return;
   // ztoolkit.UI.basicOptions.log.disableZLog = true;
@@ -181,9 +188,9 @@ export class AnnotationPopup {
         }))
         .sort((a, b) => {
           return (
-            sortByTags(fixedTags, a.key, b.key) * 100 +
-            sortDesc(a.dateModified, b.dateModified) * 10 +
-            sortAsc(a.key, b.key)
+            sortTags(fixedTags, a, b) * 100 +
+            sortModified(a, b) * 10 +
+            sortKey(a, b)
           );
         });
     } else if (getPref("sort") == "3") {
@@ -206,10 +213,10 @@ export class AnnotationPopup {
         }))
         .sort((a, b) => {
           return (
-            sortByTags(fixedTags, a.key, b.key) * 1000 +
-            sortByTags(itemAnnTags, a.key, b.key) * 100 +
-            sortDesc(a.dateModified, b.dateModified) * 10 +
-            sortAsc(a.key, b.key)
+            sortTags(fixedTags, a, b) * 1000 +
+            sortTags(itemAnnTags, a, b) * 100 +
+            sortModified(a, b) * 10 +
+            sortKey(a, b)
           );
         });
     } else {
@@ -224,9 +231,9 @@ export class AnnotationPopup {
         }))
         .sort((a, b) => {
           return (
-            sortByTags(fixedTags, a.key, b.key) * 1000 +
-            sortDesc(a.values.length, b.values.length) * 10 +
-            sortAsc(a.key, b.key)
+            sortTags(fixedTags, a, b) * 1000 +
+            sortValuesLength(a, b) * 10 +
+            sortKey(a, b)
           );
         });
       // relateTags.sort(sortByFixedTag2Length);
@@ -330,9 +337,7 @@ export class AnnotationPopup {
   createCurrentTags(): TagElementProps {
     const tags = this.existAnnotations.flatMap((a) => a.getTags());
     if (tags.length == 0) return { tag: "span" };
-    const ts = groupBy(tags, (t) => t.tag).sort((a, b) =>
-      sortDesc(a.values.length, b.values.length),
-    );
+    const ts = groupBy(tags, (t) => t.tag).sort(sortValuesLength);
     const annLen =
       this.existAnnotations.length > 1
         ? `选中${this.existAnnotations.length}注释，`
@@ -904,7 +909,7 @@ function createAnnotationContextMenu(
   const currentTags = groupBy(
     currentAnnotations.flatMap((f) => f.getTags()),
     (t) => t.tag,
-  ).sort((a, b) => sortDesc(a.values.length, b.values.length));
+  ).sort(sortValuesLength);
   const currentTagsString = currentTags
     .map((f) => `${f.key}[${f.values.length}]`)
     .join(",");

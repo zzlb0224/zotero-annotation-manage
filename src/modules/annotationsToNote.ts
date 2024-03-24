@@ -13,7 +13,13 @@ import {
   toggleProperty,
   uniqueBy,
 } from "../utils/zzlb";
-import { sortAsc, sortByTags, sortDesc } from "../utils/sort";
+import {
+  sortAsc,
+  sortValuesLength,
+  sortTags10AscByKey,
+  sortTags10ValuesLength,
+  sortKey,
+} from "../utils/sort";
 import { Tab } from "../utils/tab";
 let popupWin: ProgressWindowHelper | undefined = undefined;
 let popupTime = -1;
@@ -239,11 +245,7 @@ async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
     f.tags.map((t) => Object.assign(f, { tag: t })),
   );
   const tags = groupBy(annotations, (a) => a.tag.tag);
-  tags.sort(
-    (a, b) =>
-      sortByTags(memFixedTags(), a.key, b.key) * 100 +
-      sortDesc(a.values.length, b.values.length),
-  );
+  tags.sort(sortTags10ValuesLength);
 
   const tagsTag: TagElementProps = {
     tag: "div",
@@ -479,7 +481,7 @@ function getAllAnnotations(items: Zotero.Item[]) {
       const itemTags = item
         .getTags()
         .map((a) => a.tag)
-        .sort()
+        .sort(sortAsc)
         .join("  ");
       const author = item.getField("firstCreator");
       const year = item.getField("year");
@@ -608,7 +610,7 @@ async function exportNote({
   annotations = await convertHtml(annotations, note);
   const getKeyGroup = (fn: (item: AnnotationRes) => string) =>
     groupBy(annotations, fn)
-      .sort((a, b) => b.values.length - a.values.length)
+      .sort(sortValuesLength)
       .slice(0, 5)
       .map((t) => `${t.key}(${t.values.length})`)
       .join("  ");
@@ -645,11 +647,7 @@ async function exportNoteByTag(isCollection: boolean = false) {
       ans.flatMap((an) => an.tags.map((tag) => Object.assign({}, an, { tag }))),
     toText: (annotations) =>
       groupBy(annotations, (a) => a.tag.tag)
-        .sort(
-          (a, b) =>
-            sortByTags(memFixedTags(), a.key, b.key) * 100 +
-            sortAsc(a.key, b.key),
-        )
+        .sort(sortTags10AscByKey)
         .flatMap((tag, index) => {
           return [
             `<h1>(${index + 1}) ${tag.key} (${tag.values.length})</h1>`,
@@ -666,11 +664,7 @@ async function exportNoteByTagPdf(isCollection: boolean = false) {
       ans.flatMap((an) => an.tags.map((tag) => Object.assign({}, an, { tag }))),
     toText: (annotations) =>
       groupBy(annotations, (a) => a.tag.tag)
-        .sort(
-          (a, b) =>
-            sortByTags(memFixedTags(), a.key, b.key) * 100 +
-            sortDesc(a.values.length, b.values.length),
-        )
+        .sort(sortTags10ValuesLength)
         .flatMap((tag, index) => {
           return [
             `<h1> (${index + 1}) 标签：${tag.key}  (${tag.values.length})</h1>`,
@@ -715,7 +709,7 @@ async function exportSingleNote(tag: string, isCollection: boolean = false) {
       items: await getSelectedItems(isCollection),
       toText: (ans) =>
         groupBy(ans, (a) => a.pdfTitle)
-          .sort((a, b) => (a.key > b.key ? 1 : -1))
+          .sort(sortKey)
           .flatMap((a, index, aa) => [
             `<h1>(${index + 1}/${aa.length}) ${a.key} ${getCiteItemHtmlWithPage(a.values[0].ann)}</h1>`,
             a.values
@@ -748,7 +742,7 @@ function toText1(ans: AnnotationRes[]) {
       .join(",") +
     "\n" +
     groupBy(ans, (a) => a.pdfTitle)
-      .sort((a, b) => (a.key > b.key ? 1 : -1))
+      .sort(sortKey)
       .flatMap((a, index, aa) => [
         `<h1>(${index + 1}/${aa.length}) ${a.key} ${getCiteItemHtmlWithPage(a.values[0].ann)}</h1>`,
         a.values

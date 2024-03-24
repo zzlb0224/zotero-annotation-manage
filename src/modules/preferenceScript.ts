@@ -1,7 +1,8 @@
 import { config } from "../../package.json";
 import { getString } from "../utils/locale";
 import { getPref, setPref } from "../utils/prefs";
-import { sortDesc } from "../utils/sort";
+import { sortAsc, sortModified } from "../utils/sort";
+
 import {
   FixedColorDefault,
   FixedTagsDefault,
@@ -215,7 +216,7 @@ async function replaceTagsPreviewDiv(doc?: Document) {
         .filter((f) => f.isPDFAttachment())
         .flatMap((f) => f.getAnnotations())
         .filter((f) => f.getTags().length > 0)
-        .sort((a, b) => sortDesc(a.dateModified, b.dateModified))[0];
+        .sort(sortModified)[0];
       if (ann) {
         from = "当前选择的条目";
       }
@@ -231,7 +232,7 @@ async function replaceTagsPreviewDiv(doc?: Document) {
             .filter((f) => f.isPDFAttachment())
             .flatMap((f) => f.getAnnotations())
             .filter((f) => f.getTags().length > 0)
-            .sort((a, b) => sortDesc(a.dateModified, b.dateModified))[0];
+            .sort(sortModified)[0];
           if (ann) {
             from = `当前文件夹[${sc.name}]的标签`;
           }
@@ -248,7 +249,7 @@ async function replaceTagsPreviewDiv(doc?: Document) {
           .filter((f) => f.isPDFAttachment())
           .flatMap((f) => f.getAnnotations())
           .filter((f) => f.getTags().length > 0)
-          .sort((a, b) => sortDesc(a.dateModified, b.dateModified))[0];
+          .sort(sortModified)[0];
         if (ann) {
           from = `当前文件夹[${sc.name}]的子文件夹标签`;
         }
@@ -259,7 +260,7 @@ async function replaceTagsPreviewDiv(doc?: Document) {
       ann = all
         .filter((f) => f.itemTypeID == 1)
         .filter((f) => f.getTags().length > 0)
-        .sort((a, b) => sortDesc(a.dateModified, b.dateModified))[0];
+        .sort(sortModified)[0];
       if (ann) {
         from = "全库的标签";
       }
