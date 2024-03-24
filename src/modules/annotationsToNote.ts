@@ -14,6 +14,7 @@ import {
   uniqueBy,
 } from "../utils/zzlb";
 import { sortAsc, sortByTags, sortDesc } from "../utils/sort";
+import { Tab } from "../utils/tab";
 let popupWin: ProgressWindowHelper | undefined = undefined;
 let popupTime = -1;
 
@@ -27,6 +28,17 @@ function register() {
     label: "笔记管理",
     icon: iconBaseUrl + "favicon.png",
     children: [
+      {
+        tag: "menuitem",
+        label: "test tab",
+        icon: iconBaseUrl + "favicon.png",
+        commandListener: (ev) => {
+          const tab = new Tab(
+            `chrome://${config.addonRef}/content/tab.xhtml`,
+            "new tab",
+          );
+        },
+      },
       {
         tag: "menuitem",
         label: "分割标签（未完成）",
