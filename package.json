@@ -1,6 +1,6 @@
 {
   "name": "zotero-annotation-manage",
-  "version": "0.3.76",
+  "version": "0.3.77",
   "description": "一个标签管理工具，主要是为了自己方便管理标签，和进行各种汇总统计",
   "config": {
     "addonName": "zotero-annotation-manage",
