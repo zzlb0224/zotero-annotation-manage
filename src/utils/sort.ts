@@ -22,23 +22,11 @@ export function sortTags(
   }
   if (typeof a !== "string" && typeof b !== "string")
     return sortTags(fixed, a.key, b.key);
-
   return 0;
-}
-export function sortTagsKey(
-  fixed: string[],
-  a: { key: string },
-  b: { key: string },
-) {
-  return sortTags(fixed, a.key, b.key);
 }
 export function sortAsc(a: string | number, b: string | number) {
   return a == b ? 0 : a > b ? -1 : 1;
 }
-function sortDesc(a: string | number, b: string | number) {
-  return a == b ? 0 : a > b ? -1 : 1;
-}
-
 export function sortKey(
   a: { key: string | number },
   b: { key: string | number },
@@ -56,12 +44,13 @@ export function sortByTags10Asc(a: string, b: string) {
   return sortTags(memFixedTags(), a, b) * 10 + sortAsc(a, b);
 }
 export function sortTags10ValuesLength(
-  a: { key: string; values: string | any[] },
-  b: { key: string; values: string | any[] },
+  a: { key: string; values: any[] },
+  b: { key: string; values: any[] },
 ) {
   return (
-    sortTags(memFixedTags(), a.key, b.key) * 100 +
-    sortDesc(a.values.length, b.values.length)
+    sortTags(memFixedTags(), a, b) * 100 +
+    sortValuesLength(a, b) * 10 +
+    sortKey(a, b)
   );
 }
 
@@ -70,4 +59,25 @@ export function sortModified(
   b: { dateModified: string },
 ) {
   return sortAsc(b.dateModified, a.dateModified);
+}
+
+export function sortTags100Modified10Asc(
+  a: { key: string; dateModified: string },
+  b: { key: string; dateModified: string },
+) {
+  return (
+    sortTags(memFixedTags(), a, b) * 100 +
+    sortModified(a, b) * 10 +
+    sortKey(a, b)
+  );
+}
+export function sortTags1000Ann100Modified10Asc(tags: string[]) {
+  return (
+    a: { key: string; dateModified: string },
+    b: { key: string; dateModified: string },
+  ) =>
+    sortTags(memFixedTags(), a, b) * 1000 +
+    sortTags(tags, a, b) * 100 +
+    sortModified(a, b) * 10 +
+    sortKey(a, b);
 }

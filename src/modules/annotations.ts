@@ -17,7 +17,9 @@ import {
   sortKey,
   sortModified,
   sortTags,
-  sortTagsKey,
+  sortTags1000Ann100Modified10Asc,
+  sortTags100Modified10Asc,
+  sortTags10ValuesLength,
   sortValuesLength,
 } from "../utils/sort";
 function register() {
@@ -177,7 +179,6 @@ export class AnnotationPopup {
     }
     if (getPref("show-relate-tags")) groupByResultIncludeFixedTags(relateTags);
     if (getPref("sort") == "2") {
-      const fixedTags = memFixedTags();
       relateTags = relateTags
         .map((r) => ({
           key: r.key,
@@ -186,13 +187,7 @@ export class AnnotationPopup {
             .sort((a, b) => (b > a ? -1 : 1))[0],
           values: r.values,
         }))
-        .sort((a, b) => {
-          return (
-            sortTags(fixedTags, a, b) * 100 +
-            sortModified(a, b) * 10 +
-            sortKey(a, b)
-          );
-        });
+        .sort(sortTags100Modified10Asc);
     } else if (getPref("sort") == "3") {
       const itemAnnTags = this.item
         ? // Zotero.Items.get(this.item.parentItem.getAttachments()).flatMap((f) => f.getAnnotations())
@@ -202,7 +197,6 @@ export class AnnotationPopup {
             .map((a) => a.tag)
             .sort(sortAsc)
         : [];
-      const fixedTags = memFixedTags();
       relateTags = relateTags
         .map((r) => ({
           key: r.key,
@@ -211,16 +205,8 @@ export class AnnotationPopup {
             .sort((a, b) => (b > a ? -1 : 1))[0],
           values: r.values,
         }))
-        .sort((a, b) => {
-          return (
-            sortTags(fixedTags, a, b) * 1000 +
-            sortTags(itemAnnTags, a, b) * 100 +
-            sortModified(a, b) * 10 +
-            sortKey(a, b)
-          );
-        });
+        .sort(sortTags1000Ann100Modified10Asc(itemAnnTags));
     } else {
-      const fixedTags = memFixedTags();
       relateTags = relateTags
         .map((r) => ({
           key: r.key,
@@ -229,14 +215,7 @@ export class AnnotationPopup {
             .sort((a, b) => (b > a ? -1 : 1))[0],
           values: r.values,
         }))
-        .sort((a, b) => {
-          return (
-            sortTags(fixedTags, a, b) * 1000 +
-            sortValuesLength(a, b) * 10 +
-            sortKey(a, b)
-          );
-        });
-      // relateTags.sort(sortByFixedTag2Length);
+        .sort(sortTags10ValuesLength);
     }
 
     this.relateTags = relateTags;

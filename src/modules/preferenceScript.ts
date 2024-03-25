@@ -1,7 +1,7 @@
 import { config } from "../../package.json";
 import { getString } from "../utils/locale";
 import { getPref, setPref } from "../utils/prefs";
-import { sortAsc, sortModified } from "../utils/sort";
+import { sortModified } from "../utils/sort";
 
 import {
   FixedColorDefault,

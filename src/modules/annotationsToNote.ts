@@ -3,24 +3,23 @@ import { MenuitemOptions } from "zotero-plugin-toolkit/dist/managers/menu";
 import { TagElementProps } from "zotero-plugin-toolkit/dist/tools/ui";
 import { config } from "../../package.json";
 import {
+  sortAsc,
+  sortKey,
+  sortTags10AscByKey,
+  sortTags10ValuesLength,
+  sortValuesLength,
+} from "../utils/sort";
+import { Tab } from "../utils/tab";
+import {
   getChildCollections,
   groupBy,
   memFixedColor,
-  memFixedTags,
   promiseAllWithProgress,
   setProperty,
   str2RegExp,
   toggleProperty,
   uniqueBy,
 } from "../utils/zzlb";
-import {
-  sortAsc,
-  sortValuesLength,
-  sortTags10AscByKey,
-  sortTags10ValuesLength,
-  sortKey,
-} from "../utils/sort";
-import { Tab } from "../utils/tab";
 let popupWin: ProgressWindowHelper | undefined = undefined;
 let popupTime = -1;
 
@@ -537,7 +536,7 @@ async function convertHtml(arr: AnnotationRes[], targetNoteItem: Zotero.Item) {
     );
     return ann;
   });
-  //使用Promise.all能并行计算？感觉比for快
+  //使用Promise.all能并行计算？感觉比for快很多
   const list = await promiseAllWithProgress(data, (progress, index) => {
     createPopupWin({ lines: [""] });
     popupWin?.changeLine({
