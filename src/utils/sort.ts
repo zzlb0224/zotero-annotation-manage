@@ -14,9 +14,9 @@ export function sortTags(
     if (fixed.includes(a) && fixed.includes(b)) {
       return fixed.indexOf(a) - fixed.indexOf(b);
     } else if (fixed.includes(a)) {
-      return -100;
+      return -10;
     } else if (fixed.includes(b)) {
-      return 100;
+      return 10;
     }
     return 0;
   }
@@ -25,13 +25,13 @@ export function sortTags(
   return 0;
 }
 export function sortAsc(a: string | number, b: string | number) {
-  return a == b ? 0 : a > b ? -1 : 1;
+  return a == b ? 0 : a < b ? -1 : 1;
 }
 export function sortKey(
   a: { key: string | number },
   b: { key: string | number },
 ) {
-  return a.key == b.key ? 0 : a.key > b.key ? -1 : 1;
+  return sortAsc(a.key, b.key);
 }
 export function sortValuesLength(a: { values: any[] }, b: { values: any[] }) {
   return sortAsc(b.values.length, a.values.length);
@@ -58,6 +58,7 @@ export function sortModified(
   a: { dateModified: string },
   b: { dateModified: string },
 ) {
+  //逆序
   return sortAsc(b.dateModified, a.dateModified);
 }
 

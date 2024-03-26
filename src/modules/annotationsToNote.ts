@@ -46,13 +46,7 @@ function register() {
       },
       {
         tag: "menuitem",
-        label: "分割标签（未完成）",
-        icon: iconBaseUrl + "favicon.png",
-        commandListener: (ev) => {},
-      },
-      {
-        tag: "menuitem",
-        label: "替换标签（未完成）",
+        label: "更新带自动生成笔记tag的note（未完成）",
         icon: iconBaseUrl + "favicon.png",
         commandListener: (ev) => {},
       },

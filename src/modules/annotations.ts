@@ -624,8 +624,9 @@ export class AnnotationPopup {
               {
                 tag: "span",
                 namespace: "html",
+                styles: { textDecorationLine: allHave ? "line-through" : "" },
                 properties: {
-                  textContent: `${allHave ? "[x]" : noneHave ? "" : `[${someHave}]`}${tag}`,
+                  textContent: `${allHave || noneHave ? "" : `[${someHave}]`}${tag}`,
                 },
               },
             ],
@@ -636,13 +637,14 @@ export class AnnotationPopup {
           namespace: "html",
           classList: ["toolbarButton1"],
           properties: {
-            textContent: `${allHave ? "[x]" : noneHave ? "" : `[${someHave}]`}[${label.values.length}]${tag}`,
+            textContent: `${allHave || noneHave ? "" : `[${someHave}]`}[${label.values.length}]${tag}`,
           },
           styles: {
             margin: "2px",
             padding: "2px",
             background: bgColor,
             fontSize: this.fontSize,
+            textDecorationLine: allHave ? "line-through" : "",
             boxShadow: "#999999 0px 0px 4px 3px",
             borderRadius: "6px",
           },
