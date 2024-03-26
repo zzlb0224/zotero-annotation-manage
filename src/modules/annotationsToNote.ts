@@ -61,13 +61,13 @@ function register() {
       },
       {
         tag: "menuitem",
-        label: "自选标签",
+        label: "自选标签导出",
         icon: iconBaseUrl + "favicon.png",
         commandListener: (ev) => {
           const target = ev.target as HTMLElement;
           const doc = target.ownerDocument;
           const div = createChooseTagsDiv(doc, isCollection(ev));
-          ztoolkit.log("自选标签", div);
+          // ztoolkit.log("自选标签", div);
           // setTimeout(()=>d.remove(),10000)
         },
       },
@@ -85,7 +85,7 @@ function register() {
       },
       {
         tag: "menuitem",
-        label: "按标签顺序",
+        label: "按标签顺序导出",
         icon: iconBaseUrl + "favicon.png",
         commandListener: (ev) => {
           exportNoteByTag(isCollection(ev));
@@ -93,7 +93,7 @@ function register() {
       },
       {
         tag: "menuitem",
-        label: "按标签-pdf顺序",
+        label: "按标签-pdf顺序导出",
         icon: iconBaseUrl + "favicon.png",
         commandListener: (ev) => {
           exportNoteByTagPdf(isCollection(ev));
@@ -101,7 +101,7 @@ function register() {
       },
       {
         tag: "menuitem",
-        label: "图片笔记",
+        label: "图片笔记导出",
         icon: iconBaseUrl + "favicon.png",
         commandListener: (ev) => {
           exportNoteOnlyImage(isCollection(ev));
@@ -109,7 +109,7 @@ function register() {
       },
       {
         tag: "menuitem",
-        label: "tag:量表",
+        label: "tag:量表导出",
         icon: iconBaseUrl + "favicon.png",
         commandListener: (ev) => {
           exportSingleNote("量表", isCollection(ev));
