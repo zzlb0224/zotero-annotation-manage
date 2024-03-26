@@ -442,7 +442,7 @@ async function createNote(txt = "") {
   const selected = ZoteroPane.getSelectedCollection(true);
   if (selected) targetNoteItem.setCollections([selected]);
   if (txt) await Zotero.BetterNotes.api.note.insert(targetNoteItem, txt, -1);
-  targetNoteItem.addTag("zotero-annotation:生成的笔记", 0);
+  targetNoteItem.addTag(`${config.addonRef}:生成的笔记`, 0);
   //必须保存后面才能保存图片
   await targetNoteItem.saveTx();
   popupWin?.createLine({
@@ -623,6 +623,16 @@ async function exportNote({
       note.addTag(tag, 0);
     });
   }
+  const usedItems = uniqueBy(
+    annotations.map((a) => a.item),
+    (a) => a.key,
+  );
+  if (usedItems.length <= 10)
+    for (const item of usedItems) {
+      note.addRelatedItem(item);
+    }
+  note.addTag(`${config.addonRef}:引用Item${usedItems.length}个`);
+
   await saveNote(note, `${title}${txt}`);
 }
 async function getSelectedItems(isCollection: boolean) {
