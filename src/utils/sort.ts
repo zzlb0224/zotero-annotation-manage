@@ -72,6 +72,7 @@ export function sortTags100Modified10Asc(
     sortKey(a, b)
   );
 }
+
 export function sortTags1000Ann100Modified10Asc(tags: string[]) {
   return (
     a: { key: string; dateModified: string },

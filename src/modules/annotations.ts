@@ -404,6 +404,16 @@ export class AnnotationPopup {
               },
             },
             {
+              type: "keypress",
+              listener: async (e: Event) => {
+                const event = e as KeyboardEvent;
+                const input = event.target as HTMLInputElement;
+                if (!input) return;
+                if (!event) return;
+                ztoolkit.log("keypress", event);
+              },
+            },
+            {
               type: "keyup",
               listener: async (e: Event) => {
                 const event = e as KeyboardEvent;
@@ -413,7 +423,8 @@ export class AnnotationPopup {
 
                 if (event.key === "Shift") {
                   shiftStart = false;
-                } else if (event.key === "ArrowLeft") {
+                }
+                if (event.key === "ArrowLeft") {
                   if (shiftStart) {
                     selectionCount--;
                     const arg = [

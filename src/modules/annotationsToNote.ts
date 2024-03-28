@@ -35,13 +35,23 @@ function register() {
     children: [
       {
         tag: "menuitem",
-        label: "test tab",
+        label: "测试 tab",
         icon: iconBaseUrl + "favicon.png",
-        commandListener: (ev) => {
+        commandListener: async (ev) => {
+          const items = await getSelectedItemsEv(ev);
           const tab = new Tab(
             `chrome://${config.addonRef}/content/tab.xhtml`,
-            "new tab",
+            "一个新查询",
+            (doc) => {
+              ztoolkit.log(
+                "可以这样读取doc",
+                doc.querySelector("#tab-page-body"),
+              );
+              doc.querySelector("#tab-page-body")!.innerHTML = "";
+              createChild(doc, items);
+            },
           );
+          ztoolkit.log(tab);
         },
       },
       {
@@ -72,6 +82,7 @@ function register() {
         commandListener: (ev) => {
           const target = ev.target as HTMLElement;
           const doc = target.ownerDocument;
+
           const div = createChooseAnnDiv(doc, isCollection(ev));
           // ztoolkit.log("自选标签", div);
           // setTimeout(()=>d.remove(),10000)
@@ -197,7 +208,10 @@ async function createChooseAnnDiv(doc: Document, isCollection: boolean) {
     () => div?.remove(),
   );
 
-  const div = createTopDiv(doc, [inputTag, actionTag]);
+  const div = createTopDiv(doc);
+  for (const c of [inputTag, actionTag]) {
+    ztoolkit.UI.appendElement(c, div!);
+  }
   createResultDiv();
 
   function createResultDiv() {
@@ -230,6 +244,33 @@ async function createChooseAnnDiv(doc: Document, isCollection: boolean) {
       );
   }
 }
+function createChild(doc: Document, items: Zotero.Item[]) {
+  const annotations = getAllAnnotations(items).flatMap((f) =>
+    f.tags.map((t) => Object.assign(f, { tag: t })),
+  );
+  const tags = groupBy(annotations, (a) => a.tag.tag);
+  tags.sort(sortTags10ValuesLength);
+  ztoolkit.UI.appendElement(
+    {
+      tag: "div",
+      children: tags.map((t) => ({
+        tag: "span",
+        properties: { textContent: t.key + "[" + t.values.length + "]" },
+      })),
+    },
+    doc.querySelector("body")!,
+  );
+  ztoolkit.UI.appendElement(
+    {
+      tag: "div",
+      children: annotations
+        .slice(0, 300)
+        .map((t) => ({ tag: "div", properties: { textContent: t.text } })),
+    },
+    doc.querySelector("body")!,
+  );
+}
+
 async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
   const selectedTags: string[] = [];
   const idTags = ID.result;
@@ -302,7 +343,10 @@ async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
   );
   const children = [tagsTag, actionTag];
 
-  const div = createTopDiv(doc, children);
+  const div = createTopDiv(doc);
+  for (const c of children) {
+    ztoolkit.UI.appendElement(c, div!);
+  }
   createTags();
   return div;
 
@@ -413,7 +457,7 @@ function createTopDiv(doc?: Document, children?: TagElementProps[]) {
       children: children,
     },
     doc.querySelector("body,div")!,
-  );
+  ) as HTMLDivElement;
 }
 
 async function saveNote(targetNoteItem: Zotero.Item, txt: string) {
@@ -629,7 +673,32 @@ async function exportNote({
 
   await saveNote(note, `${title}${txt}`);
 }
+
 async function getSelectedItems(isCollection: boolean) {
+  let items: Zotero.Item[] = [];
+  if (isCollection) {
+    const selected = ZoteroPane.getSelectedCollection();
+    ztoolkit.log(isCollection, selected);
+    if (selected) {
+      const cs = uniqueBy(
+        [selected, ...getChildCollections([selected])],
+        (u) => u.key,
+      );
+      items = cs.flatMap((f) => f.getChildItems(false, false));
+    } else {
+      const itemsAll = await Zotero.Items.getAll(1, false, false, false);
+      const itemTypes = ["journalArticle", "thesis"]; //期刊和博硕论文
+      items = itemsAll.filter((f) => itemTypes.includes(f.itemType));
+    }
+  } else {
+    items = ZoteroPane.getSelectedItems();
+  }
+  return items;
+}
+async function getSelectedItemsEv(ev: Event) {
+  const pid = (ev.target as HTMLElement)?.parentElement?.parentElement?.id;
+  const isCollection = pid?.includes("collection") || false;
+
   let items: Zotero.Item[] = [];
   if (isCollection) {
     const selected = ZoteroPane.getSelectedCollection();

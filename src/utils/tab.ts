@@ -1,49 +1,69 @@
 import { config } from "../../package.json";
 export class Tab {
-  tab: any;
-  iframe: any;
+  tab?: { id: string; container: XUL.Box } = undefined;
+  browser!: HTMLIFrameElement & {
+    reload: () => void;
+    loadURI: (url: string, args: any) => void;
+    attachEvent: any;
+  }; //是否为空总和tab一样
+  private onLoad?: (doc: Document) => void = undefined;
   reload() {
-    if (this.tab != null) {
-      this.iframe.reload();
+    if (this.tab) {
+      this.browser.reload();
     }
   }
   close() {
-    Zotero_Tabs.close(this.tab.id);
-    this.tab = null;
+    if (this.tab) {
+      Zotero_Tabs.close(this.tab.id);
+      this.tab = undefined;
+    }
   }
-  constructor(url: string, title: string) {
-    if (this.tab == null) {
+  constructor(url: string, title: string, onLoad?: (doc: Document) => void) {
+    this.onLoad = onLoad;
+    if (this.tab) {
+      const index = Zotero_Tabs._getTab(this.tab.id).tabIndex;
+      Zotero_Tabs._tabs[index]["title"] = "new Tab - " + title;
+
+      this.browser.loadURI(url, {
+        triggeringPrincipal:
+          Services.scriptSecurityManager.getSystemPrincipal(),
+      });
+    } else {
       this.tab = Zotero_Tabs.add({
         type: config.addonInstance,
-        title: "new Tab - " + title,
+        title: title,
         data: {},
         select: false,
         onClose: () => {
-          this.tab = null;
+          this.tab = undefined;
         },
       });
-
       const document = this.tab.container.ownerDocument;
       const iframe = Zotero.createXULElement(document, "browser");
       this.tab.container.appendChild(iframe);
       iframe.setAttribute("class", "reader");
       iframe.setAttribute("flex", "1");
       iframe.setAttribute("type", "content");
+      this.browser = iframe;
+      this.loaded();
       iframe.loadURI(url, {
-        triggeringPrincipal:
-          Services.scriptSecurityManager.getSystemPrincipal(),
-      });
-      this.iframe = iframe;
-      // const index = Zotero_Tabs._getTab(_globalThis.tab.id).tabIndex;
-      // Zotero_Tabs._tabs[index]["iconBackgroundImage"] =`chrome://${config.addonRef}/content/icons/favicon@0.5x.png` // `url(chrome://${config.addonRef}/content/icons/favicon@0.5x.png)`;
-    } else {
-      const index = Zotero_Tabs._getTab(this.tab.id).tabIndex;
-      Zotero_Tabs._tabs[index]["title"] = "new Tab - " + title;
-      this.iframe.loadURI(url, {
         triggeringPrincipal:
           Services.scriptSecurityManager.getSystemPrincipal(),
       });
     }
     Zotero_Tabs.select(this.tab.id);
+  }
+  private loaded() {
+    setTimeout(() => {
+      if (
+        this.browser.contentDocument &&
+        this.browser.contentDocument.querySelector("#tab-page-body")
+      ) {
+        ztoolkit.log("tab加载完成");
+        if (this.onLoad) this.onLoad(this.browser.contentDocument);
+      } else {
+        this.loaded();
+      }
+    }, 5);
   }
 }
