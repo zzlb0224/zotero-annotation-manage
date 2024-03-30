@@ -40,6 +40,7 @@ export class Tab {
       });
       const document = this.tab.container.ownerDocument;
       const iframe = Zotero.createXULElement(document, "browser");
+
       this.tab.container.appendChild(iframe);
       iframe.setAttribute("class", "reader");
       iframe.setAttribute("flex", "1");

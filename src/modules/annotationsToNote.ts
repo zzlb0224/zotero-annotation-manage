@@ -784,7 +784,7 @@ async function exportSingleNote(tag: string, isCollection: boolean = false) {
   if (tag)
     exportNote({
       filter: async (ans) =>
-        ans.filter((f) => f.tags.some((a) => (tag = a.tag))),
+        ans.filter((f) => f.tags.some((a) => tag == a.tag)),
       items: await getSelectedItems(isCollection),
       toText: (ans) =>
         groupBy(ans, (a) => a.pdfTitle)
