@@ -34,6 +34,53 @@ function register() {
     icon: iconBaseUrl + "favicon.png",
     children: [
       {
+        tag: "menu",
+        label: "自定义命令",
+        icon: iconBaseUrl + "favicon.png",
+        children: [
+          {
+            tag: "menuitem",
+            label: "拆分#标签",
+            icon: iconBaseUrl + "favicon.png",
+            commandListener: async (ev) => {
+              const items = await getSelectedItemsEv(ev);
+              const ans = getAllAnnotations(items);
+              ztoolkit.log(
+                `找到${items.length}条目${ans.length}笔记`,
+                isCollection(ev),
+              );
+              new ztoolkit.ProgressWindow(
+                `找到${items.length}条目${ans.length}笔记`,
+                {
+                  closeTime: 5,
+                },
+              ).show();
+              ans.forEach(async (ann) => {
+                const ts = ann.tags
+                  .map((tag) => tag.tag.match(/#([^/]*)\/([^/]*)[/]?/))
+                  .filter((f) => f != null && f.length >= 3)
+                  .flatMap((a) => (a != null ? [a[1], a[2]] : []));
+                const tas = uniqueBy(ts, (a) => a).filter((f) =>
+                  ann.tags.every((e) => e.tag != f),
+                );
+                //ztoolkit.log(ann.tags,tas)
+
+                if (tas.length > 0) {
+                  const tas2 = tas.map(async (a) => ann.ann.addTag(a, 0));
+                  ztoolkit.log(tas.length, "分割", tas);
+                  await promiseAllWithProgress(tas2).then(() => {
+                    ann.ann.saveTx();
+                  });
+                }
+              });
+              new ztoolkit.ProgressWindow("完成替换", {
+                closeTime: 5,
+              }).show();
+            },
+          },
+        ],
+      },
+      {
         tag: "menuitem",
         label: "测试 tab",
         icon: iconBaseUrl + "favicon.png",
@@ -105,16 +152,48 @@ function register() {
         },
       },
       {
-        tag: "menuitem",
-        label: "图片笔记导出",
+        tag: "menu",
+        label: "按不同类型进行导出",
         icon: iconBaseUrl + "favicon.png",
-        commandListener: (ev) => {
-          exportNoteOnlyImage(isCollection(ev));
-        },
+        children: [
+          {
+            tag: "menuitem",
+            label: "类型：图片",
+            icon: iconBaseUrl + "favicon.png",
+            commandListener: (ev) => {
+              exportNoteByType("image", isCollection(ev));
+            },
+          },
+          {
+            tag: "menuitem",
+            label: "类型：ink",
+            icon: iconBaseUrl + "favicon.png",
+            commandListener: (ev) => {
+              exportNoteByType("ink", isCollection(ev));
+            },
+          },
+          {
+            tag: "menuitem",
+            label: "类型：纯笔记",
+            icon: iconBaseUrl + "favicon.png",
+            commandListener: (ev) => {
+              exportNoteByType("note", isCollection(ev));
+            },
+          },
+          {
+            tag: "menuitem",
+            label: "类型：高亮",
+            icon: iconBaseUrl + "favicon.png",
+            commandListener: (ev) => {
+              exportNoteByType("highlight", isCollection(ev));
+            },
+          },
+        ],
       },
+
       {
         tag: "menuitem",
-        label: "tag:量表导出",
+        label: "tag:量表",
         icon: iconBaseUrl + "favicon.png",
         commandListener: (ev) => {
           exportSingleNote("量表", isCollection(ev));
@@ -136,18 +215,22 @@ function unregister() {
   ztoolkit.Menu.unregister(`${config.addonRef}-create-note`);
   ztoolkit.Menu.unregister(`${config.addonRef}-create-note-collection`);
 }
-
-function isCollection(ev: Event) {
-  const pid = (ev.target as HTMLElement)?.parentElement?.parentElement?.id;
-  const isCollection = pid?.includes("collection") || false;
-  return isCollection;
-}
 const ID = {
   root: `${config.addonRef}-ann2note-ChooseTags-root`,
   action: `${config.addonRef}-ann2note-ChooseTags-root-action`,
   input: `${config.addonRef}-ann2note-ChooseTags-root-input`,
   result: `${config.addonRef}-ann2note-ChooseTags-root-result`,
 };
+function getParentAttr(ele: HTMLElement, name = "id") {
+  const value = ele.getAttribute(name);
+  if (value) return value;
+  if (ele.parentElement) return getParentAttr(ele.parentElement, name);
+  return "";
+}
+function isCollection(ev: Event) {
+  const id = getParentAttr(ev.target as HTMLElement, "id");
+  return !!id && id.includes("collection");
+}
 async function createChooseAnnDiv(doc: Document, isCollection: boolean) {
   let text = "";
   let tag = "";
@@ -696,8 +779,8 @@ async function getSelectedItems(isCollection: boolean) {
   return items;
 }
 async function getSelectedItemsEv(ev: Event) {
-  const pid = (ev.target as HTMLElement)?.parentElement?.parentElement?.id;
-  const isCollection = pid?.includes("collection") || false;
+  const isCollection =
+    getParentAttr(ev.target as HTMLElement)?.includes("collection") || false;
 
   let items: Zotero.Item[] = [];
   if (isCollection) {
@@ -760,7 +843,10 @@ async function exportNoteByTagPdf(isCollection: boolean = false) {
   });
 }
 
-async function exportNoteOnlyImage(isCollection: boolean = false) {
+async function exportNoteByType(
+  type: _ZoteroTypes.Annotations.AnnotationType,
+  isCollection: boolean = false,
+) {
   exportNote({
     toText: (annotations) =>
       groupBy(annotations, (a) => a.pdfTitle)
@@ -775,7 +861,7 @@ async function exportNoteOnlyImage(isCollection: boolean = false) {
         .join("\n"),
     items: await getSelectedItems(isCollection),
     filter: (annotations) => {
-      annotations = annotations.filter((f) => f.type == "image");
+      annotations = annotations.filter((f) => f.type == type);
       return uniqueBy(annotations, (a) => a.ann.key);
     },
   });
@@ -792,7 +878,10 @@ async function exportSingleNote(tag: string, isCollection: boolean = false) {
           .flatMap((a, index, aa) => [
             `<h1>(${index + 1}/${aa.length}) ${a.key} ${getCiteItemHtmlWithPage(a.values[0].ann)}</h1>`,
             a.values
-              .map((b) => `<h2>${getCiteAnnotationHtml(b.ann)}</h2>`)
+              .map(
+                (b) =>
+                  `<h2>${getCiteAnnotationHtml(b.ann, b.ann.annotationText + b.ann.annotationComment)}</h2>`,
+              )
               .join(" "),
           ])
           .join(""),

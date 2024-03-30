@@ -38,14 +38,14 @@ export function groupBy<T>(arr: T[], fn: (item: T) => string) {
 }
 export function promiseAllWithProgress<T>(
   arr: Promise<T>[],
-  callback: { (progress: number, index: number): void },
+  callback?: { (progress: number, index: number): void },
 ): Promise<T[]> {
   let index = 0; //不能用forEach的index，因为执行顺序不一样
   arr.forEach((item: Promise<T>) => {
     item.then(() => {
       index++;
       const progress = (index * 100) / arr.length;
-      callback(progress, index);
+      if (callback) callback(progress, index);
     });
   });
   return Promise.all(arr);
