@@ -15,6 +15,7 @@ import {
   groupBy,
   memFixedColor,
   memFixedColors,
+  memFixedTags,
   promiseAllWithProgress,
   setProperty,
   str2RegExp,
@@ -119,7 +120,7 @@ function register() {
       },
       {
         tag: "menuitem",
-        label: "自选标签导出",
+        label: "选择标签导出",
         icon: iconBaseUrl + "favicon.png",
         commandListener: (ev) => {
           const target = ev.target as HTMLElement;
@@ -131,7 +132,7 @@ function register() {
       },
       {
         tag: "menuitem",
-        label: "查找注释文字和标签导出",
+        label: "搜索注释文字和标签导出",
         icon: iconBaseUrl + "favicon.png",
         commandListener: (ev) => {
           const target = ev.target as HTMLElement;
@@ -143,24 +144,8 @@ function register() {
         },
       },
       {
-        tag: "menuitem",
-        label: "按标签顺序导出",
-        icon: iconBaseUrl + "favicon.png",
-        commandListener: (ev) => {
-          exportNoteByTag(isCollection(ev));
-        },
-      },
-      {
-        tag: "menuitem",
-        label: "按标签-pdf顺序导出",
-        icon: iconBaseUrl + "favicon.png",
-        commandListener: (ev) => {
-          exportNoteByTagPdf(isCollection(ev));
-        },
-      },
-      {
         tag: "menu",
-        label: "按不同类型进行导出",
+        label: "按不同类型导出",
         icon: iconBaseUrl + "favicon.png",
         children: [
           {
@@ -197,17 +182,28 @@ function register() {
           },
         ],
       },
-
       {
-        tag: "menuitem",
-        label: "tag:量表",
+        tag: "menu",
+        label: "按不同tag导出",
         icon: iconBaseUrl + "favicon.png",
-        commandListener: (ev) => {
-          exportSingleNote("量表", isCollection(ev));
-        },
+
+        children: [
+          ...memFixedTags().map(
+            (t) =>
+              ({
+                tag: "menuitem",
+                label: t,
+                icon: iconBaseUrl + "favicon.png",
+                commandListener: (ev) => {
+                  exportSingleNote(t, isCollection(ev));
+                },
+              }) as MenuitemOptions,
+          ),
+        ],
       },
     ],
   };
+
   //组合到一起的菜单能节省空间，因此使用children
   ztoolkit.Menu.register(
     "item",
@@ -218,6 +214,7 @@ function register() {
     Object.assign({ id: `${config.addonRef}-create-note-collection` }, menu),
   );
 }
+
 function unregister() {
   ztoolkit.Menu.unregister(`${config.addonRef}-create-note`);
   ztoolkit.Menu.unregister(`${config.addonRef}-create-note-collection`);
@@ -611,6 +608,18 @@ async function createNote(txt = "") {
   targetNoteItem.libraryID = ZoteroPane.getSelectedLibraryID();
   const selected = ZoteroPane.getSelectedCollection(true);
   if (selected) targetNoteItem.setCollections([selected]);
+  else {
+    // 这个会破坏用户数据结构，不是必须的
+    // let c = Zotero.Collections.getByLibrary(1, true).find(
+    //   (f) => f.name == "导出的未分类笔记",
+    // );
+    // if (!c) {
+    //   c = new Zotero.Collection({ libraryID: 1, name: "导出的未分类笔记" });
+    //   await c.saveTx();
+    // }
+    // targetNoteItem.setCollections([c.key]);
+  }
+
   if (txt) await Zotero.BetterNotes.api.note.insert(targetNoteItem, txt, -1);
   targetNoteItem.addTag(`${config.addonRef}:生成的笔记`, 0);
   //必须保存后面才能保存图片
