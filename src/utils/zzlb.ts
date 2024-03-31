@@ -288,5 +288,6 @@ export function str2RegExp(value: string) {
         ztoolkit.log(error);
       }
     });
+  // ztoolkit.log(res);
   return res;
 }

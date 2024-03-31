@@ -14,6 +14,7 @@ import {
   getChildCollections,
   groupBy,
   memFixedColor,
+  memFixedColors,
   promiseAllWithProgress,
   setProperty,
   str2RegExp,
@@ -49,13 +50,20 @@ function register() {
                 `找到${items.length}条目${ans.length}笔记`,
                 isCollection(ev),
               );
-              new ztoolkit.ProgressWindow(
+              const p = new ztoolkit.ProgressWindow(
                 `找到${items.length}条目${ans.length}笔记`,
                 {
-                  closeTime: 5,
+                  closeTime: -1,
+                  closeOnClick: true,
                 },
               ).show();
-              ans.forEach(async (ann) => {
+              p.createLine({ text: "处理中" });
+              ans.forEach(async (ann, i) => {
+                p.changeLine({
+                  idx: 0,
+                  progress: (i / ans.length) * 100,
+                  text: "处理中",
+                });
                 const ts = ann.tags
                   .map((tag) => tag.tag.match(/#([^/]*)\/([^/]*)[/]?/))
                   .filter((f) => f != null && f.length >= 3)
@@ -64,7 +72,6 @@ function register() {
                   ann.tags.every((e) => e.tag != f),
                 );
                 //ztoolkit.log(ann.tags,tas)
-
                 if (tas.length > 0) {
                   const tas2 = tas.map(async (a) => ann.ann.addTag(a, 0));
                   ztoolkit.log(tas.length, "分割", tas);
@@ -73,40 +80,40 @@ function register() {
                   });
                 }
               });
-              new ztoolkit.ProgressWindow("完成替换", {
-                closeTime: 5,
-              }).show();
+              p.createLine({ text: "处理完成" });
+              p.startCloseTimer(3000);
             },
+          },
+          {
+            tag: "menuitem",
+            label: "测试 tab",
+            icon: iconBaseUrl + "favicon.png",
+            commandListener: async (ev) => {
+              const items = await getSelectedItemsEv(ev);
+              const tab = new Tab(
+                `chrome://${config.addonRef}/content/tab.xhtml`,
+                "一个新查询",
+                (doc) => {
+                  ztoolkit.log(
+                    "可以这样读取doc",
+                    doc.querySelector("#tab-page-body"),
+                  );
+                  doc.querySelector("#tab-page-body")!.innerHTML = "";
+                  createChild(doc, items);
+                },
+              );
+              ztoolkit.log(tab);
+            },
+          },
+          {
+            tag: "menuitem",
+            label: "测试弹出",
+            icon: iconBaseUrl + "favicon.png",
+            commandListener: (ev) => {},
           },
         ],
       },
-      {
-        tag: "menuitem",
-        label: "测试 tab",
-        icon: iconBaseUrl + "favicon.png",
-        commandListener: async (ev) => {
-          const items = await getSelectedItemsEv(ev);
-          const tab = new Tab(
-            `chrome://${config.addonRef}/content/tab.xhtml`,
-            "一个新查询",
-            (doc) => {
-              ztoolkit.log(
-                "可以这样读取doc",
-                doc.querySelector("#tab-page-body"),
-              );
-              doc.querySelector("#tab-page-body")!.innerHTML = "";
-              createChild(doc, items);
-            },
-          );
-          ztoolkit.log(tab);
-        },
-      },
-      {
-        tag: "menuitem",
-        label: "更新带自动生成笔记tag的note（未完成）",
-        icon: iconBaseUrl + "favicon.png",
-        commandListener: (ev) => {},
-      },
+
       {
         tag: "menuseparator",
       },
@@ -124,7 +131,7 @@ function register() {
       },
       {
         tag: "menuitem",
-        label: "查找注释文字和标签进行导出（未完成）",
+        label: "查找注释文字和标签导出",
         icon: iconBaseUrl + "favicon.png",
         commandListener: (ev) => {
           const target = ev.target as HTMLElement;
@@ -234,6 +241,7 @@ function isCollection(ev: Event) {
 async function createChooseAnnDiv(doc: Document, isCollection: boolean) {
   let text = "";
   let tag = "";
+  let showN = 10;
   const items = await getSelectedItems(isCollection);
   const annotations = getAllAnnotations(items);
   let ans: AnnotationRes[] = annotations;
@@ -246,32 +254,70 @@ async function createChooseAnnDiv(doc: Document, isCollection: boolean) {
       {
         tag: "div",
         children: [
-          { tag: "span", properties: { textContent: "注释、笔记搜索" } },
+          { tag: "div", properties: { textContent: "可用正则" } },
           {
-            tag: "input",
-            namespace: "html",
-            listeners: [
+            tag: "div",
+            properties: { textContent: "注释、笔记" },
+            children: [
               {
-                type: "keyup",
-                listener: (ev) => {
-                  text = (ev.target as HTMLInputElement).value;
-
-                  createResultDiv();
-                },
+                tag: "input",
+                namespace: "html",
+                properties: { placeholder: "请输入注释、笔记筛选条件" },
+                styles: { width: "200px" },
+                listeners: [
+                  {
+                    type: "keyup",
+                    listener: (ev) => {
+                      text = (ev.target as HTMLInputElement).value;
+                      createResultDiv();
+                    },
+                  },
+                ],
               },
             ],
           },
-          { tag: "span", properties: { textContent: "标签" } },
           {
-            tag: "input",
-            namespace: "html",
-            listeners: [
+            tag: "div",
+            properties: { textContent: "标签" },
+            children: [
               {
-                type: "keyup",
-                listener: (ev) => {
-                  tag = (ev.target as HTMLInputElement).value.trim();
-                  createResultDiv();
-                },
+                tag: "input",
+                namespace: "html",
+                properties: { placeholder: "请输入tag筛选条件" },
+                styles: { width: "200px" },
+                listeners: [
+                  {
+                    type: "keyup",
+                    listener: (ev) => {
+                      tag = (ev.target as HTMLInputElement).value.trim();
+                      createResultDiv();
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            tag: "div",
+            properties: { textContent: "显示前N条" },
+            children: [
+              {
+                tag: "input",
+                namespace: "html",
+                properties: { placeholder: "输入数字", type: "number" },
+                styles: { width: "200px" },
+                listeners: [
+                  {
+                    type: "keyup",
+                    listener: (ev) => {
+                      showN =
+                        parseInt(
+                          (ev.target as HTMLInputElement).value.trim(),
+                        ) || 10;
+                      createResultDiv();
+                    },
+                  },
+                ],
               },
             ],
           },
@@ -292,38 +338,39 @@ async function createChooseAnnDiv(doc: Document, isCollection: boolean) {
   );
 
   const div = createTopDiv(doc);
-  for (const c of [inputTag, actionTag]) {
+  for (const c of [actionTag, inputTag]) {
     ztoolkit.UI.appendElement(c, div!);
   }
   createResultDiv();
-
   function createResultDiv() {
     const txtReg = str2RegExp(text);
     const tagReg = str2RegExp(tag);
     ans = annotations.filter(
       (f) =>
-        (txtReg.length > 0 ||
+        (txtReg.length == 0 ||
           txtReg.some((a) => a.test(f.comment) || a.test(f.text))) &&
-        (tagReg.length > 0 || tagReg.some((a) => a.test(f.annotationTags))),
+        (tagReg.length == 0 || tagReg.some((a) => a.test(f.annotationTags))),
     );
-    if (doc.getElementById(resultId))
+    const resultDiv = doc.getElementById(resultId);
+    if (resultDiv)
       ztoolkit.UI.replaceElement(
         {
           tag: "div",
           namespace: "html",
           id: resultId,
           properties: {
-            textContent: `总${annotations.length}条笔记，筛选出了${ans.length}条。预览前10条。`,
+            textContent: `总${annotations.length}条笔记，筛选出了${ans.length}条。预览前${showN}条。`,
           },
-          children: ans.slice(0, 10).map((a) => ({
-            tag: "span",
+          children: (showN > 0 ? ans.slice(0, showN) : ans).map((a) => ({
+            tag: "div",
             namespace: "html",
             properties: {
-              textContent: a.text + a.comment + a.annotationTags,
+              textContent:
+                a.annotationTags + " " + a.text + " " + a.comment + " ",
             },
           })),
         },
-        doc.getElementById(resultId)!,
+        resultDiv,
       );
   }
 }
@@ -520,6 +567,8 @@ function createActionTag(action: () => void, cancel?: () => void) {
 }
 function createTopDiv(doc?: Document, children?: TagElementProps[]) {
   if (!doc) return;
+  const colors = memFixedColors();
+  const color = colors[Math.round(Math.random() * (colors.length - 1))];
   return ztoolkit.UI.appendElement(
     {
       tag: "div",
@@ -533,7 +582,7 @@ function createTopDiv(doc?: Document, children?: TagElementProps[]) {
         maxHeight: "600px",
         overflowY: "scroll",
         display: "flex",
-        background: "#fff",
+        background: color,
         flexWrap: "wrap",
         flexDirection: "column",
       },
@@ -689,7 +738,7 @@ function getTitleFromAnnotations(annotations: AnnotationRes[]) {
   const annotationLength = uniqueBy(annotations, (a) => a.ann.key).length;
   // const tagLength = uniqueBy(annotations, (a) => a.tag.tag).length;
   // ${itemsLength}-${annotationLength}
-  const title = `注释 (${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}) `;
+  const title = `注释 (${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}) ${annotationLength}`;
   return title;
 }
 
@@ -728,7 +777,7 @@ async function exportNote({
   const title = getTitleFromAnnotations(annotations);
   //createNote 一定要在 getSelectedItems 之后，不然获取不到选择的条目
   // 另一个问题是 会创建顶层条目触发另一个插件的 closeOtherProgressWindows
-  const note = await createNote();
+  const note = await createNote(title);
   annotations = await convertHtml(annotations, note);
   const getKeyGroup = (fn: (item: AnnotationRes) => string) =>
     groupBy(annotations, fn)
@@ -754,7 +803,7 @@ async function exportNote({
     }
   note.addTag(`${config.addonRef}:引用Item${usedItems.length}个`);
 
-  await saveNote(note, `${title}${txt}`);
+  await saveNote(note, `${txt}`);
 }
 
 async function getSelectedItems(isCollection: boolean) {
