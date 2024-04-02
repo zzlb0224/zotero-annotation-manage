@@ -707,12 +707,16 @@ function getAllAnnotations(items: Zotero.Item[]) {
 async function convertHtml(arr: AnnotationRes[], targetNoteItem: Zotero.Item) {
   const data = arr.map(async (ann) => {
     //TODO 感觉这个方法读取图片是从缓存里面读取的，有些图片没有加载成功
-    ann.html = await Zotero.BetterNotes.api.convert.annotations2html(
+    const html = (await Zotero.BetterNotes.api.convert.annotations2html(
       [ann.ann],
       {
         noteItem: targetNoteItem,
       },
-    );
+    )) as string;
+    if (html)
+      ann.html = html
+        .replace(/<\/p>$/, getColorTags(ann.tags.map((c) => c.tag)) + "</p>")
+        .replace(/<p>[\s\r\n]*<\/p>/g, "");
     return ann;
   });
   //使用Promise.all能并行计算？感觉比for快很多
@@ -911,9 +915,7 @@ async function exportNoteByType(
         .flatMap((pdfTitle, index, aa) => [
           `<h1> (${index + 1}/${aa.length}) ${pdfTitle.key} ${getCiteItemHtml(pdfTitle.values[0]?.item)}  (${pdfTitle.values.length})</h1>`,
           ...pdfTitle.values.flatMap((b) => [
-            b.html
-              ? b.html
-              : `<span style="color:#ff6666">未能加载：${b.ann.key}</span>`,
+            b.html ? b.html : getCiteAnnotationHtml(b.ann), // `<span style="color:#ff6666">未能加载：${b.ann.key}</span>`
           ]),
         ])
         .join("\n"),
@@ -924,6 +926,7 @@ async function exportNoteByType(
     },
   });
 }
+
 async function exportSingleNote(tag: string, isCollection: boolean = false) {
   if (tag)
     exportNote({
@@ -938,6 +941,7 @@ async function exportSingleNote(tag: string, isCollection: boolean = false) {
             a.values
               .map(
                 (b) =>
+                  b.html ??
                   `<h2>${getCiteAnnotationHtml(b.ann, b.ann.annotationText + b.ann.annotationComment)}</h2>`,
               )
               .join(" "),
@@ -971,15 +975,7 @@ function toText1(ans: AnnotationRes[]) {
       .sort(sortKey)
       .flatMap((a, index, aa) => [
         `<h1>(${index + 1}/${aa.length}) ${a.key} ${getCiteItemHtmlWithPage(a.values[0].ann)}</h1>`,
-        a.values
-          .map((b) =>
-            b.html.replace(
-              /<\/p>$/,
-              getColorTags(b.tags.map((c) => c.tag)) + "</p>",
-            ),
-          )
-          .map((b) => b.replace(/<p>[\r\n]*<\/p>/g, ""))
-          .join(" "),
+        a.values.map((b) => b.html).join("\n"),
       ])
       .join("")
   );
