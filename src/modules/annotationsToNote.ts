@@ -717,6 +717,9 @@ async function convertHtml(arr: AnnotationRes[], targetNoteItem: Zotero.Item) {
       ann.html = html
         .replace(/<\/p>$/, getColorTags(ann.tags.map((c) => c.tag)) + "</p>")
         .replace(/<p>[\s\r\n]*<\/p>/g, "");
+    else{
+       ann.html =  getCiteAnnotationHtml(ann.ann,"转到页面更新缓存再试")
+    }
     return ann;
   });
   //使用Promise.all能并行计算？感觉比for快很多
