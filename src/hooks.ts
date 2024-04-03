@@ -13,7 +13,7 @@ import {
 } from "./modules/preferenceScript";
 import { createZToolkit } from "./utils/ztoolkit";
 import Annotations from "./modules/annotations";
-import AnnotationsToNote from "./modules/annotationsToNote";
+import AnnotationsToNote, { createPopMenu } from "./modules/annotationsToNote";
 
 async function onStartup() {
   await Promise.all([
@@ -165,6 +165,15 @@ function onShortcuts(type: string) {
   }
 }
 
+async function onMenuEvent(type: "annotationToNoteTags", data: { [key: string]: any }) {
+  switch (type) {
+    case "annotationToNoteTags":
+      createPopMenu(data.window);
+      break;
+    default:
+      return;
+  }
+}
 function onDialogEvents(type: string) {
   switch (type) {
     case "dialogExample":
@@ -200,4 +209,5 @@ export default {
   onPrefsEvent,
   onShortcuts,
   onDialogEvents,
+  onMenuEvent
 };

@@ -43,7 +43,7 @@ export function sortTags10AscByKey(a: { key: string }, b: { key: string }) {
 export function sortByTags10Asc(a: string, b: string) {
   return sortTags(memFixedTags(), a, b) * 10 + sortAsc(a, b);
 }
-export function sortTags10ValuesLength(
+export function sortFixedTags10ValuesLength(
   a: { key: string; values: any[] },
   b: { key: string; values: any[] },
 ) {

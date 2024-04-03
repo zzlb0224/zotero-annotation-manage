@@ -102,6 +102,9 @@ export const memOptionalColor = memoize(
     (getPref("optional-color") as string)?.match(/#[0-9A-F]{6}/g)?.[0] ||
     "#ffc0cb",
 );
+/**
+ * optional undefined 采用 配置的可选颜色， "" 采用空值 
+ */
 export const memFixedColor = memoize(
   (tag: string, optional: string | undefined = undefined): string => {
     const tags = memFixedTags();

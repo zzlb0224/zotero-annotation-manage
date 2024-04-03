@@ -19,7 +19,7 @@ import {
   sortTags,
   sortTags1000Ann100Modified10Asc,
   sortTags100Modified10Asc,
-  sortTags10ValuesLength,
+  sortFixedTags10ValuesLength,
   sortValuesLength,
 } from "../utils/sort";
 function register() {
@@ -215,7 +215,7 @@ export class AnnotationPopup {
             .sort((a, b) => (b > a ? -1 : 1))[0],
           values: r.values,
         }))
-        .sort(sortTags10ValuesLength);
+        .sort(sortFixedTags10ValuesLength);
     }
 
     this.relateTags = relateTags;

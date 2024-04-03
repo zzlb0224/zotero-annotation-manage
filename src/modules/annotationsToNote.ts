@@ -6,7 +6,7 @@ import {
   sortAsc,
   sortKey,
   sortTags10AscByKey,
-  sortTags10ValuesLength,
+  sortFixedTags10ValuesLength,
   sortValuesLength,
 } from "../utils/sort";
 import { Tab } from "../utils/tab";
@@ -16,6 +16,7 @@ import {
   memFixedColor,
   memFixedColors,
   memFixedTags,
+  memOptionalColor,
   promiseAllWithProgress,
   setProperty,
   str2RegExp,
@@ -25,10 +26,10 @@ import {
 let popupWin: ProgressWindowHelper | undefined = undefined;
 let popupTime = -1;
 
+  const iconBaseUrl = `chrome://${config.addonRef}/content/icons/`;
 function register() {
   // if (!getPref("exportenable")) return;
   //图标根目录 zotero-annotation-manage\addon\chrome\content\icons
-  const iconBaseUrl = `chrome://${config.addonRef}/content/icons/`;
 
   const menu: MenuitemOptions = {
     tag: "menu",
@@ -120,7 +121,7 @@ function register() {
       },
       {
         tag: "menuitem",
-        label: "选择标签导出",
+        label: "选择多个标签导出",
         icon: iconBaseUrl + "favicon.png",
         commandListener: (ev) => {
           const target = ev.target as HTMLElement;
@@ -145,7 +146,7 @@ function register() {
       },
       {
         tag: "menu",
-        label: "按不同类型导出",
+        label: "按类型导出",
         icon: iconBaseUrl + "favicon.png",
         children: [
           {
@@ -182,25 +183,32 @@ function register() {
           },
         ],
       },
+      // {
+      //   tag: "menu",
+      //   label: "按不同tag导出",
+      //   icon: iconBaseUrl + "favicon.png",
+
+      //   children: [
+      //     ...memFixedTags().map(
+      //       (t) =>
+      //         ({
+      //           tag: "menuitem",
+      //           label: t,
+      //           icon: iconBaseUrl + "favicon.png",
+      //           commandListener: (ev) => {
+      //             exportSingleNote(t, isCollection(ev));
+      //           },
+      //         }) as MenuitemOptions,
+      //     ),
+      //   ],
+      // },
       {
         tag: "menu",
-        label: "按不同tag导出",
+        label: "按tag导出",
         icon: iconBaseUrl + "favicon.png",
-
-        children: [
-          ...memFixedTags().map(
-            (t) =>
-              ({
-                tag: "menuitem",
-                label: t,
-                icon: iconBaseUrl + "favicon.png",
-                commandListener: (ev) => {
-                  exportSingleNote(t, isCollection(ev));
-                },
-              }) as MenuitemOptions,
-          ),
-        ],
-      },
+        popupId: `${config.addonRef}-create-note-tag-popup`,
+        onpopupshowing: `Zotero.${config.addonInstance}.hooks.onMenuEvent("annotationToNoteTags", { window })`,
+      }
     ],
   };
 
@@ -219,6 +227,74 @@ function unregister() {
   ztoolkit.Menu.unregister(`${config.addonRef}-create-note`);
   ztoolkit.Menu.unregister(`${config.addonRef}-create-note-collection`);
 }
+
+export async function createPopMenu(
+  win: Window
+) {
+  const doc = win.document;
+  const popup = doc.querySelector(
+    `#${config.addonRef}-create-note-tag-popup`,
+  ) as XUL.MenuPopup;
+  // Remove all children in popup
+  while (popup?.firstChild) {
+    popup.removeChild(popup.firstChild);
+  }
+  const id=getParentAttr(popup.parentElement!,"id")
+  const isc = id?.includes("collection")
+  
+  const ans= getAllAnnotations(await getSelectedItems(isc)).flatMap((a) =>
+    a.tags.map((t) => Object.assign({},a, { tag: t })),
+  );
+  const tags= groupBy(ans,an=>an.tag.tag).sort(sortFixedTags10ValuesLength).slice(0,20)
+  const maxLen = Math.max(...tags.map(a=>a.values.length));
+  
+  ztoolkit.log(win,"创建菜单",isc,popup)
+  // Add new children
+  let elemProp: TagElementProps; 
+  // const tags =memFixedTags()
+  if (tags.length === 0) {
+    elemProp = {
+      tag: "menuitem",
+      properties: {
+        label: "没有标签",
+      },
+      attributes: {
+        disabled: true,
+      },
+    };
+  } else {
+    elemProp = {
+      tag: "fragment",
+      children:tags.map((tag) => {
+        const color=memFixedColor(tag.key)
+        //取对数可以保留差异比较大的值
+        const pre=(100-Math.log(tag.values.length)/Math.log(maxLen)*100).toFixed()
+        return {
+          tag: "menuitem",
+          icon: iconBaseUrl + "favicon.png",
+          styles:{background:
+          `linear-gradient(to left, ${color},  #fff ${pre}%, ${color} ${pre}%)`
+          },
+          properties: {
+            label:
+              `${tag.key}[${tag.values.length}]`,
+          },
+          // children:[{tag:"div",styles:{height:"2px",background:memFixedColor(tag.key),width:`${tag.values.length/maxLen*100}%`}}],
+          listeners: [
+            {
+              type: "command",
+              listener: (event) => {
+                    exportSingleNote(tag.key, isc);
+              },
+            },
+          ],
+        };
+      }),
+    };
+  }
+  ztoolkit.UI.appendElement(elemProp, popup);
+}
+
 const ID = {
   root: `${config.addonRef}-ann2note-ChooseTags-root`,
   action: `${config.addonRef}-ann2note-ChooseTags-root-action`,
@@ -376,7 +452,7 @@ function createChild(doc: Document, items: Zotero.Item[]) {
     f.tags.map((t) => Object.assign(f, { tag: t })),
   );
   const tags = groupBy(annotations, (a) => a.tag.tag);
-  tags.sort(sortTags10ValuesLength);
+  tags.sort(sortFixedTags10ValuesLength);
   ztoolkit.UI.appendElement(
     {
       tag: "div",
@@ -406,7 +482,7 @@ async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
     f.tags.map((t) => Object.assign(f, { tag: t })),
   );
   const tags = groupBy(annotations, (a) => a.tag.tag);
-  tags.sort(sortTags10ValuesLength);
+  tags.sort(sortFixedTags10ValuesLength);
 
   const tagsTag: TagElementProps = {
     tag: "div",
@@ -705,6 +781,20 @@ function getAllAnnotations(items: Zotero.Item[]) {
   return data;
 }
 async function convertHtml(arr: AnnotationRes[], targetNoteItem: Zotero.Item) {
+    const annotations = arr.map(a=>a.ann)
+    for (const annotation of annotations) {
+      if (annotation.annotationType === "image" && !await Zotero.Annotations.hasCacheImage(annotation)) {
+        try {
+          await Zotero.PDFRenderer.renderAttachmentAnnotations(annotation.parentID);
+        } catch (e) {
+          Zotero.debug(e);
+          throw e;
+        }
+        break;
+      }
+    }
+
+
   const data = arr.map(async (ann) => {
     //TODO 感觉这个方法读取图片是从缓存里面读取的，有些图片没有加载成功
     const html = (await Zotero.BetterNotes.api.convert.annotations2html(
@@ -717,8 +807,8 @@ async function convertHtml(arr: AnnotationRes[], targetNoteItem: Zotero.Item) {
       ann.html = html
         .replace(/<\/p>$/, getColorTags(ann.tags.map((c) => c.tag)) + "</p>")
         .replace(/<p>[\s\r\n]*<\/p>/g, "");
-    else{
-       ann.html =  getCiteAnnotationHtml(ann.ann,"转到页面更新缓存再试")
+    else {
+      ann.html = getCiteAnnotationHtml(ann.ann, "转到页面更新缓存再试");
     }
     return ann;
   });
@@ -891,7 +981,7 @@ async function exportNoteByTagPdf(isCollection: boolean = false) {
       ans.flatMap((an) => an.tags.map((tag) => Object.assign({}, an, { tag }))),
     toText: (annotations) =>
       groupBy(annotations, (a) => a.tag.tag)
-        .sort(sortTags10ValuesLength)
+        .sort(sortFixedTags10ValuesLength)
         .flatMap((tag, index) => {
           return [
             `<h1> (${index + 1}) 标签：${tag.key}  (${tag.values.length})</h1>`,
