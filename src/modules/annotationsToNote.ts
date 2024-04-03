@@ -26,7 +26,7 @@ import {
 let popupWin: ProgressWindowHelper | undefined = undefined;
 let popupTime = -1;
 
-  const iconBaseUrl = `chrome://${config.addonRef}/content/icons/`;
+const iconBaseUrl = `chrome://${config.addonRef}/content/icons/`;
 function register() {
   // if (!getPref("exportenable")) return;
   //图标根目录 zotero-annotation-manage\addon\chrome\content\icons
@@ -208,7 +208,7 @@ function register() {
         icon: iconBaseUrl + "favicon.png",
         popupId: `${config.addonRef}-create-note-tag-popup`,
         onpopupshowing: `Zotero.${config.addonInstance}.hooks.onMenuEvent("annotationToNoteTags", { window })`,
-      }
+      },
     ],
   };
 
@@ -228,9 +228,7 @@ function unregister() {
   ztoolkit.Menu.unregister(`${config.addonRef}-create-note-collection`);
 }
 
-export async function createPopMenu(
-  win: Window
-) {
+export async function createPopMenu(win: Window) {
   const doc = win.document;
   const popup = doc.querySelector(
     `#${config.addonRef}-create-note-tag-popup`,
@@ -239,18 +237,20 @@ export async function createPopMenu(
   while (popup?.firstChild) {
     popup.removeChild(popup.firstChild);
   }
-  const id=getParentAttr(popup.parentElement!,"id")
-  const isc = id?.includes("collection")
-  
-  const ans= getAllAnnotations(await getSelectedItems(isc)).flatMap((a) =>
-    a.tags.map((t) => Object.assign({},a, { tag: t })),
+  const id = getParentAttr(popup.parentElement!, "id");
+  const isc = id?.includes("collection");
+
+  const ans = getAllAnnotations(await getSelectedItems(isc)).flatMap((a) =>
+    a.tags.map((t) => Object.assign({}, a, { tag: t })),
   );
-  const tags= groupBy(ans,an=>an.tag.tag).sort(sortFixedTags10ValuesLength).slice(0,20)
-  const maxLen = Math.max(...tags.map(a=>a.values.length));
-  
-  ztoolkit.log(win,"创建菜单",isc,popup)
+  const tags = groupBy(ans, (an) => an.tag.tag)
+    .sort(sortFixedTags10ValuesLength)
+    .slice(0, 20);
+  const maxLen = Math.max(...tags.map((a) => a.values.length));
+
+  ztoolkit.log(win, "创建菜单", isc, popup);
   // Add new children
-  let elemProp: TagElementProps; 
+  let elemProp: TagElementProps;
   // const tags =memFixedTags()
   if (tags.length === 0) {
     elemProp = {
@@ -265,26 +265,28 @@ export async function createPopMenu(
   } else {
     elemProp = {
       tag: "fragment",
-      children:tags.map((tag) => {
-        const color=memFixedColor(tag.key)
+      children: tags.map((tag) => {
+        const color = memFixedColor(tag.key);
         //取对数可以保留差异比较大的值
-        const pre=(100-Math.log(tag.values.length)/Math.log(maxLen)*100).toFixed()
+        const pre = (
+          100 -
+          (Math.log(tag.values.length) / Math.log(maxLen)) * 100
+        ).toFixed();
         return {
           tag: "menuitem",
           icon: iconBaseUrl + "favicon.png",
-          styles:{background:
-          `linear-gradient(to left, ${color},  #fff ${pre}%, ${color} ${pre}%)`
+          styles: {
+            background: `linear-gradient(to left, ${color},  #fff ${pre}%, ${color} ${pre}%)`,
           },
           properties: {
-            label:
-              `${tag.key}[${tag.values.length}]`,
+            label: `${tag.key}[${tag.values.length}]`,
           },
           // children:[{tag:"div",styles:{height:"2px",background:memFixedColor(tag.key),width:`${tag.values.length/maxLen*100}%`}}],
           listeners: [
             {
               type: "command",
               listener: (event) => {
-                    exportSingleNote(tag.key, isc);
+                exportSingleNote(tag.key, isc);
               },
             },
           ],
@@ -781,19 +783,23 @@ function getAllAnnotations(items: Zotero.Item[]) {
   return data;
 }
 async function convertHtml(arr: AnnotationRes[], targetNoteItem: Zotero.Item) {
-    const annotations = arr.map(a=>a.ann)
-    for (const annotation of annotations) {
-      if (annotation.annotationType === "image" && !await Zotero.Annotations.hasCacheImage(annotation)) {
-        try {
-          await Zotero.PDFRenderer.renderAttachmentAnnotations(annotation.parentID);
-        } catch (e) {
-          Zotero.debug(e);
-          throw e;
-        }
-        break;
+  const annotations = arr.map((a) => a.ann);
+  for (const annotation of annotations) {
+    if (
+      annotation.annotationType === "image" &&
+      !(await Zotero.Annotations.hasCacheImage(annotation))
+    ) {
+      try {
+        await Zotero.PDFRenderer.renderAttachmentAnnotations(
+          annotation.parentID,
+        );
+      } catch (e) {
+        Zotero.debug(e);
+        throw e;
       }
+      break;
     }
-
+  }
 
   const data = arr.map(async (ann) => {
     //TODO 感觉这个方法读取图片是从缓存里面读取的，有些图片没有加载成功

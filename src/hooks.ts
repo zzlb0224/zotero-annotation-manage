@@ -165,7 +165,10 @@ function onShortcuts(type: string) {
   }
 }
 
-async function onMenuEvent(type: "annotationToNoteTags", data: { [key: string]: any }) {
+async function onMenuEvent(
+  type: "annotationToNoteTags",
+  data: { [key: string]: any },
+) {
   switch (type) {
     case "annotationToNoteTags":
       createPopMenu(data.window);
@@ -209,5 +212,5 @@ export default {
   onPrefsEvent,
   onShortcuts,
   onDialogEvents,
-  onMenuEvent
+  onMenuEvent,
 };

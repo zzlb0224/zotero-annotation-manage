@@ -103,7 +103,7 @@ export const memOptionalColor = memoize(
     "#ffc0cb",
 );
 /**
- * optional undefined 采用 配置的可选颜色， "" 采用空值 
+ * optional undefined 采用 配置的可选颜色， "" 采用空值
  */
 export const memFixedColor = memoize(
   (tag: string, optional: string | undefined = undefined): string => {
