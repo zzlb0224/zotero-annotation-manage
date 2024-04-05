@@ -171,7 +171,7 @@ async function onMenuEvent(
 ) {
   switch (type) {
     case "annotationToNoteTags":
-      createPopMenu(data.window);
+      createPopMenu(data.window, data.type);
       break;
     default:
       return;

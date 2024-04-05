@@ -138,7 +138,6 @@ function register() {
         commandListener: (ev) => {
           const target = ev.target as HTMLElement;
           const doc = target.ownerDocument;
-
           const div = createChooseAnnDiv(doc, isCollection(ev));
           // ztoolkit.log("自选标签", div);
           // setTimeout(()=>d.remove(),10000)
@@ -185,42 +184,45 @@ function register() {
       },
       // {
       //   tag: "menu",
-      //   label: "按不同tag导出",
+      //   label: "按tag导出",
       //   icon: iconBaseUrl + "favicon.png",
-
-      //   children: [
-      //     ...memFixedTags().map(
-      //       (t) =>
-      //         ({
-      //           tag: "menuitem",
-      //           label: t,
-      //           icon: iconBaseUrl + "favicon.png",
-      //           commandListener: (ev) => {
-      //             exportSingleNote(t, isCollection(ev));
-      //           },
-      //         }) as MenuitemOptions,
-      //     ),
-      //   ],
+      //   popupId: `${config.addonRef}-create-note-tag-popup`,
+      //   onpopupshowing: `Zotero.${config.addonInstance}.hooks.onMenuEvent("annotationToNoteTags", { window })`,
       // },
-      {
-        tag: "menu",
-        label: "按tag导出",
-        icon: iconBaseUrl + "favicon.png",
-        popupId: `${config.addonRef}-create-note-tag-popup`,
-        onpopupshowing: `Zotero.${config.addonInstance}.hooks.onMenuEvent("annotationToNoteTags", { window })`,
-      },
     ],
   };
+  const itemMenu = Object.assign(
+    { id: `${config.addonRef}-create-note` },
+    menu,
+  );
+  itemMenu.children = [
+    ...(itemMenu.children || []),
+    {
+      tag: "menu",
+      label: "按tag导出",
+      icon: iconBaseUrl + "favicon.png",
+      popupId: `${config.addonRef}-create-note-tag-popup-item`,
+      onpopupshowing: `Zotero.${config.addonInstance}.hooks.onMenuEvent("annotationToNoteTags", { window,type:"item" })`,
+    },
+  ];
+  const collectionItem = Object.assign(
+    { id: `${config.addonRef}-create-note` },
+    menu,
+  );
+  collectionItem.children = [
+    ...(collectionItem.children || []),
+    {
+      tag: "menu",
+      label: "按tag导出",
+      icon: iconBaseUrl + "favicon.png",
+      popupId: `${config.addonRef}-create-note-tag-popup-collection`,
+      onpopupshowing: `Zotero.${config.addonInstance}.hooks.onMenuEvent("annotationToNoteTags", { window,type:"collection" })`,
+    },
+  ];
 
   //组合到一起的菜单能节省空间，因此使用children
-  ztoolkit.Menu.register(
-    "item",
-    Object.assign({ id: `${config.addonRef}-create-note` }, menu),
-  );
-  ztoolkit.Menu.register(
-    "collection",
-    Object.assign({ id: `${config.addonRef}-create-note-collection` }, menu),
-  );
+  ztoolkit.Menu.register("item", itemMenu);
+  ztoolkit.Menu.register("collection", collectionItem);
 }
 
 function unregister() {
@@ -228,17 +230,21 @@ function unregister() {
   ztoolkit.Menu.unregister(`${config.addonRef}-create-note-collection`);
 }
 
-export async function createPopMenu(win: Window) {
+export async function createPopMenu(
+  win: Window,
+  type: "collection" | "item" = "collection",
+) {
   const doc = win.document;
   const popup = doc.querySelector(
-    `#${config.addonRef}-create-note-tag-popup`,
+    `#${config.addonRef}-create-note-tag-popup-${type}`,
   ) as XUL.MenuPopup;
   // Remove all children in popup
   while (popup?.firstChild) {
     popup.removeChild(popup.firstChild);
   }
-  const id = getParentAttr(popup.parentElement!, "id");
+  const id = getParentAttr(popup, "id");
   const isc = id?.includes("collection");
+  ztoolkit.log("id", id);
 
   const ans = getAllAnnotations(await getSelectedItems(isc)).flatMap((a) =>
     a.tags.map((t) => Object.assign({}, a, { tag: t })),
