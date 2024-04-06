@@ -163,7 +163,7 @@ function bindPrefEvents() {
       if (color) {
         colors.push(color);
       }
-      setPref("fixed-colors", colors.join(","));
+      setPref("fixed-colors", colors.join(", "));
       memFixedColor.remove();
       memFixedColors.remove();
       replaceColorTagsElement(doc);
