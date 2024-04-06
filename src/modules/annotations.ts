@@ -18,10 +18,11 @@ import {
   sortModified,
   sortTags,
   sortTags1000Ann100Modified10Asc,
-  sortTags100Modified10Asc,
+  sortFixedTags100Modified10Asc,
   sortFixedTags10ValuesLength,
   sortValuesLength,
 } from "../utils/sort";
+import { mapDateModified } from "../utils/sort";
 function register() {
   // if (!getPref("enable")) return;
   // ztoolkit.UI.basicOptions.log.disableZLog = true;
@@ -156,6 +157,7 @@ export class AnnotationPopup {
     }, 500);
     return div;
   }
+
   private async updateDiv(root: HTMLDivElement) {
     const doc = this.doc;
     if (!doc) return;
@@ -179,15 +181,10 @@ export class AnnotationPopup {
     }
     if (getPref("show-relate-tags")) groupByResultIncludeFixedTags(relateTags);
     if (getPref("sort") == "2") {
+      //
       relateTags = relateTags
-        .map((r) => ({
-          key: r.key,
-          dateModified: r.values
-            .map((v) => v.dateModified)
-            .sort((a, b) => (b > a ? -1 : 1))[0],
-          values: r.values,
-        }))
-        .sort(sortTags100Modified10Asc);
+        .map(mapDateModified)
+        .sort(sortFixedTags100Modified10Asc);
     } else if (getPref("sort") == "3") {
       const itemAnnTags = this.item
         ? // Zotero.Items.get(this.item.parentItem.getAttachments()).flatMap((f) => f.getAnnotations())
@@ -197,24 +194,13 @@ export class AnnotationPopup {
             .map((a) => a.tag)
             .sort(sortAsc)
         : [];
+
       relateTags = relateTags
-        .map((r) => ({
-          key: r.key,
-          dateModified: r.values
-            .map((v) => v.dateModified)
-            .sort((a, b) => (b > a ? -1 : 1))[0],
-          values: r.values,
-        }))
+        .map(mapDateModified)
         .sort(sortTags1000Ann100Modified10Asc(itemAnnTags));
     } else {
       relateTags = relateTags
-        .map((r) => ({
-          key: r.key,
-          dateModified: r.values
-            .map((v) => v.dateModified)
-            .sort((a, b) => (b > a ? -1 : 1))[0],
-          values: r.values,
-        }))
+        .map(mapDateModified)
         .sort(sortFixedTags10ValuesLength);
     }
 

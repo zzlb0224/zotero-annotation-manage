@@ -62,7 +62,7 @@ export function sortModified(
   return sortAsc(b.dateModified, a.dateModified);
 }
 
-export function sortTags100Modified10Asc(
+export function sortFixedTags100Modified10Asc(
   a: { key: string; dateModified: string },
   b: { key: string; dateModified: string },
 ) {
@@ -82,4 +82,16 @@ export function sortTags1000Ann100Modified10Asc(tags: string[]) {
     sortTags(tags, a, b) * 100 +
     sortModified(a, b) * 10 +
     sortKey(a, b);
+}
+export function mapDateModified(r: {
+  key: string;
+  values: { dateModified: string; tag: string; type: number }[];
+}) {
+  return {
+    key: r.key,
+    dateModified: r.values
+      .map((v) => v.dateModified)
+      .sort((a, b) => (a > b ? -1 : 1))[0],
+    values: r.values,
+  };
 }
