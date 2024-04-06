@@ -59,6 +59,9 @@ export async function registerPrefsScripts(_window: Window) {
 }
 function replaceColorTagsElement(doc: Document) {
   const id = `zotero-prefpane-${config.addonRef}-coloredTags`;
+  const btnRemove = doc.querySelector(
+    `#zotero-prefpane-${config.addonRef}-remove-color`,
+  )! as HTMLButtonElement;
   ztoolkit.UI.replaceElement(
     {
       tag: "div",
@@ -88,6 +91,27 @@ function replaceColorTagsElement(doc: Document) {
               padding: "5px 1px",
               margin: "5px 1px",
             },
+            listeners: [
+              {
+                type: "click",
+                listener: () => {
+                  const color = memFixedColor(tag, undefined);
+                  if (btnRemove.dataset.color == color) {
+                    btnRemove.textContent = "删除选中的颜色";
+                    btnRemove.style.background = "";
+                    btnRemove.dataset.color = "";
+                  } else {
+                    const tags = memFixedTags().filter(
+                      (tag) => memFixedColor(tag, undefined) == color,
+                    );
+                    btnRemove.textContent =
+                      "删除[" + tags.join(",") + "]的颜色";
+                    btnRemove.style.background = memFixedColor(tag, undefined);
+                    btnRemove.dataset.color = color;
+                  }
+                },
+              },
+            ],
           })),
         },
       ],
@@ -128,6 +152,32 @@ function bindPrefEvents() {
     });
 
   doc
+    .querySelector(`#zotero-prefpane-${config.addonRef}-remove-color`)
+    ?.addEventListener("command", (e) => {
+      const btn = e.target as HTMLButtonElement;
+      if (btn.dataset.color) {
+        const colorStr = (getPref("fixed-colors") as string) || "";
+        const colors = colorStr
+          .split(",")
+          .map((f) => f.trim())
+          .filter((f) => f);
+        const color = btn.dataset.color;
+        const index = colors.indexOf(color);
+        if (index > -1) {
+          colors.splice(index, 1);
+        }
+        setPref("fixed-colors", colors.join(", ") || FixedColorDefault);
+        memFixedColor.remove();
+        memFixedColors.remove();
+        replaceColorTagsElement(doc);
+        btn.textContent = "选中颜色删除";
+        btn.style.background = "";
+        btn.dataset.color = "";
+      }
+      // ztoolkit.log(e, getPref("tags"));
+    });
+
+  doc
     .querySelector(`#zotero-prefpane-${config.addonRef}-tags`)
     ?.addEventListener("keyup", (e) => {
       const target = e.target as HTMLTextAreaElement;
@@ -158,12 +208,15 @@ function bindPrefEvents() {
     ?.addEventListener("command", (e) => {
       const colorStr = (getPref("fixed-colors") as string) || "";
       ztoolkit.log(colorStr);
-      const colors = colorStr.split(",").filter((c) => c !== "");
+      const colors = colorStr
+        .split(",")
+        .map((a) => a.trim())
+        .filter((c) => c !== "");
       const color = getNewColor(colorStr);
       if (color) {
         colors.push(color);
       }
-      setPref("fixed-colors", colors.join(", "));
+      setPref("fixed-colors", colors.join(", ") || FixedColorDefault);
       memFixedColor.remove();
       memFixedColors.remove();
       replaceColorTagsElement(doc);
