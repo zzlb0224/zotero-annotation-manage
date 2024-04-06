@@ -1,3 +1,4 @@
+import { getRandomValues } from 'crypto';
 import { config } from "../../package.json";
 import { getString } from "../utils/locale";
 import { getPref, setPref } from "../utils/prefs";
@@ -14,6 +15,8 @@ import {
   memRelateTags,
 } from "../utils/zzlb";
 import { AnnotationPopup } from "./annotations";
+import { getColorBrightness, getNewColor } from '../utils/color';
+import { getRandomColor } from '../utils/color';
 
 export async function registerPrefsScripts(_window: Window) {
   // This function is called when the prefs window is opened
@@ -127,6 +130,10 @@ function bindPrefEvents() {
   doc
     .querySelector(`#zotero-prefpane-${config.addonRef}-tags`)
     ?.addEventListener("keyup", (e) => {
+      const target=e.target as HTMLTextAreaElement
+      if (target.value.includes("\n")){
+        target.value = target.value.replace(/\n/g,"")
+      }
       memFixedTags.remove();
       memFixedColors.remove();
       memFixedColor.remove();
@@ -137,12 +144,32 @@ function bindPrefEvents() {
   doc
     .querySelector(`#zotero-prefpane-${config.addonRef}-fixed-colors`)
     ?.addEventListener("keyup", (e) => {
+      const target=e.target as HTMLTextAreaElement
+      if (target.value.includes("\n")){
+        target.value = target.value.replace(/\n/g,"")
+      }
       memFixedColor.remove();
       memFixedColors.remove();
       replaceColorTagsElement(doc);
       replaceTagsPreviewDiv(doc);
     });
-
+  doc
+    .querySelector(`#zotero-prefpane-${config.addonRef}-add-color`)
+    ?.addEventListener("command", (e) => {
+      const colorStr=getPref("fixed-colors") as string||""
+      ztoolkit.log(colorStr)
+      const colors =colorStr.split(",").filter(c => c !== "")
+      const color=getNewColor(colorStr)
+      if(color)
+      {
+        colors.push(color)
+      }    
+      setPref("fixed-colors",colors.join(","))      
+      memFixedColor.remove();
+      memFixedColors.remove();
+      replaceColorTagsElement(doc);
+      replaceTagsPreviewDiv(doc);
+    });
   doc
     .querySelector(`#zotero-prefpane-${config.addonRef}-sort`)
     ?.addEventListener("command", (e) => {
@@ -317,3 +344,5 @@ export async function initPrefSettings() {
     setPref("fixed-colors", FixedColorDefault);
   }
 }
+
+

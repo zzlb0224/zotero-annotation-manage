@@ -128,7 +128,7 @@ export const memFixedTags = memoize((): string[] => {
 export const memFixedColors = memoize((): string[] => {
   let fixedColor =
     (getPref("fixed-colors") as string)
-      ?.match(/#[0-9A-F]{6}/g)
+      ?.match(/#[0-9A-Fa-f]{6}/g)
       ?.map((a) => a) || [];
   if (!fixedColor || fixedColor.length == 0)
     fixedColor = FixedColorDefault.split(",");

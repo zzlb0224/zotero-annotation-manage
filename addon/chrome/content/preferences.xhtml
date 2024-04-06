@@ -20,9 +20,10 @@
         />
       </vbox>
       <vbox style="width: 100%">
-        <html:input
-          id="zotero-prefpane-__addonRef__-tags"
-          style="width: 100%"
+        <html:textarea
+          type="textarea"
+          style="width: 100%;height: 4em;"
+          id="zotero-prefpane-__addonRef__-tags" 
           native="true"
           preference="__prefsPrefix__.tags"
         />
@@ -34,9 +35,10 @@
         />
       </vbox>
       <vbox style="width: 100%">
-        <html:input
+        <html:textarea
+          type="textarea"
+          style="width: 100%;height: 4em;"
           id="zotero-prefpane-__addonRef__-fixed-colors"
-          style="width: 100%"
           native="true"
           preference="__prefsPrefix__.fixed-colors"
         />
@@ -45,7 +47,19 @@
         id="zotero-prefpane-__addonRef__-coloredTags"
         style="font-size: 12px"
       ></html:div>
-      <hbox>
+
+      <hbox>        
+        <html:label
+          for="zotero-prefpane-__addonRef__-add-color"
+          data-l10n-id="pref-add-color"
+        />
+        
+        <button
+          type="button"
+          id="zotero-prefpane-__addonRef__-add-color"
+          data-l10n-id="pref-add-color"
+        />
+
         <html:label
           for="zotero-prefpane-__addonRef__-optional-color"
           data-l10n-id="pref-optional-color"
@@ -165,9 +179,7 @@
           type="button"
           id="zotero-prefpane-__addonRef__-preview-button"
           data-l10n-id="pref-reload-search-preview"
-        >
-          重新打开预览窗口
-        </button>
+        />
         <html:div
           id="zotero-prefpane-__addonRef__-search-preview"
           style="border: 1px solid black; padding: 20px; width: auto"

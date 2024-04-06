@@ -5,6 +5,7 @@ pref-enable =
 pref-input = this is a input
 pref-tagsLabel =fixed tags
 pref-fixed-colors = fixed colors 
+pref-add-color = add  colorE
 pref-optional-color =optional color #ffc0cb  
 
 pref-show-relate-tags = 

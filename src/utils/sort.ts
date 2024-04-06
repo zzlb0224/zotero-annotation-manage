@@ -1,4 +1,4 @@
-import { memFixedTags } from "./zzlb";
+import { groupByResult, memFixedTags } from "./zzlb";
 export function sortTags(
   fixed: string[],
   a: { key: string },
@@ -36,7 +36,6 @@ export function sortKey(
 export function sortValuesLength(a: { values: any[] }, b: { values: any[] }) {
   return sortAsc(b.values.length, a.values.length);
 }
-
 export function sortTags10AscByKey(a: { key: string }, b: { key: string }) {
   return sortByTags10Asc(a.key, b.key);
 }
@@ -53,7 +52,6 @@ export function sortFixedTags10ValuesLength(
     sortKey(a, b)
   );
 }
-
 export function sortModified(
   a: { dateModified: string },
   b: { dateModified: string },
@@ -61,7 +59,6 @@ export function sortModified(
   //逆序
   return sortAsc(b.dateModified, a.dateModified);
 }
-
 export function sortFixedTags100Modified10Asc(
   a: { key: string; dateModified: string },
   b: { key: string; dateModified: string },
@@ -72,7 +69,6 @@ export function sortFixedTags100Modified10Asc(
     sortKey(a, b)
   );
 }
-
 export function sortTags1000Ann100Modified10Asc(tags: string[]) {
   return (
     a: { key: string; dateModified: string },
@@ -94,4 +90,20 @@ export function mapDateModified(r: {
       .sort((a, b) => (a > b ? -1 : 1))[0],
     values: r.values,
   };
+}
+export function sortByFixedTag2TagName<T>(
+  a: groupByResult<T>,
+  b: groupByResult<T>
+) {
+  const tags = memFixedTags();
+  if (tags.includes(a.key) && tags.includes(b.key)) {
+    return tags.indexOf(a.key) - tags.indexOf(b.key);
+  }
+  if (tags.includes(a.key)) {
+    return -1;
+  }
+  if (tags.includes(b.key)) {
+    return 1;
+  }
+  return b.key > a.key ? -0.5 : 0.5;
 }

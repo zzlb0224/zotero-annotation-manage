@@ -6,6 +6,7 @@ pref-input = 输入
 
 pref-tagsLabel = 固定输出标签，以英文逗号分隔
 pref-fixed-colors = 固定颜色，以英文逗号分隔，使用六位的颜色如#ffc0cb
+pref-add-color = 增加随机颜色 
 pref-optional-color = 备选颜色 
 
 pref-sort = 自定义排序
