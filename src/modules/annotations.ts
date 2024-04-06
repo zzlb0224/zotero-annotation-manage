@@ -5,6 +5,7 @@ import {
   groupBy,
   groupByResult,
   groupByResultIncludeFixedTags,
+  isZzlb,
   memAllTagsDB,
   memFixedColor,
   memFixedTags,
@@ -152,22 +153,59 @@ export class AnnotationPopup {
     });
     this.rootDiv = div;
     //创建完成之后用异步来更新
-    setTimeout(async () => {
-      await this.updateDiv(div);
-    }, 500);
+    // setTimeout(async () => {
+    //   await this.updateDiv(div);
+    // }, 500);
+    this.updateDivStart(div);
     return div;
+  }
+  private updateDivStart(root: HTMLDivElement) {
+    const doc = this.doc;
+    if (!doc) return;
+
+    if (!root) {
+      setTimeout(() => {
+        this.updateDivStart(root);
+      }, 500);
+      return;
+    }
+    if (!root.parentNode) {
+      if (isZzlb()) {
+        //应该在这里计算位置，这里最准确
+
+        ztoolkit.UI.appendElement(
+          { tag: "div", properties: { textContent: "正在附加div" } },
+          root,
+        );
+      }
+
+      setTimeout(() => {
+        this.updateDivStart(root);
+      }, 500);
+      return;
+    }
+    setTimeout(async () => {
+      if (isZzlb()) {
+        //这里只更新内容
+        ztoolkit.UI.appendElement(
+          { tag: "div", properties: { textContent: "开始更新div" } },
+          root,
+        );
+      }
+      await this.updateDiv(root);
+    }, 500);
   }
 
   private async updateDiv(root: HTMLDivElement) {
     const doc = this.doc;
     if (!doc) return;
     // const root = doc.getElementById(this.idRootDiv);
-    if (!root || !root.parentNode) {
-      setTimeout(async () => {
-        await this.updateDiv(root);
-      }, 500);
-      return;
-    }
+    // if (!root || !root.parentNode) {
+    //   setTimeout(async () => {
+    //     await this.updateDiv(root);
+    //   }, 500);
+    //   return;
+    // }
     let relateTags: groupByResult<{
       tag: string;
       type: number;
