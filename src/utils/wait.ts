@@ -22,7 +22,6 @@ export function waitUntil(
     }
   }, interval);
 }
-
 /**
  * Wait async until the condition is `true` or timeout.
  * @param condition

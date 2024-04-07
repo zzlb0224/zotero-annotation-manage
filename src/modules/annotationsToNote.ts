@@ -4,9 +4,9 @@ import { TagElementProps } from "zotero-plugin-toolkit/dist/tools/ui";
 import { config } from "../../package.json";
 import {
   sortAsc,
+  sortFixedTags10ValuesLength,
   sortKey,
   sortTags10AscByKey,
-  sortFixedTags10ValuesLength,
   sortValuesLength,
 } from "../utils/sort";
 import { Tab } from "../utils/tab";
@@ -15,8 +15,6 @@ import {
   groupBy,
   memFixedColor,
   memFixedColors,
-  memFixedTags,
-  memOptionalColor,
   promiseAllWithProgress,
   setProperty,
   str2RegExp,
@@ -48,9 +46,10 @@ function register() {
             commandListener: async (ev) => {
               const items = await getSelectedItemsEv(ev);
               const ans = getAllAnnotations(items);
+              
               ztoolkit.log(
                 `找到${items.length}条目${ans.length}笔记`,
-                isCollection(ev),
+                getParentAttr(ev.target as HTMLElement, "id"),
               );
               const p = new ztoolkit.ProgressWindow(
                 `找到${items.length}条目${ans.length}笔记`,
@@ -126,7 +125,8 @@ function register() {
         commandListener: (ev) => {
           const target = ev.target as HTMLElement;
           const doc = target.ownerDocument;
-          const div = createChooseTagsDiv(doc, isCollection(ev));
+          const id = getParentAttr(ev.target as HTMLElement, "id");    
+          const div = createChooseTagsDiv(doc, id?.includes("collection"));
           // ztoolkit.log("自选标签", div);
           // setTimeout(()=>d.remove(),10000)
         },
@@ -138,8 +138,8 @@ function register() {
         commandListener: (ev) => {
           const target = ev.target as HTMLElement;
           const doc = target.ownerDocument;
-          const div = createChooseAnnDiv(doc, isCollection(ev));
-          // ztoolkit.log("自选标签", div);
+          const id = getParentAttr(ev.target as HTMLElement, "id");          
+          const div = createChooseAnnDiv(doc, id?.includes("collection")); 
           // setTimeout(()=>d.remove(),10000)
         },
       },
@@ -153,7 +153,8 @@ function register() {
             label: "类型：图片",
             icon: iconBaseUrl + "favicon.png",
             commandListener: (ev) => {
-              exportNoteByType("image", isCollection(ev));
+              const id= getParentAttr(ev.target as HTMLElement, "id");
+              exportNoteByType("image",id?.includes("collection"));
             },
           },
           {
@@ -206,7 +207,7 @@ function register() {
     },
   ];
   const collectionItem = Object.assign(
-    { id: `${config.addonRef}-create-note` },
+    { id: `${config.addonRef}-create-note-collection` },
     menu,
   );
   collectionItem.children = [
@@ -310,10 +311,15 @@ const ID = {
   input: `${config.addonRef}-ann2note-ChooseTags-root-input`,
   result: `${config.addonRef}-ann2note-ChooseTags-root-result`,
 };
-function getParentAttr(ele: HTMLElement, name = "id") {
+function getParentAttr(ele: Element|null, name = "id") {
+  if(!ele)return ""
   const value = ele.getAttribute(name);
-  if (value) return value;
-  if (ele.parentElement) return getParentAttr(ele.parentElement, name);
+  if (value) {
+    return value;
+  }
+  if (ele.parentElement) {
+    return getParentAttr(ele.parentElement, name);
+  }
   return "";
 }
 function isCollection(ev: Event) {
