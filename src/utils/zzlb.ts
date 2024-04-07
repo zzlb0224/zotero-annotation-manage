@@ -1,13 +1,10 @@
 // import { memoize } from "./Memoize";
 import { getPref } from "./prefs";
 import memoize from "./memoize2";
-
 /* unique 采用set的比较方式*/
 export function unique<T>(arr: T[]) {
   return [...new Set(arr)];
 }
-
-//uniqueBy groupBy groupByMap 三个函数，因为使用的是object的key来检查重复，所以只能使用string | number | symbol
 export function uniqueBy<T>(arr: T[], fn: (item: T) => string) {
   const groupedBy: { [key: string]: T } = {};
   for (const curr of arr) {
@@ -59,27 +56,10 @@ export function getChildCollections(
   if (childCollections.length == 0) return [];
   return [...childCollections, ...getChildCollections(childCollections)];
 }
-function sortByLength<T>(a: groupByResult<T>, b: groupByResult<T>) {
-  return b.values.length - a.values.length + (b.key > a.key ? -0.5 : 0.5);
-}
-function sortByFixedTag2Length<T>(a: groupByResult<T>, b: groupByResult<T>) {
-  const tags = memFixedTags();
-  if (tags.includes(a.key) && tags.includes(b.key)) {
-    return tags.indexOf(a.key) - tags.indexOf(b.key);
-  }
-  if (tags.includes(a.key)) {
-    return -1;
-  }
-  if (tags.includes(b.key)) {
-    return 1;
-  }
-  return b.values.length - a.values.length + (b.key > a.key ? -0.5 : 0.5);
-}
-
 export const FixedTagsDefault =
   "目的,假设,框架,数据,量表,方法,理论,结论,贡献,不足,背景,现状,问题,对策";
 export const FixedColorDefault =
-  "#ffd400,#ff6666,#5fb236,#2ea8e5,#a28ae5,#e56eee,#f19837,#aaaaaa";
+  "#ffd400, #ff6666, #5fb236, #2ea8e5, #a28ae5, #e56eee, #f19837, #aaaaaa, #69af15, #ba898e, #ee8574, #6a99e7, #e65fa1, #62e0ef, #f7e8b2";
 
 export const COLOR = {
   red: "#ff6666",
@@ -99,7 +79,7 @@ export const COLOR = {
 
 export const memOptionalColor = memoize(
   () =>
-    (getPref("optional-color") as string)?.match(/#[0-9A-F]{6}/g)?.[0] ||
+    (getPref("optional-color") as string)?.match(/#[0-9A-Fa-f]{6}/g)?.[0] ||
     "#ffc0cb",
 );
 /**
@@ -131,13 +111,14 @@ export const memFixedColors = memoize((): string[] => {
       ?.match(/#[0-9A-Fa-f]{6}/g)
       ?.map((a) => a) || [];
   if (!fixedColor || fixedColor.length == 0)
-    fixedColor = FixedColorDefault.split(",");
+    fixedColor = FixedColorDefault.split(",")
+      .map((f) => f.trim())
+      .filter((f) => f);
   const tags = memFixedTags();
   return Array.from({
     length: tags.length / fixedColor.length + 1,
   }).flatMap(() => fixedColor);
 });
-
 export function toggleProperty<T, K extends keyof NonNullable<T>>(
   obj: NonNullable<T> | undefined,
   key: K,
