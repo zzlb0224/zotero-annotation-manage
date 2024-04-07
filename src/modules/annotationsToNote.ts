@@ -46,7 +46,7 @@ function register() {
             commandListener: async (ev) => {
               const items = await getSelectedItemsEv(ev);
               const ans = getAllAnnotations(items);
-              
+
               ztoolkit.log(
                 `找到${items.length}条目${ans.length}笔记`,
                 getParentAttr(ev.target as HTMLElement, "id"),
@@ -125,7 +125,7 @@ function register() {
         commandListener: (ev) => {
           const target = ev.target as HTMLElement;
           const doc = target.ownerDocument;
-          const id = getParentAttr(ev.target as HTMLElement, "id");    
+          const id = getParentAttr(ev.target as HTMLElement, "id");
           const div = createChooseTagsDiv(doc, id?.includes("collection"));
           // ztoolkit.log("自选标签", div);
           // setTimeout(()=>d.remove(),10000)
@@ -138,8 +138,8 @@ function register() {
         commandListener: (ev) => {
           const target = ev.target as HTMLElement;
           const doc = target.ownerDocument;
-          const id = getParentAttr(ev.target as HTMLElement, "id");          
-          const div = createChooseAnnDiv(doc, id?.includes("collection")); 
+          const id = getParentAttr(ev.target as HTMLElement, "id");
+          const div = createChooseAnnDiv(doc, id?.includes("collection"));
           // setTimeout(()=>d.remove(),10000)
         },
       },
@@ -153,8 +153,8 @@ function register() {
             label: "类型：图片",
             icon: iconBaseUrl + "favicon.png",
             commandListener: (ev) => {
-              const id= getParentAttr(ev.target as HTMLElement, "id");
-              exportNoteByType("image",id?.includes("collection"));
+              const id = getParentAttr(ev.target as HTMLElement, "id");
+              exportNoteByType("image", id?.includes("collection"));
             },
           },
           {
@@ -311,8 +311,8 @@ const ID = {
   input: `${config.addonRef}-ann2note-ChooseTags-root-input`,
   result: `${config.addonRef}-ann2note-ChooseTags-root-result`,
 };
-function getParentAttr(ele: Element|null, name = "id") {
-  if(!ele)return ""
+function getParentAttr(ele: Element | null, name = "id") {
+  if (!ele) return "";
   const value = ele.getAttribute(name);
   if (value) {
     return value;
