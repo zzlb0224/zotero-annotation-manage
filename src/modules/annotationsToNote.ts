@@ -6,6 +6,7 @@ import {
   sortAsc,
   sortFixedTags10ValuesLength,
   sortKey,
+  sortModified,
   sortTags10AscByKey,
   sortValuesLength,
 } from "../utils/sort";
@@ -162,7 +163,12 @@ function register() {
             label: "类型：ink",
             icon: iconBaseUrl + "favicon.png",
             commandListener: (ev) => {
-              exportNoteByType("ink", isCollection(ev));
+              exportNoteByType(
+                "ink",
+                getParentAttr(ev.target as HTMLElement)?.includes(
+                  "collection",
+                ) || false,
+              );
             },
           },
           {
@@ -170,7 +176,12 @@ function register() {
             label: "类型：纯笔记",
             icon: iconBaseUrl + "favicon.png",
             commandListener: (ev) => {
-              exportNoteByType("note", isCollection(ev));
+              exportNoteByType(
+                "note",
+                getParentAttr(ev.target as HTMLElement)?.includes(
+                  "collection",
+                ) || false,
+              );
             },
           },
           {
@@ -178,7 +189,12 @@ function register() {
             label: "类型：高亮",
             icon: iconBaseUrl + "favicon.png",
             commandListener: (ev) => {
-              exportNoteByType("highlight", isCollection(ev));
+              exportNoteByType(
+                "highlight",
+                getParentAttr(ev.target as HTMLElement)?.includes(
+                  "collection",
+                ) || false,
+              );
             },
           },
         ],
@@ -322,10 +338,7 @@ function getParentAttr(ele: Element | null, name = "id") {
   }
   return "";
 }
-function isCollection(ev: Event) {
-  const id = getParentAttr(ev.target as HTMLElement, "id");
-  return !!id && id.includes("collection");
-}
+
 async function createChooseAnnDiv(doc: Document, isCollection: boolean) {
   let text = "";
   let tag = "";
@@ -433,12 +446,14 @@ async function createChooseAnnDiv(doc: Document, isCollection: boolean) {
   function createResultDiv() {
     const txtReg = str2RegExp(text);
     const tagReg = str2RegExp(tag);
-    ans = annotations.filter(
-      (f) =>
-        (txtReg.length == 0 ||
-          txtReg.some((a) => a.test(f.comment) || a.test(f.text))) &&
-        (tagReg.length == 0 || tagReg.some((a) => a.test(f.annotationTags))),
-    );
+    ans = annotations
+      .filter(
+        (f) =>
+          (txtReg.length == 0 ||
+            txtReg.some((a) => a.test(f.comment) || a.test(f.text))) &&
+          (tagReg.length == 0 || tagReg.some((a) => a.test(f.annotationTags))),
+      )
+      .sort(sortModified);
     const resultDiv = doc.getElementById(resultId);
     if (resultDiv)
       ztoolkit.UI.replaceElement(
@@ -454,8 +469,20 @@ async function createChooseAnnDiv(doc: Document, isCollection: boolean) {
             namespace: "html",
             properties: {
               textContent:
-                a.annotationTags + " " + a.text + " " + a.comment + " ",
+                a.annotationTags + " " + a.text ||
+                "" + " " + a.comment ||
+                "" + " ",
             },
+            styles: { border: "1px solid black", margin: "2px" },
+            listeners: [
+              {
+                type: "click",
+                listener(ev) {
+                  // ztoolkit.log("点击",ev)
+                  Zotero.OpenPDF.openToPage(a.pdf, a.page, a.ann.key);
+                },
+              },
+            ],
           })),
         },
         resultDiv,
@@ -655,8 +682,9 @@ function createActionTag(action: () => void, cancel?: () => void) {
 }
 function createTopDiv(doc?: Document, children?: TagElementProps[]) {
   if (!doc) return;
-  const colors = memFixedColors();
-  const color = colors[Math.round(Math.random() * (colors.length - 1))];
+  const usedColors = memFixedColors()
+    .slice(0, 999)
+    .sort(() => Math.random() - 0.5);
   return ztoolkit.UI.appendElement(
     {
       tag: "div",
@@ -670,7 +698,7 @@ function createTopDiv(doc?: Document, children?: TagElementProps[]) {
         maxHeight: "600px",
         overflowY: "scroll",
         display: "flex",
-        background: color,
+        background: usedColors[0],
         flexWrap: "wrap",
         flexDirection: "column",
       },
@@ -735,9 +763,11 @@ interface AnnotationRes {
   comment: string;
   itemTags: string;
   annotationTags: string;
-  tag: { tag: string; type: number }; //flatMap
+  page: string;
+  dateModified: string;
   tags: { tag: string; type: number }[];
-  html: string;
+  tag: { tag: string; type: number }; //flatMap(a=>Object.(a))
+  html: string; //convertHtml
 }
 function getAllAnnotations(items: Zotero.Item[]) {
   const items1 = items.map((a) =>
@@ -768,6 +798,8 @@ function getAllAnnotations(items: Zotero.Item[]) {
             const type = ann.annotationType;
             const tags = ann.getTags();
             const annotationTags = tags.map((a) => a.tag).join("  ");
+            const page = ann.annotationPageLabel;
+            const dateModified = ann.dateModified;
             const o = {
               item,
               pdf,
@@ -781,6 +813,8 @@ function getAllAnnotations(items: Zotero.Item[]) {
               type,
               comment,
               itemTags,
+              page,
+              dateModified,
               tag: {
                 tag: "在filter使用flatMap之后才能用。例如：filter:(ans)=>ans.flatMap(an=>an.tags.map(tag=>Object.assign({},an,{tag})))",
                 type: 0,
