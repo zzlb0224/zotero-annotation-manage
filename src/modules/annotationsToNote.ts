@@ -219,6 +219,7 @@ function register() {
       onpopupshowing: `Zotero.${config.addonInstance}.hooks.onMenuEvent("annotationToNoteTags", { window,type:"collection" })`,
     },
   ];
+  // 应该用 getVisibility 来控制菜单的隐藏和显示
 
   //组合到一起的菜单能节省空间，因此使用children
   ztoolkit.Menu.register("item", itemMenu);
