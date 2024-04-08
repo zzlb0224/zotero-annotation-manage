@@ -22,6 +22,7 @@ import {
   toggleProperty,
   uniqueBy,
 } from "../utils/zzlb";
+import { listeners } from "process";
 let popupWin: ProgressWindowHelper | undefined = undefined;
 let popupTime = -1;
 
@@ -430,16 +431,18 @@ async function createChooseAnnDiv(doc: Document, isCollection: boolean) {
       },
     ],
   };
+
+  const div = createTopDiv(doc);
   const actionTag = createActionTag(
+    div,
     () => {
       exportNote({ filter: () => ans, toText: toText1 });
       div?.remove();
     },
     () => div?.remove(),
   );
-
-  const div = createTopDiv(doc);
   for (const c of [actionTag, inputTag]) {
+    if(c)
     ztoolkit.UI.appendElement(c, div!);
   }
   createResultDiv();
@@ -473,7 +476,7 @@ async function createChooseAnnDiv(doc: Document, isCollection: boolean) {
                 "" + " " + a.comment ||
                 "" + " ",
             },
-            styles: { border: "1px solid black", margin: "2px" },
+            styles: { border: "1px solid black", margin: "2px",background:getOneFixedColor()  },
             listeners: [
               {
                 type: "click",
@@ -577,7 +580,10 @@ async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
       },
     ],
   };
+
+  const div = createTopDiv(doc);
   const actionTag = createActionTag(
+    div,
     () => {
       if (selectedTags.length > 0) {
         exportTagsNote(selectedTags, items);
@@ -585,12 +591,10 @@ async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
       }
     },
     () => div?.remove(),
+    [],
   );
-  const children = [tagsTag, actionTag];
-
-  const div = createTopDiv(doc);
-  for (const c of children) {
-    ztoolkit.UI.appendElement(c, div!);
+  for (const c of [tagsTag, actionTag]) {
+    if (c) ztoolkit.UI.appendElement(c, div!);
   }
   createTags();
   return div;
@@ -634,12 +638,82 @@ async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
     );
   }
 }
-
-function createActionTag(action: () => void, cancel?: () => void) {
+function getOneFixedColor() {
+  return memFixedColors()
+    .slice(0, 999)
+    .sort(() => Math.random()-0.5)[0];
+}
+function createActionTag(
+  div: HTMLElement | undefined,
+  action: () => void,
+  cancel?: () => void,
+  others: TagElementProps[] = [],
+) {
+  if (!div) return;
+  ztoolkit.log("其它按钮", others);
+    let mouseOffsetX = 0, // 记录当前鼠标位置
+    mouseOffsetY = 0,
+    isDragging = false; // 记录元素是否可以拖动
   const actionDiv: TagElementProps = {
     tag: "div",
     styles: { display: "flex" },
     children: [
+      {
+        tag: "div",
+        properties: { textContent: "按住拖动" },styles: {
+          padding: "6px",
+          background: "#f99",
+          margin: "1px",
+        },
+        listeners: [
+           {
+        type: "mousedown",
+        listener(event: any) {
+          isDragging = true;
+          const move = div;
+          mouseOffsetX = event.pageX - move.offsetLeft;
+          mouseOffsetY = event.pageY - move.offsetTop;
+        },
+      },
+      {
+        type: "mousemove",
+        listener(event: any) {
+          if (!isDragging) return;
+          const move = div;
+          const moveX = event.pageX - mouseOffsetX;
+          const moveY = event.pageY - mouseOffsetY;
+          move.style.left = moveX + "px";
+          move.style.top = moveY + "px";
+        },
+      },
+      {
+        type: "mouseup",
+        listener(event: any) {
+          isDragging = false;
+        },
+      },
+        ],
+      },
+      {
+        tag: "div",
+        properties: { textContent: "切换颜色" },styles: {
+          padding: "6px",
+          background: "#f99",
+          margin: "1px",
+        },
+        listeners: [
+          {
+            type: "click",
+            listener(ev) {
+              ztoolkit.log(div,div.style.background)
+              if (!div) return;
+              div.style.background =
+                div.style.background == "" ? getOneFixedColor() : "";
+              
+            },
+          },
+        ],
+      },
       {
         tag: "div",
         properties: { textContent: "确定生成" },
@@ -676,17 +750,15 @@ function createActionTag(action: () => void, cancel?: () => void) {
             ],
           }
         : { tag: "span" },
+      ...others,
     ],
   };
   return actionDiv;
 }
 function createTopDiv(doc?: Document, children?: TagElementProps[]) {
-  if (!doc) return;
-  const usedColors = memFixedColors()
-    .slice(0, 999)
-    .sort(() => Math.random() - 0.5);
+  if (!doc) return; 
   return ztoolkit.UI.appendElement(
-    {
+    ({
       tag: "div",
       styles: {
         padding: "10px",
@@ -698,15 +770,16 @@ function createTopDiv(doc?: Document, children?: TagElementProps[]) {
         maxHeight: "600px",
         overflowY: "scroll",
         display: "flex",
-        background: usedColors[0],
+        background: getOneFixedColor(),
         flexWrap: "wrap",
         flexDirection: "column",
       },
       children: children,
-    },
+    }),
     doc.querySelector("body,div")!,
   ) as HTMLDivElement;
 }
+ 
 
 async function saveNote(targetNoteItem: Zotero.Item, txt: string) {
   await Zotero.BetterNotes.api.note.insert(targetNoteItem, txt, -1);
