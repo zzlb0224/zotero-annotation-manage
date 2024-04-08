@@ -166,22 +166,20 @@ export class AnnotationPopup {
     if (!root) {
       setTimeout(() => {
         this.updateDivStart(root);
-      }, 500);
+      }, 100);
       return;
     }
     if (!root.parentNode) {
       if (isZzlb()) {
         //应该在这里计算位置，这里最准确
-
         ztoolkit.UI.appendElement(
           { tag: "div", properties: { textContent: "正在附加div" } },
           root,
         );
       }
-
       setTimeout(() => {
         this.updateDivStart(root);
-      }, 500);
+      }, 100);
       return;
     }
     setTimeout(async () => {
@@ -199,13 +197,6 @@ export class AnnotationPopup {
   private async updateDiv(root: HTMLDivElement) {
     const doc = this.doc;
     if (!doc) return;
-    // const root = doc.getElementById(this.idRootDiv);
-    // if (!root || !root.parentNode) {
-    //   setTimeout(async () => {
-    //     await this.updateDiv(root);
-    //   }, 500);
-    //   return;
-    // }
     let relateTags: groupByResult<{
       tag: string;
       type: number;

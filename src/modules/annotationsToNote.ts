@@ -465,9 +465,12 @@ async function createChooseAnnDiv(doc: Document, isCollection: boolean) {
             namespace: "html",
             properties: {
               textContent:
-                a.annotationTags + " " + a.text ||
-                "" + " " + a.comment ||
-                "" + " ",
+                (a.annotationTags || "") +
+                " " +
+                (a.text || "") +
+                " " +
+                (a.comment || "") +
+                " ",
             },
             styles: {
               border: "1px solid black",
@@ -653,9 +656,7 @@ function createActionTag(
 ) {
   if (!div) return;
   ztoolkit.log("其它按钮", others);
-  let mouseOffsetX = 0, // 记录当前鼠标位置
-    mouseOffsetY = 0,
-    isDragging = false; // 记录元素是否可以拖动
+
   const actionDiv: TagElementProps = {
     tag: "div",
     styles: { display: "flex" },
@@ -673,44 +674,6 @@ function createActionTag(
             type: "click",
             listener: (ev) => {
               div.remove();
-            },
-          },
-        ],
-      },
-      {
-        tag: "div",
-        properties: { textContent: "按住拖动" },
-        styles: {
-          padding: "6px",
-          background: "#f99",
-          margin: "1px",
-        },
-        listeners: [
-          {
-            type: "mousedown",
-            listener(event: any) {
-              isDragging = true;
-              const move = div;
-              mouseOffsetX = event.pageX - move.offsetLeft;
-              mouseOffsetY = event.pageY - move.offsetTop;
-            },
-          },
-          {
-            type: "mousemove",
-            listener(event: any) {
-              if (!isDragging) return;
-              const move = div;
-              const moveX = event.pageX - mouseOffsetX;
-              let moveY = event.pageY - mouseOffsetY;
-              if (moveY < 50) moveY = 50;
-              move.style.left = moveX + "px";
-              move.style.top = moveY + "px";
-            },
-          },
-          {
-            type: "mouseup",
-            listener(event: any) {
-              isDragging = false;
             },
           },
         ],
@@ -769,7 +732,7 @@ function createTopDiv(doc?: Document) {
     { tag: "div", properties: { textContent: "" }, classList: ["query"] },
     { tag: "div", properties: { textContent: "" }, classList: ["content"] },
   ];
-  return ztoolkit.UI.appendElement(
+  const d = ztoolkit.UI.appendElement(
     {
       tag: "div",
       id: ID.root + "TopDiv",
@@ -777,7 +740,7 @@ function createTopDiv(doc?: Document) {
         padding: "10px",
         position: "fixed",
         left: "150px",
-        top: "50px",
+        top: "100px",
         zIndex: "9999",
         maxWidth: "calc(100% - 300px)",
         maxHeight: "600px",
@@ -788,9 +751,26 @@ function createTopDiv(doc?: Document) {
         flexDirection: "column",
       },
       children: children,
+      listeners: [
+        {
+          type: "mousedown",
+          listener(e: any) {
+            const x = e.clientX - d.offsetLeft;
+            const y = e.clientY - d.offsetTop;
+            doc.onmousemove = (e) => {
+              d.style.left = e.clientX - x + "px";
+              d.style.top = e.clientY - y + "px";
+            };
+            doc.onmouseup = (e) => {
+              doc.onmousemove = doc.onmouseup = null;
+            };
+          },
+        },
+      ],
     },
     doc.querySelector("body,div")!,
   ) as HTMLDivElement;
+  return d;
 }
 
 async function saveNote(targetNoteItem: Zotero.Item, txt: string) {
