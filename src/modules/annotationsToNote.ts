@@ -347,79 +347,28 @@ async function createChooseAnnDiv(doc: Document, isCollection: boolean) {
   const items = await getSelectedItems(isCollection);
   const annotations = getAllAnnotations(items);
   let ans: AnnotationRes[] = annotations;
-  const resultId = ID.result;
 
   const inputTag: TagElementProps = {
     tag: "div",
-    styles: { display: "flex", flexDirection: "column" },
+    styles: { display: "flex", flexDirection: "row" },
     children: [
+      { tag: "div", properties: { textContent: "" } },
       {
         tag: "div",
+        properties: { textContent: "注释、笔记" },
         children: [
-          { tag: "div", properties: { textContent: "可用正则" } },
           {
-            tag: "div",
-            properties: { textContent: "注释、笔记" },
-            children: [
+            tag: "input",
+            namespace: "html",
+            properties: { placeholder: "请输入注释、笔记筛选条件" },
+            styles: { width: "200px" },
+            listeners: [
               {
-                tag: "input",
-                namespace: "html",
-                properties: { placeholder: "请输入注释、笔记筛选条件" },
-                styles: { width: "200px" },
-                listeners: [
-                  {
-                    type: "keyup",
-                    listener: (ev) => {
-                      text = (ev.target as HTMLInputElement).value;
-                      createResultDiv();
-                    },
-                  },
-                ],
-              },
-            ],
-          },
-          {
-            tag: "div",
-            properties: { textContent: "标签" },
-            children: [
-              {
-                tag: "input",
-                namespace: "html",
-                properties: { placeholder: "请输入tag筛选条件" },
-                styles: { width: "200px" },
-                listeners: [
-                  {
-                    type: "keyup",
-                    listener: (ev) => {
-                      tag = (ev.target as HTMLInputElement).value.trim();
-                      createResultDiv();
-                    },
-                  },
-                ],
-              },
-            ],
-          },
-          {
-            tag: "div",
-            properties: { textContent: "显示前N条" },
-            children: [
-              {
-                tag: "input",
-                namespace: "html",
-                properties: { placeholder: "输入数字", type: "number" },
-                styles: { width: "200px" },
-                listeners: [
-                  {
-                    type: "keyup",
-                    listener: (ev) => {
-                      showN =
-                        parseInt(
-                          (ev.target as HTMLInputElement).value.trim(),
-                        ) || 10;
-                      createResultDiv();
-                    },
-                  },
-                ],
+                type: "keyup",
+                listener: (ev) => {
+                  text = (ev.target as HTMLInputElement).value;
+                  createResultDiv();
+                },
               },
             ],
           },
@@ -427,23 +376,67 @@ async function createChooseAnnDiv(doc: Document, isCollection: boolean) {
       },
       {
         tag: "div",
-        id: resultId,
+        properties: { textContent: "标签" },
+        children: [
+          {
+            tag: "input",
+            namespace: "html",
+            properties: { placeholder: "请输入tag筛选条件" },
+            styles: { width: "200px" },
+            listeners: [
+              {
+                type: "keyup",
+                listener: (ev) => {
+                  tag = (ev.target as HTMLInputElement).value.trim();
+                  createResultDiv();
+                },
+              },
+            ],
+          },
+        ],
+      },
+      {
+        tag: "div",
+        properties: { textContent: "显示前N条" },
+        children: [
+          {
+            tag: "input",
+            namespace: "html",
+            properties: {
+              placeholder: "输入数字",
+              value: showN,
+              type: "number",
+            },
+            styles: { width: "50px" },
+            listeners: [
+              {
+                type: "change",
+                listener: (ev) => {
+                  showN =
+                    parseInt((ev.target as HTMLInputElement).value.trim()) ||
+                    10;
+                  createResultDiv();
+                },
+              },
+            ],
+          },
+        ],
       },
     ],
   };
 
-  const div = createTopDiv(doc);
+  const div = createTopDiv(doc)!;
   const actionTag = createActionTag(
     div,
     () => {
       exportNote({ filter: () => ans, toText: toText1 });
       div?.remove();
     },
-    () => div?.remove(),
+    [{ tag: "div", properties: { textContent: "aaaa" } }],
   );
-  for (const c of [actionTag, inputTag]) {
-    if(c)
-    ztoolkit.UI.appendElement(c, div!);
+  if (div) {
+    ztoolkit.UI.appendElement(actionTag!, div.querySelector(".action")!);
+    ztoolkit.UI.appendElement(inputTag!, div.querySelector(".query")!);
   }
   createResultDiv();
   function createResultDiv() {
@@ -457,13 +450,13 @@ async function createChooseAnnDiv(doc: Document, isCollection: boolean) {
           (tagReg.length == 0 || tagReg.some((a) => a.test(f.annotationTags))),
       )
       .sort(sortModified);
-    const resultDiv = doc.getElementById(resultId);
-    if (resultDiv)
-      ztoolkit.UI.replaceElement(
+
+    if (div) {
+      clearChild(div.querySelector(".content"));
+      ztoolkit.UI.appendElement(
         {
           tag: "div",
           namespace: "html",
-          id: resultId,
           properties: {
             textContent: `总${annotations.length}条笔记，筛选出了${ans.length}条。预览前${showN}条。`,
           },
@@ -476,7 +469,11 @@ async function createChooseAnnDiv(doc: Document, isCollection: boolean) {
                 "" + " " + a.comment ||
                 "" + " ",
             },
-            styles: { border: "1px solid black", margin: "2px",background:getOneFixedColor()  },
+            styles: {
+              border: "1px solid black",
+              margin: "2px",
+              background: getOneFixedColor(),
+            },
             listeners: [
               {
                 type: "click",
@@ -488,8 +485,9 @@ async function createChooseAnnDiv(doc: Document, isCollection: boolean) {
             ],
           })),
         },
-        resultDiv,
+        div.querySelector(".content")!,
       );
+    }
   }
 }
 function createChild(doc: Document, items: Zotero.Item[]) {
@@ -590,12 +588,11 @@ async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
         div?.remove();
       }
     },
-    () => div?.remove(),
-    [],
+    [{ tag: "div", properties: { textContent: "bbbb" } }],
   );
-  for (const c of [tagsTag, actionTag]) {
-    if (c) ztoolkit.UI.appendElement(c, div!);
-  }
+  ztoolkit.UI.appendElement(actionTag!, div!.querySelector(".action")!);
+  ztoolkit.UI.appendElement(tagsTag!, div!.querySelector(".content")!);
+
   createTags();
   return div;
 
@@ -638,20 +635,25 @@ async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
     );
   }
 }
+function clearChild(ele: Element | null) {
+  if (ele) {
+    for (const e of ele.children) e.remove();
+    ele.innerHTML = "";
+  }
+}
 function getOneFixedColor() {
   return memFixedColors()
     .slice(0, 999)
-    .sort(() => Math.random()-0.5)[0];
+    .sort(() => Math.random() - 0.5)[0];
 }
 function createActionTag(
   div: HTMLElement | undefined,
   action: () => void,
-  cancel?: () => void,
   others: TagElementProps[] = [],
 ) {
   if (!div) return;
   ztoolkit.log("其它按钮", others);
-    let mouseOffsetX = 0, // 记录当前鼠标位置
+  let mouseOffsetX = 0, // 记录当前鼠标位置
     mouseOffsetY = 0,
     isDragging = false; // 记录元素是否可以拖动
   const actionDiv: TagElementProps = {
@@ -660,43 +662,63 @@ function createActionTag(
     children: [
       {
         tag: "div",
-        properties: { textContent: "按住拖动" },styles: {
+        properties: { textContent: "关闭" },
+        styles: {
           padding: "6px",
           background: "#f99",
           margin: "1px",
         },
         listeners: [
-           {
-        type: "mousedown",
-        listener(event: any) {
-          isDragging = true;
-          const move = div;
-          mouseOffsetX = event.pageX - move.offsetLeft;
-          mouseOffsetY = event.pageY - move.offsetTop;
-        },
-      },
-      {
-        type: "mousemove",
-        listener(event: any) {
-          if (!isDragging) return;
-          const move = div;
-          const moveX = event.pageX - mouseOffsetX;
-          const moveY = event.pageY - mouseOffsetY;
-          move.style.left = moveX + "px";
-          move.style.top = moveY + "px";
-        },
-      },
-      {
-        type: "mouseup",
-        listener(event: any) {
-          isDragging = false;
-        },
-      },
+          {
+            type: "click",
+            listener: (ev) => {
+              div.remove();
+            },
+          },
         ],
       },
       {
         tag: "div",
-        properties: { textContent: "切换颜色" },styles: {
+        properties: { textContent: "按住拖动" },
+        styles: {
+          padding: "6px",
+          background: "#f99",
+          margin: "1px",
+        },
+        listeners: [
+          {
+            type: "mousedown",
+            listener(event: any) {
+              isDragging = true;
+              const move = div;
+              mouseOffsetX = event.pageX - move.offsetLeft;
+              mouseOffsetY = event.pageY - move.offsetTop;
+            },
+          },
+          {
+            type: "mousemove",
+            listener(event: any) {
+              if (!isDragging) return;
+              const move = div;
+              const moveX = event.pageX - mouseOffsetX;
+              let moveY = event.pageY - mouseOffsetY;
+              if (moveY < 50) moveY = 50;
+              move.style.left = moveX + "px";
+              move.style.top = moveY + "px";
+            },
+          },
+          {
+            type: "mouseup",
+            listener(event: any) {
+              isDragging = false;
+            },
+          },
+        ],
+      },
+      {
+        tag: "div",
+        properties: { textContent: "切换颜色" },
+        styles: {
           padding: "6px",
           background: "#f99",
           margin: "1px",
@@ -705,11 +727,11 @@ function createActionTag(
           {
             type: "click",
             listener(ev) {
-              ztoolkit.log(div,div.style.background)
+              ztoolkit.log(div, div.style.background);
               if (!div) return;
-              div.style.background =
-                div.style.background == "" ? getOneFixedColor() : "";
-              
+              div.style.background = div.style.background
+                ? ""
+                : getOneFixedColor();
             },
           },
         ],
@@ -731,40 +753,31 @@ function createActionTag(
           },
         ],
       },
-      cancel
-        ? {
-            tag: "div",
-            properties: { textContent: "取消" },
-            styles: {
-              padding: "6px",
-              background: "#f99",
-              margin: "1px",
-            },
-            listeners: [
-              {
-                type: "click",
-                listener: (ev) => {
-                  cancel();
-                },
-              },
-            ],
-          }
-        : { tag: "span" },
+
       ...others,
     ],
   };
   return actionDiv;
 }
-function createTopDiv(doc?: Document, children?: TagElementProps[]) {
-  if (!doc) return; 
+function createTopDiv(doc?: Document) {
+  if (!doc) return;
+  doc.getElementById(ID.root + "topdiv")?.remove();
+
+  const children: TagElementProps[] = [
+    { tag: "div", properties: { textContent: "" }, classList: ["action"] },
+    { tag: "div", properties: { textContent: "" }, classList: ["status"] },
+    { tag: "div", properties: { textContent: "" }, classList: ["query"] },
+    { tag: "div", properties: { textContent: "" }, classList: ["content"] },
+  ];
   return ztoolkit.UI.appendElement(
-    ({
+    {
       tag: "div",
+      id: ID.root + "topdiv",
       styles: {
         padding: "10px",
         position: "fixed",
-        left: "250px",
-        top: "100px",
+        left: "150px",
+        top: "50px",
         zIndex: "9999",
         maxWidth: "calc(100% - 300px)",
         maxHeight: "600px",
@@ -775,11 +788,10 @@ function createTopDiv(doc?: Document, children?: TagElementProps[]) {
         flexDirection: "column",
       },
       children: children,
-    }),
+    },
     doc.querySelector("body,div")!,
   ) as HTMLDivElement;
 }
- 
 
 async function saveNote(targetNoteItem: Zotero.Item, txt: string) {
   await Zotero.BetterNotes.api.note.insert(targetNoteItem, txt, -1);
