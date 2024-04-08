@@ -5,7 +5,7 @@ import {
   groupBy,
   groupByResult,
   groupByResultIncludeFixedTags,
-  isZzlb,
+  isDebug,
   memAllTagsDB,
   memFixedColor,
   memFixedTags,
@@ -170,7 +170,7 @@ export class AnnotationPopup {
       return;
     }
     if (!root.parentNode) {
-      if (isZzlb()) {
+      if (isDebug()) {
         //应该在这里计算位置，这里最准确
         ztoolkit.UI.appendElement(
           { tag: "div", properties: { textContent: "正在附加div" } },
@@ -183,7 +183,7 @@ export class AnnotationPopup {
       return;
     }
     setTimeout(async () => {
-      if (isZzlb()) {
+      if (isDebug()) {
         //这里只更新内容
         ztoolkit.UI.appendElement(
           { tag: "div", properties: { textContent: "开始更新div" } },

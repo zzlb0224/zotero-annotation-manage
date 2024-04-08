@@ -15,7 +15,7 @@ import { createZToolkit } from "./utils/ztoolkit";
 import Annotations from "./modules/annotations";
 import AnnotationsToNote, { createPopMenu } from "./modules/annotationsToNote";
 import { setPref } from "./utils/prefs";
-import { isZzlb } from "./utils/zzlb";
+import { isDebug } from "./utils/zzlb";
 
 async function onStartup() {
   await Promise.all([
@@ -98,7 +98,6 @@ async function onMainWindowLoad(win: Window): Promise<void> {
   // addon.hooks.onDialogEvents("dialogExample");
   Annotations.register();
   AnnotationsToNote.register();
-  isZzlb();
 }
 
 async function onMainWindowUnload(win: Window): Promise<void> {

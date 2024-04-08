@@ -275,6 +275,6 @@ export function str2RegExp(value: string) {
   // ztoolkit.log(res);
   return res;
 }
-export function isZzlb() {
+export function isDebug() {
   return !!getPref("debug");
 }

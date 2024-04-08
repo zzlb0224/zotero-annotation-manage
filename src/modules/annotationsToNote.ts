@@ -45,7 +45,7 @@ function register() {
             tag: "menuitem",
             label: "拆分#标签",
             icon: iconBaseUrl + "favicon.png",
-            commandListener: async (ev) => {
+            commandListener: async (ev: Event) => {
               const items = await getSelectedItemsEv(ev);
               const ans = getAllAnnotations(items);
 
@@ -91,7 +91,7 @@ function register() {
             tag: "menuitem",
             label: "测试 tab",
             icon: iconBaseUrl + "favicon.png",
-            commandListener: async (ev) => {
+            commandListener: async (ev: Event) => {
               const items = await getSelectedItemsEv(ev);
               const tab = new Tab(
                 `chrome://${config.addonRef}/content/tab.xhtml`,
@@ -112,7 +112,7 @@ function register() {
             tag: "menuitem",
             label: "测试弹出",
             icon: iconBaseUrl + "favicon.png",
-            commandListener: (ev) => {},
+            commandListener: (ev: any) => {},
           },
         ],
       },
@@ -124,7 +124,7 @@ function register() {
         tag: "menuitem",
         label: "选择多个标签导出",
         icon: iconBaseUrl + "favicon.png",
-        commandListener: (ev) => {
+        commandListener: (ev: Event) => {
           const target = ev.target as HTMLElement;
           const doc = target.ownerDocument;
           const id = getParentAttr(ev.target as HTMLElement, "id");
@@ -137,7 +137,7 @@ function register() {
         tag: "menuitem",
         label: "搜索注释文字和标签导出",
         icon: iconBaseUrl + "favicon.png",
-        commandListener: (ev) => {
+        commandListener: (ev: Event) => {
           const target = ev.target as HTMLElement;
           const doc = target.ownerDocument;
           const id = getParentAttr(ev.target as HTMLElement, "id");
@@ -154,7 +154,7 @@ function register() {
             tag: "menuitem",
             label: "类型：图片",
             icon: iconBaseUrl + "favicon.png",
-            commandListener: (ev) => {
+            commandListener: (ev: Event) => {
               const id = getParentAttr(ev.target as HTMLElement, "id");
               exportNoteByType("image", id?.includes("collection"));
             },
@@ -163,7 +163,7 @@ function register() {
             tag: "menuitem",
             label: "类型：ink",
             icon: iconBaseUrl + "favicon.png",
-            commandListener: (ev) => {
+            commandListener: (ev: Event) => {
               exportNoteByType(
                 "ink",
                 getParentAttr(ev.target as HTMLElement)?.includes(
@@ -176,7 +176,7 @@ function register() {
             tag: "menuitem",
             label: "类型：纯笔记",
             icon: iconBaseUrl + "favicon.png",
-            commandListener: (ev) => {
+            commandListener: (ev: Event) => {
               exportNoteByType(
                 "note",
                 getParentAttr(ev.target as HTMLElement)?.includes(
@@ -189,7 +189,7 @@ function register() {
             tag: "menuitem",
             label: "类型：高亮",
             icon: iconBaseUrl + "favicon.png",
-            commandListener: (ev) => {
+            commandListener: (ev: Event) => {
               exportNoteByType(
                 "highlight",
                 getParentAttr(ev.target as HTMLElement)?.includes(
@@ -310,7 +310,7 @@ export async function createPopMenu(
           listeners: [
             {
               type: "command",
-              listener: (event) => {
+              listener: (event: any) => {
                 exportSingleNote(tag.key, isc);
               },
             },
@@ -365,7 +365,7 @@ async function createChooseAnnDiv(doc: Document, isCollection: boolean) {
             listeners: [
               {
                 type: "keyup",
-                listener: (ev) => {
+                listener: (ev: any) => {
                   text = (ev.target as HTMLInputElement).value;
                   createResultDiv();
                 },
@@ -386,7 +386,7 @@ async function createChooseAnnDiv(doc: Document, isCollection: boolean) {
             listeners: [
               {
                 type: "keyup",
-                listener: (ev) => {
+                listener: (ev: Event) => {
                   tag = (ev.target as HTMLInputElement).value.trim();
                   createResultDiv();
                 },
@@ -411,7 +411,7 @@ async function createChooseAnnDiv(doc: Document, isCollection: boolean) {
             listeners: [
               {
                 type: "change",
-                listener: (ev) => {
+                listener: (ev: Event) => {
                   showN =
                     parseInt((ev.target as HTMLInputElement).value.trim()) ||
                     10;
@@ -480,7 +480,7 @@ async function createChooseAnnDiv(doc: Document, isCollection: boolean) {
             listeners: [
               {
                 type: "click",
-                listener(ev) {
+                listener(ev: any) {
                   // ztoolkit.log("点击",ev)
                   Zotero.OpenPDF.openToPage(a.pdf, a.page, a.ann.key);
                 },
@@ -545,7 +545,7 @@ async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
             listeners: [
               {
                 type: "click",
-                listener: (ev) => {
+                listener: (ev: Event) => {
                   const t = toggleProperty(
                     document.getElementById(idTags)?.style,
                     "display",
@@ -566,7 +566,7 @@ async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
             listeners: [
               {
                 type: "keyup",
-                listener: (ev) => {
+                listener: (ev: Event) => {
                   const value = (ev.target as HTMLInputElement).value;
                   createTags(value.trim());
                 },
@@ -619,7 +619,7 @@ async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
             listeners: [
               {
                 type: "click",
-                listener: (ev) => {
+                listener: (ev: Event) => {
                   const target = ev.target as HTMLDivElement;
                   const index = selectedTags.findIndex((f) => f == t.key);
                   if (index == -1) {
@@ -672,7 +672,7 @@ function createActionTag(
         listeners: [
           {
             type: "click",
-            listener: (ev) => {
+            listener: (ev: any) => {
               div.remove();
             },
           },
@@ -689,7 +689,7 @@ function createActionTag(
         listeners: [
           {
             type: "click",
-            listener(ev) {
+            listener(ev: any) {
               ztoolkit.log(div, div.style.background);
               if (!div) return;
               div.style.background = div.style.background
@@ -710,7 +710,7 @@ function createActionTag(
         listeners: [
           {
             type: "click",
-            listener: (ev) => {
+            listener: (ev: any) => {
               action();
             },
           },
@@ -1126,7 +1126,7 @@ async function exportNoteByType(
         .flatMap((pdfTitle, index, aa) => [
           `<h1> (${index + 1}/${aa.length}) ${pdfTitle.key} ${getCiteItemHtml(pdfTitle.values[0]?.item)}  (${pdfTitle.values.length})</h1>`,
           ...pdfTitle.values.flatMap((b) => [
-            b.html ? b.html : getCiteAnnotationHtml(b.ann), // `<span style="color:#ff6666">未能加载：${b.ann.key}</span>`
+            b.html ? b.html : getCiteAnnotationHtml(b.ann),
           ]),
         ])
         .join("\n"),
