@@ -432,7 +432,7 @@ async function createChooseAnnDiv(doc: Document, isCollection: boolean) {
       exportNote({ filter: () => ans, toText: toText1 });
       div?.remove();
     },
-    [{ tag: "div", properties: { textContent: "aaaa" } }],
+    [{ tag: "div", properties: { textContent: "可用正则表达式" } }],
   );
   if (div) {
     ztoolkit.UI.appendElement(actionTag!, div.querySelector(".action")!);
@@ -588,7 +588,7 @@ async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
         div?.remove();
       }
     },
-    [{ tag: "div", properties: { textContent: "bbbb" } }],
+    [{ tag: "div", properties: { textContent: "可用正则表达式" } }],
   );
   ztoolkit.UI.appendElement(actionTag!, div!.querySelector(".action")!);
   ztoolkit.UI.appendElement(tagsTag!, div!.querySelector(".content")!);
@@ -761,7 +761,7 @@ function createActionTag(
 }
 function createTopDiv(doc?: Document) {
   if (!doc) return;
-  doc.getElementById(ID.root + "topdiv")?.remove();
+  doc.getElementById(ID.root + "TopDiv")?.remove();
 
   const children: TagElementProps[] = [
     { tag: "div", properties: { textContent: "" }, classList: ["action"] },
@@ -772,7 +772,7 @@ function createTopDiv(doc?: Document) {
   return ztoolkit.UI.appendElement(
     {
       tag: "div",
-      id: ID.root + "topdiv",
+      id: ID.root + "TopDiv",
       styles: {
         padding: "10px",
         position: "fixed",
