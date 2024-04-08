@@ -141,7 +141,7 @@ function register() {
           const target = ev.target as HTMLElement;
           const doc = target.ownerDocument;
           const id = getParentAttr(ev.target as HTMLElement, "id");
-          const div = createChooseAnnDiv(doc, id?.includes("collection"));
+          const div = createSearchAnnDiv(doc, id?.includes("collection"));
           // setTimeout(()=>d.remove(),10000)
         },
       },
@@ -340,102 +340,101 @@ function getParentAttr(ele: Element | null, name = "id") {
   return "";
 }
 
-async function createChooseAnnDiv(doc: Document, isCollection: boolean) {
+async function createSearchAnnDiv(doc: Document, isCollection: boolean) {
   let text = "";
   let tag = "";
   let showN = 10;
   const items = await getSelectedItems(isCollection);
   const annotations = getAllAnnotations(items);
   let ans: AnnotationRes[] = annotations;
-
-  const inputTag: TagElementProps = {
-    tag: "div",
-    styles: { display: "flex", flexDirection: "row" },
-    children: [
-      { tag: "div", properties: { textContent: "" } },
-      {
-        tag: "div",
-        properties: { textContent: "注释、笔记" },
-        children: [
-          {
-            tag: "input",
-            namespace: "html",
-            properties: { placeholder: "请输入注释、笔记筛选条件" },
-            styles: { width: "200px" },
-            listeners: [
-              {
-                type: "keyup",
-                listener: (ev: any) => {
-                  text = (ev.target as HTMLInputElement).value;
-                  createResultDiv();
-                },
-              },
-            ],
-          },
-        ],
-      },
-      {
-        tag: "div",
-        properties: { textContent: "标签" },
-        children: [
-          {
-            tag: "input",
-            namespace: "html",
-            properties: { placeholder: "请输入tag筛选条件" },
-            styles: { width: "200px" },
-            listeners: [
-              {
-                type: "keyup",
-                listener: (ev: Event) => {
-                  tag = (ev.target as HTMLInputElement).value.trim();
-                  createResultDiv();
-                },
-              },
-            ],
-          },
-        ],
-      },
-      {
-        tag: "div",
-        properties: { textContent: "显示前N条" },
-        children: [
-          {
-            tag: "input",
-            namespace: "html",
-            properties: {
-              placeholder: "输入数字",
-              value: showN,
-              type: "number",
-            },
-            styles: { width: "50px" },
-            listeners: [
-              {
-                type: "change",
-                listener: (ev: Event) => {
-                  showN =
-                    parseInt((ev.target as HTMLInputElement).value.trim()) ||
-                    10;
-                  createResultDiv();
-                },
-              },
-            ],
-          },
-        ],
-      },
-    ],
-  };
-
-  const div = createTopDiv(doc)!;
-  const actionTag = createActionTag(
-    div,
-    () => {
-      exportNote({ filter: () => ans, toText: toText1 });
-      div?.remove();
-    },
-    [{ tag: "div", properties: { textContent: "可用正则表达式" } }],
-  );
+  const div = createTopDiv(doc);
   if (div) {
-    ztoolkit.UI.appendElement(actionTag!, div.querySelector(".action")!);
+    const inputTag: TagElementProps = {
+      tag: "div",
+      styles: { display: "flex", flexDirection: "row" },
+      children: [
+        { tag: "div", properties: { textContent: "" } },
+        {
+          tag: "div",
+          properties: { textContent: "注释、笔记" },
+          children: [
+            {
+              tag: "input",
+              namespace: "html",
+              properties: { placeholder: "请输入注释、笔记筛选条件" },
+              styles: { width: "200px" },
+              listeners: [
+                {
+                  type: "keyup",
+                  listener: (ev: any) => {
+                    text = (ev.target as HTMLInputElement).value;
+                    createResultDiv();
+                  },
+                },
+              ],
+            },
+          ],
+        },
+        {
+          tag: "div",
+          properties: { textContent: "标签" },
+          children: [
+            {
+              tag: "input",
+              namespace: "html",
+              properties: { placeholder: "请输入tag筛选条件" },
+              styles: { width: "200px" },
+              listeners: [
+                {
+                  type: "keyup",
+                  listener: (ev: Event) => {
+                    tag = (ev.target as HTMLInputElement).value.trim();
+                    createResultDiv();
+                  },
+                },
+              ],
+            },
+          ],
+        },
+        {
+          tag: "div",
+          properties: { textContent: "显示前N条" },
+          children: [
+            {
+              tag: "input",
+              namespace: "html",
+              properties: {
+                placeholder: "输入数字",
+                value: showN,
+                type: "number",
+              },
+              styles: { width: "50px" },
+              listeners: [
+                {
+                  type: "change",
+                  listener: (ev: Event) => {
+                    showN =
+                      parseInt((ev.target as HTMLInputElement).value.trim()) ||
+                      10;
+                    createResultDiv();
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const actionTag = createActionTag(
+      div,
+      () => {
+        exportNote({ filter: () => ans, toText: toText1 });
+        div?.remove();
+      } 
+    );
+    for (const action of actionTag) {
+      ztoolkit.UI.appendElement(action, div.querySelector(".action")!);
+    }
     ztoolkit.UI.appendElement(inputTag!, div.querySelector(".query")!);
   }
   createResultDiv();
@@ -536,44 +535,7 @@ async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
     children: [
       {
         tag: "div",
-        children: [
-          {
-            tag: "button",
-            namespace: "html",
-            properties: { textContent: "+点击展开可选标签" },
-            styles: { background: "#fff", padding: "6px" },
-            listeners: [
-              {
-                type: "click",
-                listener: (ev: Event) => {
-                  const t = toggleProperty(
-                    document.getElementById(idTags)?.style,
-                    "display",
-                    ["none", "flex"],
-                  );
-                  setProperty(
-                    ev.target as HTMLButtonElement,
-                    "textContent",
-                    t == "none" ? "+点击展开可选标签" : "-点击隐藏可选标签",
-                  );
-                },
-              },
-            ],
-          },
-          {
-            tag: "input",
-            namespace: "html",
-            listeners: [
-              {
-                type: "keyup",
-                listener: (ev: Event) => {
-                  const value = (ev.target as HTMLInputElement).value;
-                  createTags(value.trim());
-                },
-              },
-            ],
-          },
-        ],
+        // children: ,
       },
       {
         tag: "div",
@@ -581,27 +543,70 @@ async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
       },
     ],
   };
-
   const div = createTopDiv(doc);
-  const actionTag = createActionTag(
-    div,
-    () => {
-      if (selectedTags.length > 0) {
-        exportTagsNote(selectedTags, items);
-        div?.remove();
-      }
-    },
-    [{ tag: "div", properties: { textContent: "可用正则表达式" } }],
-  );
-  ztoolkit.UI.appendElement(actionTag!, div!.querySelector(".action")!);
-  ztoolkit.UI.appendElement(tagsTag!, div!.querySelector(".content")!);
+  if(div){
+    const actionTag = createActionTag(
+      div,
+      () => {
+        if (selectedTags.length > 0) {
+          exportTagsNote(selectedTags, items);
+          div?.remove();
+        }
+      },
+      [ 
+      {
+        tag: "button",
+              namespace: "html",
+              properties: { textContent: "-点击隐藏可选标签" },
+              styles: { background: "#fff", padding: "6px" },
+              listeners: [
+                {
+                  type: "click",
+                  listener: (ev: Event) => {
+                    const t = toggleProperty(
+                      document.getElementById(idTags)?.style,
+                      "display",
+                      ["none", "flex"],
+                    );
+                    setProperty(
+                      ev.target as HTMLButtonElement,
+                      "textContent",
+                      t == "none" ? "+点击展开可选标签" : "-点击隐藏可选标签",
+                    );
+                  },
+                },
+              ],
+          }],
+    );
+    const queryTag=    {tag:"div",properties: { textContent: "tag" },children:[{
+              tag: "input",
+              namespace: "html",
+              listeners: [
+                {
+                  type: "keyup",
+                  listener: (ev: Event) => {
+                    const value = (ev.target as HTMLInputElement).value;
+                    createTags(value.trim());
+                  },
+                },
+              ],
+            }]}     
+            
+    for (const action of actionTag)
+      ztoolkit.UI.appendElement(action, div!.querySelector(".action")!);
+    ztoolkit.UI.appendElement(tagsTag!, div!.querySelector(".content")!);
+    ztoolkit.UI.appendElement(queryTag, div!.querySelector(".query")!);
 
-  createTags();
+    createTags();
+  }
   return div;
 
   function createTags(searchTag: string = "") {
-    ztoolkit.UI.replaceElement(
-      {
+    if(!div)return;
+    const content=div.querySelector(".content")
+    if(!content)return;
+    clearChild(content)
+    ztoolkit.UI.appendElement({
         tag: "div",
         styles: { display: "flex", flexWrap: "wrap" },
         id: idTags,
@@ -633,9 +638,8 @@ async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
               },
             ],
           })),
-      },
-      doc.getElementById(idTags)!,
-    );
+      },content)
+    
   }
 }
 function clearChild(ele: Element | null) {
@@ -651,86 +655,103 @@ function getOneFixedColor() {
 }
 function createActionTag(
   div: HTMLElement | undefined,
-  action: () => void,
+  action: () => void | undefined,
   others: TagElementProps[] = [],
-) {
-  if (!div) return;
-  ztoolkit.log("其它按钮", others);
-
-  const actionDiv: TagElementProps = {
-    tag: "div",
-    styles: { display: "flex" },
-    children: [
-      {
-        tag: "div",
-        properties: { textContent: "关闭" },
-        styles: {
-          padding: "6px",
-          background: "#f99",
-          margin: "1px",
-        },
-        listeners: [
-          {
-            type: "click",
-            listener: (ev: any) => {
-              div.remove();
-            },
+): TagElementProps[] {
+  if (!div) return [];
+  return [
+    {
+      tag:  "button",
+            namespace: "html",
+      properties: { textContent: "关闭" },
+      // styles: {
+      //   padding: "6px",
+      //   background: "#f99",
+      //   margin: "1px",
+      // },
+      listeners: [
+        {
+          type: "click",
+          listener: (ev: any) => {
+            div.remove();
           },
-        ],
-      },
-      {
-        tag: "div",
-        properties: { textContent: "切换颜色" },
-        styles: {
-          padding: "6px",
-          background: "#f99",
-          margin: "1px",
         },
-        listeners: [
-          {
-            type: "click",
-            listener(ev: any) {
-              ztoolkit.log(div, div.style.background);
-              if (!div) return;
-              div.style.background = div.style.background
-                ? ""
-                : getOneFixedColor();
-            },
+      ],
+    },
+    {
+      tag:  "button",
+            namespace: "html",
+      properties: { textContent: "切换颜色" },
+      // styles: {
+      //   padding: "6px",
+      //   background: "#f99",
+      //   margin: "1px",
+      // },
+      listeners: [
+        {
+          type: "click",
+          listener(ev: any) {
+            ztoolkit.log(div, div.style.background);
+            if (!div) return;
+            div.style.background = div.style.background
+              ? ""
+              : getOneFixedColor();
           },
-        ],
-      },
-      {
-        tag: "div",
-        properties: { textContent: "确定生成" },
-        styles: {
-          padding: "6px",
-          background: "#f99",
-          margin: "1px",
         },
-        listeners: [
-          {
-            type: "click",
-            listener: (ev: any) => {
-              action();
+      ],
+    },
+    action
+      ? {
+          tag:  "button",
+            namespace: "html",
+          properties: { textContent: "确定生成" },
+          // styles: {
+          //   padding: "6px",
+          //   background: "#f99",
+          //   margin: "1px",
+          // },
+          listeners: [
+            {
+              type: "click",
+              listener: (ev: any) => {
+                action();
+              },
             },
-          },
-        ],
-      },
-
-      ...others,
-    ],
-  };
-  return actionDiv;
+          ],
+        }
+      : { tag: "span" },
+    ...others,
+  ];
 }
 function createTopDiv(doc?: Document) {
   if (!doc) return;
   doc.getElementById(ID.root + "TopDiv")?.remove();
 
   const children: TagElementProps[] = [
-    { tag: "div", properties: { textContent: "" }, classList: ["action"] },
-    { tag: "div", properties: { textContent: "" }, classList: ["status"] },
-    { tag: "div", properties: { textContent: "" }, classList: ["query"] },
-    { tag: "div", properties: { textContent: "" }, classList: ["content"] },
+    {
+      tag: "div",
+      properties: { textContent: "" },
+      classList: ["action"],
+      styles: { display: "flex" },
+    },
+    {
+      tag: "div",
+      properties: { textContent: "" },
+      classList: ["status"],
+      styles: { display: "flex" },
+    },
+    {
+      tag: "div",
+      properties: { textContent: "" },
+      classList: ["query"],
+      styles: { display: "flex" },
+    },
+    {
+      tag: "div",
+      properties: { textContent: "" },
+      classList: ["content"],
+      styles: { display: "flex" },
+    },
   ];
   const d = ztoolkit.UI.appendElement(
     {
@@ -747,7 +768,7 @@ function createTopDiv(doc?: Document) {
         overflowY: "scroll",
         display: "flex",
         background: getOneFixedColor(),
-        flexWrap: "wrap",
+        // flexWrap: "wrap",
         flexDirection: "column",
       },
       children: children,
