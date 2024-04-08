@@ -33,8 +33,6 @@
   },
   "homepage": "https://github.com/zzlb0224/zotero-annotation-manage#readme",
   "dependencies": {
-    "colorjs.io": "^0.5.0",
-    "save": "^2.9.0",
     "zotero-plugin-toolkit": "^2.3.23"
   },
   "devDependencies": {

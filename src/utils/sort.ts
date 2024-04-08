@@ -1,15 +1,20 @@
 import { groupByResult, memFixedTags } from "./zzlb";
 export function sortTags(
-  fixed: string[],
+  fixed: string[] | undefined,
   a: { key: string },
   b: { key: string },
 ): number;
-export function sortTags(fixed: string[], a: string, b: string): number;
 export function sortTags(
-  fixed: string[],
+  fixed: string[] | undefined,
+  a: string,
+  b: string,
+): number;
+export function sortTags(
+  fixed: string[] | undefined,
   a: string | { key: string },
   b: string | { key: string },
 ) {
+  if (!fixed) return 0;
   if (typeof a === "string" && typeof b === "string") {
     if (fixed.includes(a) && fixed.includes(b)) {
       return fixed.indexOf(a) - fixed.indexOf(b);
@@ -69,7 +74,7 @@ export function sortFixedTags100Modified10Asc(
     sortKey(a, b)
   );
 }
-export function sortTags1000Ann100Modified10Asc(tags: string[]) {
+export function sortTags1000Ann100Modified10Asc(tags: string[] | undefined) {
   return (
     a: { key: string; dateModified: string },
     b: { key: string; dateModified: string },

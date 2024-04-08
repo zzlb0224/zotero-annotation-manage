@@ -210,24 +210,22 @@ export class AnnotationPopup {
     }
     if (getPref("show-relate-tags")) groupByResultIncludeFixedTags(relateTags);
     if (getPref("sort") == "2") {
-      //
+      //2 固定标签 + 修改时间
       relateTags = relateTags
         .map(mapDateModified)
         .sort(sortFixedTags100Modified10Asc);
     } else if (getPref("sort") == "3") {
+      //3 固定标签 + 本条目 + 修改时间
       const itemAnnTags = this.item
-        ? // Zotero.Items.get(this.item.parentItem.getAttachments()).flatMap((f) => f.getAnnotations())
-          this.item
-            .getAnnotations()
-            .flatMap((f) => f.getTags())
-            .map((a) => a.tag)
-            .sort(sortAsc)
-        : [];
-
+        ?.getAnnotations()
+        .flatMap((f) => f.getTags())
+        .map((a) => a.tag)
+        .sort(sortAsc);
       relateTags = relateTags
         .map(mapDateModified)
         .sort(sortTags1000Ann100Modified10Asc(itemAnnTags));
     } else {
+      //1 固定标签 + 出现次数
       relateTags = relateTags
         .map(mapDateModified)
         .sort(sortFixedTags10ValuesLength);
