@@ -120,7 +120,7 @@ async function updatePrefsUI() {
 }
 
 function bindPrefEvents() {
-  if(!addon.data.prefs.window)return 
+  if (!addon.data.prefs.window) return;
   const doc = addon.data.prefs.window.document;
   if (!doc) return;
   doc
