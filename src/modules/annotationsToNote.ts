@@ -425,13 +425,10 @@ async function createSearchAnnDiv(doc: Document, isCollection: boolean) {
         },
       ],
     };
-    const actionTag = createActionTag(
-      div,
-      () => {
-        exportNote({ filter: () => ans, toText: toText1 });
-        div?.remove();
-      } 
-    );
+    const actionTag = createActionTag(div, () => {
+      exportNote({ filter: () => ans, toText: toText1 });
+      div?.remove();
+    });
     for (const action of actionTag) {
       ztoolkit.UI.appendElement(action, div.querySelector(".action")!);
     }
@@ -544,7 +541,7 @@ async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
     ],
   };
   const div = createTopDiv(doc);
-  if(div){
+  if (div) {
     const actionTag = createActionTag(
       div,
       () => {
@@ -553,45 +550,52 @@ async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
           div?.remove();
         }
       },
-      [ 
-      {
-        tag: "button",
-              namespace: "html",
-              properties: { textContent: "-点击隐藏可选标签" },
-              styles: { background: "#fff", padding: "6px" },
-              listeners: [
-                {
-                  type: "click",
-                  listener: (ev: Event) => {
-                    const t = toggleProperty(
-                      document.getElementById(idTags)?.style,
-                      "display",
-                      ["none", "flex"],
-                    );
-                    setProperty(
-                      ev.target as HTMLButtonElement,
-                      "textContent",
-                      t == "none" ? "+点击展开可选标签" : "-点击隐藏可选标签",
-                    );
-                  },
-                },
-              ],
-          }],
+      [
+        {
+          tag: "button",
+          namespace: "html",
+          properties: { textContent: "-点击隐藏可选标签" },
+          styles: { background: "#fff", padding: "6px" },
+          listeners: [
+            {
+              type: "click",
+              listener: (ev: Event) => {
+                const t = toggleProperty(
+                  document.getElementById(idTags)?.style,
+                  "display",
+                  ["none", "flex"],
+                );
+                setProperty(
+                  ev.target as HTMLButtonElement,
+                  "textContent",
+                  t == "none" ? "+点击展开可选标签" : "-点击隐藏可选标签",
+                );
+              },
+            },
+          ],
+        },
+      ],
     );
-    const queryTag=    {tag:"div",properties: { textContent: "tag" },children:[{
-              tag: "input",
-              namespace: "html",
-              listeners: [
-                {
-                  type: "keyup",
-                  listener: (ev: Event) => {
-                    const value = (ev.target as HTMLInputElement).value;
-                    createTags(value.trim());
-                  },
-                },
-              ],
-            }]}     
-            
+    const queryTag = {
+      tag: "div",
+      properties: { textContent: "tag" },
+      children: [
+        {
+          tag: "input",
+          namespace: "html",
+          listeners: [
+            {
+              type: "keyup",
+              listener: (ev: Event) => {
+                const value = (ev.target as HTMLInputElement).value;
+                createTags(value.trim());
+              },
+            },
+          ],
+        },
+      ],
+    };
+
     for (const action of actionTag)
       ztoolkit.UI.appendElement(action, div!.querySelector(".action")!);
     ztoolkit.UI.appendElement(tagsTag!, div!.querySelector(".content")!);
@@ -602,11 +606,12 @@ async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
   return div;
 
   function createTags(searchTag: string = "") {
-    if(!div)return;
-    const content=div.querySelector(".content")
-    if(!content)return;
-    clearChild(content)
-    ztoolkit.UI.appendElement({
+    if (!div) return;
+    const content = div.querySelector(".content");
+    if (!content) return;
+    clearChild(content);
+    ztoolkit.UI.appendElement(
+      {
         tag: "div",
         styles: { display: "flex", flexWrap: "wrap" },
         id: idTags,
@@ -638,8 +643,9 @@ async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
               },
             ],
           })),
-      },content)
-    
+      },
+      content,
+    );
   }
 }
 function clearChild(ele: Element | null) {
@@ -661,8 +667,8 @@ function createActionTag(
   if (!div) return [];
   return [
     {
-      tag:  "button",
-            namespace: "html",
+      tag: "button",
+      namespace: "html",
       properties: { textContent: "关闭" },
       // styles: {
       //   padding: "6px",
@@ -679,8 +685,8 @@ function createActionTag(
       ],
     },
     {
-      tag:  "button",
-            namespace: "html",
+      tag: "button",
+      namespace: "html",
       properties: { textContent: "切换颜色" },
       // styles: {
       //   padding: "6px",
@@ -702,8 +708,8 @@ function createActionTag(
     },
     action
       ? {
-          tag:  "button",
-            namespace: "html",
+          tag: "button",
+          namespace: "html",
           properties: { textContent: "确定生成" },
           // styles: {
           //   padding: "6px",
