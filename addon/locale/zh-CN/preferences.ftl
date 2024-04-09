@@ -49,7 +49,11 @@ pref-split-nested-tags-keep-second =
     .label =  拆分Nested Tags，并保留第二个。 “#理论/TPB” 将保留 “TPB”
 pref-split-nested-tags-keep-all = 
     .label =  拆分Nested Tags，并保留全部。   “#理论/TPB” 将保留 “理论” “TPB”
-
+pref-functions = 功能开关
+pref-hide-in-collection-menu = 
+    .label= 在目录菜单中不加载插件
+pref-hide-in-item-menu = 
+    .label= 在条目菜单中不加载插件
 
 pref-hide-in-selection-popup = 
     .label = 在选中文本弹出窗口中不加载插件

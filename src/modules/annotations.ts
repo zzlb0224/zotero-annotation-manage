@@ -28,14 +28,20 @@ function register() {
   // if (!getPref("enable")) return;
   // ztoolkit.UI.basicOptions.log.disableZLog = true;
   ztoolkit.log("Annotations register");
-  Zotero.Reader.registerEventListener(
-    "renderTextSelectionPopup",
-    renderTextSelectionPopup,
-  );
-  Zotero.Reader.registerEventListener(
-    "createAnnotationContextMenu",
-    createAnnotationContextMenu,
-  );
+
+  if (!getPref("hide-in-selection-popup")) {
+    Zotero.Reader.registerEventListener(
+      "renderTextSelectionPopup",
+      renderTextSelectionPopup,
+    );
+  }
+
+  if (!getPref("hide-in-annotation-context-menu")) {
+    Zotero.Reader.registerEventListener(
+      "createAnnotationContextMenu",
+      createAnnotationContextMenu,
+    );
+  }
 }
 function unregister() {
   ztoolkit.log("Annotations unregister");
@@ -888,9 +894,6 @@ export class AnnotationPopup {
 function renderTextSelectionPopup(
   event: _ZoteroTypes.Reader.EventParams<"renderTextSelectionPopup">,
 ) {
-  if (getPref("hide-in-selection-popup")) {
-    return;
-  }
   const { append, reader, doc, params } = event;
   const div = new AnnotationPopup(reader, params).rootDiv;
   // const div = createDiv(reader, params);
@@ -901,9 +904,6 @@ function renderTextSelectionPopup(
 function createAnnotationContextMenu(
   event: _ZoteroTypes.Reader.EventParams<"createAnnotationContextMenu">,
 ) {
-  if (getPref("hide-in-annotation-context-menu")) {
-    return;
-  }
   const { reader, params, append } = event;
   const doc = reader._iframeWindow?.document;
   if (!doc) return;

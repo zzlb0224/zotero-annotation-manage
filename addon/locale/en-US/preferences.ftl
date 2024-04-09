@@ -45,7 +45,9 @@ pref-split-nested-tags-keep-second =
     .label =  split nested tags and keep the second tag
 pref-split-nested-tags-keep-all = 
     .label =   split nested tags and keep all tags
-
+pref-functions = functions
+pref-hide-in-collection-menu = hide-in-collection-menu 
+pref-hide-in-item-menu = hide-in-item-menu
 pref-hide-in-selection-popup = 
     .label = hide in selection popup
 pref-hide-in-annotation-context-menu = 

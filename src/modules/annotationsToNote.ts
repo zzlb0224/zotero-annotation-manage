@@ -23,6 +23,7 @@ import {
   uniqueBy,
 } from "../utils/zzlb";
 import { listeners } from "process";
+import { getPref } from "../utils/prefs";
 let popupWin: ProgressWindowHelper | undefined = undefined;
 let popupTime = -1;
 
@@ -240,8 +241,9 @@ function register() {
   // 应该用 getVisibility 来控制菜单的隐藏和显示
 
   //组合到一起的菜单能节省空间，因此使用children
-  ztoolkit.Menu.register("item", itemMenu);
-  ztoolkit.Menu.register("collection", collectionItem);
+  if (!getPref("hide-in-item-menu")) ztoolkit.Menu.register("item", itemMenu);
+  if (!getPref("hide-in-collection-menu"))
+    ztoolkit.Menu.register("collection", collectionItem);
 }
 
 function unregister() {
