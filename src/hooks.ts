@@ -216,4 +216,5 @@ export default {
   // onReaderPopupShow,
   // onReaderPopupRefresh,
   // onReaderTabPanelRefresh,
+  onDialogEvents
 };

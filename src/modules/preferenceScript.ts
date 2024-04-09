@@ -120,7 +120,8 @@ async function updatePrefsUI() {
 }
 
 function bindPrefEvents() {
-  const doc = addon.data.prefs!.window.document;
+  if(!addon.data.prefs.window)return 
+  const doc = addon.data.prefs.window.document;
   if (!doc) return;
   doc
     .querySelector(`#zotero-prefpane-${config.addonRef}-enable`)
