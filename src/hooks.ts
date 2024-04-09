@@ -1,21 +1,15 @@
-import {
-  BasicExampleFactory,
-  HelperExampleFactory,
-  KeyExampleFactory,
-  PromptExampleFactory,
-  UIExampleFactory,
-} from "./modules/examples";
+import { BasicExampleFactory } from "./modules/examples";
 import { config } from "../package.json";
-import { getString, initLocale } from "./utils/locale";
+import { initLocale } from "./utils/locale";
 import {
-  registerPrefsScripts,
+  // registerPrefsScripts,
   initPrefSettings,
+  registerPrefsScripts,
+  registerPrefsWindow,
 } from "./modules/preferenceScript";
 import { createZToolkit } from "./utils/ztoolkit";
 import Annotations from "./modules/annotations";
 import AnnotationsToNote, { createPopMenu } from "./modules/annotationsToNote";
-import { setPref } from "./utils/prefs";
-import { isDebug } from "./utils/zzlb";
 
 async function onStartup() {
   await Promise.all([
@@ -96,6 +90,7 @@ async function onMainWindowLoad(win: Window): Promise<void> {
   // popupWin.startCloseTimer(5000);
 
   // addon.hooks.onDialogEvents("dialogExample");
+  registerPrefsWindow();
   Annotations.register();
   AnnotationsToNote.register();
 }
@@ -144,14 +139,17 @@ async function onNotify(
  * @param type event type
  * @param data event data
  */
-async function onPrefsEvent(type: string, data: { [key: string]: any }) {
-  switch (type) {
-    case "load":
-      registerPrefsScripts(data.window);
-      break;
-    default:
-      return;
-  }
+// async function onPrefsEvent(type: string, data: { [key: string]: any }) {
+//   switch (type) {
+//     case "load":
+//       registerPrefsScripts(data.window);
+//       break;
+//     default:
+//       return;
+//   }
+// }
+function onPrefsLoad(event: Event) {
+  registerPrefsScripts((event.target as any).ownerGlobal);
 }
 
 function onShortcuts(type: string) {
@@ -207,12 +205,15 @@ function onDialogEvents(type: string) {
 
 export default {
   onStartup,
-  onShutdown,
   onMainWindowLoad,
   onMainWindowUnload,
+  onShutdown,
   onNotify,
-  onPrefsEvent,
+  onPrefsLoad,
   onShortcuts,
-  onDialogEvents,
-  onMenuEvent,
+  // onTranslate,
+  // onTranslateInBatch,
+  // onReaderPopupShow,
+  // onReaderPopupRefresh,
+  // onReaderTabPanelRefresh,
 };

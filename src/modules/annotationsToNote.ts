@@ -922,22 +922,28 @@ function getAllAnnotations(items: Zotero.Item[]) {
   return data;
 }
 async function convertHtml(arr: AnnotationRes[], targetNoteItem: Zotero.Item) {
-  const annotations = arr.map((a) => a.ann);
-  for (const annotation of annotations) {
-    if (
-      annotation.annotationType === "image" &&
-      !(await Zotero.Annotations.hasCacheImage(annotation))
-    ) {
-      try {
-        await Zotero.PDFRenderer.renderAttachmentAnnotations(
-          annotation.parentID,
-        );
-      } catch (e) {
-        Zotero.debug(e);
-        throw e;
+  try {
+    // const annotations = arr.map((a) => a.ann);
+    for (const a of arr) {
+      const annotation = a.ann;
+      if (
+        annotation.annotationType === "image" &&
+        !(await Zotero.Annotations.hasCacheImage(annotation))
+      ) {
+        try {
+          //呈现缓存图片
+          // await Zotero.PDFRenderer.renderAttachmentAnnotations(
+          //   annotation.parentID,
+          // );
+        } catch (e) {
+          Zotero.debug(e);
+          throw e;
+        }
+        break;
       }
-      break;
     }
+  } catch (error) {
+    ztoolkit.log("发生错误", error);
   }
 
   const data = arr.map(async (ann) => {
@@ -953,7 +959,7 @@ async function convertHtml(arr: AnnotationRes[], targetNoteItem: Zotero.Item) {
         .replace(/<\/p>$/, getColorTags(ann.tags.map((c) => c.tag)) + "</p>")
         .replace(/<p>[\s\r\n]*<\/p>/g, "");
     else {
-      ann.html = getCiteAnnotationHtml(ann.ann, "转到页面更新缓存再试");
+      ann.html = getCiteAnnotationHtml(ann.ann, "点击此处，选择“在页面显示”");
     }
     return ann;
   });
@@ -969,7 +975,7 @@ async function convertHtml(arr: AnnotationRes[], targetNoteItem: Zotero.Item) {
   return list;
 }
 function createPopupWin({
-  closeTime = 3000,
+  closeTime = 5000,
   header = "整理笔记",
   lines: defaultLines = [],
 }: { closeTime?: number; header?: string; lines?: string[] } = {}) {
@@ -1048,10 +1054,10 @@ async function exportNote({
     annotations.map((a) => a.item),
     (a) => a.key,
   );
-  if (usedItems.length <= 10)
-    for (const item of usedItems) {
-      note.addRelatedItem(item);
-    }
+  // if (usedItems.length <= 10)
+  for (const item of usedItems) {
+    note.addRelatedItem(item);
+  }
   note.addTag(`${config.addonRef}:引用Item${usedItems.length}个`);
 
   await saveNote(note, `${txt}`);

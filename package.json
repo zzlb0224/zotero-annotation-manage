@@ -33,7 +33,7 @@
   },
   "homepage": "https://github.com/zzlb0224/zotero-annotation-manage#readme",
   "dependencies": {
-    "zotero-plugin-toolkit": "^2.3.23"
+    "zotero-plugin-toolkit": "^2.3.25"
   },
   "devDependencies": {
     "@types/node": "^20.11.25",

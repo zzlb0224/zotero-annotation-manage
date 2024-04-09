@@ -1,5 +1,4 @@
-import { getRandomValues } from "crypto";
-import { config } from "../../package.json";
+import { config, homepage } from "../../package.json";
 import { getString } from "../utils/locale";
 import { getPref, setPref } from "../utils/prefs";
 import { sortModified } from "../utils/sort";
@@ -15,45 +14,23 @@ import {
   memRelateTags,
 } from "../utils/zzlb";
 import { AnnotationPopup } from "./annotations";
-import { getColorBrightness, getNewColor } from "../utils/color";
-import { getRandomColor } from "../utils/color";
+import { getNewColor } from "../utils/color";
+
+export function registerPrefsWindow() {
+  Zotero.PreferencePanes.register({
+    pluginID: config.addonID,
+    src: rootURI + "chrome/content/preferences.xhtml",
+    label: getString("pref-title"),
+    image: `chrome://${config.addonRef}/content/icons/favicon.png`,
+    helpURL: homepage,
+  });
+}
 
 export async function registerPrefsScripts(_window: Window) {
   // This function is called when the prefs window is opened
-  // See addon/chrome/content/preferences.xul onpaneload
-  if (!addon.data.prefs) {
-    addon.data.prefs = {
-      window: _window,
-      columns: [
-        {
-          dataKey: "title",
-          label: getString("prefs-table-title"),
-          fixedWidth: true,
-          width: 100,
-        },
-        {
-          dataKey: "detail",
-          label: getString("prefs-table-detail"),
-        },
-      ],
-      rows: [
-        {
-          title: "Orange",
-          detail: "It's juicy",
-        },
-        {
-          title: "Banana",
-          detail: "It's sweet",
-        },
-        {
-          title: "Apple",
-          detail: "I mean the fruit APPLE",
-        },
-      ],
-    };
-  } else {
-    addon.data.prefs.window = _window;
-  }
+
+  addon.data.prefs.window = _window;
+
   updatePrefsUI();
   bindPrefEvents();
 }
@@ -291,6 +268,7 @@ async function replaceTagsPreviewDiv(doc?: Document) {
     const selected = ZoteroPane.getSelectedItems()?.[0];
     if (selected) {
       const item = selected.parentItem ? selected.parentItem : selected;
+      ztoolkit.log(item);
       ann = Zotero.Items.get(item.getAttachments(false))
         .filter((f) => f.isPDFAttachment())
         .flatMap((f) => f.getAnnotations())

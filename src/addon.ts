@@ -13,10 +13,8 @@ class Addon {
     locale?: {
       current: any;
     };
-    prefs?: {
-      window: Window;
-      columns: Array<ColumnOptions>;
-      rows: Array<{ [dataKey: string]: string }>;
+    prefs: {
+      window: Window | null;
     };
     dialog?: DialogHelper;
     // annotations?: Annotations;
@@ -30,6 +28,7 @@ class Addon {
     this.data = {
       alive: true,
       env: __env__,
+      prefs: { window: null },
       ztoolkit: createZToolkit(),
     };
     this.hooks = hooks;
