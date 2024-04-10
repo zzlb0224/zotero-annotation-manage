@@ -376,3 +376,15 @@ export async function initPrefSettings() {
     setPref("fixed-colors", FixedColorDefault);
   }
 }
+//一个框编辑两个字段，实现对应关系
+function strToFixedTagColor(str: string = "") {
+  if (!str) {
+    str =
+      "目的  #ffd400,假设, #ff6666,框架, #5fb236,数据, #2ea8e5,量表, #a28ae5,方法, #e56eee,理论, #f19837,结论, #aaaaaa,贡献, #ba898e,不足, #ee8574,背景, #6a99e7,现状, #e65fa1,问题, #62e0ef,对策, #f7e8b2,亮点, #ea6834,语言, #eab0c6";
+  }
+  return str
+    .match(/[\s,;]*(.*?)[\s,;]*(#[0-9a-fA-F]{6})/g)
+    ?.map((a) => a.match(/[\s,;]*(.*?)[\s,;]*(#[0-9a-fA-F]{6})/))
+    .map((a) => ({ tag: a?.[1], color: a?.[2] }));
+}
+strToFixedTagColor();
