@@ -27,7 +27,7 @@ import { mapDateModified } from "../utils/sort";
 function register() {
   // if (!getPref("enable")) return;
   // ztoolkit.UI.basicOptions.log.disableZLog = true;
-  ztoolkit.log("Annotations register");
+  // ztoolkit.log("Annotations register");
 
   if (!getPref("hide-in-selection-popup")) {
     Zotero.Reader.registerEventListener(

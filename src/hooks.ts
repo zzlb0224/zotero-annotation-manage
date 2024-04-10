@@ -93,6 +93,19 @@ async function onMainWindowLoad(win: Window): Promise<void> {
   registerPrefsWindow();
   Annotations.register();
   AnnotationsToNote.register();
+  // window.addEventListener("error", function (event) {
+  //   ztoolkit.log(
+  //     event.error,
+  //     event.message,
+  //     event.filename,
+  //     event.lineno,
+  //     event.colno,
+  //     event,
+  //   );
+  // });
+  // window.addEventListener("unhandledrejection", (event) => {
+  //   ztoolkit.log(event.reason, event);
+  // });
 }
 
 async function onMainWindowUnload(win: Window): Promise<void> {

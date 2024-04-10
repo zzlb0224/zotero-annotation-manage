@@ -24,6 +24,7 @@ export function registerPrefsWindow() {
     image: `chrome://${config.addonRef}/content/icons/favicon.png`,
     helpURL: homepage,
   });
+  ztoolkit.log("2222222222");
 }
 
 export async function registerPrefsScripts(_window: Window) {
