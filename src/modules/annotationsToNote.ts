@@ -22,7 +22,6 @@ import {
   toggleProperty,
   uniqueBy,
 } from "../utils/zzlb";
-import { listeners } from "process";
 import { getPref } from "../utils/prefs";
 let popupWin: ProgressWindowHelper | undefined = undefined;
 let popupTime = -1;
@@ -313,6 +312,7 @@ export async function createPopMenu(
             {
               type: "command",
               listener: (event: any) => {
+                stopPropagation(event);
                 exportSingleNote(tag.key, isc);
               },
             },
@@ -369,6 +369,7 @@ async function createSearchAnnDiv(doc: Document, isCollection: boolean) {
                 {
                   type: "keyup",
                   listener: (ev: any) => {
+                    stopPropagation(ev);
                     text = (ev.target as HTMLInputElement).value;
                     createResultDiv();
                   },
@@ -390,6 +391,7 @@ async function createSearchAnnDiv(doc: Document, isCollection: boolean) {
                 {
                   type: "keyup",
                   listener: (ev: Event) => {
+                    stopPropagation(ev);
                     tag = (ev.target as HTMLInputElement).value.trim();
                     createResultDiv();
                   },
@@ -415,6 +417,7 @@ async function createSearchAnnDiv(doc: Document, isCollection: boolean) {
                 {
                   type: "change",
                   listener: (ev: Event) => {
+                    stopPropagation(ev);
                     showN =
                       parseInt((ev.target as HTMLInputElement).value.trim()) ||
                       10;
@@ -479,6 +482,7 @@ async function createSearchAnnDiv(doc: Document, isCollection: boolean) {
               {
                 type: "click",
                 listener(ev: any) {
+                  stopPropagation(ev);
                   // ztoolkit.log("点击",ev)
                   Zotero.OpenPDF.openToPage(a.pdf, a.page, a.ann.key);
                 },
@@ -517,7 +521,15 @@ function createChild(doc: Document, items: Zotero.Item[]) {
     doc.querySelector("body")!,
   );
 }
-
+function stopPropagation(e: Event) {
+  const win = (e.target as any).ownerGlobal;
+  e = e || win?.event || window.event;
+  if (e.stopPropagation) {
+    e.stopPropagation(); //W3C阻止冒泡方法
+  } else {
+    e.cancelBubble = true; //IE阻止冒泡方法
+  }
+}
 async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
   const selectedTags: string[] = [];
   const idTags = ID.result;
@@ -550,6 +562,11 @@ async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
         if (selectedTags.length > 0) {
           exportTagsNote(selectedTags, items);
           div?.remove();
+        } else {
+          exportTagsNote(
+            tags.map((a) => a.key),
+            items,
+          );
         }
       },
       [
@@ -562,6 +579,7 @@ async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
             {
               type: "click",
               listener: (ev: Event) => {
+                stopPropagation(ev);
                 const t = toggleProperty(
                   document.getElementById(idTags)?.style,
                   "display",
@@ -589,6 +607,7 @@ async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
             {
               type: "keyup",
               listener: (ev: Event) => {
+                stopPropagation(ev);
                 const value = (ev.target as HTMLInputElement).value;
                 createTags(value.trim());
               },
@@ -632,6 +651,7 @@ async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
               {
                 type: "click",
                 listener: (ev: Event) => {
+                  stopPropagation(ev);
                   const target = ev.target as HTMLDivElement;
                   const index = selectedTags.findIndex((f) => f == t.key);
                   if (index == -1) {
@@ -681,6 +701,7 @@ function createActionTag(
         {
           type: "click",
           listener: (ev: any) => {
+            stopPropagation(ev);
             div.remove();
           },
         },
@@ -699,6 +720,7 @@ function createActionTag(
         {
           type: "click",
           listener(ev: any) {
+            stopPropagation(ev);
             ztoolkit.log(div, div.style.background);
             if (!div) return;
             div.style.background = div.style.background
@@ -722,6 +744,7 @@ function createActionTag(
             {
               type: "click",
               listener: (ev: any) => {
+                stopPropagation(ev);
                 action();
               },
             },
@@ -783,21 +806,25 @@ function createTopDiv(doc?: Document) {
       listeners: [
         {
           type: "mousedown",
-          listener(e: any) {
-            const x = e.clientX - d.offsetLeft;
-            const y = e.clientY - d.offsetTop;
+          listener(ev: any) {
+            //  if(ev) return;
+            stopPropagation(ev);
+            const x = ev.clientX - d.offsetLeft;
+            const y = ev.clientY - d.offsetTop;
             doc.onmousemove = (e) => {
+              stopPropagation(e);
               d.style.left = e.clientX - x + "px";
               d.style.top = e.clientY - y + "px";
             };
             doc.onmouseup = (e) => {
+              stopPropagation(e);
               doc.onmousemove = doc.onmouseup = null;
             };
           },
         },
       ],
     },
-    doc.querySelector("body,div")!,
+    doc.querySelector("#browser")!,
   ) as HTMLDivElement;
   return d;
 }
@@ -1062,7 +1089,7 @@ async function exportNote({
   }
   note.addTag(`${config.addonRef}:引用Item${usedItems.length}个`);
 
-  await saveNote(note, `${txt}`);
+  await saveNote(note, `${title}${txt}`);
 }
 
 async function getSelectedItems(isCollection: boolean) {
