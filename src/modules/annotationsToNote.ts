@@ -345,7 +345,7 @@ function getParentAttr(ele: Element | null, name = "id") {
 async function createSearchAnnDiv(doc: Document, isCollection: boolean) {
   let text = "";
   let tag = "";
-  let showN = 10;
+  let showN = 20;
   const items = await getSelectedItems(isCollection);
   const annotations = getAllAnnotations(items);
   let ans: AnnotationRes[] = annotations;
@@ -464,9 +464,12 @@ async function createSearchAnnDiv(doc: Document, isCollection: boolean) {
             // textContent: `总${annotations.length}条笔记，筛选出了${ans.length}条。预览前${showN}条。`,
           },
           styles: {
-            display: "flex",
-            flexWrap: "wrap",
-            justifyContent: "flex-start",
+            // display: "flex",
+            // flexWrap: "wrap",
+            // justifyContent: "flex-start",
+            columnCount: "4",
+            columnGap: "10px ",
+            width: "100%",
           },
           children: (showN > 0 ? ans.slice(0, showN) : ans).map((a) => ({
             tag: "div",
@@ -481,11 +484,17 @@ async function createSearchAnnDiv(doc: Document, isCollection: boolean) {
                 " ",
             },
             styles: {
-              flex: "0 0 calc( 20% - 4px)",
-              maxWidth: "calc( 20% - 4px)",
-              border: "1px solid black",
-              boxSizing: "border-box",
-              margin: "2px",
+              // flex: "0 0 calc( 20% - 4px)",
+              // maxWidth: "calc( 20% - 4px)",
+              // border: "1px solid black",
+              // boxSizing: "border-box",
+              // margin: "2px",
+
+              display: "inline-block",
+              marginBottom: "2px",
+              width: "100%",
+              breakInside: "avoid",
+
               background: getOneFixedColor(),
             },
             listeners: [
