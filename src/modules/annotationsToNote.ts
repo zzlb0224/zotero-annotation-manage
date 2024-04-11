@@ -454,13 +454,18 @@ async function createSearchAnnDiv(doc: Document, isCollection: boolean) {
 
     if (div) {
       clearChild(div.querySelector(".content"));
+     div.querySelector(".status")!.innerHTML =`总${annotations.length}条笔记，筛选出了${ans.length}条。预览前${showN}条。`
       ztoolkit.UI.appendElement(
         {
           tag: "div",
           namespace: "html",
           properties: {
-            textContent: `总${annotations.length}条笔记，筛选出了${ans.length}条。预览前${showN}条。`,
+           // textContent: `总${annotations.length}条笔记，筛选出了${ans.length}条。预览前${showN}条。`,
           },
+          styles: { display: "flex",
+    flexWrap: "wrap",
+    justifyContent: "flex-start"
+  },
           children: (showN > 0 ? ans.slice(0, showN) : ans).map((a) => ({
             tag: "div",
             namespace: "html",
@@ -474,7 +479,10 @@ async function createSearchAnnDiv(doc: Document, isCollection: boolean) {
                 " ",
             },
             styles: {
+              flex: "0 0 calc( 20% - 4px)",
+              maxWidth: "calc( 20% - 4px)",
               border: "1px solid black",
+              boxSizing: "border-box",
               margin: "2px",
               background: getOneFixedColor(),
             },
