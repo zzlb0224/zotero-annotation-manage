@@ -33,15 +33,15 @@ export function memoize2<TFunc extends (this: any, ...newArgs: any[]) => any>(
       cacheObj[cacheKey] == undefined ||
       Date.now() - cacheTime[cacheKey] > timeout
     ) {
-      ztoolkit.log("建立缓存cache2", {
-        cacheKey,
-        this: cacheThis[cacheKey],
-        obj: cacheObj[cacheKey],
-        start: cacheTime[cacheKey],
-        time2: Date.now() - cacheTime[cacheKey],
-        timeout,
-        thisEq: cacheThis[cacheKey] == this,
-      });
+      // ztoolkit.log("建立缓存cache2", {
+      //   cacheKey,
+      //   this: cacheThis[cacheKey],
+      //   obj: cacheObj[cacheKey],
+      //   start: cacheTime[cacheKey],
+      //   time2: Date.now() - cacheTime[cacheKey],
+      //   timeout,
+      //   thisEq: cacheThis[cacheKey] == this,
+      // });
       cacheTime[cacheKey] = Date.now();
       cacheThis[cacheKey] = this;
       if (resultFn.constructor.name == "AsyncFunction") {

@@ -9,12 +9,14 @@ import {
   getChildCollections,
   memFixedColor,
   memFixedColors,
+  memFixedTagColors,
   memFixedTags,
   memOptionalColor,
   memRelateTags,
 } from "../utils/zzlb";
 import { AnnotationPopup } from "./annotations";
-import { getNewColor } from "../utils/color";
+import { getNewColor, getRandomColor } from "../utils/color";
+import memoize2 from "../utils/memoize2";
 
 export function registerPrefsWindow() {
   Zotero.PreferencePanes.register({
@@ -124,12 +126,181 @@ function bindPrefEvents() {
   if (!addon.data.prefs.window) return;
   const doc = addon.data.prefs.window.document;
   if (!doc) return;
+
+  function t2Preview() {
+    eFixedTagsColorPreview.innerHTML = "";
+    // for(const c of eFixedTagsColorPreview.children){
+    //   c.remove();
+    // }
+    s.allStr.forEach((currStr, index) => {
+      // const currStr = s.allStr[s.selectIndex-1];
+      const currMa = currStr.match(/[\s,;]*(.*?)[\s,;]*(#[0-9a-fA-F]{6})/);
+      const currTag = currMa ? currMa?.[1] : currStr;
+      const currColor = currMa ? currMa?.[2] : "";
+      ztoolkit.UI.appendElement(
+        {
+          tag: "span",
+          properties: { textContent: index + 1 + ":" + currTag },
+          styles: {
+            background: currColor,
+            fontSize: s.selectIndex - 1 == index ? "2em" : "1em",
+            padding: "5px 1px",
+            margin: "5px 1px",
+            borderRadius: "5px",
+          },
+          listeners: [
+            {
+              type: "click",
+              listener: (e) => {
+                s.selectIndex = index + 1;
+                tPreview();
+              },
+            },
+          ],
+        },
+        eFixedTagsColorPreview,
+      );
+    });
+  }
+  function tPreview() {
+    // ztoolkit.log("tPreview", s);
+    const currStr = s.allStr[s.selectIndex - 1] || "";
+    const currMa = currStr.match(/[\s,;]*(.*?)[\s,;]*(#[0-9a-fA-F]{6})/);
+    const currTag = currMa ? currMa?.[1] : currStr;
+    const currColor = currMa ? currMa?.[2] : "";
+    eFixedTagsColor.textContent = s.selectIndex + ":" + currStr;
+    eFixedTagsColor.style.background = currColor;
+    t2Preview();
+  }
+
+  function getS() {
+    const selectionStart = eFixedTagsColors.selectionStart || 0;
+    const ftcStr =
+      eFixedTagsColors.value || (getPref("fixed-tags-colors") as string) || "";
+    const allStr =
+      ftcStr.match(/(.*?)(#[0-9a-fA-F]{6})/g)?.map((a) => a + "") || [];
+    let selectIndex = -1;
+    let maStart = 0;
+    let maEnd = 0;
+    if (allStr.length == 0) {
+      selectIndex = 0;
+      maStart = 0;
+      maEnd = ftcStr.length;
+      allStr.push(ftcStr);
+    } else {
+      for (let index = 0; index < allStr.length; index++) {
+        maEnd += allStr[index].length;
+        if (selectionStart <= maEnd) {
+          selectIndex = index + 1;
+          break;
+        }
+        maStart = maEnd;
+      }
+      if (selectIndex < 0) {
+        selectIndex = allStr.length + 1;
+        maStart = maEnd;
+        maEnd = ftcStr.length;
+        allStr.push(ftcStr.substring(maStart, ftcStr.length));
+      }
+    }
+    return {
+      ftcStr,
+      selectionStart,
+      selectIndex,
+      maStart,
+      maEnd,
+      allStr,
+      setPref: () => {
+        setPref("fixed-tags-colors", allStr.join(""));
+        memFixedTagColors.remove();
+        tPreview();
+      },
+    };
+  }
+
   doc
     .querySelector(`#zotero-prefpane-${config.addonRef}-enable`)
     ?.addEventListener("command", (e) => {
       // ztoolkit.log(e, getPref("tags"));
     });
+  const eFixedTagsColors = doc.querySelector(
+    `#zotero-prefpane-${config.addonRef}-fixed-tags-colors`,
+  ) as HTMLTextAreaElement;
+  const eFixedTagsColor = doc.querySelector(
+    `#zotero-prefpane-${config.addonRef}-fixed-tags-color`,
+  ) as HTMLSpanElement;
+  const eFixedTagsColorPreview = doc.querySelector(
+    `#zotero-prefpane-${config.addonRef}-fixed-tags-color-preview`,
+  ) as HTMLSpanElement;
+  let s = getS();
+  setTimeout(() => tPreview(), 1200);
 
+  ztoolkit.log("bindPrefEvents", eFixedTagsColors, memFixedTagColors());
+  if (eFixedTagsColors) {
+    eFixedTagsColors?.addEventListener("keyup", (e) => {
+      memFixedTagColors.remove();
+      s = getS();
+      tPreview();
+    });
+    eFixedTagsColors.addEventListener("click", (e) => {
+      ztoolkit.log(e, eFixedTagsColors.selectionStart);
+      s = getS();
+      tPreview();
+    });
+    doc
+      .querySelector(
+        `#zotero-prefpane-${config.addonRef}-fixed-tags-color-left`,
+      )
+      ?.addEventListener("click", (e) => {
+        if (s.selectIndex > 1) {
+          const o = [s.allStr[s.selectIndex - 1], s.allStr[s.selectIndex - 2]];
+          s.allStr.splice(s.selectIndex - 2, 2, ...o);
+          s.selectIndex -= 1;
+          s.setPref();
+        }
+        ztoolkit.log(s);
+      });
+    doc
+      .querySelector(
+        `#zotero-prefpane-${config.addonRef}-fixed-tags-color-right`,
+      )
+      ?.addEventListener("click", (e) => {
+        if (s.selectIndex < s.allStr.length) {
+          const o = [s.allStr[s.selectIndex], s.allStr[s.selectIndex - 1]];
+          s.allStr.splice(s.selectIndex - 1, 2, ...o);
+          s.selectIndex += 1;
+          s.setPref();
+        }
+      });
+
+    doc
+      .querySelector(
+        `#zotero-prefpane-${config.addonRef}-fixed-tags-color-remove`,
+      )
+      ?.addEventListener("click", (e) => {
+        if (s.selectIndex > 0) {
+          s.allStr.splice(s.selectIndex - 1, 1);
+          if (s.selectIndex > s.allStr.length) {
+            s.selectIndex -= 1;
+          }
+          s.setPref();
+        }
+      });
+    doc
+      .querySelector(
+        `#zotero-prefpane-${config.addonRef}-fixed-tags-color-color`,
+      )
+      ?.addEventListener("click", (e) => {
+        if (s) {
+          const o = s.allStr[s.selectIndex - 1];
+          const ma = o.match(/^(.*?)(#[0-9a-fA-F]{6})?$/);
+          const tag = ma ? ma[1] : o;
+          const color = getRandomColor();
+          s.allStr.splice(s.selectIndex - 1, 1, tag + color);
+          s.setPref();
+        }
+      });
+  }
   doc
     .querySelector(`#zotero-prefpane-${config.addonRef}-remove-color`)
     ?.addEventListener("command", (e) => {
@@ -201,6 +372,7 @@ function bindPrefEvents() {
       replaceColorTagsElement(doc);
       replaceTagsPreviewDiv(doc);
     });
+
   doc
     .querySelector(`#zotero-prefpane-${config.addonRef}-sort`)
     ?.addEventListener("command", (e) => {
@@ -257,6 +429,7 @@ function bindPrefEvents() {
       memRelateTags.remove();
     });
 }
+
 async function replaceTagsPreviewDiv(doc?: Document) {
   if (!doc) return;
   const preview = doc.querySelector(
@@ -376,15 +549,3 @@ export async function initPrefSettings() {
     setPref("fixed-colors", FixedColorDefault);
   }
 }
-//一个框编辑两个字段，实现对应关系
-function strToFixedTagColor(str: string = "") {
-  if (!str) {
-    str =
-      "目的  #ffd400,假设, #ff6666,框架, #5fb236,数据, #2ea8e5,量表, #a28ae5,方法, #e56eee,理论, #f19837,结论, #aaaaaa,贡献, #ba898e,不足, #ee8574,背景, #6a99e7,现状, #e65fa1,问题, #62e0ef,对策, #f7e8b2,亮点, #ea6834,语言, #eab0c6";
-  }
-  return str
-    .match(/[\s,;]*(.*?)[\s,;]*(#[0-9a-fA-F]{6})/g)
-    ?.map((a) => a.match(/[\s,;]*(.*?)[\s,;]*(#[0-9a-fA-F]{6})/))
-    .map((a) => ({ tag: a?.[1], color: a?.[2] }));
-}
-strToFixedTagColor();

@@ -52,7 +52,10 @@ pref-hide-in-selection-popup =
     .label = hide in selection popup
 pref-hide-in-annotation-context-menu = 
     .label = hide in annotation context menu
-    
+pref-fixed-tags-color-left = left
+pref-fixed-tags-color-right = right
+pref-fixed-tags-color-color = random color
+pref-fixed-tags-color-remove = remove
 pref-fixed-tags-style = 
     .label = fixed tags style
     

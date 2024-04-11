@@ -1,5 +1,5 @@
 // import { memoize } from "./Memoize";
-import { getPref } from "./prefs";
+import { getPref, setPref } from "./prefs";
 import memoize from "./memoize2";
 /* unique 采用set的比较方式*/
 export function unique<T>(arr: T[]) {
@@ -19,6 +19,24 @@ export interface groupByResult<T> {
   key: string;
   values: T[];
 }
+class TagColor {
+  public color: string;
+  public tag: string;
+  constructor(tagColor: string, removeSpace = false) {
+    const ma = tagColor.match(
+      removeSpace ? /(,*)(#[0-9a-fA-F])/ : /^[\s,;]*(,*?)[\s,;]*(#[0-9a-fA-F])/,
+    );
+    this.tag = ma?.[1] || tagColor;
+    this.color = ma?.[2] || "";
+  }
+  public toString(): string {
+    return this.tag + this.color;
+  }
+  public static map(str: string) {
+    return str.match(/(,*)(#[0-9a-fA-F])/)?.map((ma) => new TagColor(ma)) || [];
+  }
+}
+
 export function groupBy<T>(arr: T[], fn: (item: T) => string) {
   const groupedBy: { [key: string]: T[] } = {};
   for (const curr of arr) {
@@ -119,6 +137,39 @@ export const memFixedColors = memoize((): string[] => {
     length: tags.length / fixedColor.length + 1,
   }).flatMap(() => fixedColor);
 });
+
+export const memFixedTagColors = memoize(getFixedTagColors);
+function getFixedTagColors() {
+  const fixedTagColorStr = (getPref("fixed-tags-colors") as string) || "";
+  const fixedTagColors = TagColor.map(fixedTagColorStr);
+  if (!fixedTagColorStr) {
+    const prefTags = ((getPref("tags") as string) || "")
+      .split(",")
+      .map((a) => a.trim())
+      .filter((f) => f);
+    const fixedColors =
+      (getPref("fixed-colors") as string)
+        ?.match(/#[0-9A-Fa-f]{6}/g)
+        ?.map((a) => a) || [];
+    const optionalColor =
+      (getPref("optional-color") as string)?.match(/#[0-9A-Fa-f]{6}/g)?.[0] ||
+      "#ffc0cb";
+    if (prefTags && prefTags.length > 0) {
+      const r = prefTags.map((a, i) => ({
+        tag: a,
+        color: fixedColors.length > i ? fixedColors[i] : optionalColor,
+      }));
+      fixedTagColors.splice(0, 999, ...r);
+      setPref(
+        "fixed-tags-colors",
+        fixedTagColors.map((a) => a.tag + "," + a.color).join(" , "),
+      );
+    }
+  }
+  ztoolkit.log("fixedTagColorStr", fixedTagColorStr, fixedTagColors);
+  return fixedTagColors;
+}
+
 export function toggleProperty<T, K extends keyof NonNullable<T>>(
   obj: NonNullable<T> | undefined,
   key: K,
@@ -143,6 +194,12 @@ export function groupByResultIncludeFixedTags<T>(tagGroup: groupByResult<T>[]) {
       tagGroup.push({ key: tag, values: [] });
     }
   });
+  // memFixedTagColors().forEach(tagColor=>{
+  //   const tag=tagColor.toString()
+  //    if (tagGroup.findIndex((f) => f.key == tag) == -1) {
+  //     tagGroup.push({ key: tag, values: [] });
+  //   }
+  // })
   return tagGroup;
 }
 export function getCssTranslate(t1: HTMLElement) {
