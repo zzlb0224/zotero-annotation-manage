@@ -6,20 +6,22 @@ export function unique<T>(arr: T[]) {
   return [...new Set(arr)];
 }
 export function uniqueBy<T>(arr: T[], fn: (item: T) => string) {
-  const groupedBy: { [key: string]: T } = {};
+  const keys: { [key: string]: number } = {};
+  const values:T[] = []
   for (const curr of arr) {
-    const groupKey = fn(curr);
-    if (curr && !groupedBy[groupKey]) {
-      groupedBy[groupKey] = curr;
+    const groupKey = fn(curr);  
+    if (keys.hasOwnProperty.call(keys,groupKey)) {
+      keys[groupKey] = values.length;
+      values.push(curr);
     }
   }
-  return Object.values(groupedBy);
+  return values;
 }
 export interface groupByResult<T> {
   key: string;
   values: T[];
 }
-class TagColor {
+export class TagColor {
   public color: string;
   public tag: string;
   constructor(tagColor: string, removeSpace = false) {
