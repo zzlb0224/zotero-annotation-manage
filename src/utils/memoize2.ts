@@ -21,7 +21,7 @@ export function memoize2<TFunc extends (this: any, ...newArgs: any[]) => any>(
     //清理不需要的缓存
     Object.keys(cacheTime).forEach((key) => {
       if (Date.now() - cacheTime[key] > timeout) {
-        ztoolkit.log("删除缓存", key);
+        // ztoolkit.log("删除缓存", key);
         del(key);
       }
     });

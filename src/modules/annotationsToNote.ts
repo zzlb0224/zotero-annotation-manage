@@ -23,6 +23,7 @@ import {
   uniqueBy,
 } from "../utils/zzlb";
 import { getPref } from "../utils/prefs";
+import { openAnnotation } from "../utils/zzlb";
 let popupWin: ProgressWindowHelper | undefined = undefined;
 let popupTime = -1;
 
@@ -348,6 +349,7 @@ async function createSearchAnnDiv(doc: Document, isCollection: boolean) {
   let showN = 20;
   const items = await getSelectedItems(isCollection);
   const annotations = getAllAnnotations(items);
+  ztoolkit.log(isCollection, items, annotations);
   let ans: AnnotationRes[] = annotations;
   const div = createTopDiv(doc);
   if (div) {
@@ -500,10 +502,10 @@ async function createSearchAnnDiv(doc: Document, isCollection: boolean) {
             listeners: [
               {
                 type: "click",
-                listener(ev: any) {
+                listener: async (ev: any) => {
                   stopPropagation(ev);
                   // ztoolkit.log("点击",ev)
-                  Zotero.OpenPDF.openToPage(a.pdf, a.page, a.ann.key);
+                  openAnnotation(a.pdf, a.page, a.ann.key);
                 },
               },
             ],
@@ -1122,6 +1124,7 @@ async function getSelectedItems(isCollection: boolean) {
         (u) => u.key,
       );
       items = cs.flatMap((f) => f.getChildItems(false, false));
+      // ztoolkit.log("getSelectedItems",items,cs)
     } else {
       const itemsAll = await Zotero.Items.getAll(1, false, false, false);
       const itemTypes = ["journalArticle", "thesis"]; //期刊和博硕论文

@@ -7,10 +7,10 @@ export function unique<T>(arr: T[]) {
 }
 export function uniqueBy<T>(arr: T[], fn: (item: T) => string) {
   const keys: { [key: string]: number } = {};
-  const values:T[] = []
+  const values: T[] = [];
   for (const curr of arr) {
-    const groupKey = fn(curr);  
-    if (keys.hasOwnProperty.call(keys,groupKey)) {
+    const groupKey = fn(curr);
+    if (!keys.hasOwnProperty.call(keys, groupKey)) {
       keys[groupKey] = values.length;
       values.push(curr);
     }
@@ -226,7 +226,13 @@ export function getCssTranslate(t1: HTMLElement) {
 }
 //使用条目、pdf、annotation、tag的关系进行读取
 const memAllTagsInLibraryAsync = memoize(async () => {
-  const allItems = await Zotero.Items.getAll(1, false, false, false);
+  const userLibraryID = Zotero.Libraries.userLibraryID;
+  const allItems = await Zotero.Items.getAll(
+    userLibraryID,
+    false,
+    false,
+    false,
+  );
   const items = allItems.filter((f) => !f.parentID && !f.isAttachment());
   const pdfIds = items.flatMap((f) => f.getAttachments(false));
   const pdfs = Zotero.Items.get(pdfIds);
@@ -336,4 +342,33 @@ export function str2RegExp(value: string) {
 }
 export function isDebug() {
   return !!getPref("debug");
+}
+export async function openAnnotation(
+  pathOrItem: Zotero.Item,
+  page: string,
+  annotationKey: string,
+) {
+  //  Zotero.OpenPDF.openToPage(pathOrItem, page,annotationKey);
+  await Zotero.FileHandlers.open(pathOrItem, {
+    location: {
+      annotationID: annotationKey,
+      pageIndex: page,
+    },
+  });
+  // @ts-ignore 直接定位
+  const doc = Zotero.getActiveZoteroPane().document.querySelector(
+    ".deck-selected browser",
+  ).contentDocument as Document;
+
+  // ztoolkit.log(doc.title);
+  if (doc) {
+    const sidebarItem = doc.querySelector(
+      `[data-sidebar-annotation-id="${annotationKey}"]`,
+    ) as HTMLElement;
+    // ztoolkit.log(sidebarItem);
+    if (sidebarItem) {
+      // Make sure to call this after all events, because mousedown will re-focus the View
+      setTimeout(() => sidebarItem.focus());
+    }
+  }
 }
