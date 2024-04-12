@@ -481,6 +481,7 @@ async function createSearchAnnDiv(doc: Document, isCollection: boolean) {
                 (a.annotationTags || "") +
                 " " +
                 (a.text || "") +
+                (a.type == "image" ? "[图]" : "") +
                 " " +
                 (a.comment || "") +
                 " ",
@@ -493,11 +494,11 @@ async function createSearchAnnDiv(doc: Document, isCollection: boolean) {
               // margin: "2px",
 
               display: "inline-block",
-              marginBottom: "2px",
+              marginBottom: "5px",
               width: "100%",
               breakInside: "avoid",
 
-              background: getOneFixedColor(),
+              background: a.color + "70" || getOneFixedColor(),
             },
             listeners: [
               {
@@ -713,11 +714,6 @@ function createActionTag(
       tag: "button",
       namespace: "html",
       properties: { textContent: "关闭" },
-      // styles: {
-      //   padding: "6px",
-      //   background: "#f99",
-      //   margin: "1px",
-      // },
       listeners: [
         {
           type: "click",
@@ -728,29 +724,24 @@ function createActionTag(
         },
       ],
     },
-    {
-      tag: "button",
-      namespace: "html",
-      properties: { textContent: "切换颜色" },
-      // styles: {
-      //   padding: "6px",
-      //   background: "#f99",
-      //   margin: "1px",
-      // },
-      listeners: [
-        {
-          type: "click",
-          listener(ev: any) {
-            stopPropagation(ev);
-            ztoolkit.log(div, div.style.background);
-            if (!div) return;
-            div.style.background = div.style.background
-              ? ""
-              : getOneFixedColor();
-          },
-        },
-      ],
-    },
+    // {
+    //   tag: "button",
+    //   namespace: "html",
+    //   properties: { textContent: "切换颜色" },
+    //   listeners: [
+    //     {
+    //       type: "click",
+    //       listener(ev: any) {
+    //         stopPropagation(ev);
+    //         ztoolkit.log(div, div.style.background);
+    //         if (!div) return;
+    //         div.style.background = div.style.background
+    //           ? ""
+    //           : getOneFixedColor();
+    //       },
+    //     },
+    //   ],
+    // },
     action
       ? {
           tag: "button",
@@ -819,7 +810,8 @@ function createTopDiv(doc?: Document) {
         maxHeight: "600px",
         overflowY: "scroll",
         display: "flex",
-        background: getOneFixedColor(),
+        boxShadow: "#999999 0px 0px 4px 3px",
+        background: "white", // getOneFixedColor(),
         // flexWrap: "wrap",
         flexDirection: "column",
       },

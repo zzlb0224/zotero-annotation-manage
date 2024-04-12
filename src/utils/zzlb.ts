@@ -355,20 +355,74 @@ export async function openAnnotation(
       pageIndex: page,
     },
   });
-  // @ts-ignore 直接定位
-  const doc = Zotero.getActiveZoteroPane().document.querySelector(
-    ".deck-selected browser",
-  ).contentDocument as Document;
-
-  // ztoolkit.log(doc.title);
-  if (doc) {
-    const sidebarItem = doc.querySelector(
-      `[data-sidebar-annotation-id="${annotationKey}"]`,
-    ) as HTMLElement;
-    // ztoolkit.log(sidebarItem);
-    if (sidebarItem) {
-      // Make sure to call this after all events, because mousedown will re-focus the View
-      setTimeout(() => sidebarItem.focus());
+  const tabId = Zotero_Tabs.getTabIDByItemID(pathOrItem.id);
+  Zotero_Tabs.select(tabId);
+  let doc: Document | undefined = undefined;
+  let pdfDoc: Document | undefined = undefined;
+  // Zotero_Tabs.deck
+  getDoc();
+  function sidebarItemFocus() {
+    if (doc) {
+      const sidebarItem = doc.querySelector(
+        `[data-sidebar-annotation-id="${annotationKey}"]`,
+      ) as HTMLElement;
+      ztoolkit.log("sidebarItemFocus", sidebarItem);
+      if (sidebarItem) {
+        setTimeout(() => sidebarItem.focus());
+      }
+    }else
+    setTimeout(() => {
+      sidebarItemFocus();
+    });
+  }
+  function getDoc() {
+    const browser = Zotero_Tabs.deck.querySelector(
+      `[id^=${tabId}].deck-selected browser`,
+    );
+    // @ts-ignore 直接定位
+    doc = browser?.contentDocument || undefined;
+    ztoolkit.log("getDoc", doc);
+    if (!doc||!doc.querySelector("div,span")) {
+      setTimeout(getDoc, 10);
+      return;
+    }
+    if (doc) {
+      sidebarItemFocus();     
+      getPdfDoc();
     }
   }
+  function getPdfDoc  ()  {
+        if (!doc) {
+          return getDoc();
+        }
+        pdfDoc = doc.querySelector("iframe")?.contentDocument || undefined;
+        ztoolkit.log("pdfDoc", pdfDoc);
+        if (!pdfDoc||!pdfDoc.querySelector("div,span")) {
+          setTimeout(() => {
+            getPdfDoc();
+          }, 10);
+          return;
+        }
+        sidebarItemFocus();
+        pdfDoc.addEventListener("pagesloaded", function onpagesloaded(e) {
+          //do sth..
+          pdfDoc!.removeEventListener("pagesloaded", onpagesloaded);
+          ztoolkit.log("pagesloaded", e);
+          sidebarItemFocus();
+        });
+        pdfDoc.addEventListener(
+          "textlayerrendered",
+          function onTextLayerRendered(event: any) {
+            ztoolkit.log("textlayerrendered", event);
+            if (event.detail.pageNumber === page) {
+              pdfDoc!.removeEventListener(
+                "textlayerrendered",
+                onTextLayerRendered,
+              );
+              sidebarItemFocus();
+            }
+          },
+          { once: true },
+        );
+      };
 }
