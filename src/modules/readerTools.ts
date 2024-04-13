@@ -1,5 +1,4 @@
 import { config } from "../../package.json";
-import { flashBorder } from "../utils/zzlb";
 function register() {
   Zotero.Reader.registerEventListener(
     "renderToolbar",
