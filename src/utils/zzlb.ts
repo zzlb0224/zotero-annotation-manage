@@ -343,6 +343,7 @@ export function str2RegExp(value: string) {
 export function isDebug() {
   return !!getPref("debug");
 }
+
 export async function openAnnotation(
   item: Zotero.Item,
   page: string,
@@ -361,30 +362,21 @@ export async function openAnnotation(
   function getDoc() {
     const b = Zotero_Tabs.deck.querySelector(
       `[id^=${tabId}].deck-selected browser`,
-    );
-    doc = (b as any)?.contentDocument || undefined;
-    if (!doc || !doc.querySelector("div,span")) {
-      setTimeout(getDoc, 10);
-      return;
-    }
-    getPdfDoc();
+    ) as any;
+    doc = b?.contentDocument || undefined;
+    if (doc && doc.querySelector("div,span")) getPdfDoc();
+    else setTimeout(getDoc, 50);
   }
   function getPdfDoc() {
     pdfDoc = doc!.querySelector("iframe")?.contentDocument || undefined;
-    if (!pdfDoc || !pdfDoc.querySelector("div,span")) {
-      setTimeout(getPdfDoc, 10);
-      return;
-    }
-    sidebarItemFocus();
+    if (pdfDoc && pdfDoc.querySelector("div,span")) sidebarItemFocus();
+    else setTimeout(getPdfDoc, 50);
   }
   function sidebarItemFocus() {
     const sidebarItem = doc!.querySelector(
       `[data-sidebar-annotation-id="${annotationKey}"]`,
-    ) as HTMLElement;
-    if (sidebarItem) {
-      setTimeout(() => sidebarItem.focus());
-      return;
-    }
-    setTimeout(sidebarItemFocus, 10);
+    );
+    if (sidebarItem) setTimeout(sidebarItem.focus, 50);
+    else setTimeout(sidebarItemFocus, 50);
   }
 }

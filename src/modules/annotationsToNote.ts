@@ -365,7 +365,7 @@ async function createSearchAnnDiv(doc: Document, isCollection: boolean) {
             {
               tag: "input",
               namespace: "html",
-              properties: { placeholder: "请输入注释、笔记筛选条件" },
+              properties: { placeholder: "支持正则" },
               styles: { width: "200px" },
               listeners: [
                 {
@@ -387,7 +387,7 @@ async function createSearchAnnDiv(doc: Document, isCollection: boolean) {
             {
               tag: "input",
               namespace: "html",
-              properties: { placeholder: "请输入tag筛选条件" },
+              properties: { placeholder: "支持正则" },
               styles: { width: "200px" },
               listeners: [
                 {

@@ -14,9 +14,9 @@ import {
   memOptionalColor,
   memRelateTags,
 } from "../utils/zzlb";
-import { AnnotationPopup } from "./annotations";
 import { getNewColor, getRandomColor } from "../utils/color";
 import memoize2 from "../utils/memoize2";
+import annotations from "./annotations";
 
 export function registerPrefsWindow() {
   Zotero.PreferencePanes.register({
@@ -506,7 +506,7 @@ async function replaceTagsPreviewDiv(doc?: Document) {
     child.remove();
   }
   if (ann) {
-    const popup = new AnnotationPopup(
+    const popup = new annotations.AnnotationPopup(
       undefined,
       { ids: [ann.key] },
       ann.parentItem,

@@ -54,7 +54,8 @@ function unregister() {
     createAnnotationContextMenu,
   );
 }
-export class AnnotationPopup {
+
+class AnnotationPopup {
   reader?: _ZoteroTypes.ReaderInstance;
   params?: {
     annotation?: _ZoteroTypes.Annotations.AnnotationJson;
@@ -935,4 +936,5 @@ function createAnnotationContextMenu(
     },
   });
 }
-export default { register, unregister };
+
+export default { register, unregister, AnnotationPopup };

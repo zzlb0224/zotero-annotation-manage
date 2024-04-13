@@ -10,6 +10,8 @@ import {
 import { createZToolkit } from "./utils/ztoolkit";
 import Annotations from "./modules/annotations";
 import AnnotationsToNote, { createPopMenu } from "./modules/annotationsToNote";
+import ReaderTools from "./modules/readerTools";
+import readerTools from "./modules/readerTools";
 
 async function onStartup() {
   await Promise.all([
@@ -93,6 +95,7 @@ async function onMainWindowLoad(win: Window): Promise<void> {
   registerPrefsWindow();
   Annotations.register();
   AnnotationsToNote.register();
+  readerTools.register();
   // window.addEventListener("error", function (event) {
   //   ztoolkit.log(
   //     event.error,
@@ -111,6 +114,7 @@ async function onMainWindowLoad(win: Window): Promise<void> {
 async function onMainWindowUnload(win: Window): Promise<void> {
   Annotations.unregister();
   AnnotationsToNote.unregister();
+  ReaderTools.unregister();
   ztoolkit.unregisterAll();
   // addon.data.dialog?.window?.close();
 }
