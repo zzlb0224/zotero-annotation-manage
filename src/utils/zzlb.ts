@@ -413,3 +413,28 @@ export async function openAnnotation(
     else setTimeout(sidebarItemFocus, 50);
   }
 }
+
+export async function injectCSS(doc: Document, path: "annotation.css") {
+  ztoolkit.UI.appendElement(
+    {
+      tag: "style",
+      id: "style_css_" + path.replace(/[\/:\s\.]/g, "_"),
+      properties: {
+        innerHTML: await getFileContent(rootURI + "chrome/content/" + path),
+      },
+      ignoreIfExists: true,
+    },
+    doc.querySelector("head") ||
+      doc.querySelector("body") ||
+      doc.querySelector("div") ||
+      doc.children[0],
+  );
+}
+export async function getFileContent(path: string) {
+  const contentOrXHR = await Zotero.File.getContentsAsync(path);
+  const content =
+    typeof contentOrXHR === "string"
+      ? contentOrXHR
+      : (contentOrXHR as any as XMLHttpRequest).response;
+  return content;
+}
