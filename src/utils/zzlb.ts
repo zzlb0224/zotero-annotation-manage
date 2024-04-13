@@ -375,7 +375,7 @@ export async function openAnnotation(
   function sidebarItemFocus() {
     const sidebarItem = doc!.querySelector(
       `[data-sidebar-annotation-id="${annotationKey}"]`,
-    );
+    ) as HTMLElement;
     if (sidebarItem) setTimeout(sidebarItem.focus, 50);
     else setTimeout(sidebarItemFocus, 50);
   }
