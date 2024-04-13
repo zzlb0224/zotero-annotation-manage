@@ -1,4 +1,5 @@
 import { config } from "../../package.json";
+import { flashBorder } from "../utils/zzlb";
 function register() {
   Zotero.Reader.registerEventListener(
     "renderToolbar",
@@ -49,22 +50,11 @@ function copyFunc(doc: Document, copyFrom: string = "") {
     const text = clipboardData.getData("text") as string;
     ztoolkit.log("123 copy", doc, clipboardData, clipboardData.getData("text"));
     if (!text) return;
-    const reStr =
-      "(.*)[(]zotero://select/library/items/(.*?)[)][()[\\s]*pdf][(]zotero://open-pdf/library/items/(.*?)[?]page=(.*?)&annotation=(.*?)[)][)]";
-    const reG = new RegExp(reStr, "g");
-    const reN = new RegExp(reStr, "");
-    const mag = text.match(reG) || [];
-    const man = mag
-      .map((m) => m.match(reN) || [])
-      .map((a) => ({
-        text: a[0],
-        itemKey: a[2],
-        pdfKey: a[3],
-        page: a[4],
-        annotationKey: a[5],
-      }));
+    const man = text2Ma(text);
     ztoolkit.log(man);
     doc.querySelector(`#${config.addonRef}-copy-annotations`)?.remove();
+    if (man.length == 0) return;
+    addon.data.copy = text;
     const z = ztoolkit.UI.appendElement(
       {
         id: `${config.addonRef}-copy-annotations`,
@@ -72,16 +62,30 @@ function copyFunc(doc: Document, copyFrom: string = "") {
         properties: { textContent: "已复制：" },
         styles: {
           position: "fixed",
-          right: "100px",
-          top: "0",
+          left: "10px",
+          top: "45px",
           zIndex: "9999",
           boxShadow: "#999999 0px 0px 4px 3px",
+          padding: "5px",
+          background: "#ffffff",
         },
-        children: man.map((m) => ({
+        children: man.map((m, i) => ({
           tag: "span",
-          properties: { textContent: m.text.substring(1, 10) },
-          styles: { background: "#ffffff", margin: "3px" },
+          properties: { textContent: i + 1 + ":" + m.text.substring(0, 7) },
+          styles: {
+            background: "#ffffff",
+            margin: "3px",
+            border: "1px solid #000000",
+          },
         })),
+        listeners: [
+          {
+            type: "click",
+            listener: (e) => {
+              z.remove();
+            },
+          },
+        ],
       },
       doc.body,
     );
@@ -89,4 +93,26 @@ function copyFunc(doc: Document, copyFrom: string = "") {
       z.remove();
     }, 10000);
   });
+}
+function text2Ma(text: string) {
+  /*     text = `[image] ([pdf](zotero://open-pdf/library/items/7BWQVD5L?page=6&annotation=PA2E577M))  
+([Rahmani 等, 2023, p. 828](zotero://select/library/items/SKGVY3QP))`
+
+
+*/
+  // const reStr = ".*[(]zotero://select/library/items/(.*?)[)][()[\\s]*pdf][(]zotero://open-pdf/library/items/(.*?)[?]page=(.*?)&annotation=(.*?)[)][)]";
+  const reStr =
+    ".*[[]pdf][(]zotero://open-pdf/library/items/(.*?)[?]page=(.*?)&annotation=(.*?)[)][)]";
+  const reG = new RegExp(reStr, "g");
+  const reN = new RegExp(reStr, "");
+  const mag = text.match(reG) || [];
+  const man = mag
+    .map((m) => m.match(reN) || [])
+    .map((a) => ({
+      text: a[0],
+      pdfKey: a[1],
+      page: a[2],
+      annotationKey: a[3],
+    }));
+  return man;
 }

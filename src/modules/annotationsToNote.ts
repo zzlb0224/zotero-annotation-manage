@@ -2,6 +2,7 @@ import { ProgressWindowHelper } from "zotero-plugin-toolkit/dist/helpers/progres
 import { MenuitemOptions } from "zotero-plugin-toolkit/dist/managers/menu";
 import { TagElementProps } from "zotero-plugin-toolkit/dist/tools/ui";
 import { config } from "../../package.json";
+import { getPref } from "../utils/prefs";
 import {
   sortAsc,
   sortFixedTags10ValuesLength,
@@ -15,15 +16,13 @@ import {
   getChildCollections,
   groupBy,
   memFixedColor,
-  memFixedColors,
+  openAnnotation,
   promiseAllWithProgress,
   setProperty,
   str2RegExp,
   toggleProperty,
   uniqueBy,
 } from "../utils/zzlb";
-import { getPref } from "../utils/prefs";
-import { openAnnotation } from "../utils/zzlb";
 let popupWin: ProgressWindowHelper | undefined = undefined;
 let popupTime = -1;
 
@@ -498,7 +497,7 @@ async function createSearchAnnDiv(doc: Document, isCollection: boolean) {
               width: "100%",
               breakInside: "avoid",
 
-              background: a.color + "70" || getOneFixedColor(),
+              background: a.color + "70",
             },
             listeners: [
               {
@@ -698,11 +697,7 @@ function clearChild(ele: Element | null) {
     ele.innerHTML = "";
   }
 }
-function getOneFixedColor() {
-  return memFixedColors()
-    .slice(0, 999)
-    .sort(() => Math.random() - 0.5)[0];
-}
+
 function createActionTag(
   div: HTMLElement | undefined,
   action: () => void | undefined,

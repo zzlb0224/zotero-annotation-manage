@@ -2,6 +2,14 @@ import { TagElementProps } from "zotero-plugin-toolkit/dist/tools/ui";
 import { config } from "../../package.json";
 import { getPref } from "../utils/prefs";
 import {
+  mapDateModified,
+  sortAsc,
+  sortFixedTags100Modified10Asc,
+  sortFixedTags10ValuesLength,
+  sortTags1000Ann100Modified10Asc,
+  sortValuesLength,
+} from "../utils/sort";
+import {
   groupBy,
   groupByResult,
   groupByResultIncludeFixedTags,
@@ -13,17 +21,6 @@ import {
   str2RegExp,
   uniqueBy,
 } from "../utils/zzlb";
-import {
-  sortAsc,
-  sortKey,
-  sortModified,
-  sortTags,
-  sortTags1000Ann100Modified10Asc,
-  sortFixedTags100Modified10Asc,
-  sortFixedTags10ValuesLength,
-  sortValuesLength,
-} from "../utils/sort";
-import { mapDateModified } from "../utils/sort";
 function register() {
   // if (!getPref("enable")) return;
   // ztoolkit.UI.basicOptions.log.disableZLog = true;

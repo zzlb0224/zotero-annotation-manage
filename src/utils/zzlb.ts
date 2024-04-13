@@ -26,7 +26,9 @@ export class TagColor {
   public tag: string;
   constructor(tagColor: string, removeSpace = false) {
     const ma = tagColor.match(
-      removeSpace ? /(,*)(#[0-9a-fA-F])/ : /^[\s,;]*(,*?)[\s,;]*(#[0-9a-fA-F])/,
+      removeSpace
+        ? /(.*)(#[0-9a-fA-F]{6})/
+        : /^[\s,;]*(.*?)[\s,;]*(#[0-9a-fA-F]{6})/,
     );
     this.tag = ma?.[1] || tagColor;
     this.color = ma?.[2] || "";
@@ -35,7 +37,14 @@ export class TagColor {
     return this.tag + this.color;
   }
   public static map(str: string) {
-    return str.match(/(,*)(#[0-9a-fA-F])/)?.map((ma) => new TagColor(ma)) || [];
+    ztoolkit.log(
+      "TagColor map",
+      str.match(/(.*?)(#[0-9a-fA-F]{6})/g),
+      str.match(/(.*)(#[0-9a-fA-F])/g)?.map((ma) => new TagColor(ma)),
+    );
+    return (
+      str.match(/(.*?)(#[0-9a-fA-F]{6})/g)?.map((ma) => new TagColor(ma)) || []
+    );
   }
 }
 
@@ -102,43 +111,31 @@ export const memOptionalColor = memoize(
     (getPref("optional-color") as string)?.match(/#[0-9A-Fa-f]{6}/g)?.[0] ||
     "#ffc0cb",
 );
-/**
- * optional undefined 采用 配置的可选颜色， "" 采用空值
- */
+export const memFixedTags = memoize((): string[] => {
+  // ztoolkit.log("memFixedTags",memFixedTagColors().filter(f=>f.tag).map(f=>f.tag))
+  return memFixedTagColors()
+    .filter((f) => f.tag)
+    .map((f) => f.tag);
+});
+const memFixedColors = memoize((): string[] => {
+  return memFixedTagColors()
+    .filter((f) => f.tag)
+    .map((f) => f.color);
+});
 export const memFixedColor = memoize(
   (tag: string, optional: string | undefined = undefined): string => {
-    const tags = memFixedTags();
-    if (tags.includes(tag)) {
-      return memFixedColors()[tags.indexOf(tag)];
-    }
+    const color = memFixedTagColors()
+      .filter((f) => f.tag == tag)
+      .map((f) => f.color)[0];
+
+    // ztoolkit.log("memFixedColor",tag,color)
+    if (color) return color;
     if (optional == undefined) return memOptionalColor() as string;
     return optional;
   },
   (tag: string, optional: string | undefined = undefined) =>
     tag + "_" + optional,
 );
-export const memFixedTags = memoize((): string[] => {
-  const prefTags = ((getPref("tags") as string) || "")
-    .split(",")
-    .map((a) => a.trim())
-    .filter((f) => f);
-  if (prefTags && prefTags.length > 0) return prefTags;
-  return FixedTagsDefault.split(",");
-});
-export const memFixedColors = memoize((): string[] => {
-  let fixedColor =
-    (getPref("fixed-colors") as string)
-      ?.match(/#[0-9A-Fa-f]{6}/g)
-      ?.map((a) => a) || [];
-  if (!fixedColor || fixedColor.length == 0)
-    fixedColor = FixedColorDefault.split(",")
-      .map((f) => f.trim())
-      .filter((f) => f);
-  const tags = memFixedTags();
-  return Array.from({
-    length: tags.length / fixedColor.length + 1,
-  }).flatMap(() => fixedColor);
-});
 
 export const memFixedTagColors = memoize(getFixedTagColors);
 function getFixedTagColors() {
@@ -168,9 +165,45 @@ function getFixedTagColors() {
       );
     }
   }
-  ztoolkit.log("fixedTagColorStr", fixedTagColorStr, fixedTagColors);
+  ztoolkit.log("fixedTagColorStr 2 array", fixedTagColorStr, fixedTagColors);
   return fixedTagColors;
 }
+
+const memFixedColor2 = memoize(
+  (tag: string, optional: string | undefined = undefined): string => {
+    const tags = memFixedTags();
+    if (tags.includes(tag)) {
+      return memFixedColors()[tags.indexOf(tag)];
+    }
+    if (optional == undefined) return memOptionalColor() as string;
+    return optional;
+  },
+  (tag: string, optional: string | undefined = undefined) =>
+    tag + "_" + optional,
+);
+
+const memFixedTags2 = memoize((): string[] => {
+  const prefTags = ((getPref("tags") as string) || "")
+    .split(",")
+    .map((a) => a.trim())
+    .filter((f) => f);
+  if (prefTags && prefTags.length > 0) return prefTags;
+  return FixedTagsDefault.split(",");
+});
+const memFixedColors2 = memoize((): string[] => {
+  let fixedColor =
+    (getPref("fixed-colors") as string)
+      ?.match(/#[0-9A-Fa-f]{6}/g)
+      ?.map((a) => a) || [];
+  if (!fixedColor || fixedColor.length == 0)
+    fixedColor = FixedColorDefault.split(",")
+      .map((f) => f.trim())
+      .filter((f) => f);
+  const tags = memFixedTags();
+  return Array.from({
+    length: tags.length / fixedColor.length + 1,
+  }).flatMap(() => fixedColor);
+});
 
 export function toggleProperty<T, K extends keyof NonNullable<T>>(
   obj: NonNullable<T> | undefined,
@@ -376,7 +409,7 @@ export async function openAnnotation(
     const sidebarItem = doc!.querySelector(
       `[data-sidebar-annotation-id="${annotationKey}"]`,
     ) as HTMLElement;
-    if (sidebarItem) setTimeout(sidebarItem.focus, 50);
+    if (sidebarItem) setTimeout(() => sidebarItem.focus(), 1);
     else setTimeout(sidebarItemFocus, 50);
   }
 }

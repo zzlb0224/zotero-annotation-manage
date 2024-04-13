@@ -3,19 +3,17 @@ import { getString } from "../utils/locale";
 import { getPref, setPref } from "../utils/prefs";
 import { sortModified } from "../utils/sort";
 
+import { getNewColor, getRandomColor } from "../utils/color";
 import {
   FixedColorDefault,
   FixedTagsDefault,
   getChildCollections,
   memFixedColor,
-  memFixedColors,
   memFixedTagColors,
   memFixedTags,
   memOptionalColor,
   memRelateTags,
 } from "../utils/zzlb";
-import { getNewColor, getRandomColor } from "../utils/color";
-import memoize2 from "../utils/memoize2";
 import annotations from "./annotations";
 
 export function registerPrefsWindow() {
@@ -213,6 +211,9 @@ function bindPrefEvents() {
       setPref: () => {
         setPref("fixed-tags-colors", allStr.join(""));
         memFixedTagColors.remove();
+        memFixedColor.remove();
+        memFixedTags.remove();
+
         tPreview();
       },
     };
@@ -318,7 +319,6 @@ function bindPrefEvents() {
         }
         setPref("fixed-colors", colors.join(", ") || FixedColorDefault);
         memFixedColor.remove();
-        memFixedColors.remove();
         replaceColorTagsElement(doc);
         btn.textContent = "选中颜色删除";
         btn.style.background = "";
@@ -335,7 +335,6 @@ function bindPrefEvents() {
         target.value = target.value.replace(/\n/g, "");
       }
       memFixedTags.remove();
-      memFixedColors.remove();
       memFixedColor.remove();
       replaceColorTagsElement(doc);
       replaceTagsPreviewDiv(doc);
@@ -349,7 +348,6 @@ function bindPrefEvents() {
         target.value = target.value.replace(/\n/g, "");
       }
       memFixedColor.remove();
-      memFixedColors.remove();
       replaceColorTagsElement(doc);
       replaceTagsPreviewDiv(doc);
     });
@@ -368,7 +366,6 @@ function bindPrefEvents() {
       }
       setPref("fixed-colors", colors.join(", ") || FixedColorDefault);
       memFixedColor.remove();
-      memFixedColors.remove();
       replaceColorTagsElement(doc);
       replaceTagsPreviewDiv(doc);
     });
