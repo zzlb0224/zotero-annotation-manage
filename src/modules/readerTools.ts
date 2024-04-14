@@ -56,8 +56,9 @@ function renderSidebarAnnotationHeaderCallback(
         type: "click",
         listener: (e) => {
           const r = new Relations(params.annotation.id);
-          const man = Relations.allOpenPdf(addon.data.copy);
-          r.addRelations(man.map((a) => a.openPdf));
+          // const man = Relations.allOpenPdf(addon.data.copy);
+          // r.addRelations(man.map((a) => a.openPdf));
+          r.addRelations(Relations.openPdf2URI(addon.data.copy));
         },
       },
       {
@@ -134,7 +135,7 @@ function createPopupDiv(doc: Document, anKey: string) {
   )!;
   div.style.left = fromEle.offsetLeft + 20 + "px";
   const scrollTop = doc.getElementById("annotations")?.scrollTop || 0;
-  div.style.top = fromEle.offsetTop - scrollTop - 20 + "px";
+  div.style.top = fromEle.offsetTop - scrollTop + "px";
   ztoolkit.log("top", fromEle.offsetTop, fromEle.clientTop, fromEle.offsetTop);
   const { startTimer: startTimer, clearTimer: clearTimer } = createTimer(() =>
     div.remove(),
@@ -152,13 +153,13 @@ function createPopupDiv(doc: Document, anKey: string) {
     startTimer();
   });
 
-  const r = new Relations(anFrom);
-  const linkAnnotations = r.getLinkRelations();
-  const m = Relations.mapOpenPdf(linkAnnotations);
-  for (const m0 of m) {
-    const anTo = getItem(m0.annotationKey);
-    // const content = `${anTo.parentItem?.getDisplayTitle()}   ${anTo.annotationType} ${anTo.annotationText || ""} ${anTo.annotationComment || ""} `;
-
+  const anFromRelations = new Relations(anFrom);
+  const fromLinkRelations = anFromRelations.getLinkRelations();
+  // const m = Relations.mapOpenPdf(linkAnnotations);
+  for (const toItemURI of fromLinkRelations) {
+    const toId = Zotero.URI.getURIItemID(toItemURI);
+    if (!toId) continue;
+    const anTo = getItem(toId);
     const u2 = ztoolkit.UI.appendElement(
       {
         tag: "div",
@@ -178,9 +179,14 @@ function createPopupDiv(doc: Document, anKey: string) {
                 type: "click",
                 listener: (e) => {
                   e.stopPropagation();
-                  openAnnotation(m0.pdfKey, m0.page, m0.annotationKey);
+                  if (anTo.parentItemKey)
+                    openAnnotation(
+                      anTo.parentItemKey,
+                      anTo.annotationPageLabel,
+                      anTo.key,
+                    );
                 },
-                options: true,
+                options: { capture: true },
               },
             ],
             children: [
@@ -214,12 +220,11 @@ function createPopupDiv(doc: Document, anKey: string) {
                 type: "click",
                 listener: (e) => {
                   e.stopPropagation();
-
-                  ztoolkit.log("remove 1", r.getLinkRelations());
-                  r.removeRelations([m0.openPdf]);
+                  ztoolkit.log("remove 1", anFromRelations.getLinkRelations());
+                  anFromRelations.removeRelations([toItemURI]);
                   u2.remove();
-                  ztoolkit.log("remove 2", r.getLinkRelations());
-                  if (r.getLinkRelations().length == 0) {
+                  ztoolkit.log("remove 2", anFromRelations.getLinkRelations());
+                  if (anFromRelations.getLinkRelations().length == 0) {
                     doc
                       .getElementById(
                         config.addonRef +

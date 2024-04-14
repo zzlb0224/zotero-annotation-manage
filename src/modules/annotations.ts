@@ -951,12 +951,12 @@ class AnnotationPopup {
           // if(this.selectedRelateAns.length>0)
 
           annotation.saveTx(); //增加每一个都要保存，为啥不能批量保存？
-          ztoolkit.log(
-            "保存关联",
-            this.selectedRelateAns,
-            this.selectedRelateAns.map((a) => a.annotationKey),
-            annotation.relatedItems,
-          );
+          // ztoolkit.log(
+          //   "保存关联",
+          //   this.selectedRelateAns,
+          //   this.selectedRelateAns.map((a) => a.annotationKey),
+          //   annotation.relatedItems,
+          // );
           // new Relations(annotation).setRelations(
           //   this.selectedRelateAns.map((a) => a.openPdf),
           // );
