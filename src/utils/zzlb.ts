@@ -471,7 +471,7 @@ export class Relations {
     // ztoolkit.log("this.item", this.item);
     const rs = this.item.getRelations();
     //@ts-ignore link:annotation
-    return rs["link:annotation"] as string[]|false||false;
+    return (rs["link:annotation"] as string[] | false) || false;
   }
   static allOpenPdf(str: string) {
     const strArray =
