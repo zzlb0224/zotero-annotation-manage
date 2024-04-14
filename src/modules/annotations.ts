@@ -10,6 +10,7 @@ import {
   sortValuesLength,
 } from "../utils/sort";
 import {
+  Relations,
   groupBy,
   groupByResult,
   groupByResultIncludeFixedTags,
@@ -21,6 +22,7 @@ import {
   str2RegExp,
   uniqueBy,
 } from "../utils/zzlb";
+import { text2Ma } from "./readerTools";
 function register() {
   // if (!getPref("enable")) return;
   // ztoolkit.UI.basicOptions.log.disableZLog = true;
@@ -386,11 +388,119 @@ class AnnotationPopup {
       ],
     };
   }
-
+  selectedRelateAns: {
+    text: string;
+    pdfKey: string;
+    page: string;
+    openPdf: string;
+    annotationKey: string;
+  }[] = [];
   createSearchDiv(): TagElementProps {
     let selectionStart = 0;
     let shiftStart = false;
     let selectionCount = 0;
+    // const copyAns = text2Ma(addon.data.copy);
+    const copyAns = Relations.allOpenPdf(addon.data.copy);
+    ztoolkit.log("检测复制内容", addon.data.copy, copyAns);
+    const copyAnnEls: TagElementProps[] = copyAns.map((copyAn) => ({
+      tag: "span",
+      properties: { textContent: copyAn.text.substring(1, 7) },
+      styles: {
+        margin: "2px",
+        padding: "2px",
+        border: "1px solid #dddddd",
+        background: "#aaff00",
+        fontSize: this.fontSize,
+      },
+      id: `${config.addonRef}-mae-annotationKey-${copyAn.annotationKey}`,
+      listeners: [
+        {
+          type: "click",
+          listener: (ev) => {
+            const target = ev.target as HTMLElement;
+            const index = this.selectedRelateAns.findIndex(
+              (f) => f.annotationKey == copyAn.annotationKey,
+            );
+            // ztoolkit.log("findMa", index, this.selectedCopyAns, copyAns);
+            if (index == -1) {
+              this.selectedRelateAns.push(copyAn);
+              target.style.boxShadow = "#009900 0px 0px 4px 3px";
+            } else {
+              this.selectedRelateAns.splice(index, 1);
+              target.style.boxShadow = "";
+            }
+            if (this.selectedRelateAns.length != copyAns.length) {
+              this.doc!.getElementById(
+                `${config.addonRef}-mae-annotation-all`,
+              )!.style.boxShadow = "";
+            } else {
+              this.doc!.getElementById(
+                `${config.addonRef}-mae-annotation-all`,
+              )!.style.boxShadow = "#009900 0px 0px 4px 3px";
+            }
+          },
+        },
+      ],
+    }));
+    if (copyAns.length > 1)
+      copyAnnEls.push({
+        tag: "span",
+        properties: { textContent: "共" + copyAns.length + "条" },
+        styles: {
+          margin: "2px",
+          padding: "2px",
+          border: "1px solid #dddddd",
+          background: "#ddff00",
+          fontSize: this.fontSize,
+        },
+        id: `${config.addonRef}-mae-annotation-all`,
+        listeners: [
+          {
+            type: "click",
+            listener: (ev) => {
+              const target = ev.target as HTMLElement;
+              if (this.selectedRelateAns.length == copyAns.length) {
+                this.selectedRelateAns.splice(0, 999);
+                target.style.boxShadow = "";
+              } else {
+                this.selectedRelateAns.splice(0, 999, ...copyAns.slice(0, 999));
+                target.style.boxShadow = "#009900 0px 0px 4px 3px";
+              }
+              copyAns.forEach((copyAn) => {
+                const e = this.doc!.getElementById(
+                  `${config.addonRef}-mae-annotationKey-${copyAn.annotationKey}`,
+                );
+                ztoolkit.log(
+                  this.selectedRelateAns,
+                  e,
+                  `${config.addonRef}-mae-annotationKey-${copyAn.annotationKey}`,
+                  [...(target.parentElement?.children || [])].map((a) => a.id),
+                );
+                if (e) {
+                  e.style.boxShadow = this.selectedRelateAns.length
+                    ? "#009900 0px 0px 4px 3px"
+                    : "";
+                }
+              });
+            },
+          },
+        ],
+      });
+    if (this.isExistAnno) {
+      copyAnnEls.push({
+        tag: "span",
+        properties: { textContent: "保存双链信息" },
+        listeners: [
+          {
+            type: "click",
+            listener: () => {
+              this.saveAnnLink();
+            },
+          },
+        ],
+      });
+    }
+
     return {
       tag: "div",
       styles: {
@@ -402,115 +512,135 @@ class AnnotationPopup {
       },
       children: [
         {
-          tag: "input",
-          styles: { flex: "1", fontSize: this.fontSize },
-          listeners: [
-            {
-              type: "keydown",
-              listener: async (e: Event) => {
-                const event = e as KeyboardEvent;
-                const input = event.target as HTMLInputElement;
-                if (!input) return;
-                if (!event) return;
-                if (event.key === "Shift") {
-                  // 按下Shift键时，记录起始位置
-                  shiftStart = true;
-                  selectionStart = input.selectionStart || input.value.length;
-                  selectionCount = 0;
-                }
-              },
-            },
-            {
-              type: "keypress",
-              listener: async (e: Event) => {
-                const event = e as KeyboardEvent;
-                const input = event.target as HTMLInputElement;
-                if (!input) return;
-                if (!event) return;
-                ztoolkit.log("keypress", event);
-              },
-            },
-            {
-              type: "keyup",
-              listener: async (e: Event) => {
-                const event = e as KeyboardEvent;
-                const input = event.target as HTMLInputElement;
-                if (!input) return;
-                if (!event) return;
-
-                if (event.key === "Shift") {
-                  shiftStart = false;
-                }
-                if (event.key === "ArrowLeft") {
-                  if (shiftStart) {
-                    selectionCount--;
-                    const arg = [
-                      selectionStart,
-                      selectionStart + selectionCount,
-                    ].sort((a, b) => a - b);
-                    const d = selectionCount > 0 ? "forward" : "backward";
-                    input.setSelectionRange(arg[0], arg[1], d);
-                  } else {
-                    const arr =
-                      Math.max(
-                        input.selectionDirection == "backward"
-                          ? input.selectionStart || 0
-                          : input.selectionEnd || 0,
-                        1,
-                      ) - 1;
-                    input.selectionStart = input.selectionEnd = arr;
-                  }
-                  return;
-                } else if (event.key === "ArrowRight") {
-                  if (shiftStart) {
-                    selectionCount++;
-                    const arg = [
-                      selectionStart,
-                      selectionStart + selectionCount,
-                    ].sort((a, b) => a - b);
-                    const d = selectionCount > 0 ? "forward" : "backward";
-                    input.setSelectionRange(arg[0], arg[1], d);
-                  } else {
-                    const arr =
-                      Math.min(
-                        input.selectionDirection == "backward"
-                          ? input.selectionStart || 0
-                          : input.selectionEnd || 0 || 0,
-                        input.value.length - 1,
-                      ) + 1;
-                    input.selectionStart = input.selectionEnd = arr;
-                  }
-                  return;
-                }
-                this.searchTag = input.value.trim();
-                if (event.key === "Enter") {
-                  this.onTagClick(this.searchTag);
-                  return;
-                }
-                ztoolkit.log(
-                  event,
-                  input.value.trim(),
-                  input.selectionStart,
-                  input.selectionEnd,
-                  input.selectionDirection,
-                );
-                const tagDiv = this.rootDiv?.querySelector(
-                  "#" + this.idTagsDiv,
-                );
-                if (tagDiv) {
-                  this.tagsDisplay = await this.searchTagResult();
-                  ztoolkit.UI.replaceElement(this.createTagsDiv(), tagDiv);
-                }
-                return true;
-              },
-            },
-          ],
-          properties: { textContent: this.searchTag, title: "敲回车增加标签" },
+          tag: "div",
+          styles: {
+            display: "flex",
+            flexDirection: "row",
+            flexWrap: "wrap",
+            justifyContent: "space-start",
+          },
+          children: copyAnnEls,
         },
         {
           tag: "div",
-          styles: { display: "flex" },
+          styles: {
+            display: "flex",
+            flexDirection: "row",
+            flexWrap: "wrap",
+            justifyContent: "space-start",
+          },
           children: [
+            {
+              tag: "input",
+              styles: { flex: "1", fontSize: this.fontSize },
+              listeners: [
+                {
+                  type: "keydown",
+                  listener: async (e: Event) => {
+                    const event = e as KeyboardEvent;
+                    const input = event.target as HTMLInputElement;
+                    if (!input) return;
+                    if (!event) return;
+                    if (event.key === "Shift") {
+                      // 按下Shift键时，记录起始位置
+                      shiftStart = true;
+                      selectionStart =
+                        input.selectionStart || input.value.length;
+                      selectionCount = 0;
+                    }
+                  },
+                },
+                {
+                  type: "keypress",
+                  listener: async (e: Event) => {
+                    const event = e as KeyboardEvent;
+                    const input = event.target as HTMLInputElement;
+                    if (!input) return;
+                    if (!event) return;
+                    ztoolkit.log("keypress", event);
+                  },
+                },
+                {
+                  type: "keyup",
+                  listener: async (e: Event) => {
+                    const event = e as KeyboardEvent;
+                    const input = event.target as HTMLInputElement;
+                    if (!input) return;
+                    if (!event) return;
+
+                    if (event.key === "Shift") {
+                      shiftStart = false;
+                    }
+                    if (event.key === "ArrowLeft") {
+                      if (shiftStart) {
+                        selectionCount--;
+                        const arg = [
+                          selectionStart,
+                          selectionStart + selectionCount,
+                        ].sort((a, b) => a - b);
+                        const d = selectionCount > 0 ? "forward" : "backward";
+                        input.setSelectionRange(arg[0], arg[1], d);
+                      } else {
+                        const arr =
+                          Math.max(
+                            input.selectionDirection == "backward"
+                              ? input.selectionStart || 0
+                              : input.selectionEnd || 0,
+                            1,
+                          ) - 1;
+                        input.selectionStart = input.selectionEnd = arr;
+                      }
+                      return;
+                    } else if (event.key === "ArrowRight") {
+                      if (shiftStart) {
+                        selectionCount++;
+                        const arg = [
+                          selectionStart,
+                          selectionStart + selectionCount,
+                        ].sort((a, b) => a - b);
+                        const d = selectionCount > 0 ? "forward" : "backward";
+                        input.setSelectionRange(arg[0], arg[1], d);
+                      } else {
+                        const arr =
+                          Math.min(
+                            input.selectionDirection == "backward"
+                              ? input.selectionStart || 0
+                              : input.selectionEnd || 0 || 0,
+                            input.value.length - 1,
+                          ) + 1;
+                        input.selectionStart = input.selectionEnd = arr;
+                      }
+                      return;
+                    }
+                    this.searchTag = input.value.trim();
+                    if (event.key === "Enter") {
+                      this.onTagClick(this.searchTag);
+                      return;
+                    }
+                    ztoolkit.log(
+                      event,
+                      input.value.trim(),
+                      input.selectionStart,
+                      input.selectionEnd,
+                      input.selectionDirection,
+                    );
+                    const tagDiv = this.rootDiv?.querySelector(
+                      "#" + this.idTagsDiv,
+                    );
+                    if (tagDiv) {
+                      this.tagsDisplay = await this.searchTagResult();
+                      ztoolkit.UI.replaceElement(this.createTagsDiv(), tagDiv);
+                    }
+                    return true;
+                  },
+                },
+              ],
+              properties: {
+                textContent: this.searchTag,
+                title: "敲回车增加标签",
+              },
+            },
+            // ...mae,
             {
               tag: "button",
               namespace: "html",
@@ -573,6 +703,9 @@ class AnnotationPopup {
         },
       ],
     };
+  }
+  saveAnnLink() {
+    throw new Error("Method not implemented.");
   }
   excludeTags(
     from: groupByResult<{
@@ -796,7 +929,36 @@ class AnnotationPopup {
               annotation.removeTag(tag);
             }
           }
+          // annotation.relatedItems;
+
+          //  const rs=annotation.getRelations()
+          //  //@ts-ignore 1111
+          //   const linkAnnotation =rs["link:annotation"] as string[]||[]
+          //   this.selectedRelateAns
+          //     .filter((f) => !linkAnnotation.includes(f.openPdf))
+          //     .map((a) => a.openPdf)
+          //     .forEach((relateItem) => {
+          //       annotation.addRelation("link:annotation" as any, relateItem);
+          //     });
+          //   linkAnnotation
+          //     .filter(
+          //       (f) => !this.selectedRelateAns.find((a) => a.openPdf == f),
+          //     )
+          //     .forEach((relateItem) => {
+          //       annotation.removeRelation("link:annotation" as any, relateItem);
+          //     });
+          // if(this.selectedRelateAns.length>0)
+
           annotation.saveTx(); //增加每一个都要保存，为啥不能批量保存？
+          ztoolkit.log(
+            "保存关联",
+            this.selectedRelateAns,
+            this.selectedRelateAns.map((a) => a.annotationKey),
+            annotation.relatedItems,
+          );
+          new Relations(annotation).setRelations(
+            this.selectedRelateAns.map((a) => a.openPdf),
+          );
         }
         this.doc?.getElementById(this.idRootDiv)?.remove();
       } else {
@@ -804,14 +966,21 @@ class AnnotationPopup {
           this.selectedTags.map((a) => a.color).filter((f) => f)[0] ||
           memFixedColor(tagsRequire[0], undefined);
         const tags = tagsRequire.map((a) => ({ name: a }));
+
         // 因为线程不一样，不能采用直接修改params.annotation的方式，所以直接采用新建的方式保存笔记
         // 特意采用 Components.utils.cloneInto 方法
-        this.reader?._annotationManager.addAnnotation(
+        const newAnn = this.reader?._annotationManager.addAnnotation(
           Components.utils.cloneInto(
             { ...this.params?.annotation, color, tags },
             this.doc,
           ),
         );
+
+        if (newAnn) {
+          new Relations(newAnn.id).setRelations(
+            this.selectedRelateAns.map((a) => a.openPdf),
+          );
+        }
         this.onHidePopup?.apply(this);
         //@ts-ignore 隐藏弹出框
         this.reader?._primaryView._onSetSelectionPopup(null);

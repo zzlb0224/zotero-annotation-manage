@@ -1,6 +1,8 @@
 // import { memoize } from "./Memoize";
 import { getPref, setPref } from "./prefs";
 import memoize from "./memoize2";
+import { config } from "../../package.json";
+import { stopPropagation } from "../modules/annotationsToNote";
 /* unique 采用set的比较方式*/
 export function unique<T>(arr: T[]) {
   return [...new Set(arr)];
@@ -376,14 +378,25 @@ export function str2RegExp(value: string) {
 export function isDebug() {
   return !!getPref("debug");
 }
-
+export function getItem(itemOrKeyOrId: Zotero.Item | string | number) {
+  return typeof itemOrKeyOrId == "number"
+    ? Zotero.Items.get(itemOrKeyOrId)
+    : typeof itemOrKeyOrId == "string"
+      ? (Zotero.Items.getByLibraryAndKey(
+          Zotero.Libraries.userLibraryID,
+          itemOrKeyOrId,
+        ) as Zotero.Item)
+      : itemOrKeyOrId;
+}
 export async function openAnnotation(
-  item: Zotero.Item,
+  itemOrKeyOrId: Zotero.Item | string | number,
   page: string,
   annotationKey: string,
 ) {
   let doc: Document | undefined = undefined;
   let pdfDoc: Document | undefined = undefined;
+  const item = getItem(itemOrKeyOrId);
+
   await Zotero.FileHandlers.open(item, {
     location: {
       annotationID: annotationKey,
@@ -418,7 +431,7 @@ export async function injectCSS(doc: Document, path: "annotation.css") {
   ztoolkit.UI.appendElement(
     {
       tag: "style",
-      id: "style_css_" + path.replace(/[\/:\s\.]/g, "_"),
+      id: "style_css_" + path.replace(/[/:\s.]/g, "_"),
       properties: {
         innerHTML: await getFileContent(rootURI + "chrome/content/" + path),
       },
@@ -437,4 +450,184 @@ export async function getFileContent(path: string) {
       ? contentOrXHR
       : (contentOrXHR as any as XMLHttpRequest).response;
   return content;
+}
+export class Relations {
+  item: Zotero.Item;
+  constructor(itemOrKeyOrId: Zotero.Item | string | number) {
+    this.item = getItem(itemOrKeyOrId);
+  }
+  static checkLinkAnnotation() {
+    setTimeout(async () => {
+      const d = await Zotero.RelationPredicates.add("link:annotation");
+
+      ztoolkit.log(
+        "check RelationPredicates link:annotation",
+        Zotero.RelationPredicates._allowAdd,
+        d,
+      );
+    });
+  }
+  getLinkRelations() {
+    ztoolkit.log("this.item", this.item);
+    //@ts-ignore link:annotation
+    return (this.item as Zotero.Item).getRelations()[
+      "link:annotation"
+    ] as string[];
+  }
+  static allOpenPdf(str: string) {
+    const strArray =
+      str
+        .match(
+          /.*(zotero:\/\/open-pdf\/library\/items\/(.*?)[?]page=(.*?)&annotation=([^)]*)).*/g,
+        )
+        ?.map((a) => a.toString()) || [];
+    return this.mapOpenPdf(strArray);
+  }
+  static mapOpenPdf(strArray: string[]) {
+    return strArray
+      .map((str) =>
+        str.match(
+          /.*(zotero:\/\/open-pdf\/library\/items\/(.*?)[?]page=(.*?)&annotation=([^)]*)).*/,
+        ),
+      )
+      .map((a) => ({
+        text: a?.[0] || "",
+        openPdf: a?.[1] || "",
+        pdfKey: a?.[2] || "",
+        page: a?.[3] || "",
+        annotationKey: a?.[4] || "",
+      }))
+      .filter((f) => f.text);
+  }
+  setRelations(openPdfs: string[]) {
+    const annotation = this.item;
+    const changed = annotation.setRelations({
+      //@ts-ignore link:annotation
+      "link:annotation": openPdfs,
+    });
+    if (changed) annotation.saveTx();
+  }
+  updateRelations(openPdfs: string[]) {
+    const annotation = this.item;
+    const linkAnnotation = "link:annotation" as _ZoteroTypes.RelationsPredicate;
+    openPdfs
+      .filter((f) => !annotation.relatedItems.find((a) => a == f))
+      .forEach((f) => {
+        annotation.addRelation(linkAnnotation, f);
+      });
+    annotation.relatedItems
+      .filter((f) => !openPdfs.find((a) => a == f))
+      .forEach((f) => {
+        annotation.removeRelation(linkAnnotation, f);
+      });
+    annotation.saveTx();
+  }
+}
+export function createTopDiv(
+  doc?: Document,
+  id = config.addonRef + `-TopDiv`,
+  sections = ["action", "status", "query", "content"],
+) {
+  if (!doc) return;
+  doc.getElementById(id)?.remove();
+  const d = ztoolkit.UI.appendElement(
+    {
+      tag: "div",
+      id: id,
+
+      styles: {
+        padding: "10px",
+        position: "fixed",
+        left: "150px",
+        top: "100px",
+        zIndex: "9999",
+        maxWidth: "calc(100% - 300px)",
+        maxHeight: "600px",
+        overflowY: "scroll",
+        display: "flex",
+        boxShadow: "#999999 0px 0px 4px 3px",
+        background: "white",
+        flexDirection: "column",
+      },
+
+      listeners: [
+        {
+          type: "mousedown",
+          listener(ev: any) {
+            //  if(ev) return;
+            stopPropagation(ev);
+            const x = ev.clientX - d.offsetLeft;
+            const y = ev.clientY - d.offsetTop;
+            doc.onmousemove = (e) => {
+              stopPropagation(e);
+              d.style.left = e.clientX - x + "px";
+              d.style.top = e.clientY - y + "px";
+            };
+            doc.onmouseup = (e) => {
+              stopPropagation(e);
+              doc.onmousemove = doc.onmouseup = null;
+            };
+          },
+        },
+      ],
+    },
+    doc.querySelector("#browser") ||
+      doc.querySelector("body") ||
+      doc.children[0] ||
+      doc,
+  ) as HTMLDivElement;
+
+  const modal = ztoolkit.UI.appendElement(
+    {
+      tag: "div",
+      properties: {},
+      styles: {
+        backgroundColor: "white",
+        padding: "0px",
+        borderRadius: "5px",
+        position: "relative",
+      },
+    },
+    d,
+  );
+
+  ztoolkit.UI.appendElement(
+    {
+      tag: "div",
+      properties: { textContent: "X" },
+      styles: {
+        position: "absolute",
+        top: "0px",
+        right: "0px",
+        width: "30px",
+        height: "30px",
+        backgroundColor: "red",
+        color: "white",
+        textAlign: "center",
+        lineHeight: "30px",
+        cursor: "pointer",
+      },
+      listeners: [
+        {
+          type: "click",
+          listener: () => {
+            d.remove();
+          },
+        },
+      ],
+    },
+    modal,
+  );
+  sections.forEach((a) =>
+    ztoolkit.UI.appendElement(
+      {
+        tag: "div",
+        properties: { textContent: "" },
+        classList: [a],
+        styles: { display: "flex" },
+      },
+      d,
+    ),
+  );
+  return d;
 }

@@ -23,6 +23,7 @@ import {
   toggleProperty,
   uniqueBy,
 } from "../utils/zzlb";
+import { createTopDiv } from "../utils/zzlb";
 let popupWin: ProgressWindowHelper | undefined = undefined;
 let popupTime = -1;
 
@@ -350,7 +351,12 @@ async function createSearchAnnDiv(doc: Document, isCollection: boolean) {
   const annotations = getAllAnnotations(items);
   ztoolkit.log(isCollection, items, annotations);
   let ans: AnnotationRes[] = annotations;
-  const div = createTopDiv(doc);
+  const div = createTopDiv(doc, config.addonRef + `-TopDiv`, [
+    "action",
+    "status",
+    "query",
+    "content",
+  ]);
   if (div) {
     const inputTag: TagElementProps = {
       tag: "div",
@@ -542,7 +548,7 @@ function createChild(doc: Document, items: Zotero.Item[]) {
     doc.querySelector("body")!,
   );
 }
-function stopPropagation(e: Event) {
+export function stopPropagation(e: Event) {
   const win = (e.target as any).ownerGlobal;
   e = e || win?.event || window.event;
   if (e.stopPropagation) {
@@ -575,7 +581,12 @@ async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
       },
     ],
   };
-  const div = createTopDiv(doc);
+  const div = createTopDiv(doc, config.addonRef + `-TopDiv`, [
+    "action",
+    "status",
+    "query",
+    "content",
+  ]);
   if (div) {
     const actionTag = createActionTag(
       div,
@@ -761,82 +772,6 @@ function createActionTag(
     ...others,
   ];
 }
-function createTopDiv(doc?: Document) {
-  if (!doc) return;
-  doc.getElementById(ID.root + "TopDiv")?.remove();
-
-  const children: TagElementProps[] = [
-    {
-      tag: "div",
-      properties: { textContent: "" },
-      classList: ["action"],
-      styles: { display: "flex" },
-    },
-    {
-      tag: "div",
-      properties: { textContent: "" },
-      classList: ["status"],
-      styles: { display: "flex" },
-    },
-    {
-      tag: "div",
-      properties: { textContent: "" },
-      classList: ["query"],
-      styles: { display: "flex" },
-    },
-    {
-      tag: "div",
-      properties: { textContent: "" },
-      classList: ["content"],
-      styles: { display: "flex" },
-    },
-  ];
-  const d = ztoolkit.UI.appendElement(
-    {
-      tag: "div",
-      id: ID.root + "TopDiv",
-      styles: {
-        padding: "10px",
-        position: "fixed",
-        left: "150px",
-        top: "100px",
-        zIndex: "9999",
-        maxWidth: "calc(100% - 300px)",
-        maxHeight: "600px",
-        overflowY: "scroll",
-        display: "flex",
-        boxShadow: "#999999 0px 0px 4px 3px",
-        background: "white", // getOneFixedColor(),
-        // flexWrap: "wrap",
-        flexDirection: "column",
-      },
-      children: children,
-      listeners: [
-        {
-          type: "mousedown",
-          listener(ev: any) {
-            //  if(ev) return;
-            stopPropagation(ev);
-            const x = ev.clientX - d.offsetLeft;
-            const y = ev.clientY - d.offsetTop;
-            doc.onmousemove = (e) => {
-              stopPropagation(e);
-              d.style.left = e.clientX - x + "px";
-              d.style.top = e.clientY - y + "px";
-            };
-            doc.onmouseup = (e) => {
-              stopPropagation(e);
-              doc.onmousemove = doc.onmouseup = null;
-            };
-          },
-        },
-      ],
-    },
-    doc.querySelector("#browser")!,
-  ) as HTMLDivElement;
-  return d;
-}
-
 async function saveNote(targetNoteItem: Zotero.Item, txt: string) {
   await Zotero.BetterNotes.api.note.insert(targetNoteItem, txt, -1);
   // const editor= await Zotero.BetterNotes.api.editor.getEditorInstance(targetNoteItem.id)

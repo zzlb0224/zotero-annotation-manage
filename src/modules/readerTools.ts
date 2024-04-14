@@ -1,4 +1,5 @@
 import { config } from "../../package.json";
+import { Relations, createTopDiv, openAnnotation } from "../utils/zzlb";
 function register() {
   Zotero.Reader.registerEventListener(
     "renderToolbar",
@@ -23,7 +24,7 @@ export default { register, unregister };
 function readerToolbarCallback(
   event: Parameters<_ZoteroTypes.Reader.EventHandler<"renderToolbar">>[0],
 ) {
-  const { append, doc, reader } = event;
+  const { append, doc, reader, params } = event;
   copyFunc(doc, "readerToolbarCallback");
 }
 function renderSidebarAnnotationHeaderCallback(
@@ -31,8 +32,95 @@ function renderSidebarAnnotationHeaderCallback(
     _ZoteroTypes.Reader.EventHandler<"renderSidebarAnnotationHeader">
   >[0],
 ): void | Promise<void> {
-  const { append, doc, reader } = event;
+  const { append, doc, reader, params } = event;
   copyFunc(doc, "renderSidebarAnnotationHeaderCallback");
+  const ann = Zotero.Items.getByLibraryAndKey(
+    params.annotation.libraryID,
+    params.annotation.id,
+  ) as Zotero.Item;
+  ztoolkit.log(event, params.annotation.id, ann);
+  const relations = new Relations(ann);
+  // relations.getLinkRelations()
+  // const relatedAnnotations= getRelatedAnnotations(ann);
+  const linkAnnotations = relations.getLinkRelations();
+  const linkAnnotationsM = Relations.mapOpenPdf(linkAnnotations);
+  ztoolkit.log(
+    "readerToolbarCallback111",
+    params,
+    ann,
+    linkAnnotations,
+    linkAnnotationsM,
+  );
+  if (linkAnnotations.length > 0) {
+    const u = ztoolkit.UI.createElement(doc, "span", {
+      id: `renderSidebarAnnotationHeader-${params.annotation.id}`,
+      properties: { textContent: "🍡" },
+      listeners: [
+        {
+          type: "click",
+          listener: (e) => {
+            // const r0 = relatedAnnotations[0];
+            // openAnnotation(r0.parentItem!,r0.annotationPageLabel,r0.key)
+            const div = createTopDiv(doc, config.addonRef + `-TopDiv`, [
+              "action",
+              "status",
+              "query",
+              "content",
+            ])!;
+            const m = Relations.mapOpenPdf(linkAnnotations);
+            for (const m0 of m) {
+              ztoolkit.UI.appendElement(
+                {
+                  tag: "div",
+                  properties: { textContent: m0.openPdf },
+                  listeners: [
+                    {
+                      type: "click",
+                      listener: () => {
+                        openAnnotation(m0.pdfKey, m0.page, m0.annotationKey);
+                      },
+                    },
+                  ],
+                },
+                div.querySelector(".content")!,
+              );
+            }
+            ztoolkit.log(m);
+            // const m0 = m[0];
+            // openAnnotation(m0.pdfKey, m0.page, m0.annotationKey);
+            // const m=linkAnnotations[0].match(new RegExp("zotero://open-pdf/library/items/(.*?)[?]page=(.*?)&annotation=(.*)"))
+            // if(m)
+            // openAnnotation(Zotero.Items.get(m[1]),m[2],m[3]);
+            e.preventDefault();
+          },
+        },
+        {
+          type: "mouseover",
+          listener: (e) => {
+            (e.target as HTMLElement).style.backgroundColor = "#F0F0F0";
+          },
+        },
+        {
+          type: "mouseout",
+          listener: (e) => {
+            (e.target as HTMLElement).style.removeProperty("background-color");
+          },
+        },
+      ],
+      enableElementRecord: false,
+      ignoreIfExists: true,
+    });
+    append(u);
+  }
+}
+
+function getRelatedAnnotations(ann: Zotero.Item) {
+  if (ann.relatedItems && ann.relatedItems.length > 0) {
+    const relatedItemsA = Zotero.Items.get(ann.relatedItems);
+    ztoolkit.log("getRelatedAnnotations", relatedItemsA);
+    return relatedItemsA.filter((f) => f.isAnnotation());
+  }
+  return [];
 }
 
 function copyFunc(doc: Document, copyFrom: string = "") {
@@ -47,13 +135,14 @@ function copyFunc(doc: Document, copyFrom: string = "") {
     // Selection 对象 表示用户选择的文本范围或光标的当前位置。
     // 声明一个变量接收 -- 用户输入的剪切或者复制的文本转化为字符串
     const text = clipboardData.getData("text") as string;
-    ztoolkit.log("123 copy", doc, clipboardData, clipboardData.getData("text"));
+    // ztoolkit.log("123 copy", doc, clipboardData, clipboardData.getData("text"));
     if (!text) return;
     const man = text2Ma(text);
     ztoolkit.log(man);
     doc.querySelector(`#${config.addonRef}-copy-annotations`)?.remove();
     if (man.length == 0) return;
     addon.data.copy = text;
+    ztoolkit.log("复制内容 有效", addon.data.copy, man);
     const z = ztoolkit.UI.appendElement(
       {
         id: `${config.addonRef}-copy-annotations`,
@@ -93,25 +182,30 @@ function copyFunc(doc: Document, copyFrom: string = "") {
     }, 10000);
   });
 }
-function text2Ma(text: string) {
-  /*     text = `[image] ([pdf](zotero://open-pdf/library/items/7BWQVD5L?page=6&annotation=PA2E577M))  
-([Rahmani 等, 2023, p. 828](zotero://select/library/items/SKGVY3QP))`
+export function text2Ma(text: string) {
+  //    text = `“H2a：企业占据的结构洞数正向调节知识关键性 与网络权力的关系。 H2b：企业占据的结构洞数正向调节知识不可替 代性与网络权力的关系。 H2c：企业占据的结构洞数正向调节知识中心性 与网络权力的关系。” ([⁨刘立⁩和⁨党兴华⁩, 2014, p. 3](zotero://select/library/items/MBYKPZRC)) ([pdf](zotero://open-pdf/library/items/ALUKNMR8?page=3&annotation=UJ8F3GL4))
 
+  // [image] ([pdf](zotero://open-pdf/library/items/ALUKNMR8?page=3&annotation=CCYZI87Y))
+  // ([⁨刘立⁩和⁨党兴华⁩, 2014, p. 3](zotero://select/library/items/MBYKPZRC))
 
-*/
-  // const reStr = ".*[(]zotero://select/library/items/(.*?)[)][()[\\s]*pdf][(]zotero://open-pdf/library/items/(.*?)[?]page=(.*?)&annotation=(.*?)[)][)]";
+  // “知识价值性” ([⁨刘立⁩和⁨党兴华⁩, 2014, p. 5](zotero://select/library/items/MBYKPZRC)) ([pdf](zotero://open-pdf/library/items/ALUKNMR8?page=5&annotation=IL3PXPUF))`
+
   const reStr =
-    ".*[[]pdf][(]zotero://open-pdf/library/items/(.*?)[?]page=(.*?)&annotation=(.*?)[)][)]";
+    ".*[[]pdf][(](zotero://open-pdf/library/items/(.*?)[?]page=(.*?)&annotation=(.*?))[)][)]";
   const reG = new RegExp(reStr, "g");
   const reN = new RegExp(reStr, "");
+  // const reG = /.*[[]pdf][(](zotero:\/\/open-pdf\/library\/items\/(.*?)[?]page=(.*?)&annotation=(.*?))[)][)].*/g;
+  // const reN = /^.*[[]pdf][(](zotero:\/\/open-pdf\/library\/items\/(.*?)[?]page=(.*?)&annotation=(.*?))[)][)].*$/;
   const mag = text.match(reG) || [];
   const man = mag
     .map((m) => m.match(reN) || [])
     .map((a) => ({
       text: a[0],
-      pdfKey: a[1],
-      page: a[2],
-      annotationKey: a[3],
+      openPdf: a[1],
+      pdfKey: a[2],
+      page: a[3],
+      annotationKey: a[4],
     }));
+  man;
   return man;
 }
