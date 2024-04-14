@@ -1,8 +1,8 @@
 import { start } from "repl";
 import { config } from "../../package.json";
-import { createTimer } from "../utils/zzlb";
 import {
   Relations,
+  Timer,
   createTopDiv,
   getItem,
   openAnnotation,
@@ -139,20 +139,18 @@ function createPopupDiv(doc: Document, anKey: string) {
   const scrollTop = doc.getElementById("annotations")?.scrollTop || 0;
   div.style.top = fromEle.offsetTop - scrollTop + "px";
   ztoolkit.log("top", fromEle.offsetTop, fromEle.clientTop, fromEle.offsetTop);
-  const { startTimer: startTimer, clearTimer: clearTimer } = createTimer(() =>
-    div.remove(),
-  );
+  const timer = new Timer(() => div.remove());
   div.addEventListener("mouseover", () => {
-    clearTimer();
+    timer.clearTimer();
   });
   div.addEventListener("mouseout", () => {
-    startTimer();
+    timer.startTimer();
   });
   fromEle.addEventListener("mouseover", () => {
-    clearTimer();
+    timer.clearTimer();
   });
   fromEle.addEventListener("mouseout", () => {
-    startTimer();
+    timer.startTimer();
   });
 
   const anFromRelations = new Relations(anFrom);
@@ -303,15 +301,15 @@ function copyFunc(doc: Document, copyFrom: string = "") {
         };
       })
       .forEach((f) => ztoolkit.UI.appendElement(f, content));
-    const { startTimer, clearTimer } = createTimer(() => {
+    const timer = new Timer(() => {
       div.remove();
     }, 10000);
-    startTimer();
+    timer.startTimer();
     div.addEventListener("mouseover", () => {
-      clearTimer();
+      timer.clearTimer();
     });
     div.addEventListener("mouseout", () => {
-      startTimer(3000);
+      timer.startTimer(3000);
     });
     query.textContent = "已复制";
     div.addEventListener(

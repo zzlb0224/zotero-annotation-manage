@@ -712,65 +712,68 @@ export function createTopDiv(
   );
   return d;
 }
-export function createTimer(callback: () => void, ms = 3000) {
-  let closeTimer: NodeJS.Timeout | null;
-  let timeout = ms > 0 ? ms : 3000;
-  function startTimer(ms = 3000) {
-    timeout = ms > 0 ? ms : timeout;
-    clearTimer();
-    closeTimer = setTimeout(() => {
-      callback();
-      if (closeTimer) {
-        clearTimeout(closeTimer);
-        closeTimer = null;
+export class Timer {
+  closeTimer: NodeJS.Timeout | null;
+  timeout: number;
+  callback: () => void;
+  constructor(callback: () => void, ms = 3000) {
+    this.timeout = ms > 0 ? ms : 3000;
+    this.closeTimer = null;
+    this.callback = callback;
+  }
+  startTimer(ms = 3000) {
+    this.timeout = ms > 0 ? ms : this.timeout;
+    this.clearTimer();
+    this.closeTimer = setTimeout(() => {
+      this.callback();
+      if (this.closeTimer) {
+        clearTimeout(this.closeTimer);
+        this.closeTimer = null;
       }
     }, ms);
   }
-  function clearTimer() {
-    if (closeTimer) {
-      clearTimeout(closeTimer);
-      closeTimer = null;
+  clearTimer() {
+    if (this.closeTimer) {
+      clearTimeout(this.closeTimer);
+      this.closeTimer = null;
     }
   }
-
-  return { startTimer: startTimer, clearTimer: clearTimer };
 }
 
-export function createCountDown(
-  callback: (remainingTime: number) => void,
-  ms = 15000,
-  delay = 1000,
-) {
-  let _total = ms;
-  let _timeout: NodeJS.Timeout | null;
-  let _start = 0;
-  function start(ms = 15000) {
-    clear();
-    _total = ms > 0 ? ms : _total;
-    _start = Date.now();
-    _timeout = setInterval(() => {
-      const _remainingTime = remainingTime();
-      callback(_remainingTime);
+export class CountDown {
+  _total = 0;
+  _timeout: NodeJS.Timeout | null = null;
+  _start = 0;
+  callback: (remainingTime: number) => void;
+  delay: number;
+  constructor(
+    callback: (remainingTime: number) => void,
+    ms = 15000,
+    delay = 1000,
+  ) {
+    this._total = ms;
+    this.callback = callback;
+    this.delay = delay;
+  }
+  start(ms = 15000) {
+    this.clear();
+    this._total = ms > 0 ? ms : this._total;
+    this._start = Date.now();
+    this._timeout = setInterval(() => {
+      const _remainingTime = this.remainingTime();
+      this.callback(_remainingTime);
       if (_remainingTime < 0) {
-        clear();
+        this.clear();
       }
-    }, delay);
+    }, this.delay);
   }
-  function clear() {
-    if (_timeout) {
-      clearInterval(_timeout);
-      _timeout = null;
+  clear() {
+    if (this._timeout) {
+      clearInterval(this._timeout);
+      this._timeout = null;
     }
   }
-  function remainingTime() {
-    return _total - Date.now() + _start;
+  remainingTime() {
+    return this._total - Date.now() + this._start;
   }
-  return { start, clear, remainingTime };
 }
-
-const s = createCountDown((r) => {
-  console.log(r);
-}, 15000);
-setTimeout(() => {
-  s.clear();
-}, 3000);

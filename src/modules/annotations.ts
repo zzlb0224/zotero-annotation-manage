@@ -10,8 +10,8 @@ import {
   sortValuesLength,
 } from "../utils/sort";
 import {
-  Relations,
-  createCountDown,
+  CountDown,
+  Relations, 
   groupBy,
   groupByResult,
   groupByResultIncludeFixedTags,
@@ -287,7 +287,7 @@ class AnnotationPopup {
       }
     }, 1000);
   }
-  public countDown = createCountDown(
+  public countDown = new CountDown(
     (remainingTime) => {
       if (remainingTime > 0) {
         if (this.btnClose) {
