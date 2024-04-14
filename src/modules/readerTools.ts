@@ -1,5 +1,10 @@
 import { config } from "../../package.json";
-import { Relations, createTopDiv, openAnnotation } from "../utils/zzlb";
+import {
+  Relations,
+  createTopDiv,
+  getItem,
+  openAnnotation,
+} from "../utils/zzlb";
 function register() {
   Zotero.Reader.registerEventListener(
     "renderToolbar",
@@ -34,26 +39,46 @@ function renderSidebarAnnotationHeaderCallback(
 ): void | Promise<void> {
   const { append, doc, reader, params } = event;
   copyFunc(doc, "renderSidebarAnnotationHeaderCallback");
-  const ann = Zotero.Items.getByLibraryAndKey(
-    params.annotation.libraryID,
-    params.annotation.id,
-  ) as Zotero.Item;
-  ztoolkit.log(event, params.annotation.id, ann);
-  const relations = new Relations(ann);
+  ztoolkit.log(event, params.annotation.id);
+  const relations = new Relations(params.annotation.id);
   // relations.getLinkRelations()
   // const relatedAnnotations= getRelatedAnnotations(ann);
   const linkAnnotations = relations.getLinkRelations();
-  const linkAnnotationsM = Relations.mapOpenPdf(linkAnnotations);
-  ztoolkit.log(
-    "readerToolbarCallback111",
-    params,
-    ann,
-    linkAnnotations,
-    linkAnnotationsM,
-  );
-  if (linkAnnotations.length > 0) {
+  ztoolkit.log("readerToolbarCallback111", params, linkAnnotations);
+  const userActions: HTMLElement[] = [];
+  const add = ztoolkit.UI.createElement(doc, "span", {
+    id: `renderSidebarAnnotationHeader-add-${params.annotation.id}`,
+    properties: { textContent: "🧷" },
+    listeners: [
+      {
+        type: "click",
+        listener: (e) => {
+          const r = new Relations(params.annotation.id);
+          const man = Relations.allOpenPdf(addon.data.copy);
+          r.setRelations(man.map((a) => a.openPdf));
+        },
+      },
+      {
+        type: "mouseover",
+        listener: (e) => {
+          (e.target as HTMLElement).style.backgroundColor = "#F0F0F0";
+        },
+      },
+      {
+        type: "mouseout",
+        listener: (e) => {
+          (e.target as HTMLElement).style.removeProperty("background-color");
+        },
+      },
+    ],
+    enableElementRecord: false,
+    ignoreIfExists: true,
+  });
+  userActions.push(add);
+  ztoolkit.log("userActions1", userActions);
+  if (linkAnnotations && linkAnnotations.length > 0) {
     const u = ztoolkit.UI.createElement(doc, "span", {
-      id: `renderSidebarAnnotationHeader-${params.annotation.id}`,
+      id: `renderSidebarAnnotationHeader-link-${params.annotation.id}`,
       properties: { textContent: "🍡" },
       listeners: [
         {
@@ -69,10 +94,17 @@ function renderSidebarAnnotationHeaderCallback(
             ])!;
             const m = Relations.mapOpenPdf(linkAnnotations);
             for (const m0 of m) {
+              const an = getItem(m0.annotationKey);
+              const content = `${an.parentItem?.getDisplayTitle()}   ${an.annotationType} ${an.annotationText || ""} ${an.annotationComment || ""} `;
               ztoolkit.UI.appendElement(
                 {
                   tag: "div",
-                  properties: { textContent: m0.openPdf },
+                  styles: {
+                    padding: "2px",
+                    background: an.annotationColor + "80",
+                    marginRight: "20px",
+                  },
+                  properties: { textContent: content },
                   listeners: [
                     {
                       type: "click",
@@ -110,8 +142,10 @@ function renderSidebarAnnotationHeaderCallback(
       enableElementRecord: false,
       ignoreIfExists: true,
     });
-    append(u);
+    userActions.push(u);
   }
+  ztoolkit.log("userActions2", userActions);
+  if (userActions.length > 0) append(...userActions);
 }
 
 function getRelatedAnnotations(ann: Zotero.Item) {
@@ -137,7 +171,8 @@ function copyFunc(doc: Document, copyFrom: string = "") {
     const text = clipboardData.getData("text") as string;
     // ztoolkit.log("123 copy", doc, clipboardData, clipboardData.getData("text"));
     if (!text) return;
-    const man = text2Ma(text);
+    // const man = text2Ma(text);
+    const man = Relations.allOpenPdf(text);
     ztoolkit.log(man);
     doc.querySelector(`#${config.addonRef}-copy-annotations`)?.remove();
     if (man.length == 0) return;
@@ -157,15 +192,20 @@ function copyFunc(doc: Document, copyFrom: string = "") {
           padding: "5px",
           background: "#ffffff",
         },
-        children: man.map((m, i) => ({
-          tag: "span",
-          properties: { textContent: i + 1 + ":" + m.text.substring(0, 7) },
-          styles: {
-            background: "#ffffff",
-            margin: "3px",
-            border: "1px solid #000000",
-          },
-        })),
+        children: man.map((m, i) => {
+          const an = getItem(m.annotationKey);
+          const content =
+            (an.annotationComment || "") + (an.annotationText || "") + m.text;
+          return {
+            tag: "span",
+            properties: { textContent: i + 1 + ":" + content.substring(0, 7) },
+            styles: {
+              background: an.annotationColor + "80",
+              margin: "3px",
+              border: "1px solid #000000",
+            },
+          };
+        }),
         listeners: [
           {
             type: "click",

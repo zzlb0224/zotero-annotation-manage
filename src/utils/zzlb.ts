@@ -470,9 +470,11 @@ export class Relations {
   getLinkRelations() {
     ztoolkit.log("this.item", this.item);
     //@ts-ignore link:annotation
-    return (this.item as Zotero.Item).getRelations()[
-      "link:annotation"
-    ] as string[];
+    return (
+      ((this.item as Zotero.Item).getRelations()[
+        "link:annotation"
+      ] as string[]) || false
+    );
   }
   static allOpenPdf(str: string) {
     const strArray =
@@ -586,6 +588,8 @@ export function createTopDiv(
         padding: "0px",
         borderRadius: "5px",
         position: "relative",
+        right: "-10px",
+        top: "-10px",
       },
     },
     d,
@@ -599,12 +603,12 @@ export function createTopDiv(
         position: "absolute",
         top: "0px",
         right: "0px",
-        width: "30px",
-        height: "30px",
+        width: "20px",
+        height: "20px",
         backgroundColor: "red",
         color: "white",
         textAlign: "center",
-        lineHeight: "30px",
+        lineHeight: "20px",
         cursor: "pointer",
       },
       listeners: [
