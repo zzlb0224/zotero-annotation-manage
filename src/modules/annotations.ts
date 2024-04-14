@@ -11,7 +11,7 @@ import {
 } from "../utils/sort";
 import {
   CountDown,
-  Relations, 
+  Relations,
   groupBy,
   groupByResult,
   groupByResultIncludeFixedTags,
