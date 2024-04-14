@@ -68,7 +68,7 @@
 
 Nested Tags 的灵感来自 [Zotero-Style](https://github.com/MuiseDestiny/zotero-style)，一直在用这个插件。Nested Tags 相关的内容仅仅为自己方便添加标签而设计。
 
-双链标签灵感来自 [@YaoLiMuMu](https://github.com/windingwind/zotero-actions-tags/discussions/296)，非常好的笔记链接方案。同时感谢 @Geo123abc 提供的双链代码。
+双链标签灵感来自 [@YaoLiMuMu](https://github.com/windingwind/zotero-actions-tags/discussions/296)，非常好的笔记链接方案。同时感谢 @Geo123abc 提供的双链代码。目前采用dc:relation建立双链，会影响系统数据，不建议过多使用这个功能
 
 ## Reminder
 

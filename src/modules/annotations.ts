@@ -417,90 +417,90 @@ class AnnotationPopup {
       listeners: [
         {
           type: "click",
-          listener: (ev) => {
+          listener: (ev: Event) => {
             const target = ev.target as HTMLElement;
-            const index = this.selectedRelateAns.findIndex(
-              (f) => f.annotationKey == copyAn.annotationKey,
-            );
-            // ztoolkit.log("findMa", index, this.selectedCopyAns, copyAns);
-            if (index == -1) {
-              this.selectedRelateAns.push(copyAn);
-              target.style.boxShadow = "#009900 0px 0px 4px 3px";
-            } else {
-              this.selectedRelateAns.splice(index, 1);
-              target.style.boxShadow = "";
-            }
-            if (this.selectedRelateAns.length != copyAns.length) {
-              this.doc!.getElementById(
-                `${config.addonRef}-mae-annotation-all`,
-              )!.style.boxShadow = "";
-            } else {
-              this.doc!.getElementById(
-                `${config.addonRef}-mae-annotation-all`,
-              )!.style.boxShadow = "#009900 0px 0px 4px 3px";
-            }
+            // const index = this.selectedRelateAns.findIndex(
+            //   (f) => f.annotationKey == copyAn.annotationKey,
+            // );
+            // // ztoolkit.log("findMa", index, this.selectedCopyAns, copyAns);
+            // if (index == -1) {
+            //   this.selectedRelateAns.push(copyAn);
+            //   target.style.boxShadow = "#009900 0px 0px 4px 3px";
+            // } else {
+            //   this.selectedRelateAns.splice(index, 1);
+            //   target.style.boxShadow = "";
+            // }
+            // if (this.selectedRelateAns.length != copyAns.length) {
+            //   this.doc!.getElementById(
+            //     `${config.addonRef}-mae-annotation-all`,
+            //   )!.style.boxShadow = "";
+            // } else {
+            //   this.doc!.getElementById(
+            //     `${config.addonRef}-mae-annotation-all`,
+            //   )!.style.boxShadow = "#009900 0px 0px 4px 3px";
+            // }
           },
         },
       ],
     }));
     if (copyAns.length > 999)
-      copyAnnEls.push({
-        tag: "span",
-        properties: { textContent: "共" + copyAns.length + "条" },
-        styles: {
-          margin: "2px",
-          padding: "2px",
-          border: "1px solid #dddddd",
-          background: "#ddff00",
-          fontSize: this.fontSize,
-        },
-        id: `${config.addonRef}-mae-annotation-all`,
-        listeners: [
-          {
-            type: "click",
-            listener: (ev) => {
-              const target = ev.target as HTMLElement;
-              if (this.selectedRelateAns.length == copyAns.length) {
-                this.selectedRelateAns.splice(0, 999);
-                target.style.boxShadow = "";
-              } else {
-                this.selectedRelateAns.splice(0, 999, ...copyAns.slice(0, 999));
-                target.style.boxShadow = "#009900 0px 0px 4px 3px";
-              }
-              copyAns.forEach((copyAn) => {
-                const e = this.doc!.getElementById(
-                  `${config.addonRef}-mae-annotationKey-${copyAn.annotationKey}`,
-                );
-                ztoolkit.log(
-                  this.selectedRelateAns,
-                  e,
-                  `${config.addonRef}-mae-annotationKey-${copyAn.annotationKey}`,
-                  [...(target.parentElement?.children || [])].map((a) => a.id),
-                );
-                if (e) {
-                  e.style.boxShadow = this.selectedRelateAns.length
-                    ? "#009900 0px 0px 4px 3px"
-                    : "";
-                }
-              });
-            },
-          },
-        ],
-      });
-    if (this.isExistAnno) {
-      // copyAnnEls.push({
-      //   tag: "span",
-      //   properties: { textContent: "保存双链信息" },
-      //   listeners: [
-      //     {
-      //       type: "click",
-      //       listener: () => {
-      //         this.saveAnnLink();
-      //       },
-      //     },
-      //   ],
-      // });
-    }
+      if (this.isExistAnno) {
+        // copyAnnEls.push({
+        //   tag: "span",
+        //   properties: { textContent: "共" + copyAns.length + "条" },
+        //   styles: {
+        //     margin: "2px",
+        //     padding: "2px",
+        //     border: "1px solid #dddddd",
+        //     background: "#ddff00",
+        //     fontSize: this.fontSize,
+        //   },
+        //   id: `${config.addonRef}-mae-annotation-all`,
+        //   listeners: [
+        //     {
+        //       type: "click",
+        //       listener: (ev) => {
+        //         const target = ev.target as HTMLElement;
+        //         if (this.selectedRelateAns.length == copyAns.length) {
+        //           this.selectedRelateAns.splice(0, 999);
+        //           target.style.boxShadow = "";
+        //         } else {
+        //           this.selectedRelateAns.splice(0, 999, ...copyAns.slice(0, 999));
+        //           target.style.boxShadow = "#009900 0px 0px 4px 3px";
+        //         }
+        //         copyAns.forEach((copyAn) => {
+        //           const e = this.doc!.getElementById(
+        //             `${config.addonRef}-mae-annotationKey-${copyAn.annotationKey}`,
+        //           );
+        //           ztoolkit.log(
+        //             this.selectedRelateAns,
+        //             e,
+        //             `${config.addonRef}-mae-annotationKey-${copyAn.annotationKey}`,
+        //             [...(target.parentElement?.children || [])].map((a) => a.id),
+        //           );
+        //           if (e) {
+        //             e.style.boxShadow = this.selectedRelateAns.length
+        //               ? "#009900 0px 0px 4px 3px"
+        //               : "";
+        //           }
+        //         });
+        //       },
+        //     },
+        //   ],
+        // });
+        // copyAnnEls.push({
+        //   tag: "span",
+        //   properties: { textContent: "保存双链信息" },
+        //   listeners: [
+        //     {
+        //       type: "click",
+        //       listener: () => {
+        //         this.saveAnnLink();
+        //       },
+        //     },
+        //   ],
+        // });
+      }
 
     return {
       tag: "div",
