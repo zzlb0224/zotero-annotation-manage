@@ -11,6 +11,7 @@ import {
 } from "../utils/sort";
 import {
   Relations,
+  createCountDown,
   groupBy,
   groupByResult,
   groupByResultIncludeFixedTags,
@@ -149,7 +150,8 @@ class AnnotationPopup {
         {
           type: "click",
           listener: (ev) => {
-            this.startCountDown(true);
+            // this.startCountDown(true);
+            this.countDown.clear();
             if (this.btnClose) {
               this.btnClose.textContent = `手动关闭`;
             }
@@ -285,6 +287,19 @@ class AnnotationPopup {
       }
     }, 1000);
   }
+  public countDown = createCountDown(
+    (remainingTime) => {
+      if (remainingTime > 0) {
+        if (this.btnClose) {
+          this.btnClose.textContent = `自动关闭（${remainingTime / 1000}）`;
+        }
+      } else {
+        this.rootDiv?.remove();
+      }
+    },
+    15000,
+    300,
+  );
 
   getRootStyle() {
     const doc = this.doc;
@@ -1096,7 +1111,8 @@ function createAnnotationContextMenu(
       // const div = createDiv(reader, params);
       const popDiv = new AnnotationPopup(reader, params);
       const div = popDiv.rootDiv;
-      popDiv.startCountDown();
+      // popDiv.startCountDown();
+      popDiv.countDown.start();
       if (div) {
         doc.body.appendChild(div);
       }

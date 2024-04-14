@@ -712,14 +712,14 @@ export function createTopDiv(
   );
   return d;
 }
-export function createTimer(func: () => void, ms = 3000) {
+export function createTimer(callback: () => void, ms = 3000) {
   let closeTimer: NodeJS.Timeout | null;
   let timeout = ms > 0 ? ms : 3000;
   function startTimer(ms = 3000) {
     timeout = ms > 0 ? ms : timeout;
     clearTimer();
     closeTimer = setTimeout(() => {
-      func();
+      callback();
       if (closeTimer) {
         clearTimeout(closeTimer);
         closeTimer = null;
@@ -735,3 +735,42 @@ export function createTimer(func: () => void, ms = 3000) {
 
   return { startTimer: startTimer, clearTimer: clearTimer };
 }
+
+export function createCountDown(
+  callback: (remainingTime: number) => void,
+  ms = 15000,
+  delay = 1000,
+) {
+  let _total = ms;
+  let _timeout: NodeJS.Timeout | null;
+  let _start = 0;
+  function start(ms = 15000) {
+    clear();
+    _total = ms > 0 ? ms : _total;
+    _start = Date.now();
+    _timeout = setInterval(() => {
+      const _remainingTime = remainingTime();
+      callback(_remainingTime);
+      if (_remainingTime < 0) {
+        clear();
+      }
+    }, delay);
+  }
+  function clear() {
+    if (_timeout) {
+      clearInterval(_timeout);
+      _timeout = null;
+    }
+  }
+  function remainingTime() {
+    return _total - Date.now() + _start;
+  }
+  return { start, clear, remainingTime };
+}
+
+const s = createCountDown((r) => {
+  console.log(r);
+}, 15000);
+setTimeout(() => {
+  s.clear();
+}, 3000);
