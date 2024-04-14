@@ -507,29 +507,42 @@ export class Relations {
     if (changed) annotation.saveTx();
   }
 
+  getOpenPdfUri() {
+    return `zotero://open-pdf/library/items/${this.item.parentItemKey}?page=${this.item.annotationPageLabel}&annotation=${this.item.key}`;
+  }
   removeRelations(openPdfs: string[]) {
     const annotation = this.item;
     const linkAnnotation = "link:annotation" as _ZoteroTypes.RelationsPredicate;
     const linkRelations = this.getLinkRelations();
     ztoolkit.log("removeRelations", linkRelations, openPdfs);
-    openPdfs
-      .filter((f) => linkRelations.includes(f))
-      .forEach((f) => {
-        annotation.removeRelation(linkAnnotation, f);
-      });
+    const needRemove = openPdfs.filter((f) => linkRelations.includes(f));
+    needRemove.forEach((f) => {
+      annotation.removeRelation(linkAnnotation, f);
+    });
     annotation.saveTx();
-    this.item = getItem(this.item.key);
+
+    const thisOpenPdf = this.getOpenPdfUri();
+    Relations.mapOpenPdf(needRemove).forEach((f) => {
+      const r = new Relations(f.annotationKey);
+      r.removeRelations([thisOpenPdf]);
+    });
+    // this.item = getItem(this.item.key);
   }
   addRelations(openPdfs: string[]) {
     const annotation = this.item;
     const linkAnnotation = "link:annotation" as _ZoteroTypes.RelationsPredicate;
     const linkRelations = this.getLinkRelations();
-    openPdfs
+    const thisOpenPdf = this.getOpenPdfUri();
+    const needConnect = openPdfs
       .filter((f) => !linkRelations.includes(f))
-      .filter((f) => !f.includes(annotation.key))
-      .forEach((f) => {
-        annotation.addRelation(linkAnnotation, f);
-      });
+      .filter((f) => f != thisOpenPdf);
+    needConnect.forEach((f) => {
+      annotation.addRelation(linkAnnotation, f);
+    });
+    Relations.mapOpenPdf(needConnect).forEach((f) => {
+      const r = new Relations(f.annotationKey);
+      r.addRelations([thisOpenPdf]);
+    });
     annotation.saveTx();
   }
 }
@@ -622,9 +635,11 @@ export function createTopDiv(
       listeners: [
         {
           type: "click",
-          listener: () => {
+          listener: (e) => {
+            e.stopPropagation();
             d.remove();
           },
+          options: { capture: true },
         },
       ],
     },
@@ -642,4 +657,27 @@ export function createTopDiv(
     ),
   );
   return d;
+}
+export function createTimer(func: () => void, ms = 3000) {
+  let closeTimer: NodeJS.Timeout | null;
+  let timeout = ms > 0 ? ms : 3000;
+  function startTimer(ms = 3000) {
+    timeout = ms > 0 ? ms : timeout;
+    clearTimer();
+    closeTimer = setTimeout(() => {
+      func();
+      if (closeTimer) {
+        clearTimeout(closeTimer);
+        closeTimer = null;
+      }
+    }, ms);
+  }
+  function clearTimer() {
+    if (closeTimer) {
+      clearTimeout(closeTimer);
+      closeTimer = null;
+    }
+  }
+
+  return { startTimer: startTimer, clearTimer: clearTimer };
 }

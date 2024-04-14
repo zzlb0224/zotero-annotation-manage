@@ -1,4 +1,6 @@
+import { start } from "repl";
 import { config } from "../../package.json";
+import { createTimer } from "../utils/zzlb";
 import {
   Relations,
   createTopDiv,
@@ -127,41 +129,27 @@ function createPopupDiv(doc: Document, anKey: string) {
     config.addonRef + `-renderSidebarAnnotationHeader-TopDiv`,
     ["action", "status", "query", "content"],
   )!;
-  let closeTimer: NodeJS.Timeout | null;
-  const closeDiv = (ms = 3000) => {
-    closeTimer = setTimeout(() => {
-      div.remove();
-      if (closeTimer) {
-        clearTimeout(closeTimer);
-        closeTimer = null;
-      }
-    }, ms);
-  };
-  div.addEventListener("mouseover", () => {
-    if (closeTimer) {
-      clearTimeout(closeTimer);
-      closeTimer = null;
-    }
-  });
-  div.addEventListener("mouseout", () => {
-    closeDiv();
-  });
   const fromEle = doc.getElementById(
     config.addonRef + `renderSidebarAnnotationHeader-link-${anKey}`,
   )!;
   div.style.left = fromEle.offsetLeft + 20 + "px";
   const scrollTop = doc.getElementById("annotations")?.scrollTop || 0;
   div.style.top = fromEle.offsetTop - scrollTop - 20 + "px";
-
   ztoolkit.log("top", fromEle.offsetTop, fromEle.clientTop, fromEle.offsetTop);
+  const { startTimer: startTimer, clearTimer: clearTimer } = createTimer(() =>
+    div.remove(),
+  );
+  div.addEventListener("mouseover", () => {
+    clearTimer();
+  });
+  div.addEventListener("mouseout", () => {
+    startTimer();
+  });
   fromEle.addEventListener("mouseover", () => {
-    if (closeTimer) {
-      clearTimeout(closeTimer);
-      closeTimer = null;
-    }
+    clearTimer();
   });
   fromEle.addEventListener("mouseout", () => {
-    closeDiv();
+    startTimer();
   });
 
   const r = new Relations(anFrom);
@@ -170,6 +158,7 @@ function createPopupDiv(doc: Document, anKey: string) {
   for (const m0 of m) {
     const anTo = getItem(m0.annotationKey);
     // const content = `${anTo.parentItem?.getDisplayTitle()}   ${anTo.annotationType} ${anTo.annotationText || ""} ${anTo.annotationComment || ""} `;
+
     const u2 = ztoolkit.UI.appendElement(
       {
         tag: "div",
@@ -178,7 +167,7 @@ function createPopupDiv(doc: Document, anKey: string) {
           marginRight: "20px",
           display: "flex",
           alignItems: "stretch",
-          flexWrap: "wrap",
+          flexDirection: "column",
         },
         properties: { textContent: "" },
         children: [
@@ -281,48 +270,100 @@ function copyFunc(doc: Document, copyFrom: string = "") {
     if (man.length == 0) return;
     addon.data.copy = text;
     ztoolkit.log("复制内容 有效", addon.data.copy, man);
-    const z = ztoolkit.UI.appendElement(
-      {
-        id: `${config.addonRef}-copy-annotations`,
-        tag: "div",
-        properties: { textContent: "已复制：" },
-        styles: {
-          position: "fixed",
-          left: "10px",
-          top: "45px",
-          zIndex: "9999",
-          boxShadow: "#999999 0px 0px 4px 3px",
-          padding: "5px",
-          background: "#ffffff",
-        },
-        children: man.map((m, i) => {
-          const an = getItem(m.annotationKey);
-          const content =
-            (an.annotationComment || "") + (an.annotationText || "") + m.text;
-          return {
-            tag: "span",
-            properties: { textContent: i + 1 + ":" + content.substring(0, 7) },
-            styles: {
-              background: an.annotationColor + "80",
-              margin: "3px",
-              border: "1px solid #000000",
-            },
-          };
-        }),
-        listeners: [
-          {
-            type: "click",
-            listener: (e) => {
-              z.remove();
-            },
+    const div = createTopDiv(doc, `${config.addonRef}-copy-annotations`, [
+      "query",
+      "content",
+    ])!;
+
+    div.style.left = "10px";
+    div.style.top = "45px";
+    div.style.boxShadow = "#999999 0px 0px 4px 3px";
+    const content = div.querySelector(".content")!;
+    const query = div.querySelector(".query")!;
+    man
+      .map((m, i) => {
+        const an = getItem(m.annotationKey);
+        const content =
+          (an.annotationComment || "") + (an.annotationText || "") + m.text;
+        return {
+          tag: "span",
+          properties: { textContent: i + 1 + ":" + content.substring(0, 7) },
+          styles: {
+            background: an.annotationColor + "80",
+            margin: "3px",
+            border: "1px solid #000000",
           },
-        ],
-      },
-      doc.body,
-    );
-    setTimeout(() => {
-      z.remove();
+        };
+      })
+      .forEach((f) => ztoolkit.UI.appendElement(f, content));
+    const { startTimer, clearTimer } = createTimer(() => {
+      div.remove();
     }, 10000);
+    startTimer();
+    div.addEventListener("mouseover", () => {
+      clearTimer();
+    });
+    div.addEventListener("mouseout", () => {
+      startTimer();
+    });
+    query.textContent = "已复制";
+    div.addEventListener(
+      "click",
+      (e) => {
+        if (query.textContent == "已复制") {
+          query.textContent = "已清空";
+          addon.data.copy = "";
+        } else {
+          query.textContent = "已复制";
+          addon.data.copy = text;
+        }
+      },
+      { capture: true },
+    );
+    // content.addEventListener("click",(e)=>{e.stopPropagation()
+    //   content.textContent= content.textContent == "1已复制"?"1清空":"1已复制"},{"capture":true})
+    // const z = ztoolkit.UI.appendElement(
+    //   {
+    //     id: `${config.addonRef}-copy-annotations`,
+    //     tag: "div",
+    //     properties: { textContent: "已复制：" },
+    //     styles: {
+    //       position: "fixed",
+    //       left: "10px",
+    //       top: "45px",
+    //       zIndex: "9999",
+    //       boxShadow: "#999999 0px 0px 4px 3px",
+    //       padding: "5px",
+    //       background: "#ffffff",
+    //     },
+    //     children: man.map((m, i) => {
+    //       const an = getItem(m.annotationKey);
+    //       const content =
+    //         (an.annotationComment || "") + (an.annotationText || "") + m.text;
+    //       return {
+    //         tag: "span",
+    //         properties: { textContent: i + 1 + ":" + content.substring(0, 7) },
+    //         styles: {
+    //           background: an.annotationColor + "80",
+    //           margin: "3px",
+    //           border: "1px solid #000000",
+    //         },
+    //       };
+    //     }),
+    //     listeners: [
+    //       {
+    //         type: "click",
+    //         listener: (e) => {
+    //           z.remove();
+    //         },
+    //       },
+    //     ],
+    //   },
+    //   doc.body,
+    // );
+    // setTimeout(() => {
+    //   z.remove();
+    // }, 10000);
   });
 }
 export function text2Ma(text: string) {

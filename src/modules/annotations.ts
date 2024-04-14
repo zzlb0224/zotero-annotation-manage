@@ -22,7 +22,7 @@ import {
   str2RegExp,
   uniqueBy,
 } from "../utils/zzlb";
-import { text2Ma } from "./readerTools";
+// import { text2Ma } from "./readerTools";
 function register() {
   // if (!getPref("enable")) return;
   // ztoolkit.UI.basicOptions.log.disableZLog = true;
@@ -388,13 +388,13 @@ class AnnotationPopup {
       ],
     };
   }
-  selectedRelateAns: {
-    text: string;
-    pdfKey: string;
-    page: string;
-    openPdf: string;
-    annotationKey: string;
-  }[] = [];
+  // selectedRelateAns: {
+  //   text: string;
+  //   pdfKey: string;
+  //   page: string;
+  //   openPdf: string;
+  //   annotationKey: string;
+  // }[] = [];
   createSearchDiv(): TagElementProps {
     let selectionStart = 0;
     let shiftStart = false;
@@ -402,7 +402,8 @@ class AnnotationPopup {
     // const copyAns = text2Ma(addon.data.copy);
     const copyAns = Relations.allOpenPdf(addon.data.copy);
     ztoolkit.log("检测复制内容", addon.data.copy, copyAns);
-    const copyAnnEls: TagElementProps[] = copyAns.map((copyAn) => ({
+    const copyAnnEls: TagElementProps[] = [];
+    const dE = copyAns.map((copyAn) => ({
       tag: "span",
       properties: { textContent: copyAn.text.substring(1, 7) },
       styles: {
@@ -442,7 +443,7 @@ class AnnotationPopup {
         },
       ],
     }));
-    if (copyAns.length > 1)
+    if (copyAns.length > 999)
       copyAnnEls.push({
         tag: "span",
         properties: { textContent: "共" + copyAns.length + "条" },
@@ -487,18 +488,18 @@ class AnnotationPopup {
         ],
       });
     if (this.isExistAnno) {
-      copyAnnEls.push({
-        tag: "span",
-        properties: { textContent: "保存双链信息" },
-        listeners: [
-          {
-            type: "click",
-            listener: () => {
-              this.saveAnnLink();
-            },
-          },
-        ],
-      });
+      // copyAnnEls.push({
+      //   tag: "span",
+      //   properties: { textContent: "保存双链信息" },
+      //   listeners: [
+      //     {
+      //       type: "click",
+      //       listener: () => {
+      //         this.saveAnnLink();
+      //       },
+      //     },
+      //   ],
+      // });
     }
 
     return {
@@ -511,16 +512,16 @@ class AnnotationPopup {
         // maxWidth: maxWidth + "px",
       },
       children: [
-        {
-          tag: "div",
-          styles: {
-            display: "flex",
-            flexDirection: "row",
-            flexWrap: "wrap",
-            justifyContent: "space-start",
-          },
-          children: copyAnnEls,
-        },
+        // {
+        //   tag: "div",
+        //   styles: {
+        //     display: "flex",
+        //     flexDirection: "row",
+        //     flexWrap: "wrap",
+        //     justifyContent: "space-start",
+        //   },
+        //   children: copyAnnEls,
+        // },
         {
           tag: "div",
           styles: {
@@ -956,9 +957,9 @@ class AnnotationPopup {
             this.selectedRelateAns.map((a) => a.annotationKey),
             annotation.relatedItems,
           );
-          new Relations(annotation).setRelations(
-            this.selectedRelateAns.map((a) => a.openPdf),
-          );
+          // new Relations(annotation).setRelations(
+          //   this.selectedRelateAns.map((a) => a.openPdf),
+          // );
         }
         this.doc?.getElementById(this.idRootDiv)?.remove();
       } else {
@@ -976,11 +977,11 @@ class AnnotationPopup {
           ),
         );
 
-        if (newAnn) {
-          new Relations(newAnn.id).setRelations(
-            this.selectedRelateAns.map((a) => a.openPdf),
-          );
-        }
+        // if (newAnn) {
+        //   new Relations(newAnn.id).setRelations(
+        //     this.selectedRelateAns.map((a) => a.openPdf),
+        //   );
+        // }
         this.onHidePopup?.apply(this);
         //@ts-ignore 隐藏弹出框
         this.reader?._primaryView._onSetSelectionPopup(null);
