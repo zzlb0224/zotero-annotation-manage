@@ -516,8 +516,13 @@ export class Relations {
       .filter((f) => f.text);
   }
   getLinkRelations() {
-    const rs = this.item.getRelations() as any;
-    return (rs[Relations.RelationsPredicate] as string[]) || [];
+    try {
+      const rs = this.item.getRelations() as any;
+      return (rs[Relations.RelationsPredicate] as string[]) || [];
+    } catch (error) {
+      ztoolkit.log("新创建的item会触发getRelations错误", error);
+    }
+    return [];
   }
 
   // setRelations(openPdfs: string[]) {
@@ -575,6 +580,7 @@ export class Relations {
     const annotation = this.item;
     const linkRelations = this.getLinkRelations();
     const thisOpenPdf = this.getOpenPdfUri();
+
     const thisItemURI = Zotero.URI.getItemURI(this.item);
     const needConnect = itemURIs
       .filter((f) => !linkRelations.includes(f))

@@ -194,22 +194,22 @@ function createPopupDiv(doc: Document, anKey: string) {
             children: [
               {
                 tag: "div",
-                styles: { background: anTo.annotationColor + "80" },
+                styles: { background: anTo.annotationColor + "30" },
                 properties: { textContent: anTo.parentItem?.getDisplayTitle() },
               },
               {
-                tag: "div",
-                styles: { background: anTo.annotationColor + "80" },
+                tag: "span",
+                styles: { background: anTo.annotationColor + "60" },
                 properties: { textContent: anTo.annotationType },
               },
               {
                 tag: "div",
-                styles: { background: anTo.annotationColor + "80" },
+                styles: { background: anTo.annotationColor + "20" },
                 properties: { textContent: anTo.annotationText },
               },
               {
                 tag: "div",
-                styles: { background: anTo.annotationColor + "80" },
+                styles: { background: anTo.annotationColor + "60" },
                 properties: { textContent: anTo.annotationComment },
               },
             ],
