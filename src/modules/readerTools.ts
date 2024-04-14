@@ -7,7 +7,7 @@ import {
   getItem,
   openAnnotation,
 } from "../utils/zzlb";
-import { getPref } from '../utils/prefs';
+import { getPref } from "../utils/prefs";
 function register() {
   Zotero.Reader.registerEventListener(
     "renderToolbar",
@@ -42,7 +42,7 @@ function renderSidebarAnnotationHeaderCallback(
 ): void | Promise<void> {
   const { append, doc, reader, params } = event;
   // copyFunc(doc, "renderSidebarAnnotationHeaderCallback");
-  if (getPref("hide-annotation-link"))return;
+  if (getPref("hide-annotation-link")) return;
   ztoolkit.log(event, params.annotation.id);
   const relations = new Relations(params.annotation.id);
   // relations.getLinkRelations()
