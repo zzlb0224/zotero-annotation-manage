@@ -468,13 +468,10 @@ export class Relations {
     });
   }
   getLinkRelations() {
-    ztoolkit.log("this.item", this.item);
+    // ztoolkit.log("this.item", this.item);
+    const rs = this.item.getRelations();
     //@ts-ignore link:annotation
-    return (
-      ((this.item as Zotero.Item).getRelations()[
-        "link:annotation"
-      ] as string[]) || false
-    );
+    return rs["link:annotation"] as string[]|false||false;
   }
   static allOpenPdf(str: string) {
     const strArray =
