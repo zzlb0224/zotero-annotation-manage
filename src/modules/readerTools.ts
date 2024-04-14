@@ -55,7 +55,7 @@ function renderSidebarAnnotationHeaderCallback(
         listener: (e) => {
           const r = new Relations(params.annotation.id);
           const man = Relations.allOpenPdf(addon.data.copy);
-          r.setRelations(man.map((a) => a.openPdf));
+          r.addRelations(man.map((a) => a.openPdf));
         },
       },
       {
@@ -78,7 +78,9 @@ function renderSidebarAnnotationHeaderCallback(
   ztoolkit.log("userActions1", userActions);
   if (linkAnnotations && linkAnnotations.length > 0) {
     const u = ztoolkit.UI.createElement(doc, "span", {
-      id: `renderSidebarAnnotationHeader-link-${params.annotation.id}`,
+      id:
+        config.addonRef +
+        `renderSidebarAnnotationHeader-link-${params.annotation.id}`,
       properties: { textContent: "🍡" },
       listeners: [
         {
@@ -86,38 +88,8 @@ function renderSidebarAnnotationHeaderCallback(
           listener: (e) => {
             // const r0 = relatedAnnotations[0];
             // openAnnotation(r0.parentItem!,r0.annotationPageLabel,r0.key)
-            const div = createTopDiv(doc, config.addonRef + `-TopDiv`, [
-              "action",
-              "status",
-              "query",
-              "content",
-            ])!;
-            const m = Relations.mapOpenPdf(linkAnnotations);
-            for (const m0 of m) {
-              const an = getItem(m0.annotationKey);
-              const content = `${an.parentItem?.getDisplayTitle()}   ${an.annotationType} ${an.annotationText || ""} ${an.annotationComment || ""} `;
-              ztoolkit.UI.appendElement(
-                {
-                  tag: "div",
-                  styles: {
-                    padding: "2px",
-                    background: an.annotationColor + "80",
-                    marginRight: "20px",
-                  },
-                  properties: { textContent: content },
-                  listeners: [
-                    {
-                      type: "click",
-                      listener: () => {
-                        openAnnotation(m0.pdfKey, m0.page, m0.annotationKey);
-                      },
-                    },
-                  ],
-                },
-                div.querySelector(".content")!,
-              );
-            }
-            ztoolkit.log(m);
+            createPopupDiv(doc, params.annotation.id);
+            // ztoolkit.log(m);
             // const m0 = m[0];
             // openAnnotation(m0.pdfKey, m0.page, m0.annotationKey);
             // const m=linkAnnotations[0].match(new RegExp("zotero://open-pdf/library/items/(.*?)[?]page=(.*?)&annotation=(.*)"))
@@ -130,6 +102,7 @@ function renderSidebarAnnotationHeaderCallback(
           type: "mouseover",
           listener: (e) => {
             (e.target as HTMLElement).style.backgroundColor = "#F0F0F0";
+            createPopupDiv(doc, params.annotation.id);
           },
         },
         {
@@ -146,6 +119,136 @@ function renderSidebarAnnotationHeaderCallback(
   }
   ztoolkit.log("userActions2", userActions);
   if (userActions.length > 0) append(...userActions);
+}
+function createPopupDiv(doc: Document, anKey: string) {
+  const anFrom = getItem(anKey);
+  const div = createTopDiv(
+    doc,
+    config.addonRef + `-renderSidebarAnnotationHeader-TopDiv`,
+    ["action", "status", "query", "content"],
+  )!;
+  let closeTimer: NodeJS.Timeout | null;
+  const closeDiv = (ms = 3000) => {
+    closeTimer = setTimeout(() => {
+      div.remove();
+      if (closeTimer) {
+        clearTimeout(closeTimer);
+        closeTimer = null;
+      }
+    }, ms);
+  };
+  div.addEventListener("mouseover", () => {
+    if (closeTimer) {
+      clearTimeout(closeTimer);
+      closeTimer = null;
+    }
+  });
+  div.addEventListener("mouseout", () => {
+    closeDiv();
+  });
+  const fromEle = doc.getElementById(
+    config.addonRef + `renderSidebarAnnotationHeader-link-${anKey}`,
+  )!;
+  div.style.left = fromEle.offsetLeft + 20 + "px";
+  const scrollTop = doc.getElementById("annotations")?.scrollTop || 0;
+  div.style.top = fromEle.offsetTop - scrollTop - 20 + "px";
+
+  ztoolkit.log("top", fromEle.offsetTop, fromEle.clientTop, fromEle.offsetTop);
+  fromEle.addEventListener("mouseover", () => {
+    if (closeTimer) {
+      clearTimeout(closeTimer);
+      closeTimer = null;
+    }
+  });
+  fromEle.addEventListener("mouseout", () => {
+    closeDiv();
+  });
+
+  const r = new Relations(anFrom);
+  const linkAnnotations = r.getLinkRelations();
+  const m = Relations.mapOpenPdf(linkAnnotations);
+  for (const m0 of m) {
+    const anTo = getItem(m0.annotationKey);
+    // const content = `${anTo.parentItem?.getDisplayTitle()}   ${anTo.annotationType} ${anTo.annotationText || ""} ${anTo.annotationComment || ""} `;
+    const u2 = ztoolkit.UI.appendElement(
+      {
+        tag: "div",
+        styles: {
+          padding: "2px",
+          marginRight: "20px",
+          display: "flex",
+          alignItems: "stretch",
+          flexWrap: "wrap",
+        },
+        properties: { textContent: "" },
+        children: [
+          {
+            tag: "div",
+            listeners: [
+              {
+                type: "click",
+                listener: (e) => {
+                  e.stopPropagation();
+                  openAnnotation(m0.pdfKey, m0.page, m0.annotationKey);
+                },
+                options: true,
+              },
+            ],
+            children: [
+              {
+                tag: "div",
+                styles: { background: anTo.annotationColor + "80" },
+                properties: { textContent: anTo.parentItem?.getDisplayTitle() },
+              },
+              {
+                tag: "div",
+                styles: { background: anTo.annotationColor + "80" },
+                properties: { textContent: anTo.annotationType },
+              },
+              {
+                tag: "div",
+                styles: { background: anTo.annotationColor + "80" },
+                properties: { textContent: anTo.annotationText },
+              },
+              {
+                tag: "div",
+                styles: { background: anTo.annotationColor + "80" },
+                properties: { textContent: anTo.annotationComment },
+              },
+            ],
+          },
+          {
+            tag: "div",
+            properties: { textContent: "删除" },
+            listeners: [
+              {
+                type: "click",
+                listener: (e) => {
+                  e.stopPropagation();
+
+                  ztoolkit.log("remove 1", r.getLinkRelations());
+                  r.removeRelations([m0.openPdf]);
+                  u2.remove();
+                  ztoolkit.log("remove 2", r.getLinkRelations());
+                  if (r.getLinkRelations().length == 0) {
+                    doc
+                      .getElementById(
+                        config.addonRef +
+                          `-renderSidebarAnnotationHeader-TopDiv`,
+                      )
+                      ?.remove();
+                    fromEle.remove();
+                  }
+                },
+                options: true,
+              },
+            ],
+          },
+        ],
+      },
+      div.querySelector(".content")!,
+    );
+  }
 }
 
 function getRelatedAnnotations(ann: Zotero.Item) {

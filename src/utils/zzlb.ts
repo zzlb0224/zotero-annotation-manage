@@ -471,7 +471,7 @@ export class Relations {
     // ztoolkit.log("this.item", this.item);
     const rs = this.item.getRelations();
     //@ts-ignore link:annotation
-    return (rs["link:annotation"] as string[] | false) || false;
+    return (rs["link:annotation"] as string[]) || [];
   }
   static allOpenPdf(str: string) {
     const strArray =
@@ -506,18 +506,29 @@ export class Relations {
     });
     if (changed) annotation.saveTx();
   }
-  updateRelations(openPdfs: string[]) {
+
+  removeRelations(openPdfs: string[]) {
     const annotation = this.item;
     const linkAnnotation = "link:annotation" as _ZoteroTypes.RelationsPredicate;
+    const linkRelations = this.getLinkRelations();
+    ztoolkit.log("removeRelations", linkRelations, openPdfs);
     openPdfs
-      .filter((f) => !annotation.relatedItems.find((a) => a == f))
-      .forEach((f) => {
-        annotation.addRelation(linkAnnotation, f);
-      });
-    annotation.relatedItems
-      .filter((f) => !openPdfs.find((a) => a == f))
+      .filter((f) => linkRelations.includes(f))
       .forEach((f) => {
         annotation.removeRelation(linkAnnotation, f);
+      });
+    annotation.saveTx();
+    this.item = getItem(this.item.key);
+  }
+  addRelations(openPdfs: string[]) {
+    const annotation = this.item;
+    const linkAnnotation = "link:annotation" as _ZoteroTypes.RelationsPredicate;
+    const linkRelations = this.getLinkRelations();
+    openPdfs
+      .filter((f) => !linkRelations.includes(f))
+      .filter((f) => !f.includes(annotation.key))
+      .forEach((f) => {
+        annotation.addRelation(linkAnnotation, f);
       });
     annotation.saveTx();
   }
