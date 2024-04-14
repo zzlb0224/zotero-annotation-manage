@@ -304,7 +304,7 @@ function copyFunc(doc: Document, copyFrom: string = "") {
       clearTimer();
     });
     div.addEventListener("mouseout", () => {
-      startTimer();
+      startTimer(3000);
     });
     query.textContent = "已复制";
     div.addEventListener(

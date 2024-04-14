@@ -504,7 +504,20 @@ export class Relations {
       //@ts-ignore link:annotation
       "link:annotation": openPdfs,
     });
-    if (changed) annotation.saveTx();
+    if (changed) {
+      
+      annotation.saveTx();}
+    this.setTag();
+  }
+
+   setTag() {
+
+    if (this.getLinkRelations().length > 0) {
+      this.item.addTag("🔗Bi-directional linked annotation", 1);
+    } else {
+      this.item.removeTag("🔗Bi-directional linked annotation");
+    }
+    this.item.saveTx();
   }
 
   getOpenPdfUri() {
@@ -519,7 +532,8 @@ export class Relations {
     needRemove.forEach((f) => {
       annotation.removeRelation(linkAnnotation, f);
     });
-    annotation.saveTx();
+    annotation.saveTx();    
+    this.setTag();
 
     const thisOpenPdf = this.getOpenPdfUri();
     Relations.mapOpenPdf(needRemove).forEach((f) => {
@@ -539,11 +553,13 @@ export class Relations {
     needConnect.forEach((f) => {
       annotation.addRelation(linkAnnotation, f);
     });
+    annotation.addTag("🔗Bi-directional linked annotation",1)
+    annotation.saveTx();
     Relations.mapOpenPdf(needConnect).forEach((f) => {
       const r = new Relations(f.annotationKey);
       r.addRelations([thisOpenPdf]);
+      
     });
-    annotation.saveTx();
   }
 }
 export function createTopDiv(
