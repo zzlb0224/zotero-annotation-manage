@@ -625,45 +625,45 @@ async function createSearchAnnDiv(doc: Document, isCollection: boolean) {
       clearChild(div.querySelector(".content"));
       div.querySelector(".status")!.innerHTML =
         `总${annotations.length}条笔记，筛选出了${ans.length}条。预览前${showN}条。`;
-      const cs =  (showN > 0 ? ans.slice(0, showN) : ans).map(async (a) => ({
-            tag: "div",
-            namespace: "html",
-            properties: {
-              innerHTML:await convertHtml([a],undefined).then(a=>a[0].html)
-                // (a.annotationTags || "") +
-                // " " +
-                // (a.text || "") +
-                // (a.type == "image" ? "[图]" : "") +
-                // " " +
-                // (a.comment || "") +
-                // " ",
-            },
-            styles: {
-              // flex: "0 0 calc( 20% - 4px)",
-              // maxWidth: "calc( 20% - 4px)",
-              // border: "1px solid black",
-              // boxSizing: "border-box",
-              // margin: "2px",
+      const cs = (showN > 0 ? ans.slice(0, showN) : ans).map(async (a) => ({
+        tag: "div",
+        namespace: "html",
+        properties: {
+          innerHTML: await convertHtml([a], undefined).then((a) => a[0].html),
+          // (a.annotationTags || "") +
+          // " " +
+          // (a.text || "") +
+          // (a.type == "image" ? "[图]" : "") +
+          // " " +
+          // (a.comment || "") +
+          // " ",
+        },
+        styles: {
+          // flex: "0 0 calc( 20% - 4px)",
+          // maxWidth: "calc( 20% - 4px)",
+          // border: "1px solid black",
+          // boxSizing: "border-box",
+          // margin: "2px",
 
-              display: "inline-block",
-              marginBottom: "5px",
-              width: "100%",
-              breakInside: "avoid",
+          display: "inline-block",
+          marginBottom: "5px",
+          width: "100%",
+          breakInside: "avoid",
 
-              background: a.color + "70",
+          background: a.color + "70",
+        },
+        listeners: [
+          {
+            type: "click",
+            listener: async (ev: any) => {
+              stopPropagation(ev);
+              // ztoolkit.log("点击",ev)
+              openAnnotation(a.pdf, a.page, a.ann.key);
             },
-            listeners: [
-              {
-                type: "click",
-                listener: async (ev: any) => {
-                  stopPropagation(ev);
-                  // ztoolkit.log("点击",ev)
-                  openAnnotation(a.pdf, a.page, a.ann.key);
-                },
-              },
-            ],
-          }))
-          const children =await Promise.all(cs)
+          },
+        ],
+      }));
+      const children = await Promise.all(cs);
       ztoolkit.UI.appendElement(
         {
           tag: "div",
@@ -1057,7 +1057,10 @@ function getAllAnnotations(items: Zotero.Item[]) {
     });
   return data;
 }
-async function convertHtml(arr: AnnotationRes[], targetNoteItem: Zotero.Item|undefined=undefined) {
+async function convertHtml(
+  arr: AnnotationRes[],
+  targetNoteItem: Zotero.Item | undefined = undefined,
+) {
   try {
     // const annotations = arr.map((a) => a.ann);
     for (const a of arr) {
@@ -1094,7 +1097,7 @@ async function convertHtml(arr: AnnotationRes[], targetNoteItem: Zotero.Item|und
     )) as string;
     if (html)
       ann.html = html
-         .replace(/<br\s*>/g,"<br/>")
+        .replace(/<br\s*>/g, "<br/>")
         .replace(/<\/p>$/, getColorTags(ann.tags.map((c) => c.tag)) + "</p>")
         .replace(/<p>[\s\r\n]*<\/p>/g, "")
         .replace(/<img /g, '<img style="max-width: 100%;height: auto;" ');
@@ -1103,7 +1106,7 @@ async function convertHtml(arr: AnnotationRes[], targetNoteItem: Zotero.Item|und
         ann.ann,
         "无法预览，请点击此处，选择“在页面显示”查看。",
       );
-ztoolkit.log(html)
+      ztoolkit.log(html);
       // if(["ink","image"].includes(ann.type)&&getImageCount<5){
       //   getImageCount++
       //   const img =await getImageFromReader(ann)
