@@ -25,7 +25,6 @@ import {
   waitFor,
 } from "../utils/zzlb";
 import { createTopDiv } from "../utils/zzlb";
-import { get } from "http";
 let popupWin: ProgressWindowHelper | undefined = undefined;
 let popupTime = -1;
 
@@ -52,42 +51,7 @@ function register() {
               const items = await getSelectedItemsEv(ev);
               const ans = getAllAnnotations(items);
 
-              ztoolkit.log(
-                `找到${items.length}条目${ans.length}笔记`,
-                getParentAttr(ev.target as HTMLElement, "id"),
-              );
-              const p = new ztoolkit.ProgressWindow(
-                `找到${items.length}条目${ans.length}笔记`,
-                {
-                  closeTime: -1,
-                  closeOnClick: true,
-                },
-              ).show();
-              p.createLine({ text: "处理中" });
-              ans.forEach(async (ann, i) => {
-                p.changeLine({
-                  idx: 0,
-                  progress: (i / ans.length) * 100,
-                  text: "处理中",
-                });
-                const ts = ann.tags
-                  .map((tag) => tag.tag.match(/#([^/]*)\/([^/]*)[/]?/))
-                  .filter((f) => f != null && f.length >= 3)
-                  .flatMap((a) => (a != null ? [a[1], a[2]] : []));
-                const tas = uniqueBy(ts, (a) => a).filter((f) =>
-                  ann.tags.every((e) => e.tag != f),
-                );
-                //ztoolkit.log(ann.tags,tas)
-                if (tas.length > 0) {
-                  const tas2 = tas.map(async (a) => ann.ann.addTag(a, 0));
-                  ztoolkit.log(tas.length, "分割", tas);
-                  await promiseAllWithProgress(tas2).then(() => {
-                    ann.ann.saveTx();
-                  });
-                }
-              });
-              p.createLine({ text: "处理完成" });
-              p.startCloseTimer(3000);
+              funcSplitTag(items, ans, ev);
             },
           },
           {
@@ -96,26 +60,16 @@ function register() {
             icon: iconBaseUrl + "favicon.png",
             commandListener: async (ev: Event) => {
               const items = await getSelectedItemsEv(ev);
-              const tab = new Tab(
-                `chrome://${config.addonRef}/content/tab.xhtml`,
-                "一个新查询",
-                (doc) => {
-                  ztoolkit.log(
-                    "可以这样读取doc",
-                    doc.querySelector("#tab-page-body"),
-                  );
-                  doc.querySelector("#tab-page-body")!.innerHTML = "";
-                  createChild(doc, items);
-                },
-              );
-              ztoolkit.log(tab);
+              funcCreateTab(items);
             },
           },
           {
             tag: "menuitem",
-            label: "测试弹出",
+            label: "重新翻译空注释",
             icon: iconBaseUrl + "favicon.png",
-            commandListener: (ev: any) => {},
+            commandListener: async (ev: Event) => {
+              await funcTranslateAnnotations(ev);
+            },
           },
         ],
       },
@@ -246,6 +200,101 @@ function register() {
   if (!getPref("hide-in-item-menu")) ztoolkit.Menu.register("item", itemMenu);
   if (!getPref("hide-in-collection-menu"))
     ztoolkit.Menu.register("collection", collectionItem);
+}
+
+async function funcTranslateAnnotations(ev: Event) {
+  const items = await getSelectedItemsEv(ev);
+  const ans = getAllAnnotations(items)
+    .filter((an) => an.ann.annotationText)
+    .filter((an) => an.item.getField("language")?.includes("en"))
+    .filter(
+      (an) =>
+        !an.ann.annotationComment ||
+        an.ann.annotationComment.includes("🔤undefined🔤"),
+    );
+  const p = new ztoolkit.ProgressWindow(
+    `找到${items.length}条目${ans.length}笔记`,
+    {
+      closeTime: -1,
+      closeOnClick: true,
+    },
+  ).show();
+  p.createLine({ text: "处理中" });
+  for (let index = 0; index < ans.length; index++) {
+    const an = ans[index];
+    const text = an.ann.annotationText;
+    const result = (
+      await Zotero.PDFTranslate.api.translate(text, {
+        langto: "zh",
+        itemID: an.item.id,
+        pluginID: config.addonID,
+      })
+    ).result;
+    const r = "🔤" + result + "🔤";
+    an.ann.annotationComment = !an.ann.annotationComment
+      ? r
+      : an.ann.annotationComment.replace(/🔤undefined🔤/, r);
+    p.changeLine({
+      progress: (index / ans.length) * 100,
+      text: text + "=>" + result,
+    });
+    an.ann.saveTx();
+    Zotero.Promise.delay(500);
+  }
+  p.createLine({ text: "已完成" });
+  p.startCloseTimer(5000);
+}
+
+function funcCreateTab(items: Zotero.Item[]) {
+  const tab = new Tab(
+    `chrome://${config.addonRef}/content/tab.xhtml`,
+    "一个新查询",
+    (doc) => {
+      ztoolkit.log("可以这样读取doc", doc.querySelector("#tab-page-body"));
+      doc.querySelector("#tab-page-body")!.innerHTML = "";
+      createChild(doc, items);
+    },
+  );
+  ztoolkit.log(tab);
+}
+
+function funcSplitTag(items: Zotero.Item[], ans: AnnotationRes[], ev: Event) {
+  ztoolkit.log(
+    `找到${items.length}条目${ans.length}笔记`,
+    getParentAttr(ev.target as HTMLElement, "id"),
+  );
+  const p = new ztoolkit.ProgressWindow(
+    `找到${items.length}条目${ans.length}笔记`,
+    {
+      closeTime: -1,
+      closeOnClick: true,
+    },
+  ).show();
+  p.createLine({ text: "处理中" });
+  ans.forEach(async (ann, i) => {
+    p.changeLine({
+      idx: 0,
+      progress: (i / ans.length) * 100,
+      text: "处理中",
+    });
+    const ts = ann.tags
+      .map((tag) => tag.tag.match(/#([^/]*)\/([^/]*)[/]?/))
+      .filter((f) => f != null && f.length >= 3)
+      .flatMap((a) => (a != null ? [a[1], a[2]] : []));
+    const tas = uniqueBy(ts, (a) => a).filter((f) =>
+      ann.tags.every((e) => e.tag != f),
+    );
+    //ztoolkit.log(ann.tags,tas)
+    if (tas.length > 0) {
+      const tas2 = tas.map(async (a) => ann.ann.addTag(a, 0));
+      ztoolkit.log(tas.length, "分割", tas);
+      await promiseAllWithProgress(tas2).then(() => {
+        ann.ann.saveTx();
+      });
+    }
+  });
+  p.createLine({ text: "处理完成" });
+  p.startCloseTimer(3000);
 }
 
 function unregister() {
