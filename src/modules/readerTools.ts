@@ -151,11 +151,12 @@ async function createPopupDiv(doc: Document, anKey: string) {
   div.addEventListener("mouseover", () => {
     timer.clearTimer();
   });
-  div.addEventListener("mouseout", () => {
-    timer.startTimer();
-  });
+  // div.addEventListener("mouseout", () => {
+  //   timer.startTimer();
+  // });
   fromEle.addEventListener("mouseover", () => {
     timer.clearTimer();
+    setTimeout(() => timer.clearTimer(), 50);
   });
   fromEle.addEventListener("mouseout", () => {
     timer.startTimer();
@@ -264,7 +265,11 @@ async function createPopupDiv(doc: Document, anKey: string) {
 
                   {
                     tag: "div",
-                    styles: { color: "red", fontSize: "1.5em" },
+                    styles: {
+                      color: "red",
+                      fontSize: "1.5em",
+                      paddingRight: "5px",
+                    },
                     properties: { textContent: "🗑" },
                     listeners: [
                       {
