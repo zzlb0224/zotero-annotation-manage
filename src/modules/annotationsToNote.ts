@@ -69,7 +69,7 @@ function register() {
             icon: iconBaseUrl + "favicon.png",
             commandListener: async (ev: Event) => {
               const items = await getSelectedItemsEv(ev);
-              dialogExample()
+              dialogExample();
             },
           },
           {
@@ -216,96 +216,93 @@ function unregister() {
   ztoolkit.Menu.unregister(`${config.addonRef}-create-note-collection`);
 }
 
- async function dialogExample() {
-    const dialogData: { [key: string | number]: any } = {
-      inputValue: "test",
-      checkboxValue: true,
-      loadCallback: () => {
-        ztoolkit.log(dialogData, "Dialog Opened!");
+async function dialogExample() {
+  const dialogData: { [key: string | number]: any } = {
+    inputValue: "test",
+    checkboxValue: true,
+    loadCallback: () => {
+      ztoolkit.log(dialogData, "Dialog Opened!");
+    },
+    unloadCallback: () => {
+      ztoolkit.log(dialogData, "Dialog closed!");
+    },
+  };
+  const dialogHelper = new ztoolkit.Dialog(3, 3)
+    .addCell(0, 0, {
+      tag: "h1",
+      properties: { innerHTML: "0 0" },
+    })
+    .addCell(1, 0, {
+      tag: "h2",
+      properties: { innerHTML: "1 0" },
+    })
+    .addCell(2, 0, {
+      tag: "p",
+      properties: {
+        innerHTML: "2 0",
       },
-      unloadCallback: () => {
-        ztoolkit.log(dialogData, "Dialog closed!");
+      styles: {
+        width: "10px",
       },
-    };
-    const dialogHelper = new ztoolkit.Dialog(3, 3)
-      .addCell(0, 0, {
-        tag: "h1",
-        properties: { innerHTML: "0 0" },
-      })
-      .addCell(1, 0, {
-        tag: "h2",
-        properties: { innerHTML: "1 0" },
-      })
-      .addCell(2, 0, {
-        tag: "p",
-        properties: {
-          innerHTML:
-            "2 0",
-        },
-        styles: {
-          width: "10px",
-        },
-      })
-   
-      .addCell(0, 1, {
-        tag: "h1",
-        properties: { innerHTML: "0 1" },
-      })
-      .addCell(1, 1, {
-        tag: "h2",
-        properties: { innerHTML: "1 1" },
-      })
-      .addCell(2, 1, {
-        tag: "p",
-        properties: {
-          innerHTML:
-            "2 1",
-        },
-        styles: {
-          width: "20px",
-        },
-      })
-      
-      .addCell(0, 2, {
-        tag: "h1",
-        properties: { innerHTML: "0 2" },
-      })
-      .addCell(1, 2, {
-        tag: "h2",
-        properties: { innerHTML: "1 2" },
-      })
-      .addCell(2,2, {
-        tag: "p",
-        properties: {
-          innerHTML:
-            "2 2",
-        },
-        styles: {
-          width: "300px",
-        },
-      })
-       
-      .addButton("Confirm", "confirm")
-      .addButton("Cancel", "cancel")
-      .addButton("Help", "help", {
-        noClose: true,
-        callback: (e) => {
-          // dialogHelper.window?.alert(
-          //   "Help Clicked! Dialog will not be closed.",
-          // );
-        },
-      })
-      .setDialogData(dialogData)
-      .open("Dialog Example");
-    addon.data.dialog = dialogHelper;
-    await dialogData.unloadLock.promise;
-    addon.data.dialog = undefined;
-    addon.data.alive &&
-      ztoolkit.getGlobal("alert")(
-        `Close dialog with ${dialogData._lastButtonId}.\nCheckbox: ${dialogData.checkboxValue}\nInput: ${dialogData.inputValue}.`,
-      );
-    ztoolkit.log(dialogData);
-  }
+    })
+
+    .addCell(0, 1, {
+      tag: "h1",
+      properties: { innerHTML: "0 1" },
+    })
+    .addCell(1, 1, {
+      tag: "h2",
+      properties: { innerHTML: "1 1" },
+    })
+    .addCell(2, 1, {
+      tag: "p",
+      properties: {
+        innerHTML: "2 1",
+      },
+      styles: {
+        width: "20px",
+      },
+    })
+
+    .addCell(0, 2, {
+      tag: "h1",
+      properties: { innerHTML: "0 2" },
+    })
+    .addCell(1, 2, {
+      tag: "h2",
+      properties: { innerHTML: "1 2" },
+    })
+    .addCell(2, 2, {
+      tag: "p",
+      properties: {
+        innerHTML: "2 2",
+      },
+      styles: {
+        width: "300px",
+      },
+    })
+
+    .addButton("Confirm", "confirm")
+    .addButton("Cancel", "cancel")
+    .addButton("Help", "help", {
+      noClose: true,
+      callback: (e) => {
+        // dialogHelper.window?.alert(
+        //   "Help Clicked! Dialog will not be closed.",
+        // );
+      },
+    })
+    .setDialogData(dialogData)
+    .open("Dialog Example");
+  addon.data.dialog = dialogHelper;
+  await dialogData.unloadLock.promise;
+  addon.data.dialog = undefined;
+  addon.data.alive &&
+    ztoolkit.getGlobal("alert")(
+      `Close dialog with ${dialogData._lastButtonId}.\nCheckbox: ${dialogData.checkboxValue}\nInput: ${dialogData.inputValue}.`,
+    );
+  ztoolkit.log(dialogData);
+}
 async function funcTranslateAnnotations(ev: Event) {
   const items = await getSelectedItemsEv(ev);
   const ans = getAllAnnotations(items)
@@ -400,7 +397,6 @@ function funcSplitTag(items: Zotero.Item[], ans: AnnotationRes[], ev: Event) {
   p.createLine({ text: "处理完成" });
   p.startCloseTimer(3000);
 }
-
 
 export async function createPopMenu(
   win: Window,

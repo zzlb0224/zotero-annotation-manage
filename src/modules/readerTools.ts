@@ -211,86 +211,107 @@ async function createPopupDiv(doc: Document, anKey: string) {
         properties: { textContent: "" },
         children: [
           {
-                tag: "div",
-                styles: {
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
+            tag: "div",
+            styles: {
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            },
+            children: [
+              {
+                tag: "span",
+                styles: { color: anTo.annotationColor },
+                properties: {
+                  textContent: anTo.annotationType,
+                  innerHTML:
+                    (await memSVG(
+                      `chrome://${config.addonRef}/content/16/annotate-${anTo.annotationType}.svg`,
+                    )) || anTo.annotationType,
                 },
-                children: [
+              },
+              {
+                tag: "span",
+                styles: {},
+                properties: {
+                  textContent: `${anTo.parentItem?.parentItem?.getField("firstCreator")},${anTo.parentItem?.parentItem?.getField("year")}`,
+                },
+                listeners: [
                   {
-                    tag: "span",
-                    styles: { color: anTo.annotationColor },
-                    properties: {
-                      textContent: anTo.annotationType,
-                      innerHTML:
-                        (await memSVG(
-                          `chrome://${config.addonRef}/content/16/annotate-${anTo.annotationType}.svg`,
-                        )) || anTo.annotationType,
-                    },
-                  },
-                  {
-                    tag: "span",
-                    styles: {  },
-                    properties: { textContent: `${anTo.parentItem?.parentItem?.getField("firstCreator")},${anTo.parentItem?.parentItem?.getField("year")}` },
-                    listeners: [{type:"click",listener:(e:any)=>{
-                      ztoolkit.log("点击",e,e.clientX,e.target)
-                     const d= ztoolkit.UI.appendElement({
-                        tag: "span",
-                        id: config.addonRef+`-annotation-show-title`,
-                        removeIfExists:true,
-                        properties: {textContent: anTo.parentItem?.parentItem
-                          ?.getDisplayTitle()},
-                        styles:{position:"fixed",zIndex:"9999",left:e.clientX-80+"px",top:e.clientY+15+"px",background:"#000000",color:"#ffffff",padding:"10px",borderRadius:"10px"},
-                      },content)
-                      new Timer(()=>d.remove(),3000)
-                    }}]
-                  },
-                  // {
-                  //   tag: "span",
-                  //   styles: {},
-                  //   properties: {
-                  //     textContent:
-                  //       anTo.parentItem?.parentItem
-                  //         ?.getDisplayTitle()
-                  //         .substring(0, 15) + "...",
-                  //     title:anTo.parentItem?.parentItem?.firstCreator,
-                  //   },
-                  // },
-
-                  {
-                    tag: "div",
-                    styles: {
-                      color: "red",
-                      fontSize: "1.5em",
-                      paddingRight: "5px",
-                    },
-                    properties: { textContent: "🗑" },
-                    listeners: [
-                      {
-                        type: "click",
-                        listener: (e) => {
-                          e.stopPropagation();
-                          // ztoolkit.log("remove 1", anFromRelations.getLinkRelations());
-                          anFromRelations.removeRelations([toItemURI]);
-                          u2.remove();
-                          // ztoolkit.log("remove 2", anFromRelations.getLinkRelations());
-                          if (anFromRelations.getLinkRelations().length == 0) {
-                            doc
-                              .getElementById(
-                                config.addonRef +
-                                  `-renderSidebarAnnotationHeader-TopDiv`,
-                              )
-                              ?.remove();
-                            fromEle.remove();
-                          }
+                    type: "click",
+                    listener: (e: any) => {
+                      ztoolkit.log("点击", e, e.clientX, e.target);
+                      const d = ztoolkit.UI.appendElement(
+                        {
+                          tag: "span",
+                          id: config.addonRef + `-annotation-show-title`,
+                          removeIfExists: true,
+                          properties: {
+                            textContent:
+                              anTo.parentItem?.parentItem?.getDisplayTitle(),
+                          },
+                          styles: {
+                            position: "fixed",
+                            zIndex: "9999",
+                            left: e.clientX - 80 + "px",
+                            top: e.clientY + 15 + "px",
+                            background: "#000000",
+                            color: "#ffffff",
+                            padding: "10px",
+                            borderRadius: "10px",
+                          },
                         },
-                        options: {capture:true},
-                      },
-                    ],
+                        content,
+                      );
+                      new Timer(() => d.remove(), 3000);
+                    },
                   },
                 ],
               },
+              // {
+              //   tag: "span",
+              //   styles: {},
+              //   properties: {
+              //     textContent:
+              //       anTo.parentItem?.parentItem
+              //         ?.getDisplayTitle()
+              //         .substring(0, 15) + "...",
+              //     title:anTo.parentItem?.parentItem?.firstCreator,
+              //   },
+              // },
+
+              {
+                tag: "div",
+                styles: {
+                  color: "red",
+                  fontSize: "1.5em",
+                  paddingRight: "5px",
+                },
+                properties: { textContent: "🗑" },
+                listeners: [
+                  {
+                    type: "click",
+                    listener: (e) => {
+                      e.stopPropagation();
+                      // ztoolkit.log("remove 1", anFromRelations.getLinkRelations());
+                      anFromRelations.removeRelations([toItemURI]);
+                      u2.remove();
+                      // ztoolkit.log("remove 2", anFromRelations.getLinkRelations());
+                      if (anFromRelations.getLinkRelations().length == 0) {
+                        doc
+                          .getElementById(
+                            config.addonRef +
+                              `-renderSidebarAnnotationHeader-TopDiv`,
+                          )
+                          ?.remove();
+                        fromEle.remove();
+                      }
+                    },
+                    options: { capture: true },
+                  },
+                ],
+              },
+            ],
+          },
           {
             tag: "div",
             listeners: [
@@ -309,7 +330,6 @@ async function createPopupDiv(doc: Document, anKey: string) {
               },
             ],
             children: [
-              
               // {
               //   tag: "div",
               //   styles: {  },
