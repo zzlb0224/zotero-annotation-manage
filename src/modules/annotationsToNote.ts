@@ -609,7 +609,7 @@ async function createSearchAnnDiv(doc: Document, isCollection: boolean) {
   ztoolkit.UI.appendElement(inputTag!, div.querySelector(".query")!);
 
   createResultDiv();
-  function createResultDiv() {
+  async function createResultDiv() {
     const txtReg = str2RegExp(text);
     const tagReg = str2RegExp(tag);
     ans = annotations
@@ -625,33 +625,18 @@ async function createSearchAnnDiv(doc: Document, isCollection: boolean) {
       clearChild(div.querySelector(".content"));
       div.querySelector(".status")!.innerHTML =
         `总${annotations.length}条笔记，筛选出了${ans.length}条。预览前${showN}条。`;
-      ztoolkit.UI.appendElement(
-        {
-          tag: "div",
-          namespace: "html",
-          properties: {
-            // textContent: `总${annotations.length}条笔记，筛选出了${ans.length}条。预览前${showN}条。`,
-          },
-          styles: {
-            // display: "flex",
-            // flexWrap: "wrap",
-            // justifyContent: "flex-start",
-            columnCount: "4",
-            columnGap: "10px ",
-            width: "100%",
-          },
-          children: (showN > 0 ? ans.slice(0, showN) : ans).map((a) => ({
+      const cs =  (showN > 0 ? ans.slice(0, showN) : ans).map(async (a) => ({
             tag: "div",
             namespace: "html",
             properties: {
-              textContent:
-                (a.annotationTags || "") +
-                " " +
-                (a.text || "") +
-                (a.type == "image" ? "[图]" : "") +
-                " " +
-                (a.comment || "") +
-                " ",
+              innerHTML:await convertHtml([a],undefined).then(a=>a[0].html)
+                // (a.annotationTags || "") +
+                // " " +
+                // (a.text || "") +
+                // (a.type == "image" ? "[图]" : "") +
+                // " " +
+                // (a.comment || "") +
+                // " ",
             },
             styles: {
               // flex: "0 0 calc( 20% - 4px)",
@@ -677,7 +662,24 @@ async function createSearchAnnDiv(doc: Document, isCollection: boolean) {
                 },
               },
             ],
-          })),
+          }))
+          const children =await Promise.all(cs)
+      ztoolkit.UI.appendElement(
+        {
+          tag: "div",
+          namespace: "html",
+          properties: {
+            // textContent: `总${annotations.length}条笔记，筛选出了${ans.length}条。预览前${showN}条。`,
+          },
+          styles: {
+            // display: "flex",
+            // flexWrap: "wrap",
+            // justifyContent: "flex-start",
+            columnCount: "4",
+            columnGap: "10px ",
+            width: "100%",
+          },
+          children,
         },
         div.querySelector(".content")!,
       );
@@ -1055,7 +1057,7 @@ function getAllAnnotations(items: Zotero.Item[]) {
     });
   return data;
 }
-async function convertHtml(arr: AnnotationRes[], targetNoteItem: Zotero.Item) {
+async function convertHtml(arr: AnnotationRes[], targetNoteItem: Zotero.Item|undefined=undefined) {
   try {
     // const annotations = arr.map((a) => a.ann);
     for (const a of arr) {
@@ -1092,14 +1094,16 @@ async function convertHtml(arr: AnnotationRes[], targetNoteItem: Zotero.Item) {
     )) as string;
     if (html)
       ann.html = html
+         .replace(/<br\s*>/g,"<br/>")
         .replace(/<\/p>$/, getColorTags(ann.tags.map((c) => c.tag)) + "</p>")
-        .replace(/<p>[\s\r\n]*<\/p>/g, "");
+        .replace(/<p>[\s\r\n]*<\/p>/g, "")
+        .replace(/<img /g, '<img style="max-width: 100%;height: auto;" ');
     else {
       ann.html = getCiteAnnotationHtml(
         ann.ann,
         "无法预览，请点击此处，选择“在页面显示”查看。",
       );
-
+ztoolkit.log(html)
       // if(["ink","image"].includes(ann.type)&&getImageCount<5){
       //   getImageCount++
       //   const img =await getImageFromReader(ann)
