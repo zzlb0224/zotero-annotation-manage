@@ -143,7 +143,7 @@ async function createPopupDiv(doc: Document, anKey: string) {
   const fromEle = doc.getElementById(
     config.addonRef + `renderSidebarAnnotationHeader-link-${anKey}`,
   )!;
-  div.style.left = fromEle.offsetLeft + 20 + "px";
+  div.style.left = fromEle.offsetLeft + 25 + "px";
   const scrollTop = doc.getElementById("annotations")?.scrollTop || 0;
   div.style.top = fromEle.offsetTop - scrollTop + "px";
   ztoolkit.log("top", fromEle.offsetTop, fromEle.clientTop, fromEle.offsetTop);
