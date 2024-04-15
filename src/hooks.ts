@@ -31,7 +31,7 @@ async function onStartup() {
   initLocale();
   await initPrefSettings();
 
-  BasicExampleFactory.registerPrefs();
+  // BasicExampleFactory.registerPrefs();
 
   // BasicExampleFactory.registerNotifier();
 
@@ -97,7 +97,7 @@ async function onMainWindowLoad(win: Window): Promise<void> {
   Annotations.register();
   AnnotationsToNote.register();
   readerTools.register();
-  Relations.checkLinkAnnotation();
+  // Relations.checkLinkAnnotation();
   // window.addEventListener("error", function (event) {
   //   ztoolkit.log(
   //     event.error,

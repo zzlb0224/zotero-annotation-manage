@@ -1,3 +1,4 @@
+pref-addon-title = 标签管理
 pref-title = 添加标签
 pref-enable =
     .label = 开启 

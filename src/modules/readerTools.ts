@@ -80,7 +80,7 @@ function renderSidebarAnnotationHeaderCallback(
     ignoreIfExists: true,
   });
   userActions.push(add);
-  ztoolkit.log("userActions1", userActions);
+  // ztoolkit.log("userActions1", userActions);
   if (linkAnnotations && linkAnnotations.length > 0) {
     const u = ztoolkit.UI.createElement(doc, "span", {
       id:
@@ -122,7 +122,7 @@ function renderSidebarAnnotationHeaderCallback(
     });
     userActions.push(u);
   }
-  ztoolkit.log("userActions2", userActions);
+  // ztoolkit.log("userActions2", userActions);
   if (userActions.length > 0) append(...userActions);
 }
 function createPopupDiv(doc: Document, anKey: string) {

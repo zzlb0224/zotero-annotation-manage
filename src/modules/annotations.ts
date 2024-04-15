@@ -416,7 +416,7 @@ class AnnotationPopup {
     let selectionCount = 0;
     // const copyAns = text2Ma(addon.data.copy);
     const copyAns = Relations.allOpenPdf(addon.data.copy);
-    ztoolkit.log("检测复制内容", addon.data.copy, copyAns);
+    // ztoolkit.log("检测复制内容", addon.data.copy, copyAns);
     const copyAnnEls: TagElementProps[] = [];
     const dE = copyAns.map((copyAn) => ({
       tag: "span",
@@ -655,6 +655,7 @@ class AnnotationPopup {
                 textContent: this.searchTag,
                 title: "敲回车增加标签",
               },
+              id: config.addonRef + "_annotation_searchTag_input",
             },
             // ...mae,
             {
@@ -833,6 +834,20 @@ class AnnotationPopup {
                 const target = e.target as HTMLElement;
                 target.style.boxShadow = "#ff0000 0px 0px 4px 3px";
                 this.onTagClick(tag, bgColor);
+              },
+            },
+            {
+              type: "contextmenu",
+              listener: (e: Event) => {
+                e.preventDefault(); // 阻止默认的右键菜单显示
+                const searchTag_input = this.doc?.getElementById(
+                  config.addonRef + "_annotation_searchTag_input",
+                ) as HTMLInputElement;
+                ztoolkit.log("右键菜单被触发", searchTag_input.value);
+                if (searchTag_input) {
+                  if (searchTag_input.value == "") searchTag_input.value = tag;
+                  if (searchTag_input.value == tag) searchTag_input.value = "";
+                }
               },
             },
           ],

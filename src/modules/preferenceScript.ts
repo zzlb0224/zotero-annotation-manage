@@ -20,11 +20,14 @@ export function registerPrefsWindow() {
   Zotero.PreferencePanes.register({
     pluginID: config.addonID,
     src: rootURI + "chrome/content/preferences.xhtml",
-    label: getString("pref-title"),
+    // label: getString("pref-addon-title")||"标签管理",
+    label: getString("prefs-title"),
     image: `chrome://${config.addonRef}/content/icons/favicon.png`,
+    // image: `chrome://${config.addonRef}/content/icons/favicon.png`,
+    // image:rootURI + `chrome/content/icons/favicon.png`,
     helpURL: homepage,
   });
-  ztoolkit.log("2222222222");
+  ztoolkit.log("2222222222", getString("pref-addon-title"));
 }
 
 export async function registerPrefsScripts(_window: Window) {

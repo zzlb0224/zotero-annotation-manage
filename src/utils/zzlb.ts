@@ -431,7 +431,7 @@ export async function injectCSS(doc: Document, path: "annotation.css") {
   ztoolkit.UI.appendElement(
     {
       tag: "style",
-      id: "style_css_" + path.replace(/[/:\s.]/g, "_"),
+      id: config.addonRef + "_style_" + path.replace(/[/:\s.]/g, "_"),
       properties: {
         innerHTML: await getFileContent(rootURI + "chrome/content/" + path),
       },
@@ -607,7 +607,7 @@ export function createTopDiv(
 ) {
   if (!doc) return;
   doc.getElementById(id)?.remove();
-  const d = ztoolkit.UI.appendElement(
+  const div = ztoolkit.UI.appendElement(
     {
       tag: "div",
       id: id,
@@ -633,12 +633,12 @@ export function createTopDiv(
           listener(ev: any) {
             //  if(ev) return;
             stopPropagation(ev);
-            const x = ev.clientX - d.offsetLeft;
-            const y = ev.clientY - d.offsetTop;
+            const x = ev.clientX - div.offsetLeft;
+            const y = ev.clientY - div.offsetTop;
             doc.onmousemove = (e) => {
               stopPropagation(e);
-              d.style.left = e.clientX - x + "px";
-              d.style.top = e.clientY - y + "px";
+              div.style.left = e.clientX - x + "px";
+              div.style.top = e.clientY - y + "px";
             };
             doc.onmouseup = (e) => {
               stopPropagation(e);
@@ -667,7 +667,7 @@ export function createTopDiv(
         top: "-10px",
       },
     },
-    d,
+    div,
   );
 
   ztoolkit.UI.appendElement(
@@ -691,7 +691,7 @@ export function createTopDiv(
           type: "click",
           listener: (e) => {
             e.stopPropagation();
-            d.remove();
+            div.remove();
           },
           options: { capture: true },
         },
@@ -707,10 +707,10 @@ export function createTopDiv(
         classList: [a],
         styles: { display: "flex" },
       },
-      d,
+      div,
     ),
   );
-  return d;
+  return div;
 }
 export class Timer {
   closeTimer: NodeJS.Timeout | null;
@@ -776,4 +776,24 @@ export class CountDown {
   remainingTime() {
     return this._total - Date.now() + this._start;
   }
+}
+export function waitFor<T>(
+  callback: () => T,
+  timeout = 100000,
+): Promise<T | false> {
+  return new Promise((resolve, reject) => {
+    const startTime = Date.now();
+    function checkElement() {
+      const c = callback();
+      if (c) {
+        clearInterval(interval);
+        resolve(c);
+      } else if (Date.now() - startTime > timeout) {
+        clearInterval(interval);
+        resolve(false);
+        // reject(new Error(`未完成`));
+      }
+    }
+    const interval = setInterval(checkElement, 100);
+  });
 }

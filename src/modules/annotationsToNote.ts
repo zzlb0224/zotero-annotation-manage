@@ -22,8 +22,10 @@ import {
   str2RegExp,
   toggleProperty,
   uniqueBy,
+  waitFor,
 } from "../utils/zzlb";
 import { createTopDiv } from "../utils/zzlb";
+import { get } from "http";
 let popupWin: ProgressWindowHelper | undefined = undefined;
 let popupTime = -1;
 
@@ -356,96 +358,96 @@ async function createSearchAnnDiv(doc: Document, isCollection: boolean) {
     "status",
     "query",
     "content",
-  ]);
-  if (div) {
-    const inputTag: TagElementProps = {
-      tag: "div",
-      styles: { display: "flex", flexDirection: "row" },
-      children: [
-        { tag: "div", properties: { textContent: "" } },
-        {
-          tag: "div",
-          properties: { textContent: "注释、笔记" },
-          children: [
-            {
-              tag: "input",
-              namespace: "html",
-              properties: { placeholder: "支持正则" },
-              styles: { width: "200px" },
-              listeners: [
-                {
-                  type: "keyup",
-                  listener: (ev: any) => {
-                    stopPropagation(ev);
-                    text = (ev.target as HTMLInputElement).value;
-                    createResultDiv();
-                  },
+  ])!;
+
+  const inputTag: TagElementProps = {
+    tag: "div",
+    styles: { display: "flex", flexDirection: "row" },
+    children: [
+      { tag: "div", properties: { textContent: "" } },
+      {
+        tag: "div",
+        properties: { textContent: "注释、笔记" },
+        children: [
+          {
+            tag: "input",
+            namespace: "html",
+            properties: { placeholder: "支持正则" },
+            styles: { width: "200px" },
+            listeners: [
+              {
+                type: "keyup",
+                listener: (ev: any) => {
+                  stopPropagation(ev);
+                  text = (ev.target as HTMLInputElement).value;
+                  createResultDiv();
                 },
-              ],
-            },
-          ],
-        },
-        {
-          tag: "div",
-          properties: { textContent: "标签" },
-          children: [
-            {
-              tag: "input",
-              namespace: "html",
-              properties: { placeholder: "支持正则" },
-              styles: { width: "200px" },
-              listeners: [
-                {
-                  type: "keyup",
-                  listener: (ev: Event) => {
-                    stopPropagation(ev);
-                    tag = (ev.target as HTMLInputElement).value.trim();
-                    createResultDiv();
-                  },
-                },
-              ],
-            },
-          ],
-        },
-        {
-          tag: "div",
-          properties: { textContent: "显示前N条" },
-          children: [
-            {
-              tag: "input",
-              namespace: "html",
-              properties: {
-                placeholder: "输入数字",
-                value: showN,
-                type: "number",
               },
-              styles: { width: "50px" },
-              listeners: [
-                {
-                  type: "change",
-                  listener: (ev: Event) => {
-                    stopPropagation(ev);
-                    showN =
-                      parseInt((ev.target as HTMLInputElement).value.trim()) ||
-                      10;
-                    createResultDiv();
-                  },
+            ],
+          },
+        ],
+      },
+      {
+        tag: "div",
+        properties: { textContent: "标签" },
+        children: [
+          {
+            tag: "input",
+            namespace: "html",
+            properties: { placeholder: "支持正则" },
+            styles: { width: "200px" },
+            listeners: [
+              {
+                type: "keyup",
+                listener: (ev: Event) => {
+                  stopPropagation(ev);
+                  tag = (ev.target as HTMLInputElement).value.trim();
+                  createResultDiv();
                 },
-              ],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        tag: "div",
+        properties: { textContent: "显示前N条" },
+        children: [
+          {
+            tag: "input",
+            namespace: "html",
+            properties: {
+              placeholder: "输入数字",
+              value: showN,
+              type: "number",
             },
-          ],
-        },
-      ],
-    };
-    const actionTag = createActionTag(div, () => {
-      exportNote({ filter: () => ans, toText: toText1 });
-      div?.remove();
-    });
-    for (const action of actionTag) {
-      ztoolkit.UI.appendElement(action, div.querySelector(".action")!);
-    }
-    ztoolkit.UI.appendElement(inputTag!, div.querySelector(".query")!);
+            styles: { width: "50px" },
+            listeners: [
+              {
+                type: "change",
+                listener: (ev: Event) => {
+                  stopPropagation(ev);
+                  showN =
+                    parseInt((ev.target as HTMLInputElement).value.trim()) ||
+                    10;
+                  createResultDiv();
+                },
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+  const actionTag = createActionTag(div, () => {
+    exportNote({ filter: () => ans, toText: toText1 });
+    div?.remove();
+  });
+  for (const action of actionTag) {
+    ztoolkit.UI.appendElement(action, div.querySelector(".action")!);
   }
+  ztoolkit.UI.appendElement(inputTag!, div.querySelector(".query")!);
+
   createResultDiv();
   function createResultDiv() {
     const txtReg = str2RegExp(text);
@@ -918,6 +920,8 @@ async function convertHtml(arr: AnnotationRes[], targetNoteItem: Zotero.Item) {
     ztoolkit.log("发生错误", error);
   }
 
+  const getImageCount = 0;
+
   const data = arr.map(async (ann) => {
     //TODO 感觉这个方法读取图片是从缓存里面读取的，有些图片没有加载成功
     const html = (await Zotero.BetterNotes.api.convert.annotations2html(
@@ -931,7 +935,17 @@ async function convertHtml(arr: AnnotationRes[], targetNoteItem: Zotero.Item) {
         .replace(/<\/p>$/, getColorTags(ann.tags.map((c) => c.tag)) + "</p>")
         .replace(/<p>[\s\r\n]*<\/p>/g, "");
     else {
-      ann.html = getCiteAnnotationHtml(ann.ann, "点击此处，选择“在页面显示”");
+      ann.html = getCiteAnnotationHtml(
+        ann.ann,
+        "无法预览，请点击此处，选择“在页面显示”查看。",
+      );
+
+      // if(["ink","image"].includes(ann.type)&&getImageCount<5){
+      //   getImageCount++
+      //   const img =await getImageFromReader(ann)
+      //   if(img)
+      //    { ann.html=img+ getCiteAnnotationHtml(ann.ann,`[${ann.type}]`)}
+      // }
     }
     return ann;
   });
@@ -946,6 +960,26 @@ async function convertHtml(arr: AnnotationRes[], targetNoteItem: Zotero.Item) {
   ztoolkit.log(list);
   return list;
 }
+// let getImageCount=0
+async function getImageFromReader(an: AnnotationRes) {
+  // if(await waitFor(()=>getImageCount==0)){
+  //   getImageCount++
+  await openAnnotation(an.pdf, an.page, an.ann.key);
+  const tabId = Zotero_Tabs.getTabIDByItemID(an.pdf.id);
+  const reader = Zotero.Reader.getByTabID(tabId);
+  const image = await waitFor(() =>
+    reader?._internalReader?._annotationManager?._annotations?.find(
+      (f) => f.id == an.ann.key,
+    ),
+  );
+  Zotero_Tabs.select("zotero-pane");
+  // Zotero_Tabs.close(tabId)
+  // getImageCount--
+  ztoolkit.log("预览 reader", reader, image);
+  if (image) return `<img src="${image.image}"/>`;
+  // }
+}
+
 function createPopupWin({
   closeTime = 5000,
   header = "整理笔记",
@@ -971,9 +1005,6 @@ function getTitleFromAnnotations(annotations: AnnotationRes[]) {
   return title;
 }
 
-// function h1(txt: string, tag = "h1", attrs = "") {
-//   return `<${tag} ${attrs}>${txt}</${tag}>`;
-// }
 async function exportNote({
   toText,
   filter = undefined,
@@ -1139,6 +1170,7 @@ async function exportNoteByType(
     items: await getSelectedItems(isCollection),
     filter: (annotations) => {
       annotations = annotations.filter((f) => f.type == type);
+      // ztoolkit.log(annotations)
       return uniqueBy(annotations, (a) => a.ann.key);
     },
   });
@@ -1192,12 +1224,11 @@ function toText1(ans: AnnotationRes[]) {
       .sort(sortKey)
       .flatMap((a, index, aa) => [
         `<h1>(${index + 1}/${aa.length}) ${a.key} ${getCiteItemHtmlWithPage(a.values[0].ann)}</h1>`,
-        a.values.map((b) => b.html).join("\n"),
+        a.values.map((b) => b.type + b.html).join("\n"),
       ])
       .join("")
   );
 }
-
 function getColorTags(tags: string[]) {
   return tags.map(
     (t) =>
