@@ -354,7 +354,12 @@ async function createPopupDiv(doc1: Document, anKey: string) {
     );
   }
 }
-function showTitle(anTo: Zotero.Item, x, y, parent: HTMLElement) {
+function showTitle(
+  anTo: Zotero.Item,
+  x: number,
+  y: number,
+  parent: HTMLElement,
+) {
   return ztoolkit.UI.appendElement(
     {
       tag: "span",
