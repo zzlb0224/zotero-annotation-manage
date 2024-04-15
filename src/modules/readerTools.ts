@@ -211,24 +211,6 @@ async function createPopupDiv(doc: Document, anKey: string) {
         properties: { textContent: "" },
         children: [
           {
-            tag: "div",
-            listeners: [
-              {
-                type: "click",
-                listener: (e) => {
-                  e.stopPropagation();
-                  if (anTo.parentItemKey)
-                    openAnnotation(
-                      anTo.parentItemKey,
-                      anTo.annotationPageLabel,
-                      anTo.key,
-                    );
-                },
-                options: { capture: true },
-              },
-            ],
-            children: [
-              {
                 tag: "div",
                 styles: {
                   display: "flex",
@@ -247,21 +229,34 @@ async function createPopupDiv(doc: Document, anKey: string) {
                         )) || anTo.annotationType,
                     },
                   },
-                  // {
-                  //   tag: "span",
-                  //   styles: {  },
-                  //   properties: { textContent: `${anTo.parentItem?.parentItem?.getField("firstCreator")},${anTo.parentItem?.parentItem?.getField("year")}` },
-                  // },
                   {
                     tag: "span",
-                    styles: {},
-                    properties: {
-                      textContent:
-                        anTo.parentItem?.parentItem
-                          ?.getDisplayTitle()
-                          .substring(0, 15) + "...",
-                    },
+                    styles: {  },
+                    properties: { textContent: `${anTo.parentItem?.parentItem?.getField("firstCreator")},${anTo.parentItem?.parentItem?.getField("year")}` },
+                    listeners: [{type:"click",listener:(e:any)=>{
+                      ztoolkit.log("点击",e,e.clientX,e.target)
+                     const d= ztoolkit.UI.appendElement({
+                        tag: "span",
+                        id: config.addonRef+`-annotation-show-title`,
+                        removeIfExists:true,
+                        properties: {textContent: anTo.parentItem?.parentItem
+                          ?.getDisplayTitle()},
+                        styles:{position:"fixed",zIndex:"9999",left:e.clientX-80+"px",top:e.clientY+15+"px",background:"#000000",color:"#ffffff",padding:"10px",borderRadius:"10px"},
+                      },content)
+                      new Timer(()=>d.remove(),3000)
+                    }}]
                   },
+                  // {
+                  //   tag: "span",
+                  //   styles: {},
+                  //   properties: {
+                  //     textContent:
+                  //       anTo.parentItem?.parentItem
+                  //         ?.getDisplayTitle()
+                  //         .substring(0, 15) + "...",
+                  //     title:anTo.parentItem?.parentItem?.firstCreator,
+                  //   },
+                  // },
 
                   {
                     tag: "div",
@@ -290,12 +285,31 @@ async function createPopupDiv(doc: Document, anKey: string) {
                             fromEle.remove();
                           }
                         },
-                        options: true,
+                        options: {capture:true},
                       },
                     ],
                   },
                 ],
               },
+          {
+            tag: "div",
+            listeners: [
+              {
+                type: "click",
+                listener: (e) => {
+                  e.stopPropagation();
+                  if (anTo.parentItemKey)
+                    openAnnotation(
+                      anTo.parentItemKey,
+                      anTo.annotationPageLabel,
+                      anTo.key,
+                    );
+                },
+                options: { capture: true },
+              },
+            ],
+            children: [
+              
               // {
               //   tag: "div",
               //   styles: {  },
