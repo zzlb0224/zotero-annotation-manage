@@ -427,24 +427,49 @@ export async function openAnnotation(
   }
 }
 
-export async function injectCSS(doc: Document, path: "annotation.css") {
-  ztoolkit.UI.appendElement(
+export const memSVG = memoize(async (href) => await getFileContent(href));
+
+export async function loadSVG(
+  doc: Document,
+  href: string = `chrome://${config.addonRef}/content/16/annotate-highlight.svg`,
+) {
+  // const href =svg.includes("chrome") `chrome://${config.addonRef}/content/${svg}`;
+
+  const d = ztoolkit.UI.createElement(doc, "div", {
+    properties: {
+      innerHTML: getFileContent(href),
+    },
+  });
+
+  ztoolkit.log("加载css", d);
+  return d;
+}
+
+export async function injectCSS(
+  doc: Document,
+  filename: string = "annotation.css",
+) {
+  const href = `chrome://${config.addonRef}/content/${filename}`;
+
+  const d = ztoolkit.UI.appendElement(
     {
       tag: "style",
-      id: config.addonRef + "_style_" + path.replace(/[/:\s.]/g, "_"),
+      id: config.addonRef + "_style_" + filename.replace(/[/:\s.]/g, "_"),
       properties: {
-        innerHTML: await getFileContent(rootURI + "chrome/content/" + path),
+        innerHTML: getFileContent(href),
       },
       ignoreIfExists: true,
     },
-    doc.querySelector("head") ||
+    doc.querySelector("linkset") ||
+      doc.querySelector("head") ||
       doc.querySelector("body") ||
       doc.querySelector("div") ||
       doc.children[0],
   );
+  ztoolkit.log("加载css", d);
 }
 export async function getFileContent(path: string) {
-  const contentOrXHR = await Zotero.File.getContentsAsync(path);
+  const contentOrXHR = await Zotero.HTTP.request("GET", path);
   const content =
     typeof contentOrXHR === "string"
       ? contentOrXHR
@@ -537,11 +562,13 @@ export class Relations {
   // }
   setTag() {
     if (this.getLinkRelations().length > 0) {
-      this.item.addTag("🔗Bi-directional linked annotation", 1);
+      if (!this.item.hasTag("🔗Bi-directional linked annotation"))
+        this.item.addTag("🔗Bi-directional linked annotation", 1);
     } else {
-      this.item.removeTag("🔗Bi-directional linked annotation");
+      if (this.item.hasTag("🔗Bi-directional linked annotation"))
+        this.item.removeTag("🔗Bi-directional linked annotation");
     }
-    this.item.saveTx();
+    // this.item.saveTx();
   }
 
   getOpenPdfUri() {
@@ -588,8 +615,9 @@ export class Relations {
     needConnect.forEach((f) => {
       annotation.addRelation(Relations.RelationsPredicate, f);
     });
-    annotation.addTag("🔗Bi-directional linked annotation", 1);
+    // annotation.addTag("🔗Bi-directional linked annotation", 1);
     annotation.saveTx();
+    this.setTag();
     needConnect.forEach((f) => {
       const id = Zotero.URI.getURIItemID(f);
       if (id) {

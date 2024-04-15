@@ -4,10 +4,15 @@ import {
   Relations,
   Timer,
   createTopDiv,
+  getFileContent,
   getItem,
+  injectCSS,
+  memSVG,
   openAnnotation,
 } from "../utils/zzlb";
 import { getPref } from "../utils/prefs";
+import { compare } from "../utils/sort";
+
 function register() {
   Zotero.Reader.registerEventListener(
     "renderToolbar",
@@ -28,12 +33,13 @@ function unregister() {
   );
 }
 export default { register, unregister };
-
 function readerToolbarCallback(
   event: Parameters<_ZoteroTypes.Reader.EventHandler<"renderToolbar">>[0],
 ) {
   const { append, doc, reader, params } = event;
+  ztoolkit.log("readerToolbarCallback reader.css");
   copyFunc(doc, "readerToolbarCallback");
+  injectCSS(doc, "reader1.css");
 }
 function renderSidebarAnnotationHeaderCallback(
   event: Parameters<
@@ -43,16 +49,17 @@ function renderSidebarAnnotationHeaderCallback(
   const { append, doc, reader, params } = event;
   // copyFunc(doc, "renderSidebarAnnotationHeaderCallback");
   if (getPref("hide-annotation-link")) return;
-  ztoolkit.log(event, params.annotation.id);
+  // ztoolkit.log(event, params.annotation.id);
   const relations = new Relations(params.annotation.id);
   // relations.getLinkRelations()
   // const relatedAnnotations= getRelatedAnnotations(ann);
   const linkAnnotations = relations.getLinkRelations();
-  ztoolkit.log("readerToolbarCallback111", params, linkAnnotations);
+  // ztoolkit.log("readerToolbarCallback111", params, linkAnnotations);
   const userActions: HTMLElement[] = [];
   const add = ztoolkit.UI.createElement(doc, "span", {
     id: `renderSidebarAnnotationHeader-add-${params.annotation.id}`,
     properties: { textContent: "🧷" },
+    classList: ["zotero-annotation-manage-red"],
     listeners: [
       {
         type: "click",
@@ -125,13 +132,14 @@ function renderSidebarAnnotationHeaderCallback(
   // ztoolkit.log("userActions2", userActions);
   if (userActions.length > 0) append(...userActions);
 }
-function createPopupDiv(doc: Document, anKey: string) {
+async function createPopupDiv(doc: Document, anKey: string) {
   const anFrom = getItem(anKey);
   const div = createTopDiv(
     doc,
     config.addonRef + `-renderSidebarAnnotationHeader-TopDiv`,
     ["action", "status", "query", "content"],
   )!;
+  div.className = "zotero-annotation-manage-red";
   const fromEle = doc.getElementById(
     config.addonRef + `renderSidebarAnnotationHeader-link-${anKey}`,
   )!;
@@ -156,19 +164,36 @@ function createPopupDiv(doc: Document, anKey: string) {
   const anFromRelations = new Relations(anFrom);
   const fromLinkRelations = anFromRelations.getLinkRelations();
   // const m = Relations.mapOpenPdf(linkAnnotations);
-  for (const toItemURI of fromLinkRelations) {
-    const toId = Zotero.URI.getURIItemID(toItemURI);
-    if (!toId) continue;
-    const anTo = getItem(toId);
+  const content = div.querySelector(".content")! as HTMLElement;
+  // content.style.flexDirection ="column"
+  content.style.flexWrap = "wrap";
+  content.style.justifyContent = "flex-start";
+  div.style.background = "#eeeeee";
+
+  const toAns = fromLinkRelations
+    .map((toItemURI) => getItem(Zotero.URI.getURIItemID(toItemURI) || ""))
+    .sort(
+      compare(
+        "parentKey",
+        "annotationPageLabel",
+        "annotationPosition",
+        undefined,
+      ),
+    );
+  for (const anTo of toAns) {
     const u2 = ztoolkit.UI.appendElement(
       {
         tag: "div",
         styles: {
-          padding: "2px",
+          padding: "5px",
           marginRight: "20px",
           display: "flex",
           alignItems: "stretch",
           flexDirection: "column",
+          width: "260px",
+          background: "#fff",
+          borderRadius: "5px",
+          margin: "4px",
         },
         properties: { textContent: "" },
         children: [
@@ -192,49 +217,93 @@ function createPopupDiv(doc: Document, anKey: string) {
             children: [
               {
                 tag: "div",
-                styles: { background: anTo.annotationColor + "30" },
-                properties: { textContent: anTo.parentItem?.getDisplayTitle() },
-              },
-              {
-                tag: "span",
-                styles: { background: anTo.annotationColor + "60" },
-                properties: { textContent: anTo.annotationType },
-              },
-              {
-                tag: "div",
-                styles: { background: anTo.annotationColor + "20" },
-                properties: { textContent: anTo.annotationText },
-              },
-              {
-                tag: "div",
-                styles: { background: anTo.annotationColor + "60" },
-                properties: { textContent: anTo.annotationComment },
-              },
-            ],
-          },
-          {
-            tag: "div",
-            properties: { textContent: "删除" },
-            listeners: [
-              {
-                type: "click",
-                listener: (e) => {
-                  e.stopPropagation();
-                  ztoolkit.log("remove 1", anFromRelations.getLinkRelations());
-                  anFromRelations.removeRelations([toItemURI]);
-                  u2.remove();
-                  ztoolkit.log("remove 2", anFromRelations.getLinkRelations());
-                  if (anFromRelations.getLinkRelations().length == 0) {
-                    doc
-                      .getElementById(
-                        config.addonRef +
-                          `-renderSidebarAnnotationHeader-TopDiv`,
-                      )
-                      ?.remove();
-                    fromEle.remove();
-                  }
+                styles: {
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
                 },
-                options: true,
+                children: [
+                  {
+                    tag: "span",
+                    styles: { color: anTo.annotationColor },
+                    properties: {
+                      textContent: anTo.annotationType,
+                      innerHTML:
+                        (await memSVG(
+                          `chrome://${config.addonRef}/content/16/annotate-${anTo.annotationType}.svg`,
+                        )) || anTo.annotationType,
+                    },
+                  },
+                  // {
+                  //   tag: "span",
+                  //   styles: {  },
+                  //   properties: { textContent: `${anTo.parentItem?.parentItem?.getField("firstCreator")},${anTo.parentItem?.parentItem?.getField("year")}` },
+                  // },
+                  {
+                    tag: "span",
+                    styles: {},
+                    properties: {
+                      textContent:
+                        anTo.parentItem?.parentItem
+                          ?.getDisplayTitle()
+                          .substring(0, 15) + "...",
+                    },
+                  },
+
+                  {
+                    tag: "div",
+                    styles: { color: "red", fontSize: "1.5em" },
+                    properties: { textContent: "🗑" },
+                    listeners: [
+                      {
+                        type: "click",
+                        listener: (e) => {
+                          e.stopPropagation();
+                          // ztoolkit.log("remove 1", anFromRelations.getLinkRelations());
+                          anFromRelations.removeRelations([toItemURI]);
+                          u2.remove();
+                          // ztoolkit.log("remove 2", anFromRelations.getLinkRelations());
+                          if (anFromRelations.getLinkRelations().length == 0) {
+                            doc
+                              .getElementById(
+                                config.addonRef +
+                                  `-renderSidebarAnnotationHeader-TopDiv`,
+                              )
+                              ?.remove();
+                            fromEle.remove();
+                          }
+                        },
+                        options: true,
+                      },
+                    ],
+                  },
+                ],
+              },
+              // {
+              //   tag: "div",
+              //   styles: {  },
+              //   properties: { textContent: anTo.parentItem?.parentItem?.getDisplayTitle().substring(0,10)+"..." },
+              // },
+              {
+                tag: "div",
+                styles: {
+                  background: anTo.annotationColor + "60", //width: "200px",
+                  maxHeight: "100px",
+                  overflowY: "scroll",
+                },
+                properties: { innerHTML: await getAnnotationContent(anTo) },
+              },
+              {
+                tag: "div",
+                styles: {
+                  background: anTo.annotationColor + "10", //width: "200px"
+                },
+                properties: {
+                  textContent: anTo
+                    .getTags()
+                    .map((a) => a.tag)
+                    .join(","),
+                },
               },
             ],
           },
@@ -243,6 +312,12 @@ function createPopupDiv(doc: Document, anKey: string) {
       div.querySelector(".content")!,
     );
   }
+}
+async function getAnnotationContent(ann: Zotero.Item) {
+  const html = (await Zotero.BetterNotes.api.convert.annotations2html([ann], {
+    noteItem: undefined,
+  })) as string;
+  return html.replace(/<img /g, '<img style="max-width: 100%;height: auto;" ');
 }
 
 function getRelatedAnnotations(ann: Zotero.Item) {

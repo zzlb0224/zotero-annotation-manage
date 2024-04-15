@@ -27,7 +27,7 @@ export function registerPrefsWindow() {
     // image:rootURI + `chrome/content/icons/favicon.png`,
     helpURL: homepage,
   });
-  ztoolkit.log("2222222222", getString("pref-addon-title"));
+  // ztoolkit.log("2222222222", getString("pref-addon-title"));
 }
 
 export async function registerPrefsScripts(_window: Window) {

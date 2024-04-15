@@ -112,3 +112,33 @@ export function sortByFixedTag2TagName<T>(
   }
   return b.key > a.key ? -0.5 : 0.5;
 }
+
+/**
+ * 不要传入async方法
+ *
+ * @export
+ * @template {{[key:string]:any}} T
+ * @param {...((keyof T)|undefined)[]} keys 不要传入async方法
+ * @returns {(a: T, b: T) => number}
+ */
+export function compare<T extends { [key: string]: any } | number | string>(
+  ...keys: (keyof T | undefined)[]
+) {
+  return (a: T, b: T) => {
+    let r = 0;
+    for (let i = 0; i < keys.length; i++) {
+      const ki = keys[i];
+      if (ki == undefined) {
+        if (a < b) r += (keys.length - i) * -10;
+        if (a > b) r += (keys.length - i) * 10;
+      } else if (typeof a[ki] === "function") {
+        if ((a[ki] as any)() < (b[ki] as any)()) r += (keys.length - i) * -10;
+        if ((a[ki] as any)() > (b[ki] as any)()) r += (keys.length - i) * 10;
+      } else {
+        if (a[ki] < b[ki]) r += (keys.length - i) * -10;
+        if (a[ki] > b[ki]) r += (keys.length - i) * 10;
+      }
+    }
+    return r;
+  };
+}
