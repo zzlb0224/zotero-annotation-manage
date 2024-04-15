@@ -217,6 +217,13 @@ function unregister() {
 }
 
 async function dialogExample() {
+  ztoolkit.log(
+    " Zotero.getMainWindow().screenLeft",
+    Zotero.getMainWindow().screenLeft,
+  );
+  if (addon.data.dialog) {
+    return;
+  }
   const dialogData: { [key: string | number]: any } = {
     inputValue: "test",
     checkboxValue: true,
@@ -249,6 +256,10 @@ async function dialogExample() {
     .addCell(0, 1, {
       tag: "h1",
       properties: { innerHTML: "0 1" },
+      styles: {
+        width: "300px",
+        height: "300px",
+      },
     })
     .addCell(1, 1, {
       tag: "h2",
@@ -261,6 +272,7 @@ async function dialogExample() {
       },
       styles: {
         width: "20px",
+        height: "300px",
       },
     })
 
@@ -293,7 +305,10 @@ async function dialogExample() {
       },
     })
     .setDialogData(dialogData)
-    .open("Dialog Example");
+    .open("Dialog Example", {
+      alwaysRaised: true,
+      left: Zotero.getMainWindow().screenLeft,
+    });
   addon.data.dialog = dialogHelper;
   await dialogData.unloadLock.promise;
   addon.data.dialog = undefined;

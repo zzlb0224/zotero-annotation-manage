@@ -132,15 +132,17 @@ function renderSidebarAnnotationHeaderCallback(
   // ztoolkit.log("userActions2", userActions);
   if (userActions.length > 0) append(...userActions);
 }
-async function createPopupDiv(doc: Document, anKey: string) {
+async function createPopupDiv(doc1: Document, anKey: string) {
+  const doc = Zotero.getMainWindow().document;
   const anFrom = getItem(anKey);
   const div = createTopDiv(
     doc,
     config.addonRef + `-renderSidebarAnnotationHeader-TopDiv`,
     ["action", "status", "query", "content"],
   )!;
+
   div.className = "zotero-annotation-manage-red";
-  const fromEle = doc.getElementById(
+  const fromEle = doc1.getElementById(
     config.addonRef + `renderSidebarAnnotationHeader-link-${anKey}`,
   )!;
   div.style.left = fromEle.offsetLeft + 25 + "px";
@@ -239,29 +241,18 @@ async function createPopupDiv(doc: Document, anKey: string) {
                   {
                     type: "click",
                     listener: (e: any) => {
+                      e.stopPropagation();
                       ztoolkit.log("点击", e, e.clientX, e.target);
-                      const d = ztoolkit.UI.appendElement(
-                        {
-                          tag: "span",
-                          id: config.addonRef + `-annotation-show-title`,
-                          removeIfExists: true,
-                          properties: {
-                            textContent:
-                              anTo.parentItem?.parentItem?.getDisplayTitle(),
-                          },
-                          styles: {
-                            position: "fixed",
-                            zIndex: "9999",
-                            left: e.clientX - 80 + "px",
-                            top: e.clientY + 15 + "px",
-                            background: "#000000",
-                            color: "#ffffff",
-                            padding: "10px",
-                            borderRadius: "10px",
-                          },
-                        },
-                        content,
-                      );
+                      const d = showTitle(anTo, e.clientX, e.clientY, content);
+                      new Timer(() => d.remove(), 3000);
+                    },
+                    options: { capture: true },
+                  },
+                  {
+                    type: "mouseover",
+                    listener: (e: any) => {
+                      ztoolkit.log("鼠标进入", e, e.clientX, e.target);
+                      const d = showTitle(anTo, e.clientX, e.clientY, content);
                       new Timer(() => d.remove(), 3000);
                     },
                   },
@@ -272,8 +263,7 @@ async function createPopupDiv(doc: Document, anKey: string) {
               //   styles: {},
               //   properties: {
               //     textContent:
-              //       anTo.parentItem?.parentItem
-              //         ?.getDisplayTitle()
+              //       anTo.parentItem?.parentItem?.getDisplayTitle()
               //         .substring(0, 15) + "...",
               //     title:anTo.parentItem?.parentItem?.firstCreator,
               //   },
@@ -364,6 +354,30 @@ async function createPopupDiv(doc: Document, anKey: string) {
     );
   }
 }
+function showTitle(anTo: Zotero.Item, x, y, parent: HTMLElement) {
+  return ztoolkit.UI.appendElement(
+    {
+      tag: "span",
+      id: config.addonRef + `-annotation-show-title`,
+      removeIfExists: true,
+      properties: {
+        textContent: anTo.parentItem?.parentItem?.getDisplayTitle(),
+      },
+      styles: {
+        position: "fixed",
+        zIndex: "9999",
+        left: x - 80 + "px",
+        top: y + 15 + "px",
+        background: "#000000",
+        color: "#ffffff",
+        padding: "10px",
+        borderRadius: "10px",
+      },
+    },
+    parent,
+  );
+}
+
 async function getAnnotationContent(ann: Zotero.Item) {
   const html = (await Zotero.BetterNotes.api.convert.annotations2html([ann], {
     noteItem: undefined,
