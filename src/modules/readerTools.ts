@@ -171,16 +171,28 @@ async function createPopupDiv(doc: Document, anKey: string) {
   div.style.background = "#eeeeee";
 
   const toAns = fromLinkRelations
-    .map((toItemURI) => getItem(Zotero.URI.getURIItemID(toItemURI) || ""))
+    .map((toItemURI) => ({
+      toItemURI,
+      ann: getItem(Zotero.URI.getURIItemID(toItemURI) || ""),
+    }))
+    .map((a) =>
+      Object.assign(a, {
+        parentID: a.ann.parentID,
+        annotationPageLabel: parseInt(a.ann.annotationPageLabel),
+        annotationPosition: a.ann.annotationPosition,
+      }),
+    )
     .sort(
       compare(
-        "parentKey",
+        "parentID",
         "annotationPageLabel",
         "annotationPosition",
         undefined,
       ),
     );
-  for (const anTo of toAns) {
+  for (const to of toAns) {
+    const anTo = to.ann;
+    const toItemURI = to.toItemURI;
     const u2 = ztoolkit.UI.appendElement(
       {
         tag: "div",
