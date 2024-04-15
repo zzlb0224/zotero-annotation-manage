@@ -58,6 +58,10 @@
 
 ![按不同tag导出](./doc/按不同tag导出.png)
 
+### 第三个功能 注释双链
+
+目前想到的场景是，文献来源可以标记了，后期会出一个注释链接的导出功能。显示当前注释链接到了哪个文献，特别是写综述的时候有用。
+
 ## 感谢
 
 本插件基于[@windingwind](https://github.com/windingwind)的[zotero-plugin-template](https://github.com/windingwind/zotero-plugin-template)开发，在此表示感谢。
@@ -68,7 +72,7 @@
 
 Nested Tags 的灵感来自 [Zotero-Style](https://github.com/MuiseDestiny/zotero-style)，一直在用这个插件。Nested Tags 相关的内容仅仅为自己方便添加标签而设计。
 
-双链标签灵感来自 [@YaoLiMuMu](https://github.com/windingwind/zotero-actions-tags/discussions/296)，非常好的笔记链接方案。同时感谢 @Geo123abc 提供的双链代码。目前采用dc:relation建立双链，会影响系统数据，不建议过多使用这个功能
+注释双链灵感来自 [@YaoLiMuMu](https://github.com/windingwind/zotero-actions-tags/discussions/296)，非常好的注释链接方案。同时感谢 @Geo123abc 提供的双链代码。目前采用dc:relation建立双链，和条目的链接信息是一样的。目前做的只能链接到注释，未来可能做到和条目链接。
 
 ## Reminder
 
