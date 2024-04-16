@@ -383,7 +383,7 @@ async function createRelatedContent(
   );
 }
 
-function showTitle(
+export function showTitle(
   anTo: Zotero.Item,
   x: number,
   y: number,
@@ -431,7 +431,7 @@ async function relatedDialog(readerDoc: Document, anKey: string) {
   );
   const mainWindow = Zotero.getMainWindow();
   const { fromEle, left, top } = getFromEle(readerDoc, anKey);
-  let dialogHelper = addon.data.dialog;
+  let dialogHelper = addon.data.relationDialog;
 
   if (dialogHelper == null) {
     const dialogData: { [key: string | number]: any } = {
@@ -496,13 +496,10 @@ async function relatedDialog(readerDoc: Document, anKey: string) {
   content.addEventListener("mouseover", () => {
     fromMouseTimer.clearTimer();
   });
-
   await createRelatedContent(anKey, content, fromEle);
-
   ztoolkit.log(content, dialogHelper.window);
   await waitFor(() => content.querySelector(".loaded"));
   (dialogHelper.window as any).sizeToContent();
-
   if (dialogHelper.window.outerHeight + top - mainWindow.outerHeight > 0) {
     dialogHelper.window.moveTo(
       left,
@@ -512,9 +509,9 @@ async function relatedDialog(readerDoc: Document, anKey: string) {
       ),
     );
   }
-  addon.data.dialog = dialogHelper;
+  addon.data.relationDialog = dialogHelper;
   await dialogHelper.dialogData.unloadLock?.promise;
-  addon.data.dialog = undefined;
+  addon.data.relationDialog = undefined;
   if (addon.data.alive) {
     //   ztoolkit.getGlobal("alert")(
     //   `Close dialog with ${dialogData._lastButtonId}.\nCheckbox: ${dialogData.checkboxValue}\nInput: ${dialogData.inputValue}.`,

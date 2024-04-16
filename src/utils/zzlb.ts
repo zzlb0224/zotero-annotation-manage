@@ -3,6 +3,12 @@ import { getPref, setPref } from "./prefs";
 import memoize from "./memoize2";
 import { config } from "../../package.json";
 import { stopPropagation } from "../modules/annotationsToNote";
+import {
+  getColorTags,
+  getCiteAnnotationHtml,
+  createPopupWin,
+  popupWin,
+} from "../modules/annotationsToNote";
 /* unique 采用set的比较方式*/
 export function unique<T>(arr: T[]) {
   return [...new Set(arr)];
@@ -824,4 +830,113 @@ export function waitFor<T>(
     }
     const interval = setInterval(checkElement, 100);
   });
+}
+export async function convertHtml(
+  arr: AnnotationRes[],
+  targetNoteItem: Zotero.Item | undefined = undefined,
+) {
+  try {
+    // const annotations = arr.map((a) => a.ann);
+    for (const a of arr) {
+      const annotation = a.ann;
+      if (
+        annotation.annotationType === "image" &&
+        !(await Zotero.Annotations.hasCacheImage(annotation))
+      ) {
+        try {
+          //呈现缓存图片
+          // await Zotero.PDFRenderer.renderAttachmentAnnotations(
+          //   annotation.parentID,
+          // );
+        } catch (e) {
+          Zotero.debug(e);
+          throw e;
+        }
+        break;
+      }
+    }
+  } catch (error) {
+    ztoolkit.log("发生错误", error);
+  }
+
+  const getImageCount = 0;
+
+  const data = arr.map(async (ann) => {
+    //TODO 感觉这个方法读取图片是从缓存里面读取的，有些图片没有加载成功
+    const html = (await Zotero.BetterNotes.api.convert.annotations2html(
+      [ann.ann],
+      {
+        noteItem: targetNoteItem,
+      },
+    )) as string;
+    if (html)
+      ann.html = html
+        .replace(/<br\s*>/g, "<br/>")
+        .replace(/<\/p>$/, getColorTags(ann.tags.map((c) => c.tag)) + "</p>")
+        .replace(/<p>[\s\r\n]*<\/p>/g, "")
+        .replace(/<img /g, '<img style="max-width: 100%;height: auto;" ');
+    else {
+      ann.html = getCiteAnnotationHtml(
+        ann.ann,
+        "无法预览，请点击此处，选择“在页面显示”查看。",
+      );
+      ztoolkit.log(html);
+      // if(["ink","image"].includes(ann.type)&&getImageCount<5){
+      //   getImageCount++
+      //   const img =await getImageFromReader(ann)
+      //   if(img)
+      //    { ann.html=img+ getCiteAnnotationHtml(ann.ann,`[${ann.type}]`)}
+      // }
+    }
+    return ann;
+  });
+  //使用Promise.all能并行计算？感觉比for快很多
+  const list = await promiseAllWithProgress(data, (progress, index) => {
+    createPopupWin({ lines: [""] });
+    popupWin?.changeLine({
+      progress,
+      text: `[${progress.toFixed()}%] ${index}/${arr.length}`,
+    });
+  });
+  ztoolkit.log(list);
+  return list;
+}
+// let getImageCount=0
+async function getImageFromReader(an: AnnotationRes) {
+  // if(await waitFor(()=>getImageCount==0)){
+  //   getImageCount++
+  await openAnnotation(an.pdf, an.page, an.ann.key);
+  const tabId = Zotero_Tabs.getTabIDByItemID(an.pdf.id);
+  const reader = Zotero.Reader.getByTabID(tabId);
+  const image = await waitFor(() =>
+    reader?._internalReader?._annotationManager?._annotations?.find(
+      (f) => f.id == an.ann.key,
+    ),
+  );
+  Zotero_Tabs.select("zotero-pane");
+  // Zotero_Tabs.close(tabId)
+  // getImageCount--
+  ztoolkit.log("预览 reader", reader, image);
+  if (image) return `<img src="${image.image}"/>`;
+  // }
+}
+export interface AnnotationRes {
+  item: Zotero.Item;
+  pdf: Zotero.Item;
+  ann: Zotero.Item;
+  author: string;
+  year: string;
+  title: string;
+  pdfTitle: string;
+  text: string;
+  color: string;
+  type: _ZoteroTypes.Annotations.AnnotationType;
+  comment: string;
+  itemTags: string;
+  annotationTags: string;
+  page: string;
+  dateModified: string;
+  tags: { tag: string; type: number }[];
+  tag: { tag: string; type: number }; //flatMap(a=>Object.(a))
+  html: string; //convertHtml
 }

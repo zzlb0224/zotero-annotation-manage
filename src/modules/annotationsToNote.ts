@@ -16,6 +16,7 @@ import {
   getChildCollections,
   groupBy,
   memFixedColor,
+  memSVG,
   openAnnotation,
   promiseAllWithProgress,
   setProperty,
@@ -25,7 +26,10 @@ import {
   waitFor,
 } from "../utils/zzlb";
 import { createTopDiv } from "../utils/zzlb";
-let popupWin: ProgressWindowHelper | undefined = undefined;
+import { convertHtml } from "../utils/zzlb";
+import { AnnotationRes } from "../utils/zzlb";
+import { showTitle } from "./readerTools";
+export let popupWin: ProgressWindowHelper | undefined = undefined;
 let popupTime = -1;
 
 const iconBaseUrl = `chrome://${config.addonRef}/content/icons/`;
@@ -217,13 +221,6 @@ function unregister() {
 }
 
 async function topDialog() {
-  ztoolkit.log(
-    " Zotero.getMainWindow().screenLeft",
-    Zotero.getMainWindow().screenLeft,
-  );
-  if (addon.data.dialog) {
-    return;
-  }
   const dialogData: { [key: string | number]: any } = {
     inputValue: "test",
     checkboxValue: true,
@@ -234,89 +231,38 @@ async function topDialog() {
       ztoolkit.log(dialogData, "Dialog closed!");
     },
   };
-  const dialogHelper = new ztoolkit.Dialog(3, 3)
+  const dialogHelper = new ztoolkit.Dialog(1, 1)
     .addCell(0, 0, {
-      tag: "h1",
+      tag: "div",
+      classList: ["content"],
       properties: { innerHTML: "0 0" },
     })
-    .addCell(1, 0, {
-      tag: "h2",
-      properties: { innerHTML: "1 0" },
-    })
-    .addCell(2, 0, {
-      tag: "p",
-      properties: {
-        innerHTML: "2 0",
-      },
-      styles: {
-        width: "10px",
-      },
-    })
-
-    .addCell(0, 1, {
-      tag: "h1",
-      properties: { innerHTML: "0 1" },
-      styles: {
-        width: "300px",
-        height: "300px",
-      },
-    })
-    .addCell(1, 1, {
-      tag: "h2",
-      properties: { innerHTML: "1 1" },
-    })
-    .addCell(2, 1, {
-      tag: "p",
-      properties: {
-        innerHTML: "2 1",
-      },
-      styles: {
-        width: "20px",
-        height: "300px",
-      },
-    })
-
-    .addCell(0, 2, {
-      tag: "h1",
-      properties: { innerHTML: "0 2" },
-    })
-    .addCell(1, 2, {
-      tag: "h2",
-      properties: { innerHTML: "1 2" },
-    })
-    .addCell(2, 2, {
-      tag: "p",
-      properties: {
-        innerHTML: "2 2",
-      },
-      styles: {
-        width: "300px",
-      },
-    })
-
-    .addButton("Confirm", "confirm")
-    .addButton("Cancel", "cancel")
-    .addButton("Help", "help", {
-      noClose: true,
-      callback: (e) => {
-        // dialogHelper.window?.alert(
-        //   "Help Clicked! Dialog will not be closed.",
-        // );
-      },
-    })
+    .addButton("导出", "confirm")
+    .addButton("取消", "cancel")
+    // .addButton("Help", "help", {
+    //   noClose: true,
+    //   callback: (e) => {
+    // dialogHelper.window?.alert(
+    //   "Help Clicked! Dialog will not be closed.",
+    // );
+    //   },
+    // })
     .setDialogData(dialogData)
     .open("Dialog Example", {
       alwaysRaised: true,
-      left: Zotero.getMainWindow().screenLeft,
+      left: 120,
+      fitContent: true,
+      resizable: true,
     });
 
   addon.data.dialog = dialogHelper;
   await dialogData.unloadLock.promise;
   addon.data.dialog = undefined;
-  addon.data.alive &&
-    ztoolkit.getGlobal("alert")(
-      `Close dialog with ${dialogData._lastButtonId}.\nCheckbox: ${dialogData.checkboxValue}\nInput: ${dialogData.inputValue}.`,
-    );
+  if (addon.data.alive) {
+    //  ztoolkit.getGlobal("alert")(
+    //   `Close dialog with ${dialogData._lastButtonId}.\nCheckbox: ${dialogData.checkboxValue}\nInput: ${dialogData.inputValue}.`,
+    // );
+  }
   ztoolkit.log(dialogData);
 }
 async function funcTranslateAnnotations(ev: Event) {
@@ -507,6 +453,7 @@ function getParentAttr(ele: Element | null, name = "id") {
 }
 
 async function createSearchAnnDiv(doc: Document, isCollection: boolean) {
+  const mainWindow = Zotero.getMainWindow();
   let text = "";
   let tag = "";
   let showN = 20;
@@ -514,13 +461,73 @@ async function createSearchAnnDiv(doc: Document, isCollection: boolean) {
   const annotations = getAllAnnotations(items);
   ztoolkit.log(isCollection, items, annotations);
   let ans: AnnotationRes[] = annotations;
-  const div = createTopDiv(doc, config.addonRef + `-TopDiv`, [
-    "action",
-    "status",
-    "query",
-    "content",
-  ])!;
 
+  const dialogData: { [key: string | number]: any } = {
+    inputValue: "test",
+    checkboxValue: true,
+    loadCallback: () => {
+      ztoolkit.log(dialogData, "Dialog Opened!");
+    },
+    unloadCallback: () => {
+      ztoolkit.log(dialogData, "Dialog closed!");
+    },
+  };
+  const dialogHelper = new ztoolkit.Dialog(3, 1)
+    .addCell(0, 0, {
+      tag: "div",
+      classList: ["query"],
+      // properties: { innerHTML: "0 0" },
+    })
+    .addCell(1, 0, {
+      tag: "div",
+      classList: ["status"],
+      properties: { innerHTML: "1 0" },
+    })
+    .addCell(2, 0, {
+      tag: "div",
+      classList: ["content"],
+      // properties: { innerHTML: "2 0" },
+      styles: {
+        minHeight: "20px",
+        minWidth: "100px",
+        display: "flex",
+        maxHeight: mainWindow.innerHeight - 40 + "px",
+        maxWidth: Math.max(mainWindow.outerWidth - 180, 1000) + "px",
+        flexWrap: "wrap",
+        overflowY: "scroll",
+      },
+    })
+    .addButton("导出", "confirm", {
+      callback: () => {
+        exportNote({ filter: () => ans, toText: toText1 });
+      },
+    })
+    .addButton("取消", "cancel")
+    // .addButton("Help", "help", {
+    //   noClose: true,
+    //   callback: (e) => {
+    // dialogHelper.window?.alert(
+    //   "Help Clicked! Dialog will not be closed.",
+    // );
+    //   },
+    // })
+    .setDialogData(dialogData)
+    .open("搜索注释文字和标签导出", {
+      // alwaysRaised: true,
+      left: 120,
+      fitContent: true,
+      resizable: true,
+    });
+  const content = (await waitFor(() =>
+    dialogHelper.window.document.querySelector(".content"),
+  )) as HTMLElement;
+  const query = dialogHelper.window.document.querySelector(
+    ".query",
+  ) as HTMLElement;
+  const status = dialogHelper.window.document.querySelector(
+    ".status",
+  ) as HTMLElement;
+  ztoolkit.log(content, query, status);
   const inputTag: TagElementProps = {
     tag: "div",
     styles: { display: "flex", flexDirection: "row" },
@@ -541,7 +548,7 @@ async function createSearchAnnDiv(doc: Document, isCollection: boolean) {
                 listener: (ev: any) => {
                   stopPropagation(ev);
                   text = (ev.target as HTMLInputElement).value;
-                  createResultDiv();
+                  updateContent();
                 },
               },
             ],
@@ -563,7 +570,7 @@ async function createSearchAnnDiv(doc: Document, isCollection: boolean) {
                 listener: (ev: Event) => {
                   stopPropagation(ev);
                   tag = (ev.target as HTMLInputElement).value.trim();
-                  createResultDiv();
+                  updateContent();
                 },
               },
             ],
@@ -591,7 +598,7 @@ async function createSearchAnnDiv(doc: Document, isCollection: boolean) {
                   showN =
                     parseInt((ev.target as HTMLInputElement).value.trim()) ||
                     10;
-                  createResultDiv();
+                  updateContent();
                 },
               },
             ],
@@ -600,17 +607,10 @@ async function createSearchAnnDiv(doc: Document, isCollection: boolean) {
       },
     ],
   };
-  const actionTag = createActionTag(div, () => {
-    exportNote({ filter: () => ans, toText: toText1 });
-    div?.remove();
-  });
-  for (const action of actionTag) {
-    ztoolkit.UI.appendElement(action, div.querySelector(".action")!);
-  }
-  ztoolkit.UI.appendElement(inputTag!, div.querySelector(".query")!);
+  ztoolkit.UI.appendElement(inputTag!, query);
 
-  createResultDiv();
-  async function createResultDiv() {
+  updateContent();
+  async function updateContent() {
     const txtReg = str2RegExp(text);
     const tagReg = str2RegExp(tag);
     ans = annotations
@@ -622,70 +622,195 @@ async function createSearchAnnDiv(doc: Document, isCollection: boolean) {
       )
       .sort(sortModified);
 
-    if (div) {
-      clearChild(div.querySelector(".content"));
-      div.querySelector(".status")!.innerHTML =
-        `总${annotations.length}条笔记，筛选出了${ans.length}条。预览前${showN}条。`;
-      const cs = (showN > 0 ? ans.slice(0, showN) : ans).map(async (a) => ({
+    clearChild(content);
+    status.innerHTML = `总${annotations.length}条笔记，筛选出了${ans.length}条。预览前${showN}条。`;
+    const showAn = showN > 0 ? ans.slice(0, showN) : ans;
+
+    content.innerHTML = "";
+    // await convertHtml(showAn)
+    const cs = showAn.map(async (to) => {
+      const anTo = to.ann;
+      return {
+        tag: "div",
+        styles: {
+          padding: "5px",
+          marginRight: "20px",
+          display: "flex",
+          alignItems: "stretch",
+          flexDirection: "column",
+          width: "260px",
+          background: "#fff",
+          borderRadius: "5px",
+          margin: "4px",
+        },
+        properties: { textContent: "" },
+        children: [
+          {
+            tag: "div",
+            styles: {
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            },
+            children: [
+              {
+                tag: "span",
+                styles: { color: anTo.annotationColor },
+                properties: {
+                  textContent: anTo.annotationType,
+                  innerHTML:
+                    (await memSVG(
+                      `chrome://${config.addonRef}/content/16/annotate-${anTo.annotationType}.svg`,
+                    )) || anTo.annotationType,
+                },
+              },
+              {
+                tag: "span",
+                styles: {},
+                properties: {
+                  textContent: `${anTo.parentItem?.parentItem?.getField("firstCreator")},${anTo.parentItem?.parentItem?.getField("year")}`,
+                },
+                listeners: [
+                  {
+                    type: "click",
+                    listener: (e: any) => {
+                      e.stopPropagation();
+                      ztoolkit.log("点击", e, e.clientX, e.target);
+                      showTitle(anTo, e.clientX, e.clientY, content);
+                    },
+                    options: { capture: true },
+                  },
+                  {
+                    type: "mouseover",
+                    listener: (e: any) => {
+                      ztoolkit.log("鼠标进入", e, e.clientX, e.target);
+                      showTitle(anTo, e.clientX, e.clientY, content);
+                    },
+                  },
+                ],
+              },
+              { tag: "span" },
+            ],
+          },
+          {
+            tag: "div",
+            listeners: [
+              {
+                type: "click",
+                listener: (e: Event) => {
+                  e.stopPropagation();
+                  if (anTo.parentItemKey)
+                    openAnnotation(
+                      anTo.parentItemKey,
+                      anTo.annotationPageLabel,
+                      anTo.key,
+                    );
+                },
+                options: { capture: true },
+              },
+            ],
+            children: [
+              {
+                tag: "div",
+                styles: {
+                  background: anTo.annotationColor + "60", //width: "200px",
+                  maxHeight: "100px",
+                  overflowY: "scroll",
+                },
+                properties: { innerHTML: await getAnnotationContent(anTo) },
+              },
+              {
+                tag: "div",
+                styles: {
+                  background: anTo.annotationColor + "10", //width: "200px"
+                },
+                properties: {
+                  textContent: anTo
+                    .getTags()
+                    .map((a) => a.tag)
+                    .join(","),
+                },
+              },
+            ],
+          },
+        ],
+      };
+    });
+
+    const cs2 = showAn.map(async (a) => ({
+      tag: "div",
+      namespace: "html",
+      properties: {
+        innerHTML: await convertHtml([a], undefined).then((a) => a[0].html),
+        // (a.annotationTags || "") +
+        // " " +
+        // (a.text || "") +
+        // (a.type == "image" ? "[图]" : "") +
+        // " " +
+        // (a.comment || "") +
+        // " ",
+      },
+      styles: {
+        // flex: "0 0 calc( 20% - 4px)",
+        // maxWidth: "calc( 20% - 4px)",
+        // border: "1px solid black",
+        // boxSizing: "border-box",
+        // margin: "2px",
+
+        display: "inline-block",
+        marginBottom: "5px",
+        width: "100%",
+        breakInside: "avoid",
+        background: a.color + "70",
+      },
+      listeners: [
+        {
+          type: "click",
+          listener: async (ev: any) => {
+            stopPropagation(ev);
+            // ztoolkit.log("点击",ev)
+            openAnnotation(a.pdf, a.page, a.ann.key);
+          },
+        },
+      ],
+    }));
+    const children = await Promise.all(cs);
+    ztoolkit.UI.appendElement(
+      {
         tag: "div",
         namespace: "html",
         properties: {
-          innerHTML: await convertHtml([a], undefined).then((a) => a[0].html),
-          // (a.annotationTags || "") +
-          // " " +
-          // (a.text || "") +
-          // (a.type == "image" ? "[图]" : "") +
-          // " " +
-          // (a.comment || "") +
-          // " ",
+          // textContent: `总${annotations.length}条笔记，筛选出了${ans.length}条。预览前${showN}条。`,
         },
         styles: {
-          // flex: "0 0 calc( 20% - 4px)",
-          // maxWidth: "calc( 20% - 4px)",
-          // border: "1px solid black",
-          // boxSizing: "border-box",
-          // margin: "2px",
-
-          display: "inline-block",
-          marginBottom: "5px",
+          display: "flex",
+          flexWrap: "wrap",
+          justifyContent: "flex-start",
+          // columnCount: "4",
+          // columnGap: "10px ",
           width: "100%",
-          breakInside: "avoid",
-
-          background: a.color + "70",
         },
-        listeners: [
-          {
-            type: "click",
-            listener: async (ev: any) => {
-              stopPropagation(ev);
-              // ztoolkit.log("点击",ev)
-              openAnnotation(a.pdf, a.page, a.ann.key);
-            },
-          },
-        ],
-      }));
-      const children = await Promise.all(cs);
-      ztoolkit.UI.appendElement(
-        {
-          tag: "div",
-          namespace: "html",
-          properties: {
-            // textContent: `总${annotations.length}条笔记，筛选出了${ans.length}条。预览前${showN}条。`,
-          },
-          styles: {
-            // display: "flex",
-            // flexWrap: "wrap",
-            // justifyContent: "flex-start",
-            columnCount: "4",
-            columnGap: "10px ",
-            width: "100%",
-          },
-          children,
-        },
-        div.querySelector(".content")!,
-      );
-    }
+        children,
+      },
+      content,
+    );
+    (dialogHelper.window as any).sizeToContent();
   }
+  addon.data.exportDialog = dialogHelper;
+  await dialogHelper.dialogData.unloadLock?.promise;
+  addon.data.exportDialog = undefined;
+  if (addon.data.alive) {
+    //   ztoolkit.getGlobal("alert")(
+    //   `Close dialog with ${dialogData._lastButtonId}.\nCheckbox: ${dialogData.checkboxValue}\nInput: ${dialogData.inputValue}.`,
+    // );
+  }
+  ztoolkit.log(dialogHelper.dialogData);
+}
+async function getAnnotationContent(ann: Zotero.Item) {
+  const html = (await Zotero.BetterNotes.api.convert.annotations2html([ann], {
+    noteItem: undefined,
+  })) as string;
+  return html.replace(/<img /g, '<img style="max-width: 100%;height: auto;" ');
 }
 function createChild(doc: Document, items: Zotero.Item[]) {
   const annotations = getAllAnnotations(items).flatMap((f) =>
@@ -978,26 +1103,6 @@ async function createNote(txt = "") {
   });
   return targetNoteItem;
 }
-interface AnnotationRes {
-  item: Zotero.Item;
-  pdf: Zotero.Item;
-  ann: Zotero.Item;
-  author: string;
-  year: string;
-  title: string;
-  pdfTitle: string;
-  text: string;
-  color: string;
-  type: _ZoteroTypes.Annotations.AnnotationType;
-  comment: string;
-  itemTags: string;
-  annotationTags: string;
-  page: string;
-  dateModified: string;
-  tags: { tag: string; type: number }[];
-  tag: { tag: string; type: number }; //flatMap(a=>Object.(a))
-  html: string; //convertHtml
-}
 function getAllAnnotations(items: Zotero.Item[]) {
   const items1 = items.map((a) =>
     a.isAttachment() && a.isPDFAttachment() && a.parentItem ? a.parentItem : a,
@@ -1058,97 +1163,7 @@ function getAllAnnotations(items: Zotero.Item[]) {
     });
   return data;
 }
-async function convertHtml(
-  arr: AnnotationRes[],
-  targetNoteItem: Zotero.Item | undefined = undefined,
-) {
-  try {
-    // const annotations = arr.map((a) => a.ann);
-    for (const a of arr) {
-      const annotation = a.ann;
-      if (
-        annotation.annotationType === "image" &&
-        !(await Zotero.Annotations.hasCacheImage(annotation))
-      ) {
-        try {
-          //呈现缓存图片
-          // await Zotero.PDFRenderer.renderAttachmentAnnotations(
-          //   annotation.parentID,
-          // );
-        } catch (e) {
-          Zotero.debug(e);
-          throw e;
-        }
-        break;
-      }
-    }
-  } catch (error) {
-    ztoolkit.log("发生错误", error);
-  }
-
-  const getImageCount = 0;
-
-  const data = arr.map(async (ann) => {
-    //TODO 感觉这个方法读取图片是从缓存里面读取的，有些图片没有加载成功
-    const html = (await Zotero.BetterNotes.api.convert.annotations2html(
-      [ann.ann],
-      {
-        noteItem: targetNoteItem,
-      },
-    )) as string;
-    if (html)
-      ann.html = html
-        .replace(/<br\s*>/g, "<br/>")
-        .replace(/<\/p>$/, getColorTags(ann.tags.map((c) => c.tag)) + "</p>")
-        .replace(/<p>[\s\r\n]*<\/p>/g, "")
-        .replace(/<img /g, '<img style="max-width: 100%;height: auto;" ');
-    else {
-      ann.html = getCiteAnnotationHtml(
-        ann.ann,
-        "无法预览，请点击此处，选择“在页面显示”查看。",
-      );
-      ztoolkit.log(html);
-      // if(["ink","image"].includes(ann.type)&&getImageCount<5){
-      //   getImageCount++
-      //   const img =await getImageFromReader(ann)
-      //   if(img)
-      //    { ann.html=img+ getCiteAnnotationHtml(ann.ann,`[${ann.type}]`)}
-      // }
-    }
-    return ann;
-  });
-  //使用Promise.all能并行计算？感觉比for快很多
-  const list = await promiseAllWithProgress(data, (progress, index) => {
-    createPopupWin({ lines: [""] });
-    popupWin?.changeLine({
-      progress,
-      text: `[${progress.toFixed()}%] ${index}/${arr.length}`,
-    });
-  });
-  ztoolkit.log(list);
-  return list;
-}
-// let getImageCount=0
-async function getImageFromReader(an: AnnotationRes) {
-  // if(await waitFor(()=>getImageCount==0)){
-  //   getImageCount++
-  await openAnnotation(an.pdf, an.page, an.ann.key);
-  const tabId = Zotero_Tabs.getTabIDByItemID(an.pdf.id);
-  const reader = Zotero.Reader.getByTabID(tabId);
-  const image = await waitFor(() =>
-    reader?._internalReader?._annotationManager?._annotations?.find(
-      (f) => f.id == an.ann.key,
-    ),
-  );
-  Zotero_Tabs.select("zotero-pane");
-  // Zotero_Tabs.close(tabId)
-  // getImageCount--
-  ztoolkit.log("预览 reader", reader, image);
-  if (image) return `<img src="${image.image}"/>`;
-  // }
-}
-
-function createPopupWin({
+export function createPopupWin({
   closeTime = 5000,
   header = "整理笔记",
   lines: defaultLines = [],
@@ -1397,13 +1412,13 @@ function toText1(ans: AnnotationRes[]) {
       .join("")
   );
 }
-function getColorTags(tags: string[]) {
+export function getColorTags(tags: string[]) {
   return tags.map(
     (t) =>
       `<span style="background-color:${memFixedColor(t, undefined)};box-shadow: ${memFixedColor(t, undefined)} 0px 0px 5px 4px;">${t}</span>`,
   );
 }
-function getCiteAnnotationHtml(annotation: Zotero.Item, text = "") {
+export function getCiteAnnotationHtml(annotation: Zotero.Item, text = "") {
   const attachmentItem = annotation.parentItem;
   if (!attachmentItem) return "";
   const parentItem = attachmentItem.parentItem;
