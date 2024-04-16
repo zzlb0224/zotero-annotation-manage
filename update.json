@@ -3,7 +3,7 @@
     "annotationmanage@zknu.edu.cn": {
       "updates": [
         {
-          "version": "0.4.42",
+          "version": "0.4.43",
           "update_link": "https://github.com/zzlb0224/zotero-annotation-manage/releases/latest/download/zotero-annotation-manage.xpi",
           "applications": {
             "zotero": {
