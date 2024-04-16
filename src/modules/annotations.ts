@@ -415,7 +415,7 @@ class AnnotationPopup {
     let shiftStart = false;
     let selectionCount = 0;
     // const copyAns = text2Ma(addon.data.copy);
-    const copyAns = Relations.allOpenPdf(addon.data.copy);
+    const copyAns = Relations.allOpenPdf(addon.data.copyText);
     // ztoolkit.log("检测复制内容", addon.data.copy, copyAns);
     const copyAnnEls: TagElementProps[] = [];
     const dE = copyAns.map((copyAn) => ({

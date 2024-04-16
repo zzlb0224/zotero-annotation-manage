@@ -69,7 +69,7 @@ function register() {
             icon: iconBaseUrl + "favicon.png",
             commandListener: async (ev: Event) => {
               const items = await getSelectedItemsEv(ev);
-              dialogExample();
+              topDialog();
             },
           },
           {
@@ -216,7 +216,7 @@ function unregister() {
   ztoolkit.Menu.unregister(`${config.addonRef}-create-note-collection`);
 }
 
-async function dialogExample() {
+async function topDialog() {
   ztoolkit.log(
     " Zotero.getMainWindow().screenLeft",
     Zotero.getMainWindow().screenLeft,
@@ -309,6 +309,7 @@ async function dialogExample() {
       alwaysRaised: true,
       left: Zotero.getMainWindow().screenLeft,
     });
+
   addon.data.dialog = dialogHelper;
   await dialogData.unloadLock.promise;
   addon.data.dialog = undefined;

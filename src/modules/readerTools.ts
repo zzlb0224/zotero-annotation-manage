@@ -9,6 +9,7 @@ import {
   injectCSS,
   memSVG,
   openAnnotation,
+  waitFor,
 } from "../utils/zzlb";
 import { getPref } from "../utils/prefs";
 import { compare } from "../utils/sort";
@@ -67,7 +68,7 @@ function renderSidebarAnnotationHeaderCallback(
           const r = new Relations(params.annotation.id);
           // const man = Relations.allOpenPdf(addon.data.copy);
           // r.addRelations(man.map((a) => a.openPdf));
-          r.addRelations(Relations.openPdf2URI(addon.data.copy));
+          r.addRelations(Relations.openPdf2URI(addon.data.copyText));
         },
       },
       {
@@ -100,7 +101,8 @@ function renderSidebarAnnotationHeaderCallback(
           listener: (e) => {
             // const r0 = relatedAnnotations[0];
             // openAnnotation(r0.parentItem!,r0.annotationPageLabel,r0.key)
-            createPopupDiv(doc, params.annotation.id);
+            // createPopupDiv(doc, params.annotation.id);
+            relatedDialog(doc, params.annotation.id);
             // ztoolkit.log(m);
             // const m0 = m[0];
             // openAnnotation(m0.pdfKey, m0.page, m0.annotationKey);
@@ -114,7 +116,7 @@ function renderSidebarAnnotationHeaderCallback(
           type: "mouseover",
           listener: (e) => {
             (e.target as HTMLElement).style.backgroundColor = "#F0F0F0";
-            createPopupDiv(doc, params.annotation.id);
+            // createPopupDiv(doc, params.annotation.id);
           },
         },
         {
@@ -133,24 +135,47 @@ function renderSidebarAnnotationHeaderCallback(
   if (userActions.length > 0) append(...userActions);
 }
 async function createPopupDiv(readerDoc: Document, anKey: string) {
-  const doc = Zotero.getMainWindow().document;
-  const anFrom = getItem(anKey);
+  const rootDoc = Zotero.getMainWindow().document;
   const div = createTopDiv(
-    doc,
+    rootDoc,
     config.addonRef + `-renderSidebarAnnotationHeader-TopDiv`,
     ["action", "status", "query", "content"],
   )!;
 
-  div.className = "zotero-annotation-manage-red";
+  const { fromEle, left, top } = getFromEle(readerDoc, anKey);
+
+  const fromMouseTimer = new Timer(() => div.remove());
+  fromEle.addEventListener("mouseover", () => {
+    fromMouseTimer.clearTimer();
+    setTimeout(() => fromMouseTimer.clearTimer(), 50);
+  });
+  fromEle.addEventListener("mouseout", () => {
+    fromMouseTimer.startTimer();
+  });
+
+  div.addEventListener("mouseover", () => {
+    fromMouseTimer.clearTimer();
+  });
+
+  div.style.left = left + "px";
+  div.style.top = top + "px";
+
+  const content = div.querySelector(".content")! as HTMLDivElement;
+  // content.style.flexDirection ="column"
+  content.style.flexWrap = "wrap";
+  content.style.justifyContent = "flex-start";
+  div.style.background = "#eeeeee";
+
+  await createRelatedContent(anKey, content, fromEle);
+}
+function getFromEle(readerDoc: Document, anKey: string) {
   const fromEle = readerDoc.getElementById(
     config.addonRef + `renderSidebarAnnotationHeader-link-${anKey}`,
   )!;
-
+  const left = fromEle.offsetLeft + 25;
   const sliderAnnotations = readerDoc.getElementById("annotations");
-  div.style.left = fromEle.offsetLeft + 25 + "px";
   const scrollTop = sliderAnnotations?.scrollTop || 0;
-
-  div.style.top = fromEle.offsetTop - scrollTop + "px";
+  const top = fromEle.offsetTop - scrollTop;
   ztoolkit.log(
     "定位 top",
     sliderAnnotations,
@@ -158,33 +183,22 @@ async function createPopupDiv(readerDoc: Document, anKey: string) {
     fromEle.clientTop,
     scrollTop,
   );
-  const timer = new Timer(() => div.remove());
-  div.addEventListener("mouseover", () => {
-    timer.clearTimer();
-  });
-  // div.addEventListener("mouseout", () => {
-  //   timer.startTimer();
-  // });
-  fromEle.addEventListener("mouseover", () => {
-    timer.clearTimer();
-    setTimeout(() => timer.clearTimer(), 50);
-  });
-  fromEle.addEventListener("mouseout", () => {
-    timer.startTimer();
-  });
+  return { fromEle, left, top };
+}
 
+async function createRelatedContent(
+  anKey: string,
+  content: HTMLDivElement,
+  fromEle: HTMLElement,
+) {
+  const anFrom = getItem(anKey);
   const anFromRelations = new Relations(anFrom);
   const fromLinkRelations = anFromRelations.getLinkRelations();
-  // const m = Relations.mapOpenPdf(linkAnnotations);
-  const content = div.querySelector(".content")! as HTMLElement;
-  // content.style.flexDirection ="column"
-  content.style.flexWrap = "wrap";
-  content.style.justifyContent = "flex-start";
-  div.style.background = "#eeeeee";
 
   const toAns = fromLinkRelations
     .map((toItemURI) => ({
       toItemURI,
+      type: "To",
       ann: getItem(Zotero.URI.getURIItemID(toItemURI) || ""),
     }))
     .map((a) =>
@@ -202,9 +216,14 @@ async function createPopupDiv(readerDoc: Document, anKey: string) {
         undefined,
       ),
     );
-  for (const to of toAns) {
+  content.innerHTML = "";
+  for (const to of [
+    { ann: anFrom, type: "from", toItemURI: Zotero.URI.getItemURI(anFrom) },
+    ...toAns,
+  ]) {
     const anTo = to.ann;
     const toItemURI = to.toItemURI;
+    const type = to.type;
     const u2 = ztoolkit.UI.appendElement(
       {
         tag: "div",
@@ -244,7 +263,7 @@ async function createPopupDiv(readerDoc: Document, anKey: string) {
                 tag: "span",
                 styles: {},
                 properties: {
-                  textContent: `${anTo.parentItem?.parentItem?.getField("firstCreator")},${anTo.parentItem?.parentItem?.getField("year")}`,
+                  textContent: `${type}:${anTo.parentItem?.parentItem?.getField("firstCreator")},${anTo.parentItem?.parentItem?.getField("year")}`,
                 },
                 listeners: [
                   {
@@ -277,7 +296,6 @@ async function createPopupDiv(readerDoc: Document, anKey: string) {
               //     title:anTo.parentItem?.parentItem?.firstCreator,
               //   },
               // },
-
               {
                 tag: "div",
                 styles: {
@@ -296,12 +314,6 @@ async function createPopupDiv(readerDoc: Document, anKey: string) {
                       u2.remove();
                       // ztoolkit.log("remove 2", anFromRelations.getLinkRelations());
                       if (anFromRelations.getLinkRelations().length == 0) {
-                        doc
-                          .getElementById(
-                            config.addonRef +
-                              `-renderSidebarAnnotationHeader-TopDiv`,
-                          )
-                          ?.remove();
                         fromEle.remove();
                       }
                     },
@@ -359,17 +371,26 @@ async function createPopupDiv(readerDoc: Document, anKey: string) {
           },
         ],
       },
-      div.querySelector(".content")!,
+      content,
     );
   }
+  ztoolkit.UI.appendElement(
+    {
+      tag: "span",
+      classList: ["loaded"],
+    },
+    content,
+  );
 }
+
 function showTitle(
   anTo: Zotero.Item,
   x: number,
   y: number,
   parent: HTMLElement,
+  ms: number = 3000,
 ) {
-  return ztoolkit.UI.appendElement(
+  const d = ztoolkit.UI.appendElement(
     {
       tag: "span",
       id: config.addonRef + `-annotation-show-title`,
@@ -380,16 +401,126 @@ function showTitle(
       styles: {
         position: "fixed",
         zIndex: "9999",
-        left: x - 80 + "px",
-        top: y + 15 + "px",
+        left: x - 100 + "px",
+        top: y + 5 + "px",
         background: "#000000",
         color: "#ffffff",
-        padding: "10px",
-        borderRadius: "10px",
+        padding: "5px",
+        borderRadius: "4px",
       },
+      listeners: [
+        {
+          type: "click",
+          listener: () => {
+            d.remove();
+          },
+        },
+      ],
     },
     parent,
   );
+  if (ms > 0) {
+    new Timer(() => d.remove(), ms).startTimer();
+  }
+  return d;
+}
+async function relatedDialog(readerDoc: Document, anKey: string) {
+  ztoolkit.log(
+    " Zotero.getMainWindow().screenLeft",
+    Zotero.getMainWindow().screenLeft,
+  );
+  const mainWindow = Zotero.getMainWindow();
+  const { fromEle, left, top } = getFromEle(readerDoc, anKey);
+  let dialogHelper = addon.data.dialog;
+
+  if (dialogHelper == null) {
+    const dialogData: { [key: string | number]: any } = {
+      inputValue: "test",
+      checkboxValue: true,
+      loadCallback: () => {
+        ztoolkit.log(dialogData, "Dialog Opened!");
+      },
+      unloadCallback: () => {
+        ztoolkit.log(dialogData, "Dialog closed!");
+      },
+    };
+
+    dialogHelper = new ztoolkit.Dialog(1, 1)
+
+      .addCell(0, 0, {
+        tag: "div",
+        classList: ["content"],
+        // properties: {textContent:"111"},
+        styles: {
+          minHeight: "20px",
+          minWidth: "100px",
+          display: "flex",
+          maxHeight: mainWindow.innerHeight - 40 + "px",
+          maxWidth: Math.max(mainWindow.outerWidth - left - 100, 1000) + "px",
+          flexWrap: "wrap",
+          overflowY: "scroll",
+        },
+      })
+      // .addButton("Confirm", "confirm")
+      // .addButton("Cancel", "cancel")
+      // .addButton("Help", "help", {
+      //   noClose: true,
+      //   callback: (e) => {
+      //   },
+      // })
+      .setDialogData(dialogData)
+      .open("相关标签", {
+        alwaysRaised: true,
+        left: left,
+        top: top,
+        fitContent: true,
+        resizable: true,
+      });
+    injectCSS(dialogHelper.window.document, "related.css");
+  }
+  const fromMouseTimer = new Timer(() => {
+    dialogHelper.window.close();
+  });
+  fromEle.addEventListener("mouseover", () => {
+    fromMouseTimer.clearTimer();
+  });
+  fromEle.addEventListener("mouseout", () => {
+    fromMouseTimer.startTimer();
+  });
+
+  await waitFor(() => dialogHelper.window.document.querySelector(".content"));
+  // ztoolkit.log("窗口2",dialogHelper.window)
+  const content = dialogHelper.window.document.querySelector(
+    ".content",
+  )! as HTMLDivElement;
+  content.addEventListener("mouseover", () => {
+    fromMouseTimer.clearTimer();
+  });
+
+  await createRelatedContent(anKey, content, fromEle);
+
+  ztoolkit.log(content, dialogHelper.window);
+  await waitFor(() => content.querySelector(".loaded"));
+  (dialogHelper.window as any).sizeToContent();
+
+  if (dialogHelper.window.outerHeight + top - mainWindow.outerHeight > 0) {
+    dialogHelper.window.moveTo(
+      left,
+      Math.max(
+        0,
+        mainWindow.outerHeight - dialogHelper.window.outerHeight - 20,
+      ),
+    );
+  }
+  addon.data.dialog = dialogHelper;
+  await dialogHelper.dialogData.unloadLock?.promise;
+  addon.data.dialog = undefined;
+  if (addon.data.alive) {
+    //   ztoolkit.getGlobal("alert")(
+    //   `Close dialog with ${dialogData._lastButtonId}.\nCheckbox: ${dialogData.checkboxValue}\nInput: ${dialogData.inputValue}.`,
+    // );
+  }
+  ztoolkit.log(dialogHelper.dialogData);
 }
 
 async function getAnnotationContent(ann: Zotero.Item) {
@@ -427,8 +558,8 @@ function copyFunc(doc: Document, copyFrom: string = "") {
     ztoolkit.log(man);
     doc.querySelector(`#${config.addonRef}-copy-annotations`)?.remove();
     if (man.length == 0) return;
-    addon.data.copy = text;
-    ztoolkit.log("复制内容 有效", addon.data.copy, man);
+    addon.data.copyText = text;
+    ztoolkit.log("复制内容 有效", addon.data.copyText, man);
     const div = createTopDiv(doc, `${config.addonRef}-copy-annotations`, [
       "query",
       "content",
@@ -471,10 +602,10 @@ function copyFunc(doc: Document, copyFrom: string = "") {
       (e) => {
         if (query.textContent == "已复制") {
           query.textContent = "已清空";
-          addon.data.copy = "";
+          addon.data.copyText = "";
         } else {
           query.textContent = "已复制";
-          addon.data.copy = text;
+          addon.data.copyText = text;
         }
       },
       { capture: true },

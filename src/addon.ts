@@ -17,8 +17,10 @@ class Addon {
       window: Window | null;
     };
     dialog?: DialogHelper;
+    relationDialog?: DialogHelper;
+    exportDialog?: DialogHelper;
     // annotations?: Annotations;
-    copy: string;
+    copyText: string;
   };
   // Lifecycle hooks
   public hooks: typeof hooks;
@@ -31,7 +33,7 @@ class Addon {
       env: __env__,
       prefs: { window: null },
       ztoolkit: createZToolkit(),
-      copy: "",
+      copyText: "",
     };
     this.hooks = hooks;
     this.api = {};
