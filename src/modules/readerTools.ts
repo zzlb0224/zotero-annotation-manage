@@ -156,7 +156,7 @@ async function createPopupDiv(readerDoc: Document, anKey: string) {
     sliderAnnotations,
     fromEle.offsetTop,
     fromEle.clientTop,
-    fromEle.offsetTop,
+    scrollTop,
   );
   const timer = new Timer(() => div.remove());
   div.addEventListener("mouseover", () => {
