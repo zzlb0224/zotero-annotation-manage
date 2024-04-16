@@ -132,7 +132,7 @@ function renderSidebarAnnotationHeaderCallback(
   // ztoolkit.log("userActions2", userActions);
   if (userActions.length > 0) append(...userActions);
 }
-async function createPopupDiv(doc1: Document, anKey: string) {
+async function createPopupDiv(readerDoc: Document, anKey: string) {
   const doc = Zotero.getMainWindow().document;
   const anFrom = getItem(anKey);
   const div = createTopDiv(
@@ -142,13 +142,22 @@ async function createPopupDiv(doc1: Document, anKey: string) {
   )!;
 
   div.className = "zotero-annotation-manage-red";
-  const fromEle = doc1.getElementById(
+  const fromEle = readerDoc.getElementById(
     config.addonRef + `renderSidebarAnnotationHeader-link-${anKey}`,
   )!;
+
+  const sliderAnnotations = readerDoc.getElementById("annotations");
   div.style.left = fromEle.offsetLeft + 25 + "px";
-  const scrollTop = doc.getElementById("annotations")?.scrollTop || 0;
+  const scrollTop = sliderAnnotations?.scrollTop || 0;
+
   div.style.top = fromEle.offsetTop - scrollTop + "px";
-  ztoolkit.log("top", fromEle.offsetTop, fromEle.clientTop, fromEle.offsetTop);
+  ztoolkit.log(
+    "定位 top",
+    sliderAnnotations,
+    fromEle.offsetTop,
+    fromEle.clientTop,
+    fromEle.offsetTop,
+  );
   const timer = new Timer(() => div.remove());
   div.addEventListener("mouseover", () => {
     timer.clearTimer();
@@ -390,7 +399,7 @@ async function getAnnotationContent(ann: Zotero.Item) {
   return html.replace(/<img /g, '<img style="max-width: 100%;height: auto;" ');
 }
 
-function getRelatedAnnotations(ann: Zotero.Item) {
+function getRelatedItemsAnnotations(ann: Zotero.Item) {
   if (ann.relatedItems && ann.relatedItems.length > 0) {
     const relatedItemsA = Zotero.Items.get(ann.relatedItems);
     ztoolkit.log("getRelatedAnnotations", relatedItemsA);
