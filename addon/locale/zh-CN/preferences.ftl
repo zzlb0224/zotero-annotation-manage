@@ -21,7 +21,7 @@ pref-sort-3 =
 pref-sort-rect-n =最近N条标签
 
 pref-show-relate-tags = 
-    .label =  显示注释相关标签
+    .label =  显示批注相关标签
 pref-selected-collection = 
     .label =  与选中文件夹相关
 pref-current-collection = 
@@ -59,10 +59,10 @@ pref-hide-in-item-menu =
 pref-hide-in-selection-popup = 
     .label = 在选中文本弹出窗口中不加载插件
 pref-hide-in-annotation-context-menu = 
-    .label = 在注释右键菜单中不加载插件
+    .label = 在批注右键菜单中不加载插件
     
 pref-hide-annotation-link =
-    .label= 隐藏注释双链功能，双链采用dc:relation来建立双链，目前还在测试中
+    .label= 隐藏批注双链功能，双链采用dc:relation来建立双链，目前还在测试中
 
     
 pref-fixed-tags-style = 

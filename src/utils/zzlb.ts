@@ -508,7 +508,7 @@ export class Relations {
     return this.getOpenPdfs(str)
       .map((a) => getItem(a.annotationKey))
       .map((a) => Zotero.URI.getItemURI(a));
-  } 
+  }
   static getOpenPdfs(str: string) {
     return (
       str
@@ -531,7 +531,7 @@ export class Relations {
       page: a?.[3] || "",
       annotationKey: a?.[4] || "",
     };
-  } 
+  }
   getLinkRelations() {
     try {
       const rs = this.item.getRelations() as any;

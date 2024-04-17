@@ -78,7 +78,7 @@ function register() {
           },
           {
             tag: "menuitem",
-            label: "重新翻译空注释",
+            label: "重新翻译空批注",
             icon: iconBaseUrl + "favicon.png",
             commandListener: async (ev: Event) => {
               await funcTranslateAnnotations(ev);
@@ -105,7 +105,7 @@ function register() {
       },
       {
         tag: "menuitem",
-        label: "搜索注释文字和标签导出div",
+        label: "搜索批注文字和标签导出div",
         icon: iconBaseUrl + "favicon.png",
         commandListener: async (ev: Event) => {
           const target = ev.target as HTMLElement;
@@ -125,7 +125,7 @@ function register() {
       },
       {
         tag: "menuitem",
-        label: "搜索注释文字和标签导出dialog",
+        label: "搜索批注文字和标签导出dialog",
         icon: iconBaseUrl + "favicon.png",
         commandListener: async (ev: Event) => {
           const target = ev.target as HTMLElement;
@@ -531,7 +531,7 @@ async function createSearchAnnDialog() {
     //   },
     // })
     .setDialogData(dialogData)
-    .open("搜索注释文字和标签导出", {
+    .open("搜索批注文字和标签导出", {
       // alwaysRaised: true,
       left: 120,
       fitContent: true,
@@ -571,7 +571,7 @@ function createSearchAnnContent(
       { tag: "div", properties: { textContent: "" } },
       {
         tag: "div",
-        properties: { textContent: "注释、笔记" },
+        properties: { textContent: "批注、笔记" },
         children: [
           {
             tag: "input",
@@ -1266,7 +1266,7 @@ function getTitleFromAnnotations(annotations: AnnotationRes[]) {
   const annotationLength = uniqueBy(annotations, (a) => a.ann.key).length;
   // const tagLength = uniqueBy(annotations, (a) => a.tag.tag).length;
   // ${itemsLength}-${annotationLength}
-  const title = `注释 (${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}) ${annotationLength}`;
+  const title = `批注 (${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}) ${annotationLength}`;
   return title;
 }
 

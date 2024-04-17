@@ -353,7 +353,7 @@ class AnnotationPopup {
     const ts = groupBy(tags, (t) => t.tag).sort(sortValuesLength);
     const annLen =
       this.existAnnotations.length > 1
-        ? `选中${this.existAnnotations.length}注释，`
+        ? `选中${this.existAnnotations.length}批注，`
         : "";
     return {
       tag: "div",

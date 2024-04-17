@@ -517,7 +517,7 @@ async function replaceTagsPreviewDiv(doc?: Document) {
     if (!rootDiv) return;
     // ztoolkit.log("replaceTagsPreviewDiv")
     preview.appendChild(rootDiv);
-    rootDiv.innerText = `预览注释来自：${from}。条目：${ann.parentItem?.parentItem?.getDisplayTitle()}。
+    rootDiv.innerText = `预览批注来自：${from}。条目：${ann.parentItem?.parentItem?.getDisplayTitle()}。
       包含标签:[${ann
         .getTags()
         .map((a) => a.tag)
@@ -533,7 +533,7 @@ async function replaceTagsPreviewDiv(doc?: Document) {
       {
         tag: "div",
         properties: {
-          textContent: "请创建一个注释，并给他加上标签后再尝试此功能",
+          textContent: "请创建一个批注，并给他加上标签后再尝试此功能",
         },
       },
       preview,
