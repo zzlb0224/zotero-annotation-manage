@@ -584,18 +584,21 @@ export class Relations {
   // removeRelations(openPdfs: string[]) {
   //   const itemURIs= Relations.mapOpenPdf(openPdfs).map(a=>getItem(a.annotationKey)).map(a=>Zotero.URI.getItemURI(a))
   removeRelations(itemURIs: string[]) {
+    const thisItemURI = Zotero.URI.getItemURI(this.item);
+    const clearAll = itemURIs.includes(thisItemURI);
     // const itemURIs= Relations.mapOpenPdf(openPdfs).map(a=>getItem(a.annotationKey)).map(a=>Zotero.URI.getItemURI(a))
     const annotation = this.item;
     const linkRelations = this.getLinkRelations();
-    ztoolkit.log("removeRelations", linkRelations, itemURIs);
-    const needRemove = itemURIs.filter((f) => linkRelations.includes(f));
+    ztoolkit.log("removeRelations", linkRelations, itemURIs, clearAll);
+    const needRemove = clearAll
+      ? linkRelations
+      : itemURIs.filter((f) => linkRelations.includes(f));
     needRemove.forEach((f) => {
       annotation.removeRelation(Relations.RelationsPredicate, f);
     });
     annotation.saveTx();
     this.setRelationsTag();
     const thisOpenPdf = this.getOpenPdfUri();
-    const thisItemURI = Zotero.URI.getItemURI(this.item);
 
     needRemove.forEach((f) => {
       const id = Zotero.URI.getURIItemID(f);
@@ -678,8 +681,10 @@ export function createTopDiv(
             const y = ev.clientY - div.offsetTop;
             doc.onmousemove = (e) => {
               stopPropagation(e);
+              const top = e.clientY - y;
               div.style.left = e.clientX - x + "px";
-              div.style.top = e.clientY - y + "px";
+              div.style.top = Math.max(e.clientY - y, 118) + "px";
+              // ztoolkit.log(div.style.top )
             };
             doc.onmouseup = (e) => {
               stopPropagation(e);
@@ -741,7 +746,7 @@ export function createTopDiv(
           type: "mouseover",
           listener: (e) => {
             e.stopPropagation();
-            closeTimer.startTimer(500);
+            closeTimer.startTimer(1000);
           },
           options: { capture: true },
         },

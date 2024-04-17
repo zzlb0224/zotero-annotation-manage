@@ -12,6 +12,7 @@ import {
 } from "../utils/zzlb";
 import { getPref } from "../utils/prefs";
 import { compare } from "../utils/sort";
+import { popupWin } from "./annotationsToNote";
 
 function register() {
   Zotero.Reader.registerEventListener(
@@ -56,9 +57,10 @@ function renderSidebarAnnotationHeaderCallback(
   const linkAnnotations = relations.getLinkRelations();
   // ztoolkit.log("readerToolbarCallback111", params, linkAnnotations);
   const userActions: HTMLElement[] = [];
+
   const add = ztoolkit.UI.createElement(doc, "span", {
     id: `renderSidebarAnnotationHeader-add-${params.annotation.id}`,
-    properties: { textContent: "🧷" },
+    properties: { textContent: "🧷", title: "添加双链" },
     classList: ["zotero-annotation-manage-red"],
     listeners: [
       {
@@ -67,7 +69,28 @@ function renderSidebarAnnotationHeaderCallback(
           const r = new Relations(params.annotation.id);
           // const man = Relations.allOpenPdf(addon.data.copy);
           // r.addRelations(man.map((a) => a.openPdf));
-          r.addRelations(Relations.openPdf2URI(addon.data.copyText));
+
+          const openPdfs = Relations.openPdf2URI(addon.data.copyText);
+          ztoolkit.log("请先复制至少一个批注", addon.data.copyText, openPdfs);
+          if (openPdfs.length > 0) {
+            r.addRelations(openPdfs);
+            new ztoolkit.ProgressWindow("添加双链", {
+              closeOnClick: true,
+            })
+              .createLine({ text: "准备添加" + openPdfs.length + "项" })
+              .createLine({
+                text: "已添加" + r.getLinkRelations().length + "项",
+              })
+              .show()
+              .startCloseTimer(5000, false);
+          } else {
+            new ztoolkit.ProgressWindow("添加双链", {
+              closeOnClick: true,
+            })
+              .createLine({ text: "请先复制至少一个批注" })
+              .show()
+              .startCloseTimer(5000, false);
+          }
         },
       },
       {
@@ -93,7 +116,10 @@ function renderSidebarAnnotationHeaderCallback(
       id:
         config.addonRef +
         `renderSidebarAnnotationHeader-link-${params.annotation.id}`,
-      properties: { textContent: "🍡" },
+      properties: {
+        textContent: "🍡",
+        title: "双链" + linkAnnotations.length + "项",
+      },
       listeners: [
         {
           type: "click",
@@ -102,11 +128,8 @@ function renderSidebarAnnotationHeaderCallback(
             const anKey = params.annotation.id;
             const win = await relatedDialog(doc, anKey);
             const { fromEle, left, top } = getFromEleLeftTop(doc, anKey);
-            const content = win.document.querySelector(
-              ".content",
-            ) as HTMLDivElement;
-            await createRelatedContent(anKey, content, fromEle);
-            await waitFor(() => content.querySelector(".loaded"));
+            await createRelatedContent(anKey, win, undefined, fromEle);
+            await waitFor(() => win.document.querySelector(".loaded"));
             await relatedDialogResize(win, top, left);
             Zotero.getMainWindow()
               .document.getElementById(
@@ -125,10 +148,8 @@ function renderSidebarAnnotationHeaderCallback(
             const { fromEle, left, top } = getFromEleLeftTop(doc, anKey);
             const div = await createPopupDiv(doc, anKey);
             div.style.left = left + "px";
-            div.style.top = top + "px";
-            const content = div.querySelector(".content") as HTMLDivElement;
-            await createRelatedContent(anKey, content, fromEle);
-            await waitFor(() => content.querySelector(".loaded"));
+            div.style.top = Math.max(top, 118) + "px";
+            await createRelatedContent(anKey, undefined, div, fromEle);
           },
         },
         {
@@ -181,7 +202,7 @@ async function createPopupDiv(readerDoc: Document, anKey: string) {
   });
 
   content.style.left = left + "px";
-  content.style.top = top + "px";
+  content.style.top = Math.max(top, 118) + "px";
   return div;
 }
 function getFromEleLeftTop(readerDoc: Document, anKey: string) {
@@ -204,9 +225,16 @@ function getFromEleLeftTop(readerDoc: Document, anKey: string) {
 
 async function createRelatedContent(
   anKey: string,
-  content: HTMLDivElement,
+  win: Window | undefined,
+  div: HTMLDivElement | undefined,
   fromEle: HTMLElement,
 ) {
+  const content = win
+    ? (win.document.querySelector(".content") as HTMLDivElement)
+    : div
+      ? (div.querySelector(".content") as HTMLDivElement)
+      : undefined;
+  if (!content) return;
   const anFrom = getItem(anKey);
   const anFromRelations = new Relations(anFrom);
   const fromLinkRelations = anFromRelations.getLinkRelations();
@@ -233,8 +261,9 @@ async function createRelatedContent(
       ),
     );
   content.innerHTML = "";
+  const fromURI = Zotero.URI.getItemURI(anFrom);
   for (const to of [
-    { ann: anFrom, type: "来源", toItemURI: Zotero.URI.getItemURI(anFrom) },
+    { ann: anFrom, type: "来源", toItemURI: fromURI },
     ...toAns,
   ]) {
     const anTo = to.ann;
@@ -319,7 +348,10 @@ async function createRelatedContent(
                   fontSize: "1.5em",
                   paddingRight: "5px",
                 },
-                properties: { textContent: "🗑" },
+                properties: {
+                  textContent: fromURI == toItemURI ? "❌" : "🗑",
+                  title: fromURI == toItemURI ? "清空" : "删除",
+                },
                 listeners: [
                   {
                     type: "click",
@@ -330,6 +362,8 @@ async function createRelatedContent(
                       u2.remove();
                       // ztoolkit.log("remove 2", anFromRelations.getLinkRelations());
                       if (anFromRelations.getLinkRelations().length == 0) {
+                        win?.close();
+                        div?.remove();
                         fromEle.remove();
                       }
                     },
@@ -580,11 +614,19 @@ function copyFunc(doc: Document, copyFrom: string = "") {
     div.style.boxShadow = "#999999 0px 0px 4px 3px";
     const content = div.querySelector(".content")!;
     const query = div.querySelector(".query")!;
+    const popupWin = new ztoolkit.ProgressWindow("添加双链", {
+      closeOnClick: true,
+    })
+      .createLine({ text: "已复制:" + man.length })
+      .show();
+    popupWin.startCloseTimer(5000, false);
+
     man
       .map((m, i) => {
         const an = getItem(m.annotationKey);
         const content =
           (an.annotationComment || "") + (an.annotationText || "") + m.text;
+        popupWin.createLine({ text: content.substring(0, 10) });
         return {
           tag: "span",
           properties: { textContent: i + 1 + ":" + content.substring(0, 7) },
@@ -606,16 +648,21 @@ function copyFunc(doc: Document, copyFrom: string = "") {
     div.addEventListener("mouseout", () => {
       timer.startTimer(3000);
     });
-    query.textContent = "已复制";
+    query.textContent = "已复制:" + man.length;
+
     div.addEventListener(
       "click",
       (e) => {
         if (query.textContent == "已复制") {
           query.textContent = "已清空";
           addon.data.copyText = "";
+          popupWin.createLine({ text: "已清空" }).startCloseTimer(5000, false);
         } else {
-          query.textContent = "已复制";
+          query.textContent = "已复制:" + man.length;
           addon.data.copyText = text;
+          popupWin
+            .createLine({ text: "已复制:" + man.length })
+            .startCloseTimer(5000, false);
         }
       },
       { capture: true },
