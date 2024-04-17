@@ -488,6 +488,10 @@ export class Relations {
   constructor(itemOrKeyOrId: Zotero.Item | string | number) {
     this.item = getItem(itemOrKeyOrId);
   }
+  // static RelationsPredicate="link:annotation" as _ZoteroTypes.RelationsPredicate;
+  static RelationsPredicate = "dc:relation" as _ZoteroTypes.RelationsPredicate;
+  static RelationsTag = "🔗Bi-directional linked annotation";
+
   static checkLinkAnnotation() {
     setTimeout(async () => {
       const d = await Zotero.RelationPredicates.add(
@@ -500,27 +504,23 @@ export class Relations {
       );
     });
   }
-  // static RelationsPredicate="link:annotation" as _ZoteroTypes.RelationsPredicate;
-  static RelationsPredicate = "dc:relation" as _ZoteroTypes.RelationsPredicate;
-  static RelationsTag = "🔗Bi-directional linked annotation";
-
-  static openPdf2URI(str: string) {
-    return this.allOpenPdf(str)
+  static getItemURIs(str: string) {
+    return this.getOpenPdfs(str)
       .map((a) => getItem(a.annotationKey))
       .map((a) => Zotero.URI.getItemURI(a));
-  }
-  static allOpenPdf(str: string) {
+  } 
+  static getOpenPdfs(str: string) {
     return (
       str
         .match(
           /.*(zotero:\/\/open-pdf\/library\/items\/(.*?)[?]page=(.*?)&annotation=([^)]*)).*/g,
         )
         ?.map((a) => a.toString())
-        .map((a) => this.str2OpenPdf(a))
+        .map((a) => this.getOpenPdf(a))
         .filter((f) => f.openPdf) || []
     );
   }
-  static str2OpenPdf(str: string) {
+  static getOpenPdf(str: string) {
     const a = str.match(
       /.*(zotero:\/\/open-pdf\/library\/items\/(.*?)[?]page=(.*?)&annotation=([^)]*)).*/,
     );
@@ -531,23 +531,7 @@ export class Relations {
       page: a?.[3] || "",
       annotationKey: a?.[4] || "",
     };
-  }
-  static mapOpenPdf(strArray: string[]) {
-    return strArray
-      .map((str) =>
-        str.match(
-          /.*(zotero:\/\/open-pdf\/library\/items\/(.*?)[?]page=(.*?)&annotation=([^)]*)).*/,
-        ),
-      )
-      .map((a) => ({
-        text: a?.[0] || "",
-        openPdf: a?.[1] || "",
-        pdfKey: a?.[2] || "",
-        page: a?.[3] || "",
-        annotationKey: a?.[4] || "",
-      }))
-      .filter((f) => f.text);
-  }
+  } 
   getLinkRelations() {
     try {
       const rs = this.item.getRelations() as any;
@@ -565,8 +549,8 @@ export class Relations {
   //   d[Relations.RelationsPredicate] = openPdfs
   //   const changed = annotation.setRelations(d);
   //   if (changed) {
-  //     annotation.saveTx();}
-  //   this.setTag();
+  //     annotation.saveTx();
+  //   this.setTag();}
   // }
   setRelationsTag() {
     if (this.getLinkRelations().length > 0) {
@@ -578,7 +562,7 @@ export class Relations {
     }
     // this.item.saveTx();
   }
-  getOpenPdfUri() {
+  getOpenPdfURI() {
     return `zotero://open-pdf/library/items/${this.item.parentItemKey}?page=${this.item.annotationPageLabel}&annotation=${this.item.key}`;
   }
   // removeRelations(openPdfs: string[]) {
@@ -598,7 +582,7 @@ export class Relations {
     });
     annotation.saveTx();
     this.setRelationsTag();
-    const thisOpenPdf = this.getOpenPdfUri();
+    const thisOpenPdf = this.getOpenPdfURI();
 
     needRemove.forEach((f) => {
       const id = Zotero.URI.getURIItemID(f);
@@ -616,7 +600,7 @@ export class Relations {
   addRelations(itemURIs: string[]) {
     const annotation = this.item;
     const linkRelations = this.getLinkRelations();
-    const thisOpenPdf = this.getOpenPdfUri();
+    const thisOpenPdf = this.getOpenPdfURI();
 
     const thisItemURI = Zotero.URI.getItemURI(this.item);
     const needConnect = itemURIs

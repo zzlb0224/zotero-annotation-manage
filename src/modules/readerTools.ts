@@ -66,20 +66,20 @@ function renderSidebarAnnotationHeaderCallback(
       {
         type: "click",
         listener: (e) => {
-          const r = new Relations(params.annotation.id);
+          // const r = new Relations(params.annotation.id);
           // const man = Relations.allOpenPdf(addon.data.copy);
           // r.addRelations(man.map((a) => a.openPdf));
 
-          const openPdfs = Relations.openPdf2URI(addon.data.copyText);
+          const openPdfs = Relations.getItemURIs(addon.data.copyText);
           ztoolkit.log("请先复制至少一个批注", addon.data.copyText, openPdfs);
           if (openPdfs.length > 0) {
-            r.addRelations(openPdfs);
+            relations.addRelations(openPdfs);
             new ztoolkit.ProgressWindow("添加双链", {
               closeOnClick: true,
             })
               .createLine({ text: "准备添加" + openPdfs.length + "项" })
               .createLine({
-                text: "已添加" + r.getLinkRelations().length + "项",
+                text: "已添加" + relations.getLinkRelations().length + "项",
               })
               .show()
               .startCloseTimer(5000, false);
@@ -126,7 +126,7 @@ function renderSidebarAnnotationHeaderCallback(
           listener: async (e) => {
             e.preventDefault();
             const anKey = params.annotation.id;
-            const win = await relatedDialog(doc, anKey);
+            const win = await createRelatedDialog(doc, anKey);
             const { fromEle, left, top } = getFromEleLeftTop(doc, anKey);
             await createRelatedContent(anKey, win, undefined, fromEle);
             await waitFor(() => win.document.querySelector(".loaded"));
@@ -146,7 +146,7 @@ function renderSidebarAnnotationHeaderCallback(
             if (addon.data.relationDialog) return;
             const anKey = params.annotation.id;
             const { fromEle, left, top } = getFromEleLeftTop(doc, anKey);
-            const div = await createPopupDiv(doc, anKey);
+            const div = await createRelatedPopupDiv(doc, anKey);
             div.style.left = left + "px";
             div.style.top = Math.max(top, 118) + "px";
             await createRelatedContent(anKey, undefined, div, fromEle);
@@ -167,7 +167,7 @@ function renderSidebarAnnotationHeaderCallback(
   // ztoolkit.log("userActions2", userActions);
   if (userActions.length > 0) append(...userActions);
 }
-async function createPopupDiv(readerDoc: Document, anKey: string) {
+async function createRelatedPopupDiv(readerDoc: Document, anKey: string) {
   const rootDoc = Zotero.getMainWindow().document;
   const div = createTopDiv(
     rootDoc,
@@ -474,7 +474,7 @@ export function showTitle(
   }
   return d;
 }
-async function relatedDialog(readerDoc: Document, anKey: string) {
+async function createRelatedDialog(readerDoc: Document, anKey: string) {
   ztoolkit.log(
     " Zotero.getMainWindow().screenLeft",
     Zotero.getMainWindow().screenLeft,
@@ -592,7 +592,7 @@ function copyFunc(doc: Document, copyFrom: string = "") {
     // ztoolkit.log("123 copy", doc, clipboardData, clipboardData.getData("text"));
     if (!text) return;
     // const man = text2Ma(text);
-    const man = Relations.allOpenPdf(text);
+    const man = Relations.getOpenPdfs(text);
     ztoolkit.log(man);
     doc.querySelector(`#${config.addonRef}-copy-annotations`)?.remove();
     if (man.length == 0) return;
