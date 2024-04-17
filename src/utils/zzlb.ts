@@ -9,6 +9,7 @@ import {
   createPopupWin,
   popupWin,
 } from "../modules/annotationsToNote";
+import { TagElementProps } from "zotero-plugin-toolkit/dist/tools/ui";
 /* unique 采用set的比较方式*/
 export function unique<T>(arr: T[]) {
   return [...new Set(arr)];
@@ -637,7 +638,14 @@ export class Relations {
 export function createTopDiv(
   doc?: Document,
   id = config.addonRef + `-TopDiv`,
-  sections = ["action", "status", "query", "content"],
+  sections: TagElementProps[] = ["action", "status", "query", "content"].map(
+    (a) => ({
+      tag: "div",
+      properties: { textContent: "" },
+      classList: [a],
+      styles: { display: "flex" },
+    }),
+  ),
 ) {
   if (!doc) return;
   doc.getElementById(id)?.remove();
@@ -704,6 +712,7 @@ export function createTopDiv(
     div,
   );
 
+  const closeTimer = new Timer(() => div.remove());
   ztoolkit.UI.appendElement(
     {
       tag: "div",
@@ -729,49 +738,29 @@ export function createTopDiv(
           },
           options: { capture: true },
         },
+        {
+          type: "mouseover",
+          listener: (e) => {
+            e.stopPropagation();
+            closeTimer.startTimer(500);
+          },
+          options: { capture: true },
+        },
+        {
+          type: "mouseout",
+          listener: (e) => {
+            e.stopPropagation();
+            closeTimer.clearTimer();
+          },
+          options: { capture: true },
+        },
       ],
     },
     modal,
   );
-  sections.forEach((a) =>
-    ztoolkit.UI.appendElement(
-      {
-        tag: "div",
-        properties: { textContent: "" },
-        classList: [a],
-        styles: { display: "flex" },
-      },
-      div,
-    ),
-  );
+
+  sections.forEach((a) => ztoolkit.UI.appendElement(a, div));
   return div;
-}
-export class Timer {
-  closeTimer: NodeJS.Timeout | null;
-  timeout: number;
-  callback: () => void;
-  constructor(callback: () => void, ms = 3000) {
-    this.timeout = ms > 0 ? ms : 3000;
-    this.closeTimer = null;
-    this.callback = callback;
-  }
-  startTimer(ms = 3000) {
-    this.timeout = ms > 0 ? ms : this.timeout;
-    this.clearTimer();
-    this.closeTimer = setTimeout(() => {
-      this.callback();
-      if (this.closeTimer) {
-        clearTimeout(this.closeTimer);
-        this.closeTimer = null;
-      }
-    }, ms);
-  }
-  clearTimer() {
-    if (this.closeTimer) {
-      clearTimeout(this.closeTimer);
-      this.closeTimer = null;
-    }
-  }
 }
 
 export class CountDown {
@@ -920,6 +909,31 @@ async function getImageFromReader(an: AnnotationRes) {
   if (image) return `<img src="${image.image}"/>`;
   // }
 }
+export class Timer {
+  closeTimer: NodeJS.Timeout | null;
+  callback: () => void;
+  constructor(callback: () => void) {
+    this.closeTimer = null;
+    this.callback = callback;
+  }
+  startTimer(ms = 3000) {
+    this.clearTimer();
+    this.closeTimer = setTimeout(() => {
+      this.callback();
+      if (this.closeTimer) {
+        clearTimeout(this.closeTimer);
+        this.closeTimer = null;
+      }
+    }, ms);
+  }
+  clearTimer() {
+    if (this.closeTimer) {
+      clearTimeout(this.closeTimer);
+      this.closeTimer = null;
+    }
+  }
+}
+
 export interface AnnotationRes {
   item: Zotero.Item;
   pdf: Zotero.Item;

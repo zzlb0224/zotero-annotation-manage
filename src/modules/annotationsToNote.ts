@@ -105,14 +105,36 @@ function register() {
       },
       {
         tag: "menuitem",
-        label: "搜索注释文字和标签导出",
+        label: "搜索注释文字和标签导出div",
         icon: iconBaseUrl + "favicon.png",
-        commandListener: (ev: Event) => {
+        commandListener: async (ev: Event) => {
           const target = ev.target as HTMLElement;
           const doc = target.ownerDocument;
           const id = getParentAttr(ev.target as HTMLElement, "id");
-          const div = createSearchAnnDiv(doc, id?.includes("collection"));
-          // setTimeout(()=>d.remove(),10000)
+          const items = await getSelectedItems(id?.includes("collection"));
+          const annotations = getAllAnnotations(items);
+          // const div = createSearchAnnDiv(doc);
+          const div = createTopDiv(doc, config.addonRef + `-TopDiv`, [
+            { tag: "div", classList: ["action"] },
+            { tag: "div", classList: ["query"] },
+            { tag: "div", classList: ["status"] },
+            { tag: "div", classList: ["content"] },
+          ])!;
+          createSearchAnnContent(div, annotations);
+        },
+      },
+      {
+        tag: "menuitem",
+        label: "搜索注释文字和标签导出dialog",
+        icon: iconBaseUrl + "favicon.png",
+        commandListener: async (ev: Event) => {
+          const target = ev.target as HTMLElement;
+          const doc = target.ownerDocument;
+          const id = getParentAttr(ev.target as HTMLElement, "id");
+          const items = await getSelectedItems(id?.includes("collection"));
+          const annotations = getAllAnnotations(items);
+          const div = await createSearchAnnDialog();
+          createSearchAnnContent(div, annotations);
         },
       },
       {
@@ -451,17 +473,16 @@ function getParentAttr(ele: Element | null, name = "id") {
   }
   return "";
 }
-
 async function createSearchAnnDiv(doc: Document, isCollection: boolean) {
+  const div = createTopDiv(doc, config.addonRef + `-TopDiv`, [
+    { tag: "div", classList: ["action"] },
+    { tag: "div", classList: ["query"] },
+    { tag: "div", classList: ["status"] },
+    { tag: "div", classList: ["content"] },
+  ])!;
+}
+async function createSearchAnnDialog() {
   const mainWindow = Zotero.getMainWindow();
-  let text = "";
-  let tag = "";
-  let showN = 20;
-  const items = await getSelectedItems(isCollection);
-  const annotations = getAllAnnotations(items);
-  ztoolkit.log(isCollection, items, annotations);
-  let ans: AnnotationRes[] = annotations;
-
   const dialogData: { [key: string | number]: any } = {
     inputValue: "test",
     checkboxValue: true,
@@ -472,36 +493,34 @@ async function createSearchAnnDiv(doc: Document, isCollection: boolean) {
       ztoolkit.log(dialogData, "Dialog closed!");
     },
   };
-  const dialogHelper = new ztoolkit.Dialog(3, 1)
+  const dialogHelper = new ztoolkit.Dialog(1, 1)
     .addCell(0, 0, {
       tag: "div",
-      classList: ["query"],
-      // properties: { innerHTML: "0 0" },
+      classList: ["root"],
+      children: [
+        { tag: "div", classList: ["query"] },
+        {
+          tag: "div",
+          classList: ["status"],
+          properties: { innerHTML: "1 0" },
+        },
+        {
+          tag: "div",
+          classList: ["content"],
+          // properties: { innerHTML: "2 0" },
+          styles: {
+            minHeight: "20px",
+            minWidth: "100px",
+            display: "flex",
+            maxHeight: mainWindow.innerHeight - 40 + "px",
+            maxWidth: Math.max(mainWindow.outerWidth - 180, 1000) + "px",
+            flexWrap: "wrap",
+            overflowY: "scroll",
+          },
+        },
+      ],
     })
-    .addCell(1, 0, {
-      tag: "div",
-      classList: ["status"],
-      properties: { innerHTML: "1 0" },
-    })
-    .addCell(2, 0, {
-      tag: "div",
-      classList: ["content"],
-      // properties: { innerHTML: "2 0" },
-      styles: {
-        minHeight: "20px",
-        minWidth: "100px",
-        display: "flex",
-        maxHeight: mainWindow.innerHeight - 40 + "px",
-        maxWidth: Math.max(mainWindow.outerWidth - 180, 1000) + "px",
-        flexWrap: "wrap",
-        overflowY: "scroll",
-      },
-    })
-    .addButton("导出", "confirm", {
-      callback: () => {
-        exportNote({ filter: () => ans, toText: toText1 });
-      },
-    })
+    .addButton("导出", "confirm")
     .addButton("取消", "cancel")
     // .addButton("Help", "help", {
     //   noClose: true,
@@ -518,15 +537,31 @@ async function createSearchAnnDiv(doc: Document, isCollection: boolean) {
       fitContent: true,
       resizable: true,
     });
-  const content = (await waitFor(() =>
-    dialogHelper.window.document.querySelector(".content"),
+
+  const root = (await waitFor(() =>
+    dialogHelper.window.document.querySelector(".root"),
   )) as HTMLElement;
-  const query = dialogHelper.window.document.querySelector(
-    ".query",
-  ) as HTMLElement;
-  const status = dialogHelper.window.document.querySelector(
-    ".status",
-  ) as HTMLElement;
+  addon.data.exportDialog = dialogHelper;
+  return root;
+}
+function createSearchAnnContent(
+  root: HTMLElement | Window,
+  annotations: AnnotationRes[],
+) {
+  const isWin = "document" in root;
+  const doc = isWin
+    ? (root.document.querySelector(".root") as HTMLElement)
+    : root;
+  const win = isWin ? root : undefined;
+  let text = "";
+  let tag = "";
+  let showN = 20;
+  let ans: AnnotationRes[] = annotations;
+
+  const content = doc.querySelector(".content") as HTMLElement;
+
+  const query = doc.querySelector(".query") as HTMLElement;
+  const status = doc.querySelector(".status") as HTMLElement;
   ztoolkit.log(content, query, status);
   const inputTag: TagElementProps = {
     tag: "div",
@@ -602,6 +637,38 @@ async function createSearchAnnDiv(doc: Document, isCollection: boolean) {
                 },
               },
             ],
+          },
+        ],
+      },
+      {
+        tag: "button",
+        properties: { textContent: "导出" },
+        listeners: [
+          {
+            type: "click",
+            listener: (e) => {
+              e.stopPropagation();
+              exportNote({ filter: () => ans, toText: toText1 });
+            },
+            options: { capture: true },
+          },
+        ],
+      },
+      {
+        tag: "button",
+        properties: { textContent: "关闭" },
+        listeners: [
+          {
+            type: "click",
+            listener: (e) => {
+              e.stopPropagation();
+              if (root instanceof HTMLElement) {
+                root.remove();
+              } else {
+                root.close();
+              }
+            },
+            options: { capture: true },
           },
         ],
       },
@@ -756,7 +823,6 @@ async function createSearchAnnDiv(doc: Document, isCollection: boolean) {
         // border: "1px solid black",
         // boxSizing: "border-box",
         // margin: "2px",
-
         display: "inline-block",
         marginBottom: "5px",
         width: "100%",
@@ -794,18 +860,11 @@ async function createSearchAnnDiv(doc: Document, isCollection: boolean) {
       },
       content,
     );
-    (dialogHelper.window as any).sizeToContent();
+    if (isWin) (win as any).sizeToContent();
   }
-  addon.data.exportDialog = dialogHelper;
-  await dialogHelper.dialogData.unloadLock?.promise;
-  addon.data.exportDialog = undefined;
-  if (addon.data.alive) {
-    //   ztoolkit.getGlobal("alert")(
-    //   `Close dialog with ${dialogData._lastButtonId}.\nCheckbox: ${dialogData.checkboxValue}\nInput: ${dialogData.inputValue}.`,
-    // );
-  }
-  ztoolkit.log(dialogHelper.dialogData);
+  return { text, tag, showN, ans };
 }
+
 async function getAnnotationContent(ann: Zotero.Item) {
   const html = (await Zotero.BetterNotes.api.convert.annotations2html([ann], {
     noteItem: undefined,
@@ -872,10 +931,10 @@ async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
     ],
   };
   const div = createTopDiv(doc, config.addonRef + `-TopDiv`, [
-    "action",
-    "status",
-    "query",
-    "content",
+    { tag: "div", classList: ["action"] },
+    { tag: "div", classList: ["query"] },
+    { tag: "div", classList: ["status"] },
+    { tag: "div", classList: ["content"] },
   ]);
   if (div) {
     const actionTag = createActionTag(
