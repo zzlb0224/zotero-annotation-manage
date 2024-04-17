@@ -120,7 +120,7 @@ function register() {
             { tag: "div", classList: ["status"] },
             { tag: "div", classList: ["content"] },
           ])!;
-          createSearchAnnContent(div, annotations);
+          createSearchAnnContent(undefined, div, annotations);
         },
       },
       {
@@ -134,7 +134,7 @@ function register() {
           const items = await getSelectedItems(id?.includes("collection"));
           const annotations = getAllAnnotations(items);
           const win = await createSearchAnnDialog();
-          createSearchAnnContent(win, annotations);
+          createSearchAnnContent(win, undefined, annotations);
         },
       },
       {
@@ -321,7 +321,7 @@ async function funcTranslateAnnotations(ev: Event) {
       : an.ann.annotationComment.replace(/🔤undefined🔤/, r);
     p.changeLine({
       progress: (index / ans.length) * 100,
-      text: text + "=>" + result,
+      text: text.substring(0, 10) + "=>" + result.substring(0, 10),
     });
     an.ann.saveTx();
     Zotero.Promise.delay(500);
@@ -545,14 +545,13 @@ async function createSearchAnnDialog() {
   return dialogHelper.window;
 }
 function createSearchAnnContent(
-  root: HTMLElement | Window,
+  dialogWindow: Window | undefined,
+  popupDiv: HTMLElement | undefined,
   annotations: AnnotationRes[],
 ) {
-  const isWin = "document" in root;
-  const doc = isWin
-    ? (root.document.querySelector(".root") as HTMLElement)
-    : root;
-  const win = isWin ? root : undefined;
+  const isWin = dialogWindow != undefined;
+  const doc = dialogWindow?.document || popupDiv;
+  if (!doc) return;
   let text = "";
   let tag = "";
   let pageSize = 12;
@@ -560,7 +559,6 @@ function createSearchAnnContent(
   let ans: AnnotationRes[] = annotations;
 
   const content = doc.querySelector(".content") as HTMLElement;
-
   const query = doc.querySelector(".query") as HTMLElement;
   const status = doc.querySelector(".status") as HTMLElement;
   ztoolkit.log(content, query, status);
@@ -684,11 +682,8 @@ function createSearchAnnContent(
             listener: (e) => {
               e.stopPropagation();
               exportNote({ filter: () => ans, toText: toText1 });
-              if (isWin) {
-                root.close();
-              } else {
-                root.remove();
-              }
+              dialogWindow?.close();
+              popupDiv?.remove();
             },
             options: { capture: true },
           },
@@ -702,11 +697,9 @@ function createSearchAnnContent(
             type: "click",
             listener: (e) => {
               e.stopPropagation();
-              if (isWin) {
-                root.close();
-              } else {
-                root.remove();
-              }
+
+              dialogWindow?.close();
+              popupDiv?.remove();
             },
             options: { capture: true },
           },
@@ -739,7 +732,7 @@ function createSearchAnnContent(
     // ztoolkit.UI.appendElement(,status);
 
     await updatePageContent();
-    if (isWin) (win as any).sizeToContent();
+    if (isWin) (dialogWindow as any).sizeToContent();
 
     async function updatePageContent() {
       const showAn = ans.slice(
