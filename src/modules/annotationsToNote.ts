@@ -735,7 +735,7 @@ function createSearchAnnContent(
       (query.querySelector(".pageIndex") as HTMLInputElement).value =
         pageIndex + "";
     }
-    status.innerHTML = `总${annotations.length}条笔记，筛选出了${ans.length}条。预览${(pageIndex - 1) * pageSize}-${pageIndex * pageSize}条。`;
+    status.innerHTML = `总${annotations.length}条笔记，筛选出了${ans.length}条。预览${(pageIndex - 1) * pageSize+1}-${pageIndex * pageSize}条。`;
     // ztoolkit.UI.appendElement(,status);
 
     await updatePageContent();
