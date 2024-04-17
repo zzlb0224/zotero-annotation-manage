@@ -133,8 +133,8 @@ function register() {
           const id = getParentAttr(ev.target as HTMLElement, "id");
           const items = await getSelectedItems(id?.includes("collection"));
           const annotations = getAllAnnotations(items);
-          const div = await createSearchAnnDialog();
-          createSearchAnnContent(div, annotations);
+          const win = await createSearchAnnDialog();
+          createSearchAnnContent(win, annotations);
         },
       },
       {
@@ -520,8 +520,8 @@ async function createSearchAnnDialog() {
         },
       ],
     })
-    .addButton("导出", "confirm")
-    .addButton("取消", "cancel")
+    // .addButton("导出", "confirm")
+    // .addButton("取消", "cancel")
     // .addButton("Help", "help", {
     //   noClose: true,
     //   callback: (e) => {
@@ -542,7 +542,7 @@ async function createSearchAnnDialog() {
     dialogHelper.window.document.querySelector(".root"),
   )) as HTMLElement;
   addon.data.exportDialog = dialogHelper;
-  return root;
+  return dialogHelper.window;
 }
 function createSearchAnnContent(
   root: HTMLElement | Window,
@@ -555,7 +555,8 @@ function createSearchAnnContent(
   const win = isWin ? root : undefined;
   let text = "";
   let tag = "";
-  let showN = 20;
+  let pageSize = 12;
+  let pageIndex = 1;
   let ans: AnnotationRes[] = annotations;
 
   const content = doc.querySelector(".content") as HTMLElement;
@@ -614,25 +615,59 @@ function createSearchAnnContent(
       },
       {
         tag: "div",
-        properties: { textContent: "显示前N条" },
+        properties: { textContent: "每页N条" },
         children: [
           {
             tag: "input",
             namespace: "html",
             properties: {
               placeholder: "输入数字",
-              value: showN,
+              value: pageSize,
               type: "number",
             },
-            styles: { width: "50px" },
+            styles: { width: "30px" },
             listeners: [
               {
                 type: "change",
                 listener: (ev: Event) => {
                   stopPropagation(ev);
-                  showN =
-                    parseInt((ev.target as HTMLInputElement).value.trim()) ||
-                    10;
+                  pageSize = parseInt(
+                    (ev.target as HTMLInputElement).value.trim(),
+                  );
+                  if (pageSize <= 0) pageSize = 1;
+                  (ev.target as HTMLInputElement).value = pageSize + "";
+                  updateContent();
+                },
+              },
+            ],
+          },
+        ],
+      },
+
+      {
+        tag: "div",
+        properties: { textContent: "第几页" },
+        children: [
+          {
+            tag: "input",
+            namespace: "html",
+            classList: ["pageIndex"],
+            properties: {
+              placeholder: "输入数字",
+              value: pageIndex,
+              type: "number",
+            },
+            styles: { width: "30px" },
+            listeners: [
+              {
+                type: "change",
+                listener: (ev: Event) => {
+                  stopPropagation(ev);
+                  pageIndex = parseInt(
+                    (ev.target as HTMLInputElement).value.trim(),
+                  );
+                  if (pageIndex <= 0) pageIndex = 1;
+                  (ev.target as HTMLInputElement).value = pageIndex + "";
                   updateContent();
                 },
               },
@@ -649,6 +684,11 @@ function createSearchAnnContent(
             listener: (e) => {
               e.stopPropagation();
               exportNote({ filter: () => ans, toText: toText1 });
+              if (isWin) {
+                root.close();
+              } else {
+                root.remove();
+              }
             },
             options: { capture: true },
           },
@@ -662,10 +702,10 @@ function createSearchAnnContent(
             type: "click",
             listener: (e) => {
               e.stopPropagation();
-              if (root instanceof HTMLElement) {
-                root.remove();
-              } else {
+              if (isWin) {
                 root.close();
+              } else {
+                root.remove();
               }
             },
             options: { capture: true },
@@ -688,181 +728,164 @@ function createSearchAnnContent(
           (tagReg.length == 0 || tagReg.some((a) => a.test(f.annotationTags))),
       )
       .sort(sortModified);
-
     clearChild(content);
-    status.innerHTML = `总${annotations.length}条笔记，筛选出了${ans.length}条。预览前${showN}条。`;
-    const showAn = showN > 0 ? ans.slice(0, showN) : ans;
+    clearChild(status);
+    if ((pageIndex - 1) * pageSize > ans.length) {
+      pageIndex = 1;
+      (query.querySelector(".pageIndex") as HTMLInputElement).value =
+        pageIndex + "";
+    }
+    status.innerHTML = `总${annotations.length}条笔记，筛选出了${ans.length}条。预览${(pageIndex - 1) * pageSize}-${pageIndex * pageSize}条。`;
+    // ztoolkit.UI.appendElement(,status);
 
-    content.innerHTML = "";
-    // await convertHtml(showAn)
-    const cs = showAn.map(async (to) => {
-      const anTo = to.ann;
-      return {
-        tag: "div",
-        styles: {
-          padding: "5px",
-          marginRight: "20px",
-          display: "flex",
-          alignItems: "stretch",
-          flexDirection: "column",
-          width: "260px",
-          background: "#fff",
-          borderRadius: "5px",
-          margin: "4px",
-        },
-        properties: { textContent: "" },
-        children: [
-          {
-            tag: "div",
-            styles: {
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            },
-            children: [
-              {
-                tag: "span",
-                styles: { color: anTo.annotationColor },
-                properties: {
-                  textContent: anTo.annotationType,
-                  innerHTML:
-                    (await memSVG(
-                      `chrome://${config.addonRef}/content/16/annotate-${anTo.annotationType}.svg`,
-                    )) || anTo.annotationType,
-                },
-              },
-              {
-                tag: "span",
-                styles: {},
-                properties: {
-                  textContent: `${anTo.parentItem?.parentItem?.getField("firstCreator")},${anTo.parentItem?.parentItem?.getField("year")}`,
-                },
-                listeners: [
-                  {
-                    type: "click",
-                    listener: (e: any) => {
-                      e.stopPropagation();
-                      ztoolkit.log("点击", e, e.clientX, e.target);
-                      showTitle(anTo, e.clientX, e.clientY, content);
-                    },
-                    options: { capture: true },
-                  },
-                  {
-                    type: "mouseover",
-                    listener: (e: any) => {
-                      ztoolkit.log("鼠标进入", e, e.clientX, e.target);
-                      showTitle(anTo, e.clientX, e.clientY, content);
-                    },
-                  },
-                ],
-              },
-              { tag: "span" },
-            ],
-          },
-          {
-            tag: "div",
-            listeners: [
-              {
-                type: "click",
-                listener: (e: Event) => {
-                  e.stopPropagation();
-                  if (anTo.parentItemKey)
-                    openAnnotation(
-                      anTo.parentItemKey,
-                      anTo.annotationPageLabel,
-                      anTo.key,
-                    );
-                },
-                options: { capture: true },
-              },
-            ],
-            children: [
-              {
-                tag: "div",
-                styles: {
-                  background: anTo.annotationColor + "60", //width: "200px",
-                  maxHeight: "100px",
-                  overflowY: "scroll",
-                },
-                properties: { innerHTML: await getAnnotationContent(anTo) },
-              },
-              {
-                tag: "div",
-                styles: {
-                  background: anTo.annotationColor + "10", //width: "200px"
-                },
-                properties: {
-                  textContent: anTo
-                    .getTags()
-                    .map((a) => a.tag)
-                    .join(","),
-                },
-              },
-            ],
-          },
-        ],
-      };
-    });
-
-    const cs2 = showAn.map(async (a) => ({
-      tag: "div",
-      namespace: "html",
-      properties: {
-        innerHTML: await convertHtml([a], undefined).then((a) => a[0].html),
-        // (a.annotationTags || "") +
-        // " " +
-        // (a.text || "") +
-        // (a.type == "image" ? "[图]" : "") +
-        // " " +
-        // (a.comment || "") +
-        // " ",
-      },
-      styles: {
-        // flex: "0 0 calc( 20% - 4px)",
-        // maxWidth: "calc( 20% - 4px)",
-        // border: "1px solid black",
-        // boxSizing: "border-box",
-        // margin: "2px",
-        display: "inline-block",
-        marginBottom: "5px",
-        width: "100%",
-        breakInside: "avoid",
-        background: a.color + "70",
-      },
-      listeners: [
-        {
-          type: "click",
-          listener: async (ev: any) => {
-            stopPropagation(ev);
-            // ztoolkit.log("点击",ev)
-            openAnnotation(a.pdf, a.page, a.ann.key);
-          },
-        },
-      ],
-    }));
-    const children = await Promise.all(cs);
-    ztoolkit.UI.appendElement(
-      {
-        tag: "div",
-        namespace: "html",
-        properties: {
-          // textContent: `总${annotations.length}条笔记，筛选出了${ans.length}条。预览前${showN}条。`,
-        },
-        styles: {
-          display: "flex",
-          flexWrap: "wrap",
-          justifyContent: "flex-start",
-          // columnCount: "4",
-          // columnGap: "10px ",
-          width: "100%",
-        },
-        children,
-      },
-      content,
-    );
+    await updatePageContent();
     if (isWin) (win as any).sizeToContent();
+
+    async function updatePageContent() {
+      const showAn = ans.slice(
+        (pageIndex - 1) * pageSize,
+        pageIndex * pageSize,
+      );
+      clearChild(content);
+      content.innerHTML = "";
+      // await convertHtml(showAn)
+      const cs = showAn.map(async (to, index) => {
+        const anTo = to.ann;
+        return {
+          tag: "div",
+          styles: {
+            padding: "5px",
+            marginRight: "20px",
+            display: "flex",
+            alignItems: "stretch",
+            flexDirection: "column",
+            width: "260px",
+            background: "#fff",
+            borderRadius: "5px",
+            margin: "4px",
+          },
+          properties: { textContent: "" },
+          children: [
+            {
+              tag: "div",
+              styles: {
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              },
+              children: [
+                {
+                  tag: "span",
+                  styles: { color: anTo.annotationColor },
+                  properties: {
+                    textContent: anTo.annotationType,
+                    innerHTML:
+                      (await memSVG(
+                        `chrome://${config.addonRef}/content/16/annotate-${anTo.annotationType}.svg`,
+                      )) || anTo.annotationType,
+                  },
+                },
+                {
+                  tag: "span",
+                  styles: {},
+                  properties: {
+                    textContent: `${anTo.parentItem?.parentItem?.getField("firstCreator")},${anTo.parentItem?.parentItem?.getField("year")}`,
+                  },
+                  listeners: [
+                    {
+                      type: "click",
+                      listener: (e: any) => {
+                        e.stopPropagation();
+                        ztoolkit.log("点击", e, e.clientX, e.target);
+                        showTitle(anTo, e.clientX, e.clientY, content);
+                      },
+                      options: { capture: true },
+                    },
+                    {
+                      type: "mouseover",
+                      listener: (e: any) => {
+                        ztoolkit.log("鼠标进入", e, e.clientX, e.target);
+                        showTitle(anTo, e.clientX, e.clientY, content);
+                      },
+                    },
+                  ],
+                },
+                {
+                  tag: "span",
+                  properties: {
+                    textContent:
+                      pageIndex * pageSize - pageSize + index + 1 + "",
+                  },
+                },
+              ],
+            },
+            {
+              tag: "div",
+              listeners: [
+                {
+                  type: "click",
+                  listener: (e: Event) => {
+                    e.stopPropagation();
+                    if (anTo.parentItemKey)
+                      openAnnotation(
+                        anTo.parentItemKey,
+                        anTo.annotationPageLabel,
+                        anTo.key,
+                      );
+                  },
+                  options: { capture: true },
+                },
+              ],
+              children: [
+                {
+                  tag: "div",
+                  styles: {
+                    background: anTo.annotationColor + "60", //width: "200px",
+                    maxHeight: "100px",
+                    overflowY: "scroll",
+                  },
+                  properties: { innerHTML: await getAnnotationContent(anTo) },
+                },
+                {
+                  tag: "div",
+                  styles: {
+                    background: anTo.annotationColor + "10", //width: "200px"
+                  },
+                  properties: {
+                    textContent: anTo
+                      .getTags()
+                      .map((a) => a.tag)
+                      .join(","),
+                  },
+                },
+              ],
+            },
+          ],
+        };
+      });
+      const children = await Promise.all(cs);
+      ztoolkit.UI.appendElement(
+        {
+          tag: "div",
+          namespace: "html",
+          properties: {
+            // textContent: `总${annotations.length}条笔记，筛选出了${ans.length}条。预览前${showN}条。`,
+          },
+          styles: {
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "flex-start",
+            // columnCount: "4",
+            // columnGap: "10px ",
+            width: "100%",
+          },
+          children,
+        },
+        content,
+      );
+    }
   }
-  return { text, tag, showN, ans };
+  return { text, tag, showN: pageSize, ans };
 }
 
 async function getAnnotationContent(ann: Zotero.Item) {
