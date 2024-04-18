@@ -42,16 +42,21 @@ function readerToolbarCallback(
   copyFunc(doc, "readerToolbarCallback");
   injectCSS(doc, "reader1.css");
 }
+
 function renderSidebarAnnotationHeaderCallback(
   event: Parameters<
     _ZoteroTypes.Reader.EventHandler<"renderSidebarAnnotationHeader">
   >[0],
-): void | Promise<void> {
+) {
   const { append, doc, reader, params } = event;
   // copyFunc(doc, "renderSidebarAnnotationHeaderCallback");
   if (getPref("hide-annotation-link")) return;
   // ztoolkit.log(event, params.annotation.id);
+  // await waitFor(()=>getItem(params.annotation.id))
   const relations = new Relations(params.annotation.id);
+  // ztoolkit.log("新建的item",params.annotation.id,
+
+  // getItem(params.annotation.id);
   // relations.getLinkRelations()
   // const relatedAnnotations= getRelatedAnnotations(ann);
   const linkAnnotations = relations.getLinkRelations();
@@ -71,7 +76,7 @@ function renderSidebarAnnotationHeaderCallback(
           // r.addRelations(man.map((a) => a.openPdf));
 
           const openPdfs = Relations.getItemURIs(addon.data.copyText);
-          ztoolkit.log("请先复制至少一个批注", addon.data.copyText, openPdfs);
+
           if (openPdfs.length > 0) {
             relations.addRelations(openPdfs);
             new ztoolkit.ProgressWindow("添加双链", {
@@ -84,10 +89,12 @@ function renderSidebarAnnotationHeaderCallback(
               .show()
               .startCloseTimer(5000, false);
           } else {
+            ztoolkit.log("请先复制至少一个批注", addon.data.copyText, openPdfs);
             new ztoolkit.ProgressWindow("添加双链", {
               closeOnClick: true,
             })
               .createLine({ text: "请先复制至少一个批注" })
+              .createLine({ text: addon.data.copyText })
               .show()
               .startCloseTimer(5000, false);
           }

@@ -487,6 +487,12 @@ export class Relations {
   item: Zotero.Item;
   constructor(itemOrKeyOrId: Zotero.Item | string | number) {
     this.item = getItem(itemOrKeyOrId);
+    if (!this.item) {
+      //修复新建item的时候getItem返回的false，需要等待才能获取的问题
+      setTimeout(async () => {
+        await waitFor(() => (this.item = getItem(itemOrKeyOrId)));
+      });
+    }
   }
   // static RelationsPredicate="link:annotation" as _ZoteroTypes.RelationsPredicate;
   static RelationsPredicate = "dc:relation" as _ZoteroTypes.RelationsPredicate;
@@ -537,9 +543,19 @@ export class Relations {
       const rs = this.item.getRelations() as any;
       return (rs[Relations.RelationsPredicate] as string[]) || [];
     } catch (error) {
-      ztoolkit.log("新创建的item会触发getRelations错误", error);
+      ztoolkit.log(
+        "新创建的item会触发getRelations错误，重新获取，再尝试一遍",
+        error,
+      );
+      try {
+        this.item = getItem(this.item.key);
+        const rs = this.item.getRelations() as any;
+        return (rs[Relations.RelationsPredicate] as string[]) || [];
+      } catch (error) {
+        ztoolkit.log("再次尝试还是错误", error);
+        return [];
+      }
     }
-    return [];
   }
 
   // setRelations(openPdfs: string[]) {
@@ -791,6 +807,7 @@ export class CountDown {
 export function waitFor<T>(
   callback: () => T,
   timeout = 100000,
+  checkMs = 100,
 ): Promise<T | false> {
   return new Promise((resolve, reject) => {
     const startTime = Date.now();
@@ -805,7 +822,7 @@ export function waitFor<T>(
         // reject(new Error(`未完成`));
       }
     }
-    const interval = setInterval(checkElement, 100);
+    const interval = setInterval(checkElement, checkMs);
   });
 }
 export async function convertHtml(
