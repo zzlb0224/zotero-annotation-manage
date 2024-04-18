@@ -291,7 +291,7 @@ class AnnotationPopup {
     (remainingTime) => {
       if (remainingTime > 0) {
         if (this.btnClose) {
-          this.btnClose.textContent = `自动关闭（${Math.round(remainingTime/100)  / 10}s）`;
+          this.btnClose.textContent = `自动关闭（${Math.round(remainingTime / 100) / 10}s）`;
         }
       } else {
         this.rootDiv?.remove();
@@ -1120,7 +1120,7 @@ function createAnnotationContextMenu(
     currentTags.length > 0
       ? `添加标签，已有${currentTags.length}个Tag【${currentTagsString.length > 11 ? currentTagsString.slice(0, 10) + "..." : currentTagsString}】`
       : "添加标签";
-  // 
+  //
   append({
     label: label,
     onCommand: () => {
