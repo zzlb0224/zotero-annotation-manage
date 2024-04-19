@@ -297,7 +297,7 @@ const memAllTagsInLibraryAsync = memoize(async () => {
         })),
       )
     : [];
-  return groupBy([...tags, ...itemTags], (t) => t.tag);
+  return groupBy([...tags, ...itemTags], (t14) => t14.tag);
 });
 //使用查询优化性能
 export const memAllTagsDB = memoize(async () => {
@@ -313,7 +313,7 @@ export const memAllTagsDB = memoize(async () => {
     });
   }
   ztoolkit.log(lines.length, lines);
-  return groupBy(lines, (t) => t.tag);
+  return groupBy(lines, (t15) => t15.tag);
 });
 export const memRelateTags = memoize(
   (item?: Zotero.Item) => {

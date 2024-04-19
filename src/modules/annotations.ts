@@ -214,7 +214,7 @@ class AnnotationPopup {
     if (getPref("show-all-tags")) {
       relateTags = await memAllTagsDB();
     } else {
-      relateTags = groupBy(memRelateTags(this.item), (t) => t.tag);
+      relateTags = groupBy(memRelateTags(this.item), (t10) => t10.tag);
     }
     if (getPref("show-relate-tags")) groupByResultIncludeFixedTags(relateTags);
     if (getPref("sort") == "2") {
@@ -350,7 +350,7 @@ class AnnotationPopup {
   createCurrentTags(): TagElementProps {
     const tags = this.existAnnotations.flatMap((a) => a.getTags());
     if (tags.length == 0) return { tag: "span" };
-    const ts = groupBy(tags, (t) => t.tag).sort(sortValuesLength);
+    const ts = groupBy(tags, (t9) => t9.tag).sort(sortValuesLength);
     const annLen =
       this.existAnnotations.length > 1
         ? `选中${this.existAnnotations.length}批注，`
@@ -373,9 +373,9 @@ class AnnotationPopup {
             title: "选中后删除",
           },
         },
-        ...ts.map((t) => ({
+        ...ts.map((t8) => ({
           tag: "span",
-          properties: { textContent: `[${t.values.length}]${t.key}` },
+          properties: { textContent: `[${t8.values.length}]${t8.key}` },
           styles: {
             margin: "1px",
             padding: "1px",
@@ -388,9 +388,9 @@ class AnnotationPopup {
               type: "click",
               listener: (ev: Event) => {
                 const target = ev.target as HTMLElement;
-                const index = this.delTags.findIndex((f) => f == t.key);
+                const index = this.delTags.findIndex((f) => f == t8.key);
                 if (index == -1) {
-                  this.delTags.push(t.key);
+                  this.delTags.push(t8.key);
                   target.style.background = "#F88";
                 } else {
                   this.delTags.splice(index, 1);
@@ -1111,7 +1111,7 @@ function createAnnotationContextMenu(
     .filter((f) => params.ids.includes(f.key));
   const currentTags = groupBy(
     currentAnnotations.flatMap((f) => f.getTags()),
-    (t) => t.tag,
+    (t7) => t7.tag,
   ).sort(sortValuesLength);
   const currentTagsString = currentTags
     .map((f) => `${f.key}[${f.values.length}]`)

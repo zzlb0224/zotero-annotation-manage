@@ -167,10 +167,9 @@ function prepareUpdateJson() {
   });
 
   Logger.debug(
-    `[Build] Prepare Update.json for ${
-      isPreRelease
-        ? "\u001b[31m Prerelease \u001b[0m"
-        : "\u001b[32m Release \u001b[0m"
+    `[Build] Prepare Update.json for ${isPreRelease
+      ? "\u001b[31m Prerelease \u001b[0m"
+      : "\u001b[32m Release \u001b[0m"
     }`,
     replaceResult
       .filter((f) => f.hasChanged)
@@ -194,7 +193,7 @@ export const esbuildOptions = {
 };
 
 export async function main() {
-  const t = new Date();
+  const d = new Date();
   const buildTime = dateFormat("YYYY-mm-dd HH:MM:SS", new Date());
 
   Logger.info(
@@ -230,7 +229,7 @@ export async function main() {
     prepareUpdateJson();
 
     Logger.debug(
-      `[Build] Finished in ${(new Date().getTime() - t.getTime()) / 1000} s.`,
+      `[Build] Finished in ${(new Date().getTime() - d.getTime()) / 1000} s.`,
     );
   }
 }

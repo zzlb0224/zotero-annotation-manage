@@ -399,7 +399,7 @@ export async function createPopMenu(
   ztoolkit.log("id", id);
 
   const ans = getAllAnnotations(await getSelectedItems(isc)).flatMap((a) =>
-    a.tags.map((t) => Object.assign({}, a, { tag: t })),
+    a.tags.map((t2) => Object.assign({}, a, { tag: t2 })),
   );
   const tags = groupBy(ans, (an) => an.tag.tag)
     .sort(sortFixedTags10ValuesLength)
@@ -889,16 +889,16 @@ async function getAnnotationContent(ann: Zotero.Item) {
 }
 function createChild(doc: Document, items: Zotero.Item[]) {
   const annotations = getAllAnnotations(items).flatMap((f) =>
-    f.tags.map((t) => Object.assign(f, { tag: t })),
+    f.tags.map((t3) => Object.assign(f, { tag: t3 })),
   );
   const tags = groupBy(annotations, (a) => a.tag.tag);
   tags.sort(sortFixedTags10ValuesLength);
   ztoolkit.UI.appendElement(
     {
       tag: "div",
-      children: tags.map((t) => ({
+      children: tags.map((t4) => ({
         tag: "span",
-        properties: { textContent: t.key + "[" + t.values.length + "]" },
+        properties: { textContent: t4.key + "[" + t4.values.length + "]" },
       })),
     },
     doc.querySelector("body")!,
@@ -908,7 +908,7 @@ function createChild(doc: Document, items: Zotero.Item[]) {
       tag: "div",
       children: annotations
         .slice(0, 300)
-        .map((t) => ({ tag: "div", properties: { textContent: t.text } })),
+        .map((t5) => ({ tag: "div", properties: { textContent: t5.text } })),
     },
     doc.querySelector("body")!,
   );
@@ -927,7 +927,7 @@ async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
   const idTags = ID.result;
   const items = await getSelectedItems(isCollection);
   const annotations = getAllAnnotations(items).flatMap((f) =>
-    f.tags.map((t) => Object.assign(f, { tag: t })),
+    f.tags.map((t6) => Object.assign(f, { tag: t6 })),
   );
   const tags = groupBy(annotations, (a) => a.tag.tag);
   tags.sort(sortFixedTags10ValuesLength);
@@ -977,7 +977,7 @@ async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
               type: "click",
               listener: (ev: Event) => {
                 stopPropagation(ev);
-                const t = toggleProperty(
+                const tp = toggleProperty(
                   document.getElementById(idTags)?.style,
                   "display",
                   ["none", "flex"],
@@ -985,7 +985,7 @@ async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
                 setProperty(
                   ev.target as HTMLButtonElement,
                   "textContent",
-                  t == "none" ? "+点击展开可选标签" : "-点击隐藏可选标签",
+                  tp == "none" ? "+点击展开可选标签" : "-点击隐藏可选标签",
                 );
               },
             },
@@ -1036,9 +1036,9 @@ async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
         children: tags
           .filter((f) => new RegExp(searchTag, "i").test(f.key))
           .slice(0, 300)
-          .map((t) => ({
+          .map((t11) => ({
             tag: "div",
-            properties: { textContent: `[${t.values.length}]${t.key}` },
+            properties: { textContent: `[${t11.values.length}]${t11.key}` },
             styles: {
               padding: "6px",
               background: "#099",
@@ -1050,9 +1050,9 @@ async function createChooseTagsDiv(doc: Document, isCollection: boolean) {
                 listener: (ev: Event) => {
                   stopPropagation(ev);
                   const target = ev.target as HTMLDivElement;
-                  const index = selectedTags.findIndex((f) => f == t.key);
+                  const index = selectedTags.findIndex((f) => f == t11.key);
                   if (index == -1) {
-                    selectedTags.push(t.key);
+                    selectedTags.push(t11.key);
                     target.style.background = "#a00";
                   } else {
                     selectedTags.splice(index, 1);
@@ -1301,7 +1301,7 @@ async function exportNote({
     groupBy(annotations, fn)
       .sort(sortValuesLength)
       .slice(0, 5)
-      .map((t) => `${t.key}(${t.values.length})`)
+      .map((t13) => `${t13.key}(${t13.values.length})`)
       .join("  ");
 
   const txt = await toText(annotations);
@@ -1489,8 +1489,8 @@ function toText1(ans: AnnotationRes[]) {
 }
 export function getColorTags(tags: string[]) {
   return tags.map(
-    (t) =>
-      `<span style="background-color:${memFixedColor(t, undefined)};box-shadow: ${memFixedColor(t, undefined)} 0px 0px 5px 4px;">${t}</span>`,
+    (t16) =>
+      `<span style="background-color:${memFixedColor(t16, undefined)};box-shadow: ${memFixedColor(t16, undefined)} 0px 0px 5px 4px;">${t16}</span>`,
   );
 }
 export function getCiteAnnotationHtml(annotation: Zotero.Item, text = "") {
