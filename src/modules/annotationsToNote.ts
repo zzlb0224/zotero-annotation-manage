@@ -621,7 +621,7 @@ function createSearchAnnContent(
               tag: "label",
               namespace: "html",
               properties: { textContent: a },
-              styles:{ paddingRight:"20px" },
+              styles: { paddingRight: "20px" },
               children: [
                 {
                   tag: "input",
@@ -813,7 +813,7 @@ function createSearchAnnContent(
         pageIndex * pageSize,
       );
       clearChild(content);
-      content.innerHTML = ""; 
+      content.innerHTML = "";
       // await convertHtml(showAn)
       const cs = showAn.map(async (to, index) => {
         const anTo = to.ann;
@@ -958,17 +958,21 @@ async function getAnnotationContent(ann: Zotero.Item) {
   const html = (await Zotero.BetterNotes.api.convert.annotations2html([ann], {
     noteItem: undefined,
   })) as string;
-  if(html)
-    return html.replace(/<img /g, '<img style="max-width: 100%;height: auto;" ');
-  if(ann.annotationType == "underline" as string)
-    return   getCiteAnnotationHtml(ann,
-  
-    `  ${(ann.annotationText||"")} ( ${ann.parentItem?.parentItem?.firstCreator}, ${ann.parentItem?.parentItem?.getField("year")}, p.${ann.annotationPageLabel} ) ${(ann.annotationComment||"")
+  if (html)
+    return html.replace(
+      /<img /g,
+      '<img style="max-width: 100%;height: auto;" ',
+    );
+  if (ann.annotationType == ("underline" as string))
+    return getCiteAnnotationHtml(
+      ann,
 
-    }`
-);
+      `  ${ann.annotationText || ""} ( ${ann.parentItem?.parentItem?.firstCreator}, ${ann.parentItem?.parentItem?.getField("year")}, p.${ann.annotationPageLabel} ) ${
+        ann.annotationComment || ""
+      }`,
+    );
 
-  return "==空白==<br/><br/>==空白==<br/><br/>==空白=="
+  return "==空白==<br/><br/>==空白==<br/><br/>==空白==";
 }
 function createChild(doc: Document, items: Zotero.Item[]) {
   const annotations = getAllAnnotations(items).flatMap((f) =>

@@ -864,18 +864,16 @@ export async function convertHtml(
         noteItem: targetNoteItem,
       },
     )) as string;
-    if (html)
-      {
-     //
-      }
-    else  if(ann.ann.annotationType == "underline" as string){       
-     html  =  getCiteAnnotationHtml(ann.ann,  
-    `  ${(ann.ann.annotationText||"")}
-     ( ${ann.ann.parentItem?.parentItem?.firstCreator}, ${ann.ann.parentItem?.parentItem?.getField("year")}, p.${ann.ann.annotationPageLabel} ) ${(ann.ann.annotationComment||"")}`
-);
-    }
-    else {
-     html= getCiteAnnotationHtml(
+    if (html) {
+      //
+    } else if (ann.ann.annotationType == ("underline" as string)) {
+      html = getCiteAnnotationHtml(
+        ann.ann,
+        `  ${ann.ann.annotationText || ""}
+     ( ${ann.ann.parentItem?.parentItem?.firstCreator}, ${ann.ann.parentItem?.parentItem?.getField("year")}, p.${ann.ann.annotationPageLabel} ) ${ann.ann.annotationComment || ""}`,
+      );
+    } else {
+      html = getCiteAnnotationHtml(
         ann.ann,
         "无法预览，请点击此处，选择“在页面显示”查看。",
       );
@@ -887,8 +885,8 @@ export async function convertHtml(
       //    { ann.html=img+ getCiteAnnotationHtml(ann.ann,`[${ann.type}]`)}
       // }
     }
-if(html)
-     ann.html = html
+    if (html)
+      ann.html = html
         .replace(/<br\s*>/g, "<br/>")
         .replace(/<\/p>$/, getColorTags(ann.tags.map((c) => c.tag)) + "</p>")
         .replace(/<p>[\s\r\n]*<\/p>/g, "")
