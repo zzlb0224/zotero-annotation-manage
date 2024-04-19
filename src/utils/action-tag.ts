@@ -19,7 +19,8 @@ export async function addTagsFromTA(item?: Zotero.Item, items?: Zotero.Item[]) {
   const abstract = item.getField("abstractNote");
   const allTags = await getAllTags();
   const tags = allTags.filter(
-    (t1) => new RegExp(t1, "i").test(abstract) || new RegExp(t1, "i").test(title),
+    (t1) =>
+      new RegExp(t1, "i").test(abstract) || new RegExp(t1, "i").test(title),
   );
   await Promise.all(
     tags.map(async (tag) => {

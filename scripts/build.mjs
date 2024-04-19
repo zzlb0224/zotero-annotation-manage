@@ -167,9 +167,10 @@ function prepareUpdateJson() {
   });
 
   Logger.debug(
-    `[Build] Prepare Update.json for ${isPreRelease
-      ? "\u001b[31m Prerelease \u001b[0m"
-      : "\u001b[32m Release \u001b[0m"
+    `[Build] Prepare Update.json for ${
+      isPreRelease
+        ? "\u001b[31m Prerelease \u001b[0m"
+        : "\u001b[32m Release \u001b[0m"
     }`,
     replaceResult
       .filter((f) => f.hasChanged)
