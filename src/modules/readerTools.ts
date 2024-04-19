@@ -38,7 +38,7 @@ function readerToolbarCallback(
   event: Parameters<_ZoteroTypes.Reader.EventHandler<"renderToolbar">>[0],
 ) {
   const { append, doc, reader, params } = event;
-  ztoolkit.log("readerToolbarCallback reader.css");
+  // ztoolkit.log("readerToolbarCallback reader.css");
   copyFunc(doc, "readerToolbarCallback");
   injectCSS(doc, "reader1.css");
 }

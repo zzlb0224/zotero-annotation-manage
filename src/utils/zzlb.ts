@@ -461,6 +461,7 @@ export async function injectCSS(
   const d = ztoolkit.UI.appendElement(
     {
       tag: "style",
+      namespace: "html",
       id: config.addonRef + "_style_" + filename.replace(/[/:\s.]/g, "_"),
       properties: {
         innerHTML: getFileContent(href),
@@ -473,7 +474,7 @@ export async function injectCSS(
       doc.querySelector("div") ||
       doc.children[0],
   );
-  ztoolkit.log("加载css", d);
+  // ztoolkit.log("加载css", d);
 }
 export async function getFileContent(path: string) {
   const contentOrXHR = await Zotero.HTTP.request("GET", path);
@@ -660,7 +661,7 @@ export function createTopDiv(
         padding: "10px",
         position: "fixed",
         left: "150px",
-        top: "100px",
+        top: "118px", //建议从118开始，低于开始顶部菜单
         zIndex: "9999",
         maxWidth: "calc(100% - 300px)",
         maxHeight: "600px",
@@ -857,20 +858,24 @@ export async function convertHtml(
 
   const data = arr.map(async (ann) => {
     //TODO 感觉这个方法读取图片是从缓存里面读取的，有些图片没有加载成功
-    const html = (await Zotero.BetterNotes.api.convert.annotations2html(
+    let html = (await Zotero.BetterNotes.api.convert.annotations2html(
       [ann.ann],
       {
         noteItem: targetNoteItem,
       },
     )) as string;
     if (html)
-      ann.html = html
-        .replace(/<br\s*>/g, "<br/>")
-        .replace(/<\/p>$/, getColorTags(ann.tags.map((c) => c.tag)) + "</p>")
-        .replace(/<p>[\s\r\n]*<\/p>/g, "")
-        .replace(/<img /g, '<img style="max-width: 100%;height: auto;" ');
+      {
+     //
+      }
+    else  if(ann.ann.annotationType == "underline" as string){       
+     html  =  getCiteAnnotationHtml(ann.ann,  
+    `  ${(ann.ann.annotationText||"")}
+     ( ${ann.ann.parentItem?.parentItem?.firstCreator}, ${ann.ann.parentItem?.parentItem?.getField("year")}, p.${ann.ann.annotationPageLabel} ) ${(ann.ann.annotationComment||"")}`
+);
+    }
     else {
-      ann.html = getCiteAnnotationHtml(
+     html= getCiteAnnotationHtml(
         ann.ann,
         "无法预览，请点击此处，选择“在页面显示”查看。",
       );
@@ -882,6 +887,12 @@ export async function convertHtml(
       //    { ann.html=img+ getCiteAnnotationHtml(ann.ann,`[${ann.type}]`)}
       // }
     }
+if(html)
+     ann.html = html
+        .replace(/<br\s*>/g, "<br/>")
+        .replace(/<\/p>$/, getColorTags(ann.tags.map((c) => c.tag)) + "</p>")
+        .replace(/<p>[\s\r\n]*<\/p>/g, "")
+        .replace(/<img /g, '<img style="max-width: 100%;height: auto;" ');
     return ann;
   });
   //使用Promise.all能并行计算？感觉比for快很多

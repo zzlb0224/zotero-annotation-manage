@@ -556,6 +556,7 @@ function createSearchAnnContent(
   let tag = "";
   let pageSize = 12;
   let pageIndex = 1;
+  const selectedAnnotationType: string[] = [];
   let ans: AnnotationRes[] = annotations;
 
   const content = doc.querySelector(".content") as HTMLElement;
@@ -564,7 +565,7 @@ function createSearchAnnContent(
   ztoolkit.log(content, query, status);
   const inputTag: TagElementProps = {
     tag: "div",
-    styles: { display: "flex", flexDirection: "row" },
+    styles: { display: "flex", flexDirection: "row", flexWrap: "wrap" },
     children: [
       { tag: "div", properties: { textContent: "" } },
       {
@@ -610,6 +611,52 @@ function createSearchAnnContent(
             ],
           },
         ],
+      },
+      {
+        tag: "div",
+        properties: { textContent: "类型：" },
+        children: ["highlight", "image", "underline", "note", "ink"].flatMap(
+          (a) => [
+            {
+              tag: "label",
+              namespace: "html",
+              properties: { textContent: a },
+              styles:{ paddingRight:"20px" },
+              children: [
+                {
+                  tag: "input",
+                  namespace: "html",
+                  properties: {
+                    textContent: a,
+                    placeholder: a,
+                    type: "checkbox",
+                  },
+                  listeners: [
+                    {
+                      type: "change",
+                      listener: (ev: any) => {
+                        ev.stopPropagation();
+                        const ck = ev.target as HTMLInputElement;
+                        if (selectedAnnotationType.includes(a)) {
+                          selectedAnnotationType.splice(
+                            selectedAnnotationType.indexOf(a),
+                            1,
+                          );
+                          ck.checked = false;
+                        } else {
+                          selectedAnnotationType.push(a);
+                          ck.checked = true;
+                        }
+                        updateContent();
+                      },
+                      options: { capture: true },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        ),
       },
       {
         tag: "div",
@@ -705,24 +752,50 @@ function createSearchAnnContent(
           },
         ],
       },
+      // {
+      //   tag: "button",
+      //   properties: { textContent: "" },
+      //   listeners: [
+      //     {
+      //       type: "click",
+      //       listener: (e) => {
+      //         e.stopPropagation();
+
+      //         dialogWindow?.close();
+      //         popupDiv?.remove();
+      //       },
+      //       options: { capture: true },
+      //     },
+      //   ],
+      // },
     ],
   };
   ztoolkit.UI.appendElement(inputTag!, query);
 
   updateContent();
   async function updateContent() {
-    const txtReg = str2RegExp(text);
-    const tagReg = str2RegExp(tag);
+    const txtRegExp = str2RegExp(text);
+    const tagRegExp = str2RegExp(tag);
     ans = annotations
       .filter(
         (f) =>
-          (txtReg.length == 0 ||
-            txtReg.some((a) => a.test(f.comment) || a.test(f.text))) &&
-          (tagReg.length == 0 || tagReg.some((a) => a.test(f.annotationTags))),
+          txtRegExp.length == 0 ||
+          txtRegExp.some((a) => a.test(f.comment) || a.test(f.text)),
+      )
+      .filter(
+        (f) =>
+          tagRegExp.length == 0 ||
+          tagRegExp.some((a) => a.test(f.annotationTags)),
+      )
+      .filter(
+        (f) =>
+          selectedAnnotationType.length == 0 ||
+          selectedAnnotationType.includes(f.type),
       )
       .sort(sortModified);
     clearChild(content);
     clearChild(status);
+
     if ((pageIndex - 1) * pageSize > ans.length) {
       pageIndex = 1;
       (query.querySelector(".pageIndex") as HTMLInputElement).value =
@@ -740,7 +813,7 @@ function createSearchAnnContent(
         pageIndex * pageSize,
       );
       clearChild(content);
-      content.innerHTML = "";
+      content.innerHTML = ""; 
       // await convertHtml(showAn)
       const cs = showAn.map(async (to, index) => {
         const anTo = to.ann;
@@ -782,7 +855,7 @@ function createSearchAnnContent(
                   tag: "span",
                   styles: {},
                   properties: {
-                    textContent: `${anTo.parentItem?.parentItem?.getField("firstCreator")},${anTo.parentItem?.parentItem?.getField("year")}`,
+                    textContent: `${anTo.parentItem?.parentItem?.getField("firstCreator")}, ${anTo.parentItem?.parentItem?.getField("year")}, p.${anTo.annotationPageLabel}`,
                   },
                   listeners: [
                     {
@@ -885,7 +958,17 @@ async function getAnnotationContent(ann: Zotero.Item) {
   const html = (await Zotero.BetterNotes.api.convert.annotations2html([ann], {
     noteItem: undefined,
   })) as string;
-  return html.replace(/<img /g, '<img style="max-width: 100%;height: auto;" ');
+  if(html)
+    return html.replace(/<img /g, '<img style="max-width: 100%;height: auto;" ');
+  if(ann.annotationType == "underline" as string)
+    return   getCiteAnnotationHtml(ann,
+  
+    `  ${(ann.annotationText||"")} ( ${ann.parentItem?.parentItem?.firstCreator}, ${ann.parentItem?.parentItem?.getField("year")}, p.${ann.annotationPageLabel} ) ${(ann.annotationComment||"")
+
+    }`
+);
+
+  return "==空白==<br/><br/>==空白==<br/><br/>==空白=="
 }
 function createChild(doc: Document, items: Zotero.Item[]) {
   const annotations = getAllAnnotations(items).flatMap((f) =>
