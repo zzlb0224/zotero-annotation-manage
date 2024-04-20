@@ -42,7 +42,10 @@ function replaceColorTagsElement(doc: Document) {
   const id = `zotero-prefpane-${config.addonRef}-coloredTags`;
   const btnRemove = doc.querySelector(
     `#zotero-prefpane-${config.addonRef}-remove-color`,
-  )! as HTMLButtonElement;
+  ) as HTMLButtonElement;
+  if (!btnRemove) return;
+  const ele = doc.getElementById(id);
+  if (!ele) return;
   ztoolkit.UI.replaceElement(
     {
       tag: "div",
@@ -97,7 +100,7 @@ function replaceColorTagsElement(doc: Document) {
         },
       ],
     },
-    doc.getElementById(id)!,
+    ele,
   );
 }
 
