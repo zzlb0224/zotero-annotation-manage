@@ -8,8 +8,8 @@ import {
   injectCSS,
   memSVG,
   openAnnotation,
-  waitFor,
 } from "../utils/zzlb";
+import { waitFor } from '../utils/wait';
 import { getPref } from "../utils/prefs";
 import { compare } from "../utils/sort";
 import { popupWin } from "./annotationsToNote";

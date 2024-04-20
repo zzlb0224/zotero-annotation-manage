@@ -10,6 +10,7 @@ import {
   popupWin,
 } from "../modules/annotationsToNote";
 import { TagElementProps } from "zotero-plugin-toolkit/dist/tools/ui";
+import { waitFor } from './wait';
 /* unique 采用set的比较方式*/
 export function unique<T>(arr: T[]) {
   return [...new Set(arr)];
@@ -804,27 +805,6 @@ export class CountDown {
   remainingTime() {
     return this._total - Date.now() + this._start;
   }
-}
-export function waitFor<T>(
-  callback: () => T,
-  timeout = 100000,
-  checkMs = 100,
-): Promise<T | false> {
-  return new Promise((resolve, reject) => {
-    const startTime = Date.now();
-    function checkElement() {
-      const c = callback();
-      if (c) {
-        clearInterval(interval);
-        resolve(c);
-      } else if (Date.now() - startTime > timeout) {
-        clearInterval(interval);
-        resolve(false);
-        // reject(new Error(`未完成`));
-      }
-    }
-    const interval = setInterval(checkElement, checkMs);
-  });
 }
 export async function convertHtml(
   arr: AnnotationRes[],

@@ -46,3 +46,24 @@ export function waitUtilAsync(
     }, interval);
   });
 }
+export function waitFor<T>(
+  callback: () => T,
+  timeout = 100000,
+  interval = 100
+): Promise<T | false> {
+  return new Promise((resolve, reject) => {
+    const startTime = Date.now();
+    function checkElement() {
+      const c = callback();
+      if (c) {
+        clearInterval(intervalId);
+        resolve(c);
+      } else if (Date.now() - startTime > timeout) {
+        clearInterval(intervalId);
+        resolve(false);
+        // reject(new Error(`未完成`));
+      }
+    }
+    const intervalId = setInterval(checkElement, interval);
+  });
+}

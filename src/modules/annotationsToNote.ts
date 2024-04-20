@@ -23,8 +23,8 @@ import {
   str2RegExp,
   toggleProperty,
   uniqueBy,
-  waitFor,
 } from "../utils/zzlb";
+import { waitFor } from '../utils/wait';
 import { createTopDiv } from "../utils/zzlb";
 import { convertHtml } from "../utils/zzlb";
 import { AnnotationRes } from "../utils/zzlb";
