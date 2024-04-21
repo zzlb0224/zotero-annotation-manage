@@ -1,7 +1,6 @@
 import { start } from "repl";
 import { config } from "../../package.json";
 import {
-  Relations,
   Timer,
   createTopDiv,
   getItem,
@@ -9,7 +8,8 @@ import {
   memSVG,
   openAnnotation,
 } from "../utils/zzlb";
-import { waitFor } from '../utils/wait';
+import { Relations } from "../utils/Relations";
+import { waitFor } from "../utils/wait";
 import { getPref } from "../utils/prefs";
 import { compare } from "../utils/sort";
 import { popupWin } from "./annotationsToNote";

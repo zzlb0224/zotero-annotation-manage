@@ -12,7 +12,7 @@ import Annotations from "./modules/annotations";
 import AnnotationsToNote, { createPopMenu } from "./modules/annotationsToNote";
 import ReaderTools from "./modules/readerTools";
 import readerTools from "./modules/readerTools";
-import { Relations } from "./utils/zzlb";
+import { Relations } from "./utils/Relations";
 
 async function onStartup() {
   await Promise.all([

@@ -24,7 +24,7 @@ import {
   toggleProperty,
   uniqueBy,
 } from "../utils/zzlb";
-import { waitFor } from '../utils/wait';
+import { waitFor } from "../utils/wait";
 import { createTopDiv } from "../utils/zzlb";
 import { convertHtml } from "../utils/zzlb";
 import { AnnotationRes } from "../utils/zzlb";
@@ -291,11 +291,12 @@ async function funcTranslateAnnotations(ev: Event) {
   const items = await getSelectedItemsEv(ev);
   const ans = getAllAnnotations(items)
     .filter((an) => an.ann.annotationText)
-    .filter((an) => an.item.getField("language")?.includes("en"))
+    // .filter((an) => an.item.getField("language")?.includes("en"))
     .filter(
       (an) =>
-        !an.ann.annotationComment ||
-        an.ann.annotationComment.includes("🔤undefined🔤"),
+        (!an.comment && !an.item.getField("language")?.includes("zh")) ||
+        an.comment.includes("🔤undefined🔤") ||
+        an.comment.includes("🔤[请求错误]"),
     );
   const p = new ztoolkit.ProgressWindow(
     `找到${items.length}条目${ans.length}笔记`,
@@ -308,20 +309,31 @@ async function funcTranslateAnnotations(ev: Event) {
   for (let index = 0; index < ans.length; index++) {
     const an = ans[index];
     const text = an.ann.annotationText;
-    const result = (
-      await Zotero.PDFTranslate.api.translate(text, {
-        langto: "zh",
-        itemID: an.item.id,
-        pluginID: config.addonID,
-      })
-    ).result;
-    const r = "🔤" + result + "🔤";
-    an.ann.annotationComment = !an.ann.annotationComment
-      ? r
-      : an.ann.annotationComment.replace(/🔤undefined🔤/, r);
+    let r = "";
+    if (an.item.getField("language")?.includes("en")) {
+      const result = (
+        await Zotero.PDFTranslate.api.translate(text, {
+          langto: "zh",
+          itemID: an.item.id,
+          pluginID: config.addonID,
+        })
+      ).result;
+      r = "🔤" + result + "🔤";
+    }
+    if (!an.ann.annotationComment) {
+      an.ann.annotationComment = r;
+    } else {
+      const end = an.ann.annotationComment.indexOf("🔤", 1);
+      if (end > -1)
+        an.ann.annotationComment = an.ann.annotationComment =
+          r + "" + an.ann.annotationComment.substring(end, 999);
+    }
+    // an.ann.annotationComment = !an.ann.annotationComment
+    //   ? r
+    //   : an.ann.annotationComment.replace(/🔤undefined🔤/, r);
     p.changeLine({
       progress: (index / ans.length) * 100,
-      text: text.substring(0, 10) + "=>" + result.substring(0, 10),
+      text: text.substring(0, 10) + "=>" + r.substring(0, 10),
     });
     an.ann.saveTx();
     Zotero.Promise.delay(500);
@@ -955,24 +967,24 @@ function createSearchAnnContent(
 }
 
 async function getAnnotationContent(ann: Zotero.Item) {
-  const html = (await Zotero.BetterNotes.api.convert.annotations2html([ann], {
+  let html = (await Zotero.BetterNotes.api.convert.annotations2html([ann], {
     noteItem: undefined,
   })) as string;
   if (html)
-    return html.replace(
+    html = html.replace(
       /<img /g,
       '<img style="max-width: 100%;height: auto;" ',
     );
-  if (ann.annotationType == ("underline" as string))
-    return getCiteAnnotationHtml(
+  else if (ann.annotationType == ("underline" as string))
+    html = getCiteAnnotationHtml(
       ann,
 
       `  ${ann.annotationText || ""} ( ${ann.parentItem?.parentItem?.firstCreator}, ${ann.parentItem?.parentItem?.getField("year")}, p.${ann.annotationPageLabel} ) ${
         ann.annotationComment || ""
       }`,
     );
-
-  return "==空白==<br/><br/>==空白==<br/><br/>==空白==";
+  else html = "==空白==<br/><br/>==空白==<br/><br/>==空白==";
+  return html.replace(/<br\s*>/g, "<br/>");
 }
 function createChild(doc: Document, items: Zotero.Item[]) {
   const annotations = getAllAnnotations(items).flatMap((f) =>
@@ -1288,8 +1300,8 @@ function getAllAnnotations(items: Zotero.Item[]) {
           // ztoolkit.log(666, pdf);
           const pdfTitle = pdf.getDisplayTitle();
           return pdf.getAnnotations().flatMap((ann) => {
-            const text = ann.annotationText;
-            const comment = ann.annotationComment;
+            const text = ann.annotationText || "";
+            const comment = ann.annotationComment || "";
             const color = ann.annotationColor;
             const type = ann.annotationType;
             const tags = ann.getTags();

@@ -11,7 +11,6 @@ import {
 } from "../utils/sort";
 import {
   CountDown,
-  Relations,
   groupBy,
   groupByResult,
   groupByResultIncludeFixedTags,
@@ -23,6 +22,7 @@ import {
   str2RegExp,
   uniqueBy,
 } from "../utils/zzlb";
+import { Relations } from "../utils/Relations";
 // import { text2Ma } from "./readerTools";
 function register() {
   // if (!getPref("enable")) return;

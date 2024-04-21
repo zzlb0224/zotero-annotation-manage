@@ -49,7 +49,7 @@ export function waitUtilAsync(
 export function waitFor<T>(
   callback: () => T,
   timeout = 100000,
-  interval = 100
+  interval = 100,
 ): Promise<T | false> {
   return new Promise((resolve, reject) => {
     const startTime = Date.now();
