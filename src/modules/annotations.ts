@@ -174,7 +174,7 @@ class AnnotationPopup {
     if (!root) {
       setTimeout(() => {
         this.updateDivStart(root);
-      }, 100);
+      }, 50);
       return;
     }
     if (!root.parentNode) {
@@ -185,9 +185,10 @@ class AnnotationPopup {
           root,
         );
       }
+      root.style.width = this.getSelectTextWidth() + "px";
       setTimeout(() => {
         this.updateDivStart(root);
-      }, 100);
+      }, 50);
       return;
     }
     setTimeout(async () => {
@@ -199,7 +200,7 @@ class AnnotationPopup {
         );
       }
       await this.updateDiv(root);
-    }, 500);
+    }, 50);
   }
 
   private async updateDiv(root: HTMLDivElement) {
@@ -210,7 +211,7 @@ class AnnotationPopup {
       type: number;
       dateModified: string;
     }>[] = [];
-
+    // root.style.width=this.getSelectTextWidth()+"px"
     if (getPref("show-all-tags")) {
       relateTags = await memAllTagsDB();
     } else {
@@ -310,7 +311,7 @@ class AnnotationPopup {
       clientWidthWithSlider,
       pageLeft,
     } = this.getPrimaryViewDoc();
-    let maxWidth = 888;
+    const maxWidth = 888;
     const rootStyle: Partial<CSSStyleDeclaration> = {
       background: "#eeeeee",
       border: "#cc9999",
@@ -327,26 +328,34 @@ class AnnotationPopup {
       if (this.params?.x || 0 > clientWidthWithSlider - maxWidth) {
         rootStyle.left = clientWidthWithSlider - maxWidth - 23 + "px";
       }
+      rootStyle.width = maxWidth + "px";
     } else {
       //找到弹出框的中心点
-      const centerLeft =
-        this.params?.annotation?.position?.rects?.[0]?.[0] || 0;
-      const centerRight =
-        this.params?.annotation?.position?.rects?.[0]?.[0] || 0;
-      const centerX = ((centerLeft + centerRight) * scaleFactor) / 2 + pageLeft;
-      maxWidth =
-        Math.min(
-          centerX * 2,
-          (clientWidthWithoutSlider - centerX) * 2,
-          clientWidthWithoutSlider,
-        ) *
-          0.75 +
-        50;
-      //这个应该可以更精准的计算。但是不会啊
+      // rootStyle .width= this.getSelectTextWidth()+"px";
     }
-    rootStyle.width = maxWidth + "px";
     return rootStyle;
   }
+  getSelectTextWidth() {
+    const {
+      clientWidthWithoutSlider,
+      scaleFactor,
+      clientWidthWithSlider,
+      pageLeft,
+    } = this.getPrimaryViewDoc();
+    const centerLeft = this.params?.annotation?.position?.rects?.[0]?.[0] || 0;
+    const centerRight = this.params?.annotation?.position?.rects?.[0]?.[0] || 0;
+    const centerX = ((centerLeft + centerRight) * scaleFactor) / 2 + pageLeft;
+    const maxWidth =
+      Math.min(
+        centerX * 2,
+        (clientWidthWithoutSlider - centerX) * 2,
+        clientWidthWithoutSlider,
+      ) *
+        0.75 +
+      50;
+    return maxWidth;
+  }
+
   createCurrentTags(): TagElementProps {
     const tags = this.existAnnotations.flatMap((a) => a.getTags());
     if (tags.length == 0) return { tag: "span" };
@@ -1078,8 +1087,13 @@ class AnnotationPopup {
       doc.querySelector("body,div,hbox,vbox")?.clientWidth || 666; //包括侧边栏的宽度
     const clientWidthWithoutSlider =
       pvDoc.querySelector("body,div,hbox,vbox")?.clientWidth || 666; //不包括侧边栏的宽度
-    const pageLeft =
-      (pvDoc.querySelector("#viewer .page") as HTMLElement)?.offsetLeft || 0;
+    const page = (pvDoc.querySelector("#viewer .page") as HTMLElement)!;
+    let pageLeft = page.offsetLeft || 0;
+    pageLeft -= (pvDoc.querySelector("#viewerContainer") as HTMLElement)!
+      .scrollLeft;
+    const st = ztoolkit.getGlobal("getComputedStyle")(page);
+    const stp = ztoolkit.getGlobal("getComputedStyle")(page.parentElement!);
+    ztoolkit.log(st.width, st.left, st.top, page.scrollLeft, page, st, stp);
     return {
       clientWidthWithoutSlider,
       scaleFactor,
@@ -1093,7 +1107,9 @@ function renderTextSelectionPopup(
   event: _ZoteroTypes.Reader.EventParams<"renderTextSelectionPopup">,
 ) {
   const { append, reader, doc, params } = event;
-  const div = new AnnotationPopup(reader, params).rootDiv;
+  const ap = new AnnotationPopup(reader, params);
+  addon.data.test = ap;
+  const div = ap.rootDiv;
   // const div = createDiv(reader, params);
   if (div) {
     append(div);

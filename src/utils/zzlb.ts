@@ -435,7 +435,10 @@ export async function openAnnotation(
   }
 }
 
-export const memSVG = memoize(async (href) => await getFileContent(href));
+export const memSVG = memoize(
+  async (href) => await getFileContent(href),
+  // .then(r=>r.replace(/xmlns="http:\/\/www.w3.org\/2000\/svg"/g,""))
+);
 
 export async function loadSVG(
   doc: Document,
@@ -477,7 +480,7 @@ export async function injectCSS(
   );
   // ztoolkit.log("加载css", d);
 }
-export async function getFileContent(path: string) {
+export async function getFileContent(path: string): Promise<string> {
   const contentOrXHR = await Zotero.HTTP.request("GET", path);
   const content =
     typeof contentOrXHR === "string"
