@@ -1108,7 +1108,7 @@ function renderTextSelectionPopup(
 ) {
   const { append, reader, doc, params } = event;
   const ap = new AnnotationPopup(reader, params);
-  addon.data.test = ap;
+  // addon.data.test = ap;
   const div = ap.rootDiv;
   // const div = createDiv(reader, params);
   if (div) {

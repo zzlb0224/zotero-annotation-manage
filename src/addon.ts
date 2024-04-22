@@ -21,7 +21,7 @@ class Addon {
     exportDialog?: DialogHelper;
     // annotations?: Annotations;
     copyText: string;
-    test: any;
+    // test: any;
   };
   // Lifecycle hooks
   public hooks: typeof hooks;
