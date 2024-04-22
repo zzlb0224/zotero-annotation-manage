@@ -185,6 +185,9 @@ class AnnotationPopup {
           root,
         );
       }
+      root.style.minWidth = ztoolkit.getGlobal("getComputedStyle")(
+        this.doc!.querySelector(".selection-popup .colors")!,
+      ).width;
       root.style.width = this.getSelectTextWidth() + "px";
       setTimeout(() => {
         this.updateDivStart(root);
@@ -353,6 +356,7 @@ class AnnotationPopup {
       ) *
         0.75 +
       50;
+
     return maxWidth;
   }
 
