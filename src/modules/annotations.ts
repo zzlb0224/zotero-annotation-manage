@@ -185,9 +185,11 @@ class AnnotationPopup {
           root,
         );
       }
-      root.style.minWidth = ztoolkit.getGlobal("getComputedStyle")(
-        this.doc!.querySelector(".selection-popup .colors")!,
-      ).width;
+      const colorsElement = this.doc!.querySelector(".selection-popup .colors");
+      if (colorsElement) {
+        root.style.minWidth =
+          ztoolkit.getGlobal("getComputedStyle")(colorsElement).width;
+      }
       root.style.width = this.getSelectTextWidth() + "px";
       setTimeout(() => {
         this.updateDivStart(root);
@@ -1095,9 +1097,9 @@ class AnnotationPopup {
     let pageLeft = page.offsetLeft || 0;
     pageLeft -= (pvDoc.querySelector("#viewerContainer") as HTMLElement)!
       .scrollLeft;
-    const st = ztoolkit.getGlobal("getComputedStyle")(page);
-    const stp = ztoolkit.getGlobal("getComputedStyle")(page.parentElement!);
-    ztoolkit.log(st.width, st.left, st.top, page.scrollLeft, page, st, stp);
+    // const st = ztoolkit.getGlobal("getComputedStyle")(page);
+    // const stp = ztoolkit.getGlobal("getComputedStyle")(page.parentElement!);
+    // ztoolkit.log(st.width, st.left, st.top, page.scrollLeft, page, st, stp);
     return {
       clientWidthWithoutSlider,
       scaleFactor,
