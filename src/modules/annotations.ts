@@ -189,8 +189,8 @@ class AnnotationPopup {
       if (colorsElement) {
         root.style.minWidth =
           ztoolkit.getGlobal("getComputedStyle")(colorsElement).width;
+        root.style.width = this.getSelectTextWidth() + "px";
       }
-      root.style.width = this.getSelectTextWidth() + "px";
       setTimeout(() => {
         this.updateDivStart(root);
       }, 50);
