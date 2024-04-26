@@ -634,6 +634,7 @@ function copyFunc(doc: Document, copyFrom: string = "") {
         const content =
           (an.annotationComment || "") + (an.annotationText || "") + m.text;
         popupWin.createLine({ text: content.substring(0, 10) });
+        popupWin.createLine({ text: Zotero.URI.getItemURI(an) });
         return {
           tag: "span",
           properties: { textContent: i + 1 + ":" + content.substring(0, 7) },

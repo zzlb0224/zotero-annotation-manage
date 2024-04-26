@@ -146,6 +146,8 @@
           preference="__prefsPrefix__.optional-color"
         />
       </hbox>
+
+      <html:div id="zotero-prefpane-__addonRef__-current-collection"></html:div>
       <checkbox
         id="zotero-prefpane-__addonRef__-fixed-tags-style"
         preference="__prefsPrefix__.fixed-tags-style"
@@ -300,6 +302,57 @@
           style="width: 60px"
         />
       </hbox>
+
+      <!-- <checkbox
+        id="zotero-prefpane-__addonRef__-debug"
+        preference="__prefsPrefix__.debug"
+        data-l10n-id="pref-debug"
+        native="true"
+      /> -->
+      <vbox id="zotero-prefpane-__addonRef__-debug-func" style="display: none">
+        <html:input
+          style="width: 100%"
+          id="zotero-prefpane-__addonRef__-date-1-pre"
+          native="true"
+          preference="__prefsPrefix__.date-1-pre"
+          aria-placeholder="date-1-pre"
+        />
+        <html:textarea
+          type="textarea"
+          style="width: 100%; height: 5em"
+          id="zotero-prefpane-__addonRef__-date-1"
+          native="true"
+          preference="__prefsPrefix__.date-1"
+        />
+        <html:input
+          style="width: 100%"
+          id="zotero-prefpane-__addonRef__-date-2-pre"
+          native="true"
+          preference="__prefsPrefix__.date-2-pre"
+          aria-placeholder="date-2-pre"
+        />
+        <html:textarea
+          type="textarea"
+          style="width: 100%; height: 5em"
+          id="zotero-prefpane-__addonRef__-date-2"
+          native="true"
+          preference="__prefsPrefix__.date-2"
+        />
+        <html:input
+          style="width: 100%"
+          id="zotero-prefpane-__addonRef__-date-1-2-d-pre"
+          native="true"
+          preference="__prefsPrefix__.date-1-2-d-pre"
+          aria-placeholder="date-1-2-d-pre"
+        />
+        <html:input
+          style="width: 100%"
+          id="zotero-prefpane-__addonRef__-date-1-2-m-pre"
+          native="true"
+          preference="__prefsPrefix__.date-1-2-m-pre"
+          aria-placeholder="date-1-2-m-pre"
+        />
+      </vbox>
     </vbox>
   </groupbox>
 </vbox>

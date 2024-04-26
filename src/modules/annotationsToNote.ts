@@ -84,6 +84,18 @@ function register() {
               await funcTranslateAnnotations(ev);
             },
           },
+          getPref("debug")
+            ? {
+                tag: "menuitem",
+                label: "设置日期tag",
+                icon: iconBaseUrl + "favicon.png",
+                commandListener: async (ev: Event) => {
+                  await setDDDTag(ev);
+                },
+              }
+            : {
+                tag: "menuseparator",
+              },
         ],
       },
 
@@ -287,6 +299,103 @@ async function topDialog() {
   }
   ztoolkit.log(dialogData);
 }
+
+async function setDDDTag(ev: Event) {
+  const d1p = getPref("date-1-pre");
+  const d2p = getPref("date-2-pre");
+  const d12dp = getPref("date-1-2-d-pre");
+  const d12mp = getPref("date-1-2-m-pre");
+  if (!d1p && !d2p && !d12dp && !d12mp) return;
+
+  const items = await getSelectedItemsEv(ev);
+  const regExpDate =
+    /\d{1,2}[\s-]+(?:Jan|January|Feb|February|Mar|March|Apr|April|May|Jul|July|Jun|June|Aug|August|Sep|September|Oct|October|Nov|November|Dec|December)[\s-]+\d{2,4}/;
+  const ids = items
+    .map((a) =>
+      a.isAttachment() && a.isPDFAttachment() && a.parentItem
+        ? a.parentItem
+        : a,
+    )
+    .filter((a) => !a.isAttachment())
+    .flatMap((f) => f.getAttachments());
+  const pdfs = Zotero.Items.get(ids).filter((f) => f.isPDFAttachment);
+  const pw = new ztoolkit.ProgressWindow(
+    `找到${items.length}条目${pdfs.length}pdf`,
+    {
+      closeTime: -1,
+      closeOnClick: true,
+    },
+  ).show();
+  pw.createLine({ text: "处理中" });
+  for (let index = 0; index < pdfs.length; index++) {
+    const pdf = pdfs[index];
+    if (!pdf.isAttachment() || !pdf.isPDFAttachment()) continue;
+    let text = "",
+      extractedPages = 0,
+      totalPages = 0;
+    try {
+      const r = await Zotero.PDFWorker.getFullText(pdf.id, 3, true);
+      text = r.text;
+      extractedPages = r.extractedPages;
+      totalPages = r.totalPages;
+    } catch (error) {
+      continue;
+    }
+    const d1 = getGreatChange("date-1", text);
+    const d2 = getGreatChange("date-2", text);
+
+    const q = text.match(new RegExp(".{15}" + regExpDate.source, "gi"));
+    if (q) {
+      ztoolkit.log(q, pdf.getDisplayTitle(), d1, d2);
+    }
+    let changed = false;
+    if (d1 && d1p) {
+      pdf.parentItem?.addTag(`${d1p}${d1.toLocaleDateString()}`);
+      changed = true;
+    }
+    if (d2 && d2p) {
+      pdf.parentItem?.addTag(`${d2p}${d2.toLocaleDateString()}`);
+      changed = true;
+    }
+
+    if (d1 && d2) {
+      if (d12dp) {
+        const dd10 = Math.floor(
+          (d2.getTime() - d1.getTime()) / (24 * 3600 * 1000 * 10),
+        );
+        pdf.parentItem?.addTag(`${d12dp}${dd10}`);
+        changed = true;
+      }
+      if (d12mp) {
+        const dm = Math.floor(
+          (d2.getTime() - d1.getTime()) / (24 * 3600 * 1000 * 30),
+        );
+        pdf.parentItem?.addTag(`${d12mp}${dm}`);
+        changed = true;
+      }
+    }
+    if (changed) pdf.parentItem?.saveTx();
+    pw.changeLine({
+      progress: (index / pdfs.length) * 100,
+      text: pdf.getDisplayTitle(),
+    });
+  }
+
+  pw.createLine({ text: "已完成" });
+  pw.startCloseTimer(5000);
+
+  function getGreatChange(prefStr: string, text: string) {
+    const dd = ((getPref(prefStr) as string) || "")
+      .split("\n")
+      .filter((f) => f);
+    for (const d of dd) {
+      const q = text.match(new RegExp(`${d}(${regExpDate.source})`, "i"));
+      if (q) {
+        return new Date(q[1]);
+      }
+    }
+  }
+}
 async function funcTranslateAnnotations(ev: Event) {
   const items = await getSelectedItemsEv(ev);
   const ans = getAllAnnotations(items)
@@ -298,14 +407,14 @@ async function funcTranslateAnnotations(ev: Event) {
         an.comment.includes("🔤undefined🔤") ||
         an.comment.includes("🔤[请求错误]"),
     );
-  const p = new ztoolkit.ProgressWindow(
+  const pw = new ztoolkit.ProgressWindow(
     `找到${items.length}条目${ans.length}笔记`,
     {
       closeTime: -1,
       closeOnClick: true,
     },
   ).show();
-  p.createLine({ text: "处理中" });
+  pw.createLine({ text: "处理中" });
   for (let index = 0; index < ans.length; index++) {
     const an = ans[index];
     const text = an.ann.annotationText;
@@ -331,15 +440,15 @@ async function funcTranslateAnnotations(ev: Event) {
     // an.ann.annotationComment = !an.ann.annotationComment
     //   ? r
     //   : an.ann.annotationComment.replace(/🔤undefined🔤/, r);
-    p.changeLine({
+    pw.changeLine({
       progress: (index / ans.length) * 100,
       text: text.substring(0, 10) + "=>" + r.substring(0, 10),
     });
     an.ann.saveTx();
     Zotero.Promise.delay(500);
   }
-  p.createLine({ text: "已完成" });
-  p.startCloseTimer(5000);
+  pw.createLine({ text: "已完成" });
+  pw.startCloseTimer(5000);
 }
 
 function funcCreateTab(items: Zotero.Item[]) {

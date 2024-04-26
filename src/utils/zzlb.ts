@@ -797,3 +797,5 @@ export interface AnnotationRes {
   tag: { tag: string; type: number }; //flatMap(a=>Object.(a))
   html: string; //convertHtml
 }
+export const regExpDate =
+  /\d{1,2}[\s-]+(?:Jan|January|Feb|February|Mar|March|Apr|April|May|Jul|July|Aug|August|Oct|October|Dec|December)[\s-]+\d{2,4}/;

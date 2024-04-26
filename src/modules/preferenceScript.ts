@@ -112,6 +112,21 @@ function initOptionalColorLabel(doc: Document) {
     label.style.background = memOptionalColor();
   }
 }
+
+async function showCurrentCollection(doc?: Document) {
+  if (!doc) return;
+  const currentCollection = doc.querySelector(
+    `#zotero-prefpane-${config.addonRef}-current-collection`,
+  );
+  if (!currentCollection) return;
+  const selectedCollection = ZoteroPane.getSelectedCollection(false);
+  if (selectedCollection) {
+    const collectionName = selectedCollection?.name;
+    currentCollection.textContent = `当前选中：${collectionName}`;
+  } else {
+    currentCollection.textContent = "未选中";
+  }
+}
 async function updatePrefsUI() {
   // You can initialize some UI elements on prefs window
   // with addon.data.prefs.window.document
@@ -124,6 +139,11 @@ async function updatePrefsUI() {
   replaceColorTagsElement(doc);
   initOptionalColorLabel(doc);
   replaceTagsPreviewDiv(doc);
+  showCurrentCollection(doc);
+  const df = doc.querySelector(
+    `#zotero-prefpane-${config.addonRef}-debug-func`,
+  ) as HTMLDivElement;
+  if (df) df.style.display = getPref("debug") ? "" : "none";
 }
 
 function bindPrefEvents() {
@@ -224,7 +244,16 @@ function bindPrefEvents() {
       },
     };
   }
-
+  doc
+    .querySelector(`#zotero-prefpane-${config.addonRef}-debug`)
+    ?.addEventListener("command", (e) => {
+      // ztoolkit.log(e, getPref("tags"));
+      const checked = (e.target as HTMLInputElement).checked;
+      const df = doc.querySelector(
+        `#zotero-prefpane-${config.addonRef}-debug-func`,
+      ) as HTMLDivElement;
+      df.style.display = checked ? "" : "none";
+    });
   doc
     .querySelector(`#zotero-prefpane-${config.addonRef}-enable`)
     ?.addEventListener("command", (e) => {
