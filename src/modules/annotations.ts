@@ -317,7 +317,7 @@ class AnnotationPopup {
     //   clientWidthWithSlider,
     //   pageLeft,
     // } = this.getPrimaryViewDoc();
-    const clientWidthWithSlider = this.getClientWidthWithSlider()
+    const clientWidthWithSlider = this.getClientWidthWithSlider();
     const maxWidth = 888;
     const rootStyle: Partial<CSSStyleDeclaration> = {
       background: "#eeeeee",
@@ -349,8 +349,8 @@ class AnnotationPopup {
   getAnnotationPositionRight() {
     const rects = this.params?.annotation?.position?.rects || [];
     return Math.min(...rects.map((a) => a[2]));
-  } 
-  getSelectTextMaxWidth() { 
+  }
+  getSelectTextMaxWidth() {
     const clientWidthWithoutSlider = this.getClientWidthWithoutSlider();
     const scaleFactor = this.getScaleFactor();
     const pageLeft = this.getPageLeft();
@@ -1101,11 +1101,11 @@ class AnnotationPopup {
     const clientWidthWithoutSlider =
       this.getPrimaryViewDoc1()?.querySelector("body,div,hbox,vbox")
         ?.clientWidth || 0;
-        return clientWidthWithoutSlider
+    return clientWidthWithoutSlider;
   }
-  getClientWidthWithSlider(){
-    return  this.doc?.querySelector("body,div,hbox,vbox")?.clientWidth||0
-  } 
+  getClientWidthWithSlider() {
+    return this.doc?.querySelector("body,div,hbox,vbox")?.clientWidth || 0;
+  }
   getPageLeft() {
     const page = (this.getPrimaryViewDoc1()?.querySelector(
       "#viewer .page",
