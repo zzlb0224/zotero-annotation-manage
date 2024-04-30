@@ -348,15 +348,25 @@ class AnnotationPopup {
   }
   getAnnotationPositionRight() {
     const rects = this.params?.annotation?.position?.rects || [];
-    return Math.min(...rects.map((a) => a[2]));
+    return Math.max(...rects.map((a) => a[2]));
   }
   getSelectTextMaxWidth() {
+    const clientWidthWithSlider = this.getClientWidthWithSlider();
     const clientWidthWithoutSlider = this.getClientWidthWithoutSlider();
-    const scaleFactor = this.getScaleFactor();
+    const scaleFactor = this.getViewerScaleFactor();
     const pageLeft = this.getPageLeft();
     const centerLeft = this.getAnnotationPositionLeft();
     const centerRight = this.getAnnotationPositionRight();
     const centerX = ((centerLeft + centerRight) * scaleFactor) / 2 + pageLeft;
+    ztoolkit.log("getSelectTextMaxWidth", {
+      clientWidthWithoutSlider,
+      clientWidthWithSlider,
+      scaleFactor,
+      pageLeft,
+      centerLeft,
+      centerRight,
+      centerX,
+    });
     const maxWidth =
       Math.min(
         centerX * 2,
@@ -754,7 +764,6 @@ class AnnotationPopup {
     const rs = str2RegExp(tagsExclude);
     return from.filter((f) => !rs.some((s) => s.test(f.key)));
   }
-
   async searchTagResult() {
     if (this.searchTag) {
       const searchIn = await memAllTagsDB();
@@ -1087,7 +1096,7 @@ class AnnotationPopup {
       this.doc?.querySelector("#primary-view iframe") as HTMLIFrameElement
     )?.contentDocument;
   }
-  getScaleFactor() {
+  getViewerScaleFactor() {
     const pvDoc = this.getPrimaryViewDoc1();
     const scaleFactor =
       parseFloat(
@@ -1097,9 +1106,17 @@ class AnnotationPopup {
       ) || 1;
     return scaleFactor;
   }
+  getViewerPadding() {
+    const pvDoc = this.getPrimaryViewDoc1();
+    const viewer = pvDoc?.querySelector("#viewer") as HTMLElement;
+    return (
+      parseFloat(ztoolkit.getGlobal("getComputedStyle")(viewer).paddingLeft) ||
+      0
+    );
+  }
   getClientWidthWithoutSlider() {
     const clientWidthWithoutSlider =
-      this.getPrimaryViewDoc1()?.querySelector("body,div,hbox,vbox")
+      this.getPrimaryViewDoc1()?.querySelector("#viewerContainer")
         ?.clientWidth || 0;
     return clientWidthWithoutSlider;
   }
@@ -1114,7 +1131,8 @@ class AnnotationPopup {
     pageLeft -= (this.getPrimaryViewDoc1()?.querySelector(
       "#viewerContainer",
     ) as HTMLElement)!.scrollLeft;
-    return pageLeft;
+
+    return pageLeft - this.getViewerPadding();
   }
   // getPrimaryViewDoc() {
   //   const doc = this.doc!;
