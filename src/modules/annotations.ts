@@ -190,34 +190,7 @@ class AnnotationPopup {
       if (colorsElement) {
         root.style.minWidth =
           ztoolkit.getGlobal("getComputedStyle")(colorsElement).width;
-        root.style.width = this.getSelectTextWidth() + "px";
-        if (dd) {
-          const doc = this.doc!;
-          const pvDoc =
-            (doc.querySelector("#primary-view iframe") as HTMLIFrameElement)
-              ?.contentDocument || doc;
-          const scaleFactor =
-            parseFloat(
-              (
-                pvDoc.querySelector("#viewer") as HTMLElement
-              )?.style.getPropertyValue("--scale-factor"),
-            ) || 1;
-          const rects = this.params?.annotation?.position?.rects || [];
-          const left = Math.min(...rects.map((a) => a[0]));
-          const right = Math.max(...rects.map((a) => a[2]));
-
-          ztoolkit.log(
-            this.params?.annotation?.position?.rects,
-            doc,
-            pvDoc,
-            left,
-            right,
-            scaleFactor,
-          );
-          dd.textContent = "111";
-
-          // return;
-        }
+        root.style.width = this.getSelectTextMaxWidth() + "px";
       }
       setTimeout(() => {
         this.updateDivStart(root);
@@ -338,12 +311,13 @@ class AnnotationPopup {
   getRootStyle() {
     const doc = this.doc;
     if (!doc) return {};
-    const {
-      clientWidthWithoutSlider,
-      scaleFactor,
-      clientWidthWithSlider,
-      pageLeft,
-    } = this.getPrimaryViewDoc();
+    // const {
+    //   clientWidthWithoutSlider,
+    //   scaleFactor,
+    //   clientWidthWithSlider,
+    //   pageLeft,
+    // } = this.getPrimaryViewDoc();
+    const clientWidthWithSlider = this.getClientWidthWithSlider()
     const maxWidth = 888;
     const rootStyle: Partial<CSSStyleDeclaration> = {
       background: "#eeeeee",
@@ -368,16 +342,20 @@ class AnnotationPopup {
     }
     return rootStyle;
   }
-  getSelectTextWidth() {
-    const {
-      clientWidthWithoutSlider,
-      scaleFactor,
-      clientWidthWithSlider,
-      pageLeft,
-    } = this.getPrimaryViewDoc();
+  getAnnotationPositionLeft() {
     const rects = this.params?.annotation?.position?.rects || [];
-    const centerLeft = Math.min(...rects.map((a) => a[0]));
-    const centerRight = Math.max(...rects.map((a) => a[2]));
+    return Math.min(...rects.map((a) => a[0]));
+  }
+  getAnnotationPositionRight() {
+    const rects = this.params?.annotation?.position?.rects || [];
+    return Math.min(...rects.map((a) => a[2]));
+  } 
+  getSelectTextMaxWidth() { 
+    const clientWidthWithoutSlider = this.getClientWidthWithoutSlider();
+    const scaleFactor = this.getScaleFactor();
+    const pageLeft = this.getPageLeft();
+    const centerLeft = this.getAnnotationPositionLeft();
+    const centerRight = this.getAnnotationPositionRight();
     const centerX = ((centerLeft + centerRight) * scaleFactor) / 2 + pageLeft;
     const maxWidth =
       Math.min(
@@ -1104,36 +1082,69 @@ class AnnotationPopup {
     }
     return list;
   }
-
-  getPrimaryViewDoc() {
-    const doc = this.doc!;
-    const pvDoc =
-      (doc.querySelector("#primary-view iframe") as HTMLIFrameElement)
-        ?.contentDocument || doc;
+  getPrimaryViewDoc1() {
+    return (
+      this.doc?.querySelector("#primary-view iframe") as HTMLIFrameElement
+    )?.contentDocument;
+  }
+  getScaleFactor() {
+    const pvDoc = this.getPrimaryViewDoc1();
     const scaleFactor =
       parseFloat(
-        (pvDoc.querySelector("#viewer") as HTMLElement)?.style.getPropertyValue(
-          "--scale-factor",
-        ),
+        (
+          pvDoc?.querySelector("#viewer") as HTMLElement
+        )?.style.getPropertyValue("--scale-factor") || "1",
       ) || 1;
-    const clientWidthWithSlider =
-      doc.querySelector("body,div,hbox,vbox")!.clientWidth; //包括侧边栏的宽度
-    const clientWidthWithoutSlider =
-      pvDoc.querySelector("body,div,hbox,vbox")!.clientWidth; //不包括侧边栏的宽度
-    const page = (pvDoc.querySelector("#viewer .page") as HTMLElement)!;
-    let pageLeft = page.offsetLeft || 0;
-    pageLeft -= (pvDoc.querySelector("#viewerContainer") as HTMLElement)!
-      .scrollLeft;
-    // const st = ztoolkit.getGlobal("getComputedStyle")(page);
-    // const stp = ztoolkit.getGlobal("getComputedStyle")(page.parentElement!);
-    // ztoolkit.log(st.width, st.left, st.top, page.scrollLeft, page, st, stp);
-    return {
-      clientWidthWithoutSlider,
-      scaleFactor,
-      clientWidthWithSlider,
-      pageLeft,
-    };
+    return scaleFactor;
   }
+  getClientWidthWithoutSlider() {
+    const clientWidthWithoutSlider =
+      this.getPrimaryViewDoc1()?.querySelector("body,div,hbox,vbox")
+        ?.clientWidth || 0;
+        return clientWidthWithoutSlider
+  }
+  getClientWidthWithSlider(){
+    return  this.doc?.querySelector("body,div,hbox,vbox")?.clientWidth||0
+  } 
+  getPageLeft() {
+    const page = (this.getPrimaryViewDoc1()?.querySelector(
+      "#viewer .page",
+    ) as HTMLElement)!;
+    let pageLeft = page.offsetLeft || 0;
+    pageLeft -= (this.getPrimaryViewDoc1()?.querySelector(
+      "#viewerContainer",
+    ) as HTMLElement)!.scrollLeft;
+    return pageLeft;
+  }
+  // getPrimaryViewDoc() {
+  //   const doc = this.doc!;
+  //   const pvDoc =
+  //     (doc.querySelector("#primary-view iframe") as HTMLIFrameElement)
+  //       ?.contentDocument || doc;
+  //   const scaleFactor =
+  //     parseFloat(
+  //       (pvDoc.querySelector("#viewer") as HTMLElement)?.style.getPropertyValue(
+  //         "--scale-factor",
+  //       ),
+  //     ) || 1;
+  //   const clientWidthWithSlider =
+  //     doc.querySelector("body,div,hbox,vbox")!.clientWidth; //包括侧边栏的宽度
+  //   const clientWidthWithoutSlider =
+  //     pvDoc.querySelector("body,div,hbox,vbox")!.clientWidth; //不包括侧边栏的宽度
+  //   const page = (pvDoc.querySelector("#viewer .page") as HTMLElement)!;
+  //   let pageLeft = page.offsetLeft || 0;
+  //   pageLeft -= (pvDoc.querySelector("#viewerContainer") as HTMLElement)!
+  //     .scrollLeft;
+  //   // const st = ztoolkit.getGlobal("getComputedStyle")(page);
+  //   // const stp = ztoolkit.getGlobal("getComputedStyle")(page.parentElement!);
+  //   // ztoolkit.log(st.width, st.left, st.top, page.scrollLeft, page, st, stp);
+  //   return {
+  //     clientWidthWithoutSlider,
+  //     scaleFactor,
+  //     clientWidthWithSlider,
+  //     pageLeft,
+  //   };
+  // }
 }
 
 function renderTextSelectionPopup(
