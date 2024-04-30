@@ -178,18 +178,46 @@ class AnnotationPopup {
       return;
     }
     if (!root.parentNode) {
+      let dd: HTMLElement | false = false;
       if (isDebug()) {
         //应该在这里计算位置，这里最准确
-        ztoolkit.UI.appendElement(
+        dd = ztoolkit.UI.appendElement(
           { tag: "div", properties: { textContent: "正在附加div" } },
           root,
-        );
+        ) as HTMLDivElement;
       }
       const colorsElement = this.doc!.querySelector(".selection-popup .colors");
       if (colorsElement) {
         root.style.minWidth =
           ztoolkit.getGlobal("getComputedStyle")(colorsElement).width;
         root.style.width = this.getSelectTextWidth() + "px";
+        if (dd) {
+          const doc = this.doc!;
+          const pvDoc =
+            (doc.querySelector("#primary-view iframe") as HTMLIFrameElement)
+              ?.contentDocument || doc;
+          const scaleFactor =
+            parseFloat(
+              (
+                pvDoc.querySelector("#viewer") as HTMLElement
+              )?.style.getPropertyValue("--scale-factor"),
+            ) || 1;
+          const rects = this.params?.annotation?.position?.rects || [];
+          const left = Math.min(...rects.map((a) => a[0]));
+          const right = Math.max(...rects.map((a) => a[2]));
+
+          ztoolkit.log(
+            this.params?.annotation?.position?.rects,
+            doc,
+            pvDoc,
+            left,
+            right,
+            scaleFactor,
+          );
+          dd.textContent = "111";
+
+          // return;
+        }
       }
       setTimeout(() => {
         this.updateDivStart(root);
@@ -347,8 +375,9 @@ class AnnotationPopup {
       clientWidthWithSlider,
       pageLeft,
     } = this.getPrimaryViewDoc();
-    const centerLeft = this.params?.annotation?.position?.rects?.[0]?.[0] || 0;
-    const centerRight = this.params?.annotation?.position?.rects?.[0]?.[0] || 0;
+    const rects = this.params?.annotation?.position?.rects || [];
+    const centerLeft = Math.min(...rects.map((a) => a[0]));
+    const centerRight = Math.max(...rects.map((a) => a[2]));
     const centerX = ((centerLeft + centerRight) * scaleFactor) / 2 + pageLeft;
     const maxWidth =
       Math.min(
@@ -1090,9 +1119,9 @@ class AnnotationPopup {
         ),
       ) || 1;
     const clientWidthWithSlider =
-      doc.querySelector("body,div,hbox,vbox")?.clientWidth || 666; //包括侧边栏的宽度
+      doc.querySelector("body,div,hbox,vbox")!.clientWidth; //包括侧边栏的宽度
     const clientWidthWithoutSlider =
-      pvDoc.querySelector("body,div,hbox,vbox")?.clientWidth || 666; //不包括侧边栏的宽度
+      pvDoc.querySelector("body,div,hbox,vbox")!.clientWidth; //不包括侧边栏的宽度
     const page = (pvDoc.querySelector("#viewer .page") as HTMLElement)!;
     let pageLeft = page.offsetLeft || 0;
     pageLeft -= (pvDoc.querySelector("#viewerContainer") as HTMLElement)!

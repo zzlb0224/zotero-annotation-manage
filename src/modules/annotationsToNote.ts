@@ -95,6 +95,35 @@ function register() {
               }
             : {
                 tag: "menuseparator",
+                hidden: true,
+              },
+          getPref("debug")
+            ? {
+                tag: "menuitem",
+                label: "删除指定标签",
+                icon: iconBaseUrl + "favicon.png",
+                commandListener: async (ev: Event) => {
+                  const libraryID = Zotero.Libraries.userLibraryID;
+                  const tags = await Zotero.Tags.getAll(libraryID);
+                  const removeIDs = tags
+                    .filter(
+                      (a) =>
+                        a.tag.startsWith("D-D-D") || a.tag.startsWith("D-D-M"),
+                    )
+                    .map((a) => Zotero.Tags.getID(a.tag))
+                    .filter((f) => f) as number[];
+
+                  await Zotero.Tags.removeFromLibrary(
+                    libraryID,
+                    removeIDs,
+                    () => {},
+                    [1],
+                  );
+                },
+              }
+            : {
+                tag: "menuseparator",
+                hidden: true,
               },
         ],
       },
@@ -301,32 +330,31 @@ async function topDialog() {
 }
 
 async function setDDDTag(ev: Event) {
-  const d1p = getPref("date-1-pre");
-  const d2p = getPref("date-2-pre");
-  const d12dp = getPref("date-1-2-d-pre");
-  const d12mp = getPref("date-1-2-m-pre");
-  if (!d1p && !d2p && !d12dp && !d12mp) return;
-
   const items = await getSelectedItemsEv(ev);
+
+  const ProgressWindow = ztoolkit.ProgressWindow,
+    d1s = getPref("date-1") as string,
+    d2s = getPref("date-2") as string,
+    d1p = getPref("date-1-pre"),
+    d2p = getPref("date-2-pre"),
+    d12dp = getPref("date-1-2-d-pre"),
+    d12mp = getPref("date-1-2-m-pre");
+  //  const ProgressWindow = Zotero.ZoteroStyle.data.ztoolkit.ProgressWindow,d1s="Received[:\\s]*",d2s="Accepted[:\\s]*",d1p="",d2p="",d12dp="#DD10D/",d12mp="#DD30D/";
+  if (!items) return "未选中Items";
+  if (!d1s && !d2s && !d1p && !d2p && !d12dp && !d12mp) return "未配置";
   const regExpDate =
     /\d{1,2}[\s-]+(?:Jan|January|Feb|February|Mar|March|Apr|April|May|Jul|July|Jun|June|Aug|August|Sep|September|Oct|October|Nov|November|Dec|December)[\s-]+\d{2,4}/;
   const ids = items
-    .map((a) =>
-      a.isAttachment() && a.isPDFAttachment() && a.parentItem
-        ? a.parentItem
-        : a,
-    )
+    .map((a) => (a.parentItem ? a.parentItem : a))
     .filter((a) => !a.isAttachment())
     .flatMap((f) => f.getAttachments());
   const pdfs = Zotero.Items.get(ids).filter((f) => f.isPDFAttachment);
-  const pw = new ztoolkit.ProgressWindow(
-    `找到${items.length}条目${pdfs.length}pdf`,
-    {
-      closeTime: -1,
-      closeOnClick: true,
-    },
-  ).show();
+  const pw = new ProgressWindow(`找到${items.length}条目${pdfs.length}pdf`, {
+    closeTime: -1,
+    closeOnClick: true,
+  }).show();
   pw.createLine({ text: "处理中" });
+  const r = "";
   for (let index = 0; index < pdfs.length; index++) {
     const pdf = pdfs[index];
     if (!pdf.isAttachment() || !pdf.isPDFAttachment()) continue;
@@ -341,8 +369,15 @@ async function setDDDTag(ev: Event) {
     } catch (error) {
       continue;
     }
-    const d1 = getGreatChange("date-1", text);
-    const d2 = getGreatChange("date-2", text);
+    const [d1, d2] = [d1s, d2s].map((ds) => {
+      const dd = ds.split("\n").filter((f) => f);
+      for (const d of dd) {
+        const q = text.match(new RegExp(`${d}(${regExpDate.source})`, "i"));
+        if (q) {
+          return new Date(q[1]);
+        }
+      }
+    });
 
     const q = text.match(new RegExp(".{15}" + regExpDate.source, "gi"));
     if (q) {
@@ -350,27 +385,39 @@ async function setDDDTag(ev: Event) {
     }
     let changed = false;
     if (d1 && d1p) {
-      pdf.parentItem?.addTag(`${d1p}${d1.toLocaleDateString()}`);
+      pdf.parentItem?.addTag(
+        `${d1p}${d1.toLocaleDateString().replace(/\//g, "-")}`,
+      );
       changed = true;
     }
     if (d2 && d2p) {
-      pdf.parentItem?.addTag(`${d2p}${d2.toLocaleDateString()}`);
+      pdf.parentItem?.addTag(
+        `${d2p}${d2.toLocaleDateString().replace(/\//g, "-")}`,
+      );
       changed = true;
     }
-
     if (d1 && d2) {
       if (d12dp) {
-        const dd10 = Math.floor(
-          (d2.getTime() - d1.getTime()) / (24 * 3600 * 1000 * 10),
-        );
-        pdf.parentItem?.addTag(`${d12dp}${dd10}`);
+        const dd101 =
+          Math.floor((d2.getTime() - d1.getTime()) / (24 * 3600 * 1000 * 10)) *
+          10;
+        const dd102 =
+          Math.ceil((d2.getTime() - d1.getTime()) / (24 * 3600 * 1000 * 10)) *
+          10;
+        const d12dps = `${d12dp}${dd101}-${dd102}`;
+        pdf.parentItem?.addTag(d12dps);
         changed = true;
       }
       if (d12mp) {
-        const dm = Math.floor(
-          (d2.getTime() - d1.getTime()) / (24 * 3600 * 1000 * 30),
-        );
-        pdf.parentItem?.addTag(`${d12mp}${dm}`);
+        const dm1 =
+          Math.floor((d2.getTime() - d1.getTime()) / (24 * 3600 * 1000 * 30)) *
+          30;
+        const dm2 =
+          Math.ceil((d2.getTime() - d1.getTime()) / (24 * 3600 * 1000 * 30)) *
+          30;
+        const d12mps = `${d12mp}${dm1}-${dm2}`;
+        pdf.parentItem?.addTag(d12mps);
+
         changed = true;
       }
     }
@@ -381,20 +428,8 @@ async function setDDDTag(ev: Event) {
     });
   }
 
-  pw.createLine({ text: "已完成" });
+  pw.createLine({ text: `已完成` });
   pw.startCloseTimer(5000);
-
-  function getGreatChange(prefStr: string, text: string) {
-    const dd = ((getPref(prefStr) as string) || "")
-      .split("\n")
-      .filter((f) => f);
-    for (const d of dd) {
-      const q = text.match(new RegExp(`${d}(${regExpDate.source})`, "i"));
-      if (q) {
-        return new Date(q[1]);
-      }
-    }
-  }
 }
 async function funcTranslateAnnotations(ev: Event) {
   const items = await getSelectedItemsEv(ev);
