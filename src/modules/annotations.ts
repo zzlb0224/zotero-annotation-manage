@@ -384,9 +384,7 @@ class AnnotationPopup {
         centerX * 2,
         (clientWidthWithoutSlider - centerX) * 2,
         clientWidthWithoutSlider,
-      ) *
-        0.75 +
-      50;
+      ) - 50;
 
     return maxWidth;
   }
