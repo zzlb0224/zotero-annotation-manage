@@ -19,7 +19,7 @@ import {
   memFixedColor,
   memFixedTags,
   memRelateTags,
-  str2RegExp,
+  str2RegExps,
   uniqueBy,
 } from "../utils/zzlb";
 import { Relations } from "../utils/Relations";
@@ -188,9 +188,14 @@ class AnnotationPopup {
       }
       const colorsElement = this.doc!.querySelector(".selection-popup .colors");
       if (colorsElement) {
-        root.style.minWidth =
-          ztoolkit.getGlobal("getComputedStyle")(colorsElement).width;
-        root.style.width = this.getSelectTextMaxWidth() + "px";
+        ztoolkit.getGlobal("getComputedStyle")(colorsElement).width;
+        const maxWidth = this.getSelectTextMaxWidth();
+        const width = parseFloat(
+          ztoolkit.getGlobal("getComputedStyle")(colorsElement).width,
+        );
+        root.style.width = maxWidth + "px";
+
+        root.style.minWidth = Math.min(width, maxWidth) + "px";
       }
       setTimeout(() => {
         this.updateDivStart(root);
@@ -761,7 +766,7 @@ class AnnotationPopup {
     }>[],
   ) {
     const tagsExclude = (getPref("tags-exclude") as string) || "";
-    const rs = str2RegExp(tagsExclude);
+    const rs = str2RegExps(tagsExclude);
     return from.filter((f) => !rs.some((s) => s.test(f.key)));
   }
   async searchTagResult() {

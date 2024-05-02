@@ -4,23 +4,28 @@ import { TagElementProps } from "zotero-plugin-toolkit/dist/tools/ui";
 import { config } from "../../package.json";
 import { getPref } from "../utils/prefs";
 import {
+  compare,
   sortAsc,
+  sortBy,
   sortFixedTags10ValuesLength,
   sortKey,
   sortModified,
   sortTags10AscByKey,
   sortValuesLength,
+  sortValuesLengthKeyAsc,
 } from "../utils/sort";
 import { Tab } from "../utils/tab";
 import {
+  ReTest,
   getChildCollections,
   groupBy,
+  isDebug,
   memFixedColor,
   memSVG,
   openAnnotation,
   promiseAllWithProgress,
   setProperty,
-  str2RegExp,
+  str2RegExps,
   toggleProperty,
   uniqueBy,
 } from "../utils/zzlb";
@@ -29,6 +34,7 @@ import { createTopDiv } from "../utils/zzlb";
 import { convertHtml } from "../utils/zzlb";
 import { AnnotationRes } from "../utils/zzlb";
 import { showTitle } from "./readerTools";
+import { reverse } from "d3";
 export let popupWin: ProgressWindowHelper | undefined = undefined;
 let popupTime = -1;
 
@@ -108,7 +114,10 @@ function register() {
                   const removeIDs = tags
                     .filter(
                       (a) =>
-                        a.tag.startsWith("D-D-D") || a.tag.startsWith("D-D-M"),
+                        a.tag.startsWith("D-D-D") ||
+                        a.tag.startsWith("D-D-M") ||
+                        a.tag.startsWith("Date-Acceted") ||
+                        a.tag.startsWith("Date-Received"),
                     )
                     .map((a) => Zotero.Tags.getID(a.tag))
                     .filter((f) => f) as number[];
@@ -134,6 +143,20 @@ function register() {
       {
         tag: "menuitem",
         label: "选择多个标签导出",
+        icon: iconBaseUrl + "favicon.png",
+        commandListener: (ev: Event) => {
+          const target = ev.target as HTMLElement;
+          const doc = target.ownerDocument;
+          const id = getParentAttr(ev.target as HTMLElement, "id");
+          const div = createChooseTagsDiv(doc, id?.includes("collection"));
+          // ztoolkit.log("自选标签", div);
+          // setTimeout(()=>d.remove(),10000)
+        },
+      },
+      {
+        tag: "menuitem",
+        label: "按类型统计标签数量",
+        hidden: !isDebug(),
         icon: iconBaseUrl + "favicon.png",
         commandListener: (ev: Event) => {
           const target = ev.target as HTMLElement;
@@ -486,19 +509,137 @@ async function funcTranslateAnnotations(ev: Event) {
   pw.startCloseTimer(5000);
 }
 
-function funcCreateTab(items: Zotero.Item[]) {
-  const tab = new Tab(
-    `chrome://${config.addonRef}/content/tab.xhtml`,
-    "一个新查询",
-    (doc) => {
-      ztoolkit.log("可以这样读取doc", doc.querySelector("#tab-page-body"));
-      doc.querySelector("#tab-page-body")!.innerHTML = "";
-      createChild(doc, items);
+async function funcCreateTab(items: Zotero.Item[]) {
+  // const tab = new Tab(
+  //   `chrome://${config.addonRef}/content/tab.xhtml`,
+  //   "一个新查询",
+  //   (doc) => {
+  //     ztoolkit.log("可以这样读取doc", doc.querySelector("#tab-page-body"));
+  //     doc.querySelector("#tab-page-body")!.innerHTML = "";
+  //     createChild(doc, items);
+  //   },
+  // );
+  const tab = await createTabDoc();
+  const body = tab.document?.body as HTMLBodyElement;
+  const query = ztoolkit.UI.appendElement({ tag: "div" }, body);
+  const content = ztoolkit.UI.appendElement(
+    { tag: "div" },
+    body,
+  ) as HTMLDivElement;
+  let searchTag = "";
+  ztoolkit.UI.appendElement(
+    {
+      tag: "div",
+      properties: { textContent: "查询" },
+      children: [
+        {
+          tag: "input",
+          listeners: [
+            {
+              type: "keypress",
+              listener: (ev) => {
+                searchTag = (ev.target as HTMLInputElement).value;
+                const filterFunc = ReTest(searchTag);
+                const items2 = items.filter(
+                  (f) => f.getTags().findIndex((t) => filterFunc(t.tag)) != -1,
+                );
+                createChild(content, items2);
+              },
+            },
+          ],
+        },
+      ],
     },
+    query,
   );
-  ztoolkit.log(tab);
-}
 
+  createChild(content, items);
+
+  function createChild(content: HTMLDivElement, items: Zotero.Item[]) {
+    clearChild(content);
+    const filterFunc = ReTest(searchTag);
+    const tags = groupBy(
+      items.flatMap((item) =>
+        item
+          .getTags()
+          .map((a) => a.tag)
+          .filter(filterFunc)
+          .map((tag) => ({ tag, item })),
+      ),
+      (f) => f.tag,
+    ).sort(sortValuesLengthKeyAsc);
+    tags.forEach((f) => {
+      ztoolkit.UI.appendElement(
+        {
+          tag: "div",
+          properties: { textContent: `[${f.values.length}]${f.key}` },
+          listeners: [
+            {
+              type: "click",
+              listener(ev) {
+                ev.stopPropagation();
+                const div = ev.target as HTMLDivElement;
+                if (div.children.length > 0) {
+                  [...div.children].forEach((f, i) => f.remove());
+                  return;
+                }
+                f.values
+                  .sort(sortBy((a) => a.item.getField("year")))
+                  .forEach((a) => {
+                    ztoolkit.UI.appendElement(
+                      {
+                        tag: "div",
+                        properties: {
+                          textContent: `${a.item.firstCreator} ${a.item.getField("year")}  ${a.item.getField("publicationTitle")}  ${a.item.getDisplayTitle()}`,
+                        },
+                        children: [
+                          {
+                            tag: "div",
+                            properties: {
+                              innerHTML: getCiteItemHtml(
+                                a.item,
+                                undefined,
+                                "打开",
+                              ),
+                            },
+                          },
+                        ],
+                        listeners: [
+                          {
+                            type: "click",
+                            listener(ev) {
+                              ev.stopPropagation();
+                              return true;
+                            },
+                            options: { capture: true },
+                          },
+                        ],
+                      },
+                      div,
+                    );
+                  });
+                return true;
+              },
+              options: { capture: false },
+            },
+          ],
+        },
+        content,
+      );
+    });
+  }
+}
+function createTabDoc(): Promise<Tab> {
+  return new Promise((resolve, reject) => {
+    const tab = new Tab(
+      `chrome://${config.addonRef}/content/tab.xhtml`,
+      "一个新查询",
+      (doc) => {
+        resolve(tab);
+      },
+    );
+  });
+}
 function funcSplitTag(items: Zotero.Item[], ans: AnnotationRes[], ev: Event) {
   ztoolkit.log(
     `找到${items.length}条目${ans.length}笔记`,
@@ -930,8 +1071,8 @@ function createSearchAnnContent(
 
   updateContent();
   async function updateContent() {
-    const txtRegExp = str2RegExp(text);
-    const tagRegExp = str2RegExp(tag);
+    const txtRegExp = str2RegExps(text);
+    const tagRegExp = str2RegExps(tag);
     ans = annotations
       .filter(
         (f) =>

@@ -1,4 +1,5 @@
 import { config } from "../../package.json";
+import { waitFor } from "./wait";
 export class Tab {
   tab?: { id: string; container: XUL.Box } = undefined;
   browser!: HTMLIFrameElement & {
@@ -7,6 +8,7 @@ export class Tab {
     attachEvent: any;
   }; //是否为空总和tab一样
   private onLoad?: (doc: Document) => void = undefined;
+  document?: Document;
   reload() {
     if (this.tab) {
       this.browser.reload();
@@ -39,32 +41,43 @@ export class Tab {
         },
       });
       const document = this.tab.container.ownerDocument;
-      const iframe = Zotero.createXULElement(document, "browser");
-
+      const iframe = ztoolkit.UI.createXULElement(document, "browser") as any;
       this.tab.container.appendChild(iframe);
       iframe.setAttribute("class", "reader");
       iframe.setAttribute("flex", "1");
       iframe.setAttribute("type", "content");
+      iframe.setAttribute("src", url);
       this.browser = iframe;
+      // ztoolkit.log("222", url);
       this.loaded();
-      iframe.loadURI(url, {
-        triggeringPrincipal:
-          Services.scriptSecurityManager.getSystemPrincipal(),
-      });
+
+      try {
+        iframe.loadURI(url, {
+          triggeringPrincipal:
+            Services.scriptSecurityManager.getSystemPrincipal(),
+        });
+      } catch (e) {
+        ztoolkit.log("loadURI 错误修复了吗？");
+        iframe.src = url;
+      }
+
+      // ztoolkit.log("333");
     }
     Zotero_Tabs.select(this.tab.id);
   }
-  private loaded() {
+  private loaded(n = 100) {
+    // ztoolkit.log("tab加载检测");
     setTimeout(() => {
       if (
         this.browser.contentDocument &&
         this.browser.contentDocument.querySelector("#tab-page-body")
       ) {
+        this.document = this.browser.contentDocument;
         ztoolkit.log("tab加载完成");
         if (this.onLoad) this.onLoad(this.browser.contentDocument);
       } else {
-        this.loaded();
+        this.loaded(n - 1);
       }
-    }, 5);
+    }, 100);
   }
 }

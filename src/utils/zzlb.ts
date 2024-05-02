@@ -367,7 +367,13 @@ function getTagsInCollections(collections: Zotero.Collection[]) {
       .map((a) => ({ tag: a.tag, type: a.type, dateModified: f.dateModified })),
   );
 }
-export function str2RegExp(value: string) {
+export function ReTest(reStr: string) {
+  const txtRegExp = str2RegExps(reStr);
+  ztoolkit.log("ReTest", txtRegExp);
+  return (str: string) =>
+    txtRegExp.length == 0 || txtRegExp.some((a) => a.test(str));
+}
+export function str2RegExps(value: string) {
   const res: RegExp[] = [];
   value
     .split("\n")

@@ -32,11 +32,18 @@ export function sortTags(
 export function sortAsc(a: string | number, b: string | number) {
   return a == b ? 0 : a < b ? -1 : 1;
 }
+
 export function sortKey(
   a: { key: string | number },
   b: { key: string | number },
 ) {
   return sortAsc(a.key, b.key);
+}
+export function sortValuesLengthKeyAsc(
+  a: { key: string; values: any[] },
+  b: { key: string; values: any[] },
+) {
+  return sortAsc(b.values.length, a.values.length) * 10 + sortAsc(a.key, b.key);
 }
 export function sortValuesLength(a: { values: any[] }, b: { values: any[] }) {
   return sortAsc(b.values.length, a.values.length);
@@ -112,7 +119,15 @@ export function sortByFixedTag2TagName<T>(
   }
   return b.key > a.key ? -0.5 : 0.5;
 }
-
+export function sortBy<T>(keyFunc: (a: T) => string, asc: boolean = true) {
+  return (a: T, b: T) => {
+    const aa = keyFunc(a);
+    const bb = keyFunc(b);
+    if (aa == bb) return 0;
+    if (asc) return aa < bb ? -1 : 1;
+    return aa < aa ? -1 : 1;
+  };
+}
 /**
  * 不要传入async方法
  *
