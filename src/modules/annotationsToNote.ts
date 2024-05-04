@@ -71,7 +71,7 @@ function buildMenu(collectionOrItem: "collection" | "item") {
             commandListener: async (ev: Event) => {
               const items = await getSelectedItems(collectionOrItem);
               const ans = getAllAnnotations(items);
-              funcSplitTag(items, ans, ev);
+              funcSplitTag(items, ans);
             },
           },
           {
@@ -160,8 +160,9 @@ function buildMenu(collectionOrItem: "collection" | "item") {
         commandListener: (ev: Event) => {
           const target = ev.target as HTMLElement;
           const doc = target.ownerDocument;
-          const id = getParentAttr(ev.target as HTMLElement, "id");
-          const div = createChooseTagsDiv(doc, collectionOrItem);
+          // const id = getParentAttr(ev.target as HTMLElement, "id");
+          // const div =
+          createChooseTagsDiv(doc, collectionOrItem);
           // ztoolkit.log("自选标签", div);
           // setTimeout(()=>d.remove(),10000)
         },
@@ -616,11 +617,8 @@ function createTabDoc(): Promise<Tab> {
     );
   });
 }
-function funcSplitTag(items: Zotero.Item[], ans: AnnotationRes[], ev: Event) {
-  ztoolkit.log(
-    `找到${items.length}条目${ans.length}笔记`,
-    getParentAttr(ev.target as HTMLElement, "id"),
-  );
+function funcSplitTag(items: Zotero.Item[], ans: AnnotationRes[]) {
+  ztoolkit.log(`找到${items.length}条目${ans.length}笔记`);
   const p = new ztoolkit.ProgressWindow(
     `找到${items.length}条目${ans.length}笔记`,
     {
@@ -667,13 +665,13 @@ export async function createPopMenu(
   while (popup?.firstChild) {
     popup.removeChild(popup.firstChild);
   }
-  const id = getParentAttr(popup, "id");
-  const isc = id?.includes("collection");
-  ztoolkit.log("id", id);
+  // const id = getParentAttr(popup, "id");
+  // const isc = id?.includes("collection");
+  // ztoolkit.log("id", id);
 
-  const ans = getAllAnnotations(await getSelectedItems(isc)).flatMap((a) =>
-    a.tags.map((t2) => Object.assign({}, a, { tag: t2 })),
-  );
+  const ans = getAllAnnotations(
+    await getSelectedItems(collectionOrItem),
+  ).flatMap((a) => a.tags.map((t2) => Object.assign({}, a, { tag: t2 })));
   const tags = groupBy(ans, (an) => an.tag.tag)
     .sort(sortFixedTags10ValuesLength)
     .slice(0, 20);
@@ -735,25 +733,18 @@ const ID = {
   input: `${config.addonRef}-ann2note-ChooseTags-root-input`,
   result: `${config.addonRef}-ann2note-ChooseTags-root-result`,
 };
-function getParentAttr(ele: Element | null, name = "id") {
-  if (!ele) return "";
-  const value = ele.getAttribute(name);
-  if (value) {
-    return value;
-  }
-  if (ele.parentElement) {
-    return getParentAttr(ele.parentElement, name);
-  }
-  return "";
-}
-async function createSearchAnnDiv(doc: Document, isCollection: boolean) {
-  const div = createTopDiv(doc, config.addonRef + `-TopDiv`, [
-    { tag: "div", classList: ["action"] },
-    { tag: "div", classList: ["query"] },
-    { tag: "div", classList: ["status"] },
-    { tag: "div", classList: ["content"] },
-  ])!;
-}
+// function getParentAttr(ele: Element | null, name = "id") {
+//   if (!ele) return "";
+//   const value = ele.getAttribute(name);
+//   if (value) {
+//     return value;
+//   }
+//   if (ele.parentElement) {
+//     return getParentAttr(ele.parentElement, name);
+//   }
+//   return "";
+// }
+
 async function createSearchAnnDialog() {
   const mainWindow = Zotero.getMainWindow();
   const dialogData: { [key: string | number]: any } = {
@@ -1711,15 +1702,15 @@ async function getSelectedItems(
   }
   return items;
 }
-function checkIsCollection(ev: Event) {
-  const isCollection =
-    getParentAttr(ev.target as HTMLElement)?.includes("collection") || false;
-  return isCollection;
-}
-async function getSelectedItemsEv(ev: Event) {
-  const isCollection = checkIsCollection(ev);
-  return getSelectedItems(isCollection);
-}
+// function checkIsCollection(ev: Event) {
+//   const isCollection =
+//     getParentAttr(ev.target as HTMLElement)?.includes("collection") || false;
+//   return isCollection;
+// }
+// async function getSelectedItemsEv(ev: Event) {
+//   const isCollection = checkIsCollection(ev);
+//   return getSelectedItems(isCollection);
+// }
 
 async function exportNoteByTag(isCollection: boolean = false) {
   exportNote({
