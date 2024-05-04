@@ -417,6 +417,7 @@ export async function openAnnotation(
       pageIndex: page,
     },
   });
+  if (!annotationKey) return;
   const tabId = Zotero_Tabs.getTabIDByItemID(item.id);
   getDoc();
   function getDoc() {

@@ -178,13 +178,13 @@ class AnnotationPopup {
       return;
     }
     if (!root.parentNode) {
-      let dd: HTMLElement | false = false;
+      const dd: HTMLElement | false = false;
+      //应该在这里计算位置，这里最准确
       if (isDebug()) {
-        //应该在这里计算位置，这里最准确
-        dd = ztoolkit.UI.appendElement(
-          { tag: "div", properties: { textContent: "正在附加div" } },
-          root,
-        ) as HTMLDivElement;
+        // dd = ztoolkit.UI.appendElement(
+        //   { tag: "div", properties: { textContent: "正在附加div" } },
+        //   root,
+        // ) as HTMLDivElement;
       }
       const colorsElement = this.doc!.querySelector(".selection-popup .colors");
       if (colorsElement) {
@@ -203,13 +203,13 @@ class AnnotationPopup {
       return;
     }
     setTimeout(async () => {
-      if (isDebug()) {
-        //这里只更新内容
-        ztoolkit.UI.appendElement(
-          { tag: "div", properties: { textContent: "开始更新div" } },
-          root,
-        );
-      }
+      //这里只更新内容 不更新大小
+      // if (isDebug()) {
+      //   ztoolkit.UI.appendElement(
+      //     { tag: "div", properties: { textContent: "开始更新div" } },
+      //     root,
+      //   );
+      // }
       await this.updateDiv(root);
     }, 50);
   }

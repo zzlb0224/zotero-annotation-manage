@@ -140,9 +140,12 @@ async function updatePrefsUI() {
   initOptionalColorLabel(doc);
   replaceTagsPreviewDiv(doc);
   showCurrentCollection(doc);
-  const df = doc.querySelector(
-    `#zotero-prefpane-${config.addonRef}-debug-func`,
-  ) as HTMLDivElement;
+  setStyleDisplay(doc, `#zotero-prefpane-${config.addonRef}-debug`);
+  setStyleDisplay(doc, `#zotero-prefpane-${config.addonRef}-debug-func`);
+}
+
+function setStyleDisplay(doc: Document, id: string) {
+  const df = doc.querySelector(id) as HTMLDivElement;
   if (df) df.style.display = getPref("debug") ? "" : "none";
 }
 
