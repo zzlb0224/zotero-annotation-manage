@@ -35,6 +35,7 @@ import { convertHtml } from "../utils/zzlb";
 import { AnnotationRes } from "../utils/zzlb";
 import { showTitle } from "./readerTools";
 import { reverse } from "d3";
+import { title } from 'process';
 export let popupWin: ProgressWindowHelper | undefined = undefined;
 let popupTime = -1;
 
@@ -195,7 +196,29 @@ function buildMenu(collectionOrItem: "collection" | "item") {
           const doc = target.ownerDocument;
           const items = await getSelectedItems(collectionOrItem);
           const annotations = getAllAnnotations(items);
-          const win = await createSearchAnnDialog();
+          const mainWindow= Zotero.getMainWindow()
+          const win = await createDialog("搜索批注文字和标签导出",[
+        { tag: "div", classList: ["query"] },
+        {
+          tag: "div",
+          classList: ["status"],
+          properties: { innerHTML: "1 0" },
+        },
+        {
+          tag: "div",
+          classList: ["content"],
+          // properties: { innerHTML: "2 0" },
+          styles: {
+            minHeight: "20px",
+            minWidth: "100px",
+            display: "flex",
+            maxHeight: mainWindow.innerHeight - 40 + "px",
+            maxWidth: Math.max(mainWindow.outerWidth - 180, 1000) + "px",
+            flexWrap: "wrap",
+            overflowY: "scroll",
+          },
+        },
+      ],);
           createSearchAnnContent(win, undefined, annotations);
         },
       },
@@ -676,8 +699,7 @@ export async function createPopMenu(
     .sort(sortFixedTags10ValuesLength)
     .slice(0, 20);
   const maxLen = Math.max(...tags.map((a) => a.values.length));
-
-  ztoolkit.log(win, "创建菜单", isc, popup);
+ 
   // Add new children
   let elemProp: TagElementProps;
   // const tags =memFixedTags()
@@ -745,8 +767,8 @@ const ID = {
 //   return "";
 // }
 
-async function createSearchAnnDialog() {
-  const mainWindow = Zotero.getMainWindow();
+async function createDialog(title:string,children:TagElementProps[]) {
+  // const mainWindow = Zotero.getMainWindow();
   const dialogData: { [key: string | number]: any } = {
     inputValue: "test",
     checkboxValue: true,
@@ -761,50 +783,19 @@ async function createSearchAnnDialog() {
     .addCell(0, 0, {
       tag: "div",
       classList: ["root"],
-      children: [
-        { tag: "div", classList: ["query"] },
-        {
-          tag: "div",
-          classList: ["status"],
-          properties: { innerHTML: "1 0" },
-        },
-        {
-          tag: "div",
-          classList: ["content"],
-          // properties: { innerHTML: "2 0" },
-          styles: {
-            minHeight: "20px",
-            minWidth: "100px",
-            display: "flex",
-            maxHeight: mainWindow.innerHeight - 40 + "px",
-            maxWidth: Math.max(mainWindow.outerWidth - 180, 1000) + "px",
-            flexWrap: "wrap",
-            overflowY: "scroll",
-          },
-        },
-      ],
-    })
-    // .addButton("导出", "confirm")
-    // .addButton("取消", "cancel")
-    // .addButton("Help", "help", {
-    //   noClose: true,
-    //   callback: (e) => {
-    // dialogHelper.window?.alert(
-    //   "Help Clicked! Dialog will not be closed.",
-    // );
-    //   },
-    // })
+      children: children
+    }) 
     .setDialogData(dialogData)
-    .open("搜索批注文字和标签导出", {
+    .open(title, {
       // alwaysRaised: true,
       left: 120,
       fitContent: true,
       resizable: true,
     });
 
-  const root = (await waitFor(() =>
+ (await waitFor(() =>
     dialogHelper.window.document.querySelector(".root"),
-  )) as HTMLElement;
+  ));
   addon.data.exportDialog = dialogHelper;
   return dialogHelper.window;
 }
