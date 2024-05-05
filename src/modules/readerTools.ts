@@ -1,4 +1,3 @@
-import { start } from "repl";
 import { config } from "../../package.json";
 import {
   Timer,
@@ -9,10 +8,9 @@ import {
   openAnnotation,
 } from "../utils/zzlb";
 import { Relations } from "../utils/Relations";
-import { waitFor } from "../utils/wait";
+import { waitUtilAsync } from "../utils/wait";
 import { getPref } from "../utils/prefs";
 import { compare } from "../utils/sort";
-import { popupWin } from "./annotationsToNote";
 
 function register() {
   Zotero.Reader.registerEventListener(
@@ -40,7 +38,7 @@ function readerToolbarCallback(
   const { append, doc, reader, params } = event;
   // ztoolkit.log("readerToolbarCallback reader.css");
   copyFunc(doc, "readerToolbarCallback");
-  injectCSS(doc, "reader1.css");
+  // injectCSS(doc, "reader1.css");
 }
 
 function renderSidebarAnnotationHeaderCallback(
@@ -136,7 +134,8 @@ function renderSidebarAnnotationHeaderCallback(
             const win = await createRelatedDialog(doc, anKey);
             const { fromEle, left, top } = getFromEleLeftTop(doc, anKey);
             await createRelatedContent(anKey, win, undefined, fromEle);
-            await waitFor(() => win.document.querySelector(".loaded"));
+            // await waitFor(() => win.document.querySelector(".loaded"));
+            await waitUtilAsync(() => !!win.document.querySelector(".loaded"));
             await relatedDialogResize(win, top, left);
             Zotero.getMainWindow()
               .document.getElementById(
@@ -534,7 +533,7 @@ async function createRelatedDialog(readerDoc: Document, anKey: string) {
         fitContent: true,
         resizable: true,
       });
-    injectCSS(dialogHelper.window.document, "related.css");
+    // injectCSS(dialogHelper.window.document, "related.css");
   }
   const fromMouseTimer = new Timer(() => {
     dialogHelper.window.close();
@@ -546,7 +545,10 @@ async function createRelatedDialog(readerDoc: Document, anKey: string) {
     fromMouseTimer.startTimer();
   });
 
-  await waitFor(() => dialogHelper.window.document.querySelector(".content"));
+  // await waitFor(() => dialogHelper.window.document.querySelector(".content"));
+  await waitUtilAsync(
+    () => !!dialogHelper.window.document.querySelector(".content"),
+  );
   // ztoolkit.log("窗口2",dialogHelper.window)
   const content = dialogHelper.window.document.querySelector(
     ".content",

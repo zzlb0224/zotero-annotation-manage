@@ -167,13 +167,16 @@ class AnnotationPopup {
     this.updateDivStart(div);
     return div;
   }
-  private updateDivStart(root: HTMLDivElement) {
+  private updateDivStart(root: HTMLDivElement, times = 200) {
+    if (times < 0) {
+      return;
+    }
     const doc = this.doc;
     if (!doc) return;
 
     if (!root) {
       setTimeout(() => {
-        this.updateDivStart(root);
+        this.updateDivStart(root, times - 1);
       }, 50);
       return;
     }
@@ -198,20 +201,21 @@ class AnnotationPopup {
         root.style.minWidth = Math.min(width, maxWidth) + "px";
       }
       setTimeout(() => {
-        this.updateDivStart(root);
+        this.updateDivStart(root, times - 1);
       }, 50);
       return;
     }
-    setTimeout(async () => {
-      //这里只更新内容 不更新大小
-      // if (isDebug()) {
-      //   ztoolkit.UI.appendElement(
-      //     { tag: "div", properties: { textContent: "开始更新div" } },
-      //     root,
-      //   );
-      // }
-      await this.updateDiv(root);
-    }, 50);
+    // setTimeout(async () => {
+    //这里只更新内容 不更新大小
+    // if (isDebug()) {
+    //   ztoolkit.UI.appendElement(
+    //     { tag: "div", properties: { textContent: "开始更新div" } },
+    //     root,
+    //   );
+    // }
+    //   await this.updateDiv(root);
+    // }, 50);
+    this.updateDiv(root);
   }
 
   private async updateDiv(root: HTMLDivElement) {
@@ -1186,7 +1190,7 @@ function createAnnotationContextMenu(
   event: _ZoteroTypes.Reader.EventParams<"createAnnotationContextMenu">,
 ) {
   const { reader, params, append } = event;
-  const doc = reader._iframeWindow?.document;
+  const doc = reader?._iframeWindow?.document;
   if (!doc) return;
   //这里不能用异步
   const currentAnnotations = reader._item

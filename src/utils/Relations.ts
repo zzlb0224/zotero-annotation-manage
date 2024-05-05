@@ -1,4 +1,4 @@
-import { waitFor } from "./wait";
+import { waitFor, waitUtilAsync } from "./wait";
 import { getItem } from "./zzlb";
 
 export class Relations {
@@ -7,8 +7,8 @@ export class Relations {
     this.item = getItem(itemOrKeyOrId);
     if (!this.item) {
       //修复新建item的时候getItem返回的false，需要等待才能获取的问题
-      setTimeout(async () => {
-        await waitFor(() => (this.item = getItem(itemOrKeyOrId)));
+      setTimeout(() => {
+        waitUtilAsync(() => !!(this.item = getItem(itemOrKeyOrId)));
       });
     }
   }

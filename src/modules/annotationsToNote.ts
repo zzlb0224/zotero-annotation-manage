@@ -29,11 +29,11 @@ import {
   toggleProperty,
   uniqueBy,
 } from "../utils/zzlb";
-import { waitFor } from "../utils/wait";
 import { createTopDiv } from "../utils/zzlb";
 import { convertHtml } from "../utils/zzlb";
 import { AnnotationRes } from "../utils/zzlb";
 import { showTitle } from "./readerTools";
+import { createDialog } from "../utils/zzlb";
 
 export let popupWin: ProgressWindowHelper | undefined = undefined;
 let popupTime = -1;
@@ -101,37 +101,29 @@ function buildMenu(collectionOrItem: "collection" | "item") {
           },
           {
             tag: "menuitem",
-            label: "设置日期tag",
+            label: "清空日期tag",
             icon: iconBaseUrl + "favicon.png",
             hidden: !getPref("debug"),
             commandListener: async (ev: Event) => {
-              await setDDDTag(collectionOrItem);
+              await DDDtagClear();
             },
           },
           {
             tag: "menuitem",
-            label: "删除指定标签",
+            label: "1.删除日期tag",
             icon: iconBaseUrl + "favicon.png",
             hidden: !getPref("debug"),
             commandListener: async (ev: Event) => {
-              const libraryID = Zotero.Libraries.userLibraryID;
-              const tags = await Zotero.Tags.getAll(libraryID);
-              const removeIDs = tags
-                .filter(
-                  (a) =>
-                    a.tag.startsWith("#DD10D/") ||
-                    a.tag.startsWith("#DD30D/") ||
-                    a.tag.startsWith("#Z30D/"),
-                )
-                .map((a) => Zotero.Tags.getID(a.tag))
-                .filter((f) => f) as number[];
-
-              await Zotero.Tags.removeFromLibrary(
-                libraryID,
-                removeIDs,
-                () => {},
-                [1],
-              );
+              await DDDtagRemove(collectionOrItem);
+            },
+          },
+          {
+            tag: "menuitem",
+            label: "2.设置日期tag",
+            icon: iconBaseUrl + "favicon.png",
+            hidden: !getPref("debug"),
+            commandListener: async (ev: Event) => {
+              await DDDTagSet(collectionOrItem);
             },
           },
         ],
@@ -318,7 +310,89 @@ async function topDialog() {
   ztoolkit.log(dialogData);
 }
 
-async function setDDDTag(collectionOrItem: "collection" | "item") {
+async function DDDtagClear() {
+  const ProgressWindow = ztoolkit.ProgressWindow,
+    d1p = getPref("date-1-pre"),
+    d2p = getPref("date-2-pre"),
+    d121 = getPref("date-1-2-1-pre"),
+    d1210 = getPref("date-1-2-10-pre"),
+    d1230 = getPref("date-1-2-30-pre");
+
+  const starts = [d1p, d2p, d121, d1210, d1230].filter(
+    (tag) => tag,
+  ) as string[];
+  if (starts.length == 0) {
+    return;
+  }
+
+  const libraryID = Zotero.Libraries.userLibraryID;
+  const tags = await Zotero.Tags.getAll(libraryID);
+  const removeIDs = tags
+    .filter((a) => starts.some((start) => a.tag.startsWith(start)))
+    .map((a) => Zotero.Tags.getID(a.tag))
+    .filter((f) => f) as number[];
+
+  const pw = new ProgressWindow(`需要删除${removeIDs.length}标签`, {
+    closeTime: -1,
+    closeOnClick: true,
+  }).show();
+  pw.createLine({ text: "执行中" });
+  await Zotero.Tags.removeFromLibrary(
+    libraryID,
+    removeIDs,
+    (done: number, total: number) => {
+      pw.changeLine({
+        progress: (done / total) * 100,
+        text: `执行中:${done}/${total}`,
+      });
+    },
+    [1],
+  );
+  pw.createLine({ text: "完成" }).startCloseTimer(5000, false);
+}
+async function DDDtagRemove(collectionOrItem: "collection" | "item") {
+  const items = await getSelectedItems(collectionOrItem);
+  const ProgressWindow = ztoolkit.ProgressWindow,
+    d1p = getPref("date-1-pre"),
+    d2p = getPref("date-2-pre"),
+    d121 = getPref("date-1-2-1-pre"),
+    d1210 = getPref("date-1-2-10-pre"),
+    d1230 = getPref("date-1-2-30-pre");
+
+  const starts = [d1p, d2p, d121, d1210, d1230].filter(
+    (tag) => tag,
+  ) as string[];
+  if (starts.length == 0) {
+    return;
+  }
+
+  const total = items.length;
+  const pw = new ProgressWindow(`需要从${total}条目删除标签`, {
+    closeTime: -1,
+    closeOnClick: true,
+  }).show();
+  pw.createLine({ text: "执行中" });
+  items.forEach((item, done) => {
+    const tags = item.getTags();
+    let changed = false;
+    tags.forEach((tag) => {
+      if (starts.some((start) => tag.tag.startsWith(start))) {
+        item.removeTag(tag.tag);
+        changed = true;
+      }
+    });
+    if (changed) {
+      item.saveTx();
+      pw.changeLine({
+        progress: (done / total) * 100,
+        text: `执行中:${done}/${total}`,
+      });
+    }
+  });
+
+  pw.createLine({ text: "完成" }).startCloseTimer(5000, false);
+}
+async function DDDTagSet(collectionOrItem: "collection" | "item") {
   const items = await getSelectedItems(collectionOrItem);
 
   const ProgressWindow = ztoolkit.ProgressWindow,
@@ -754,48 +828,6 @@ const ID = {
   input: `${config.addonRef}-ann2note-ChooseTags-root-input`,
   result: `${config.addonRef}-ann2note-ChooseTags-root-result`,
 };
-// function getParentAttr(ele: Element | null, name = "id") {
-//   if (!ele) return "";
-//   const value = ele.getAttribute(name);
-//   if (value) {
-//     return value;
-//   }
-//   if (ele.parentElement) {
-//     return getParentAttr(ele.parentElement, name);
-//   }
-//   return "";
-// }
-
-async function createDialog(title: string, children: TagElementProps[]) {
-  // const mainWindow = Zotero.getMainWindow();
-  const dialogData: { [key: string | number]: any } = {
-    inputValue: "test",
-    checkboxValue: true,
-    loadCallback: () => {
-      ztoolkit.log(dialogData, "Dialog Opened!");
-    },
-    unloadCallback: () => {
-      ztoolkit.log(dialogData, "Dialog closed!");
-    },
-  };
-  const dialogHelper = new ztoolkit.Dialog(1, 1)
-    .addCell(0, 0, {
-      tag: "div",
-      classList: ["root"],
-      children: children,
-    })
-    .setDialogData(dialogData)
-    .open(title, {
-      // alwaysRaised: true,
-      left: 120,
-      fitContent: true,
-      resizable: true,
-    });
-
-  await waitFor(() => dialogHelper.window.document.querySelector(".root"));
-  addon.data.exportDialog = dialogHelper;
-  return dialogHelper.window;
-}
 function createSearchAnnContent(
   dialogWindow: Window | undefined,
   popupDiv: HTMLElement | undefined,

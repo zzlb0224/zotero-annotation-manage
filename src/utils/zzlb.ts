@@ -419,8 +419,10 @@ export async function openAnnotation(
   });
   if (!annotationKey) return;
   const tabId = Zotero_Tabs.getTabIDByItemID(item.id);
+  let times = 400;
   getDoc();
   function getDoc() {
+    if (times-- < 0) return;
     const b = Zotero_Tabs.deck.querySelector(
       `[id^=${tabId}].deck-selected browser`,
     ) as any;
@@ -429,11 +431,13 @@ export async function openAnnotation(
     else setTimeout(getDoc, 50);
   }
   function getPdfDoc() {
+    if (times-- < 0) return;
     pdfDoc = doc!.querySelector("iframe")?.contentDocument || undefined;
     if (pdfDoc && pdfDoc.querySelector("div,span")) sidebarItemFocus();
     else setTimeout(getPdfDoc, 50);
   }
   function sidebarItemFocus() {
+    if (times-- < 0) return;
     const sidebarItem = doc!.querySelector(
       `[data-sidebar-annotation-id="${annotationKey}"]`,
     ) as HTMLElement;
@@ -630,15 +634,15 @@ export class CountDown {
   _timeout: NodeJS.Timeout | null = null;
   _start = 0;
   callback: (remainingTime: number) => void;
-  delay: number;
+  interval: number;
   constructor(
     callback: (remainingTime: number) => void,
     ms = 15000,
-    delay = 1000,
+    interval = 1000,
   ) {
     this._total = ms;
     this.callback = callback;
-    this.delay = delay;
+    this.interval = interval;
   }
   start(ms = 15000) {
     this.clear();
@@ -650,7 +654,7 @@ export class CountDown {
       if (_remainingTime < 0) {
         this.clear();
       }
-    }, this.delay);
+    }, this.interval);
   }
   clear() {
     if (this._timeout) {
@@ -805,4 +809,44 @@ export interface AnnotationRes {
   html: string; //convertHtml
 }
 export const regExpDate =
-  /\d{1,2}[\s-]+(?:Jan|January|Feb|February|Mar|March|Apr|April|May|Jul|July|Aug|August|Oct|October|Dec|December)[\s-]+\d{2,4}/;
+  /\d{1,2}[\s-]+(?:Jan|January|Feb|February|Mar|March|Apr|April|May|Jul|July|Aug|August|Oct|October|Dec|December)[\s-]+\d{2,4}/; // function getParentAttr(ele: Element | null, name = "id") {
+//   if (!ele) return "";
+//   const value = ele.getAttribute(name);
+//   if (value) {
+//     return value;
+//   }
+//   if (ele.parentElement) {
+//     return getParentAttr(ele.parentElement, name);
+//   }
+//   return "";
+// }
+export async function createDialog(title: string, children: TagElementProps[]) {
+  // const mainWindow = Zotero.getMainWindow();
+  const dialogData: { [key: string | number]: any } = {
+    inputValue: "test",
+    checkboxValue: true,
+    loadCallback: () => {
+      ztoolkit.log(dialogData, "Dialog Opened!");
+    },
+    unloadCallback: () => {
+      ztoolkit.log(dialogData, "Dialog closed!");
+    },
+  };
+  const dialogHelper = new ztoolkit.Dialog(1, 1)
+    .addCell(0, 0, {
+      tag: "div",
+      classList: ["root"],
+      children: children,
+    })
+    .setDialogData(dialogData)
+    .open(title, {
+      // alwaysRaised: true,
+      left: 120,
+      fitContent: true,
+      resizable: true,
+    });
+
+  await waitFor(() => dialogHelper.window.document.querySelector(".root"));
+  addon.data.exportDialog = dialogHelper;
+  return dialogHelper.window;
+}
