@@ -200,6 +200,8 @@ class AnnotationPopup {
 
         root.style.minWidth = Math.min(width, maxWidth) + "px";
       }
+      const currentPage = this.getCurrentPageDiv();
+      ztoolkit.log("getPage", colorsElement, this.params, currentPage);
       setTimeout(() => {
         this.updateDivStart(root, times - 1);
       }, 50);
@@ -216,6 +218,13 @@ class AnnotationPopup {
     //   await this.updateDiv(root);
     // }, 50);
     this.updateDiv(root);
+  }
+
+  private getCurrentPageDiv() {
+    const pageIndex = this.params?.annotation?.position?.pageIndex || 0;
+    const currentPage =
+      this.getPrimaryViewDoc1()?.querySelectorAll(".page")?.[pageIndex];
+    return currentPage as HTMLDivElement;
   }
 
   private async updateDiv(root: HTMLDivElement) {
@@ -352,12 +361,24 @@ class AnnotationPopup {
     return rootStyle;
   }
   getAnnotationPositionLeft() {
+    const page = this.getCurrentPageDiv();
+    const rotation = page.querySelector(
+      '.textLayer[data-main-rotation="90"],.textLayer[data-main-rotation="270"]',
+    )
+      ? 1
+      : 0;
     const rects = this.params?.annotation?.position?.rects || [];
-    return Math.min(...rects.map((a) => a[0]));
+    return Math.min(...rects.map((a) => a[0 + rotation]));
   }
   getAnnotationPositionRight() {
+    const page = this.getCurrentPageDiv();
+    const rotation = page.querySelector(
+      '.textLayer[data-main-rotation="90"],.textLayer[data-main-rotation="270"]',
+    )
+      ? 1
+      : 0;
     const rects = this.params?.annotation?.position?.rects || [];
-    return Math.max(...rects.map((a) => a[2]));
+    return Math.max(...rects.map((a) => a[2 + rotation]));
   }
   getSelectTextMaxWidth() {
     const clientWidthWithSlider = this.getClientWidthWithSlider();
@@ -1133,9 +1154,11 @@ class AnnotationPopup {
     return this.doc?.querySelector("body,div,hbox,vbox")?.clientWidth || 0;
   }
   getPageLeft() {
-    const page = (this.getPrimaryViewDoc1()?.querySelector(
-      "#viewer .page",
-    ) as HTMLElement)!;
+    // const page = (this.getPrimaryViewDoc1()?.querySelector(
+    //   "#viewer .page",
+    // ) as HTMLElement)!;
+    const page = this.getCurrentPageDiv();
+    if (!page) return 0;
     let pageLeft = page.offsetLeft || 0;
     pageLeft -= (this.getPrimaryViewDoc1()?.querySelector(
       "#viewerContainer",
