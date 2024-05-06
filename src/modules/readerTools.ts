@@ -323,7 +323,7 @@ async function createRelatedContent(
                       e.stopPropagation();
                       ztoolkit.log("点击", e, e.clientX, e.target);
                       const d = showTitle(anTo, e.clientX, e.clientY, content);
-                      new Timer(() => d.remove()).startTimer(3000);
+                      // new Timer(() => d.remove()).startTimer(500);
                     },
                     options: { capture: true },
                   },
@@ -332,7 +332,7 @@ async function createRelatedContent(
                     listener: (e: any) => {
                       ztoolkit.log("鼠标进入", e, e.clientX, e.target);
                       const d = showTitle(anTo, e.clientX, e.clientY, content);
-                      new Timer(() => d.remove()).startTimer(3000);
+                      new Timer(() => d.remove()).startTimer(500);
                     },
                   },
                 ],
