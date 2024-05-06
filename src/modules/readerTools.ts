@@ -332,7 +332,7 @@ async function createRelatedContent(
                     listener: (e: any) => {
                       ztoolkit.log("鼠标进入", e, e.clientX, e.target);
                       const d = showTitle(anTo, e.clientX, e.clientY, content);
-                      new Timer(() => d.remove()).startTimer(500);
+                      // new Timer(() => d.remove()).startTimer(500);
                     },
                   },
                 ],
@@ -444,7 +444,7 @@ export function showTitle(
   x: number,
   y: number,
   parent: HTMLElement,
-  ms: number = 3000,
+  ms: number = 500,
 ) {
   const d = ztoolkit.UI.appendElement(
     {
