@@ -62,6 +62,7 @@ function renderSidebarAnnotationHeaderCallback(
   const userActions: HTMLElement[] = [];
 
   const add = ztoolkit.UI.createElement(doc, "span", {
+    namespace: "html",
     id: `renderSidebarAnnotationHeader-add-${params.annotation.id}`,
     properties: { textContent: "🧷", title: "添加双链" },
     classList: ["zotero-annotation-manage-red"],
@@ -118,6 +119,7 @@ function renderSidebarAnnotationHeaderCallback(
   // ztoolkit.log("userActions1", userActions);
   if (linkAnnotations && linkAnnotations.length > 0) {
     const u = ztoolkit.UI.createElement(doc, "span", {
+      namespace: "html",
       id:
         config.addonRef +
         `renderSidebarAnnotationHeader-link-${params.annotation.id}`,
@@ -278,6 +280,7 @@ async function createRelatedContent(
     const u2 = ztoolkit.UI.appendElement(
       {
         tag: "div",
+        namespace: "html",
         styles: {
           padding: "5px",
           marginRight: "20px",
@@ -312,6 +315,7 @@ async function createRelatedContent(
               },
               {
                 tag: "span",
+                namespace: "html",
                 styles: {},
                 properties: {
                   textContent: `${type}:${anTo.parentItem?.parentItem?.getField("firstCreator")},${anTo.parentItem?.parentItem?.getField("year")}`,
@@ -349,6 +353,7 @@ async function createRelatedContent(
               // },
               {
                 tag: "div",
+                namespace: "html",
                 styles: {
                   color: "red",
                   fontSize: "1.5em",
@@ -433,6 +438,7 @@ async function createRelatedContent(
   ztoolkit.UI.appendElement(
     {
       tag: "span",
+      namespace: "html",
       classList: ["loaded"],
     },
     content,
@@ -449,6 +455,7 @@ export function showTitle(
   const d = ztoolkit.UI.appendElement(
     {
       tag: "span",
+      namespace: "html",
       id: config.addonRef + `-annotation-show-title`,
       removeIfExists: true,
       properties: {
