@@ -29,14 +29,16 @@ function register() {
   // ztoolkit.UI.basicOptions.log.disableZLog = true;
   // ztoolkit.log("Annotations register");
 
-  if (!getPref("hide-in-selection-popup")) {
+  // if (!getPref("hide-in-selection-popup"))
+  {
     Zotero.Reader.registerEventListener(
       "renderTextSelectionPopup",
       renderTextSelectionPopup,
     );
   }
 
-  if (!getPref("hide-in-annotation-context-menu")) {
+  // if (!getPref("hide-in-annotation-context-menu"))
+  {
     Zotero.Reader.registerEventListener(
       "createAnnotationContextMenu",
       createAnnotationContextMenu,
@@ -1201,6 +1203,9 @@ function renderTextSelectionPopup(
   event: _ZoteroTypes.Reader.EventParams<"renderTextSelectionPopup">,
 ) {
   const { append, reader, doc, params } = event;
+  if (getPref("hide-in-selection-popup")) {
+    return;
+  }
   const ap = new AnnotationPopup(reader, params);
   // addon.data.test = ap;
   const div = ap.rootDiv;
@@ -1213,6 +1218,9 @@ function createAnnotationContextMenu(
   event: _ZoteroTypes.Reader.EventParams<"createAnnotationContextMenu">,
 ) {
   const { reader, params, append } = event;
+  if (getPref("hide-in-annotation-context-menu")) {
+    return;
+  }
   const doc = reader?._iframeWindow?.document;
   if (!doc) return;
   //这里不能用异步

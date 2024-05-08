@@ -2,6 +2,7 @@ import { config, homepage } from "../../package.json";
 import { getString } from "../utils/locale";
 import { getPref, setPref } from "../utils/prefs";
 import { sortModified } from "../utils/sort";
+import Annotations from "./annotations";
 
 import { getNewColor, getRandomColor } from "../utils/color";
 import {
@@ -261,6 +262,20 @@ function bindPrefEvents() {
     .querySelector(`#zotero-prefpane-${config.addonRef}-enable`)
     ?.addEventListener("command", (e) => {
       // ztoolkit.log(e, getPref("tags"));
+    });
+
+  doc
+    .querySelector(
+      `#zotero-prefpane-${config.addonRef}-hide-in-selection-popup`,
+    )
+    ?.addEventListener("command", (e) => {
+      const checked = (e.target as HTMLInputElement).checked;
+      // ztoolkit.log(e, getPref("tags"));
+      if (!checked) {
+        // Annotations.unregister()
+      } else {
+        // Annotations.register()
+      }
     });
   const eFixedTagsColors = doc.querySelector(
     `#zotero-prefpane-${config.addonRef}-fixed-tags-colors`,
