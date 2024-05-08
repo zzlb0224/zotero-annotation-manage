@@ -108,7 +108,7 @@ function replaceColorTagsElement(doc: Document) {
 function initOptionalColorLabel(doc: Document) {
   const label = doc.getElementById(
     `zotero-prefpane-${config.addonRef}-optional-color`,
-  );
+  ) as HTMLElement;
   if (label) {
     label.style.background = memOptionalColor();
   }

@@ -216,7 +216,7 @@ async function createRelatedPopupDiv(readerDoc: Document, anKey: string) {
 function getFromEleLeftTop(readerDoc: Document, anKey: string) {
   const fromEle = readerDoc.getElementById(
     config.addonRef + `renderSidebarAnnotationHeader-link-${anKey}`,
-  )!;
+  ) as HTMLElement;
   const left = fromEle.offsetLeft + 25;
   const sliderAnnotations = readerDoc.getElementById("annotations");
   const scrollTop = sliderAnnotations?.scrollTop || 0;
