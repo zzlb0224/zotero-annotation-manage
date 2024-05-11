@@ -1352,7 +1352,8 @@ async function createChooseTagsDiv(
               listener: (ev: Event) => {
                 stopPropagation(ev);
                 const tp = toggleProperty(
-                  (document.getElementById(idTags) as HTMLElement | undefined)?.style,
+                  (document.getElementById(idTags) as HTMLElement | undefined)
+                    ?.style,
                   "display",
                   ["none", "flex"],
                 );

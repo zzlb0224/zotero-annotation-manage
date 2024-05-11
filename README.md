@@ -74,6 +74,14 @@
 双链浏览功能能在不同的pdf之间跳转，我觉得非常有用。于是就实现了它。
 ![动画演示](doc/3双链操作.gif)
 
+### 第四个功能 高亮显示特定单词
+
+有的时候想让特定单词进行高亮显示，能一眼找到，那么你就需要这个功能。**为了性能，只渲染当前页**
+
+点T，把需要的单词放里面。
+
+![高亮显示特定单词](doc/4高亮显示特定单词.png)
+
 ## 感谢
 
 本插件基于[@windingwind](https://github.com/windingwind)的[zotero-plugin-template](https://github.com/windingwind/zotero-plugin-template)开发，在此表示感谢。

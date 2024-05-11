@@ -47,23 +47,21 @@ export function waitUtilAsync(
   });
 }
 export function waitFor<T>(
-  callback: () => T,
+  checkAndReturn: () => T,
   timeout = 100000,
   interval = 100,
 ): Promise<T | false> {
   return new Promise((resolve, reject) => {
     const startTime = Date.now();
-    function checkElement() {
-      const c = callback();
+    const intervalId = setInterval(() => {
+      const c = checkAndReturn();
       if (c) {
         clearInterval(intervalId);
         resolve(c);
       } else if (Date.now() - startTime > timeout) {
         clearInterval(intervalId);
-        resolve(false);
-        // reject(new Error(`未完成`));
+        resolve(false); //只需要成功
       }
-    }
-    const intervalId = setInterval(checkElement, interval);
+    }, interval);
   });
 }
