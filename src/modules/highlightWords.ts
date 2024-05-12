@@ -97,9 +97,11 @@ class HighlightWords {
 }
 const highlightWords = new HighlightWords();
 async function addCss(doc: Document) {
-  const fileCss = await getFileContent(`chrome://${config.addonRef}/content/highlightWords.css`)
-  ztoolkit.log("ooo", [readerButtonCSS, fileCss])
-  injectCSS(doc, "highlightWords.css")
+  const fileCss = await getFileContent(
+    `chrome://${config.addonRef}/content/highlightWords.css`,
+  );
+  ztoolkit.log("ooo", [readerButtonCSS, fileCss]);
+  injectCSS(doc, "highlightWords.css");
 }
 function readerToolbarCallback(
   event: Parameters<_ZoteroTypes.Reader.EventHandler<"renderToolbar">>[0],
