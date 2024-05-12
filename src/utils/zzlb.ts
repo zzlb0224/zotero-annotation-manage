@@ -291,12 +291,12 @@ const memAllTagsInLibraryAsync = memoize(async () => {
     );
   const itemTags = getPref("item-tags")
     ? items.flatMap((f) =>
-        f.getTags().map((a) => ({
-          tag: a.tag,
-          type: a.type,
-          dateModified: f.dateModified,
-        })),
-      )
+      f.getTags().map((a) => ({
+        tag: a.tag,
+        type: a.type,
+        dateModified: f.dateModified,
+      })),
+    )
     : [];
   return groupBy([...tags, ...itemTags], (t14) => t14.tag);
 });
@@ -397,9 +397,9 @@ export function getItem(itemOrKeyOrId: Zotero.Item | string | number) {
     ? Zotero.Items.get(itemOrKeyOrId)
     : typeof itemOrKeyOrId == "string"
       ? (Zotero.Items.getByLibraryAndKey(
-          Zotero.Libraries.userLibraryID,
-          itemOrKeyOrId,
-        ) as Zotero.Item)
+        Zotero.Libraries.userLibraryID,
+        itemOrKeyOrId,
+      ) as Zotero.Item)
       : itemOrKeyOrId;
 }
 export async function openAnnotation(
@@ -459,7 +459,7 @@ export async function loadSVG(
 
   const d = ztoolkit.UI.createElement(doc, "div", {
     properties: {
-      innerHTML: getFileContent(href),
+      innerHTML: await getFileContent(href),
     },
   });
 
@@ -468,7 +468,7 @@ export async function loadSVG(
 }
 
 export async function injectCSS(
-  doc: Document,
+  doc: Document | HTMLDivElement,
   filename: string = "annotation.css",
 ) {
   const href = `chrome://${config.addonRef}/content/${filename}`;
@@ -484,19 +484,24 @@ export async function injectCSS(
       ignoreIfExists: true,
     },
     doc.querySelector("linkset") ||
-      doc.querySelector("head") ||
-      doc.querySelector("body") ||
-      doc.querySelector("div") ||
-      doc.children[0],
+    doc.querySelector("head") ||
+    doc.querySelector("body") ||
+    doc.querySelector("div") ||
+    doc.children[0] ||
+    doc
   );
   // ztoolkit.log("加载css", d);
 }
 export async function getFileContent(path: string): Promise<string> {
-  const contentOrXHR = await Zotero.HTTP.request("GET", path);
+  const contentOrXHR = await Zotero.HTTP.request("GET", path,
+    {
+      headers: { "Content-Type": "text/plain" }, responseType: "text"
+    });
   const content =
     typeof contentOrXHR === "string"
       ? contentOrXHR
       : (contentOrXHR as any as XMLHttpRequest).response;
+  ztoolkit.log(path, content)
   return content;
 }
 export function createTopDiv(
@@ -557,9 +562,9 @@ export function createTopDiv(
       ],
     },
     doc.querySelector("#browser") ||
-      doc.querySelector("body") ||
-      doc.children[0] ||
-      doc,
+    doc.querySelector("body") ||
+    doc.children[0] ||
+    doc,
   ) as HTMLDivElement;
 
   const modal = ztoolkit.UI.appendElement(

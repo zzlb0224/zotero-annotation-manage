@@ -2,6 +2,7 @@ import { config } from "../../package.json";
 import {
   Timer,
   createTopDiv,
+  getFileContent,
   getItem,
   injectCSS,
   memFixedTagColors,
@@ -95,7 +96,11 @@ class HighlightWords {
   }
 }
 const highlightWords = new HighlightWords();
-
+async function addCss(doc: Document) {
+  const fileCss = await getFileContent(`chrome://${config.addonRef}/content/highlightWords.css`)
+  ztoolkit.log("ooo", [readerButtonCSS, fileCss])
+  injectCSS(doc, "highlightWords.css")
+}
 function readerToolbarCallback(
   event: Parameters<_ZoteroTypes.Reader.EventHandler<"renderToolbar">>[0],
 ) {
@@ -103,6 +108,25 @@ function readerToolbarCallback(
   if (doc.getElementById(`${config.addonRef}-search-button`)) return;
   const root =
     doc.querySelector("body") || (doc.querySelector("div") as HTMLElement);
+  // ztoolkit.UI.appendElement({
+  //   tag: "linkset",
+  //   children: [
+
+  //     {
+  //       tag: "link",
+  //       namespace: "html",
+  //       properties: {
+  //         rel: "stylesheet",
+  //         type: "text/css",
+  //         href: `chrome://${config.addonRef}/content/highlightWords.css`,
+  //       },
+  //     },
+  //   ]
+  // },
+  //   root,
+  // );
+  //<link rel="stylesheet" type="text/css" href="https://cdn.sstatic.net/Shared/stacks.css?v=5017f4b5c9a3">
+
   ztoolkit.UI.appendElement(
     {
       tag: "style",
@@ -267,12 +291,12 @@ function readerToolbarCallback(
         id: `${config.addonRef}-search-button-pop`,
         properties: { placeholder: "一行一个单词" },
         styles: {
-          position: "fixed",
           // left: div.offsetLeft - 300 + "px",
           right: "10px",
           // right: "300px",
           top: div.offsetTop + div.offsetHeight + 5 + "px",
           // top: "0px",
+          position: "fixed",
           zIndex: "9999",
           minWidth: "280px",
           background: "#ddd",
