@@ -157,12 +157,16 @@ function readerToolbarCallback(
 
     setTimeout(() => {
       running = false;
-      if (onceMore) search();
+      if (onceMore) {
+        onceMore = false;
+        search();
+      }
     }, 1000);
   }
   function getFormatStr() {
     const ss = uniqueBy(
       searchText
+        .toLowerCase()
         .split("\n")
         .filter((f) => f)
         .filter((f) => f != " "),
@@ -172,18 +176,28 @@ function readerToolbarCallback(
       `(?:${ss.map((a) => a.replace(/[|]/g, ".")).join("|")})`,
       "ig",
     );
-    const rs = ss.map((s) => new RegExp(s, "ig"));
+    //RegExp类中test()方法结果不固定 不带g就好了，或者改r.lastIndex=0
+    const rs = ss.map((s) => new RegExp(s, "i"));
     const getColor = (str: string) => {
       for (let index = 0; index < rs.length; index++) {
         const r = rs[index];
-        if (r.test(str)) {
-          return colors[index] || "rgba(180, 0, 170, 1)";
+        const find = r.test(str);
+        // ztoolkit.log("find", str, r, index, find, `${r}.test("${str}")`, r.test(str))
+        if (find) {
+          const color = colors[index] || "rgba(180, 0, 170, 1)";
+          // ztoolkit.log("找到", r, index, str, colors[index], color, colors)
+          return color;
         }
+        ztoolkit.log("find", str, r, index, find, `${r}.test("${str}")`);
       }
+      // ztoolkit.log("未找到", [str], rs, rs.map((a) => a.test(str)))
       return "rgba(180, 0, 170, 1)";
     };
-    const getSpan = (a: string) =>
-      `<span style='background:${getColor(a)};box-shadow: 0 0 10px rgba(180, 0, 170, 1);box-sizing: content-box;border: 2px solid #fff;'>${a}</span>`;
+    const getSpan = (a: string) => {
+      const color = getColor(a);
+      // ztoolkit.log("颜色匹配", a, color)
+      return `<span style='background:${color};box-shadow: 0 0 10px rgba(180, 0, 170, 1);box-sizing: content-box;border: 2px solid #fff;'>${a}</span>`;
+    };
     return { ss, ssr, getColor, getSpan };
   }
 
@@ -427,6 +441,7 @@ function readerToolbarCallback(
     showHighlightIndex();
   }
   function showHighlightIndex() {
+    highlightWords.save();
     popDiv!.querySelector(
       `#${config.addonRef}-search-button-highlightIndex`,
     )!.textContent = `${highlightIndex + 1}/${highlightWords.words.length}`;
