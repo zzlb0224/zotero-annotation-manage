@@ -172,10 +172,11 @@ function readerToolbarCallback(
           (span as HTMLSpanElement).style.transform = "";
         }
       } else {
-        // if (span.getAttribute("data-transform")) {
-        //   (span as HTMLSpanElement).style.transform = span.getAttribute("data-transform") || ""
-        //   span.setAttribute("data-transform", "");
-        // }
+        const transform = span.getAttribute("data-transform") || ""
+        if (transform) {
+          (span as HTMLSpanElement).style.transform = transform
+          span.setAttribute("data-transform", "");
+        }
       }
 
       span.innerHTML = txt;
@@ -230,7 +231,12 @@ function readerToolbarCallback(
   function clearSearch() {
     for (const span of pdfDoc.querySelectorAll("span[role=presentation]")) {
       const html = span.getAttribute("data-text");
-      if (html) span.textContent = html;
+      if (html) { span.textContent = html; }
+      const transform = span.getAttribute("data-transform") || ""
+      if (transform) {
+        (span as HTMLSpanElement).style.transform = span.getAttribute("data-transform") || ""
+        span.setAttribute("data-transform", "");
+      }
     }
   }
 
