@@ -64,7 +64,6 @@ const readerButtonCSS = `
 class HighlightWords {
   words: string[] = [];
   index = 0;
-
   constructor() {
     this.load();
   }
@@ -108,27 +107,9 @@ function readerToolbarCallback(
 ) {
   const { append, doc, reader, params } = event;
   if (doc.getElementById(`${config.addonRef}-search-button`)) return;
+
   const root =
     doc.querySelector("body") || (doc.querySelector("div") as HTMLElement);
-  // ztoolkit.UI.appendElement({
-  //   tag: "linkset",
-  //   children: [
-
-  //     {
-  //       tag: "link",
-  //       namespace: "html",
-  //       properties: {
-  //         rel: "stylesheet",
-  //         type: "text/css",
-  //         href: `chrome://${config.addonRef}/content/highlightWords.css`,
-  //       },
-  //     },
-  //   ]
-  // },
-  //   root,
-  // );
-  //<link rel="stylesheet" type="text/css" href="https://cdn.sstatic.net/Shared/stacks.css?v=5017f4b5c9a3">
-
   ztoolkit.UI.appendElement(
     {
       tag: "style",
@@ -142,9 +123,15 @@ function readerToolbarCallback(
   let searchText = highlightWords.get();
   let highlightIndex = highlightWords.index;
   const throttleSearch = Zotero.Utilities.throttle(() => {
-    ztoolkit.log("滚动2");
+    ztoolkit.log("throttleSearch");
     search();
-  }, 1000);
+  }, 2000);
+
+  const debounceSearch = Zotero.Utilities.debounce(() => {
+    ztoolkit.log("debounceSearch");
+    search();
+  }, 500);
+  // const debounceSearch = search, throttleSearch = debounceSearch;
   let pdfDoc = reader?._iframe?.contentDocument?.querySelector("iframe")
     ?.contentDocument as Document;
   let running = false;
@@ -155,7 +142,7 @@ function readerToolbarCallback(
 
   function search() {
     if (!popDiv) return;
-
+    // ztoolkit.log("search", searchText)
     if (running) {
       onceMore = true;
       return;
@@ -166,19 +153,32 @@ function readerToolbarCallback(
 
     for (const span of pdfDoc.querySelectorAll("span[role=presentation]")) {
       if (span.screenY < -height || span.screenY > height * 2) continue;
-      let html = span.getAttribute("data-text");
-      if (!html) {
-        html = span.textContent;
-        if (html) {
-          span.setAttribute("data-text", html);
+      let txt = span.getAttribute("data-text");
+      if (!txt) {
+        txt = span.textContent;
+        if (txt) {
+          span.setAttribute("data-text", txt);
         }
       }
-      if (!html) continue;
+      if (!txt) continue;
       if (ss.length > 0) {
-        html = html.replace(ssr, getSpan);
+        txt = txt.replace(ssr, getSpan);
+        if (!span.getAttribute("data-transform")) {
+          //The text offset problem is improved after removing the transform for each line.
+          span.setAttribute(
+            "data-transform",
+            (span as HTMLSpanElement).style.transform,
+          );
+          (span as HTMLSpanElement).style.transform = "";
+        }
+      } else {
+        // if (span.getAttribute("data-transform")) {
+        //   (span as HTMLSpanElement).style.transform = span.getAttribute("data-transform") || ""
+        //   span.setAttribute("data-transform", "");
+        // }
       }
 
-      span.innerHTML = html;
+      span.innerHTML = txt;
     }
 
     setTimeout(() => {
@@ -187,7 +187,7 @@ function readerToolbarCallback(
         onceMore = false;
         search();
       }
-    }, 1000);
+    }, 2000);
   }
   function getFormatStr() {
     const ss = uniqueBy(
@@ -222,7 +222,7 @@ function readerToolbarCallback(
     const getSpan = (a: string) => {
       const color = getColor(a);
       // ztoolkit.log("颜色匹配", a, color)
-      return `<span style='background:${color};box-shadow: 0 0 10px rgba(180, 0, 170, 1);box-sizing: content-box;border: 2px solid #fff;'>${a}</span>`;
+      return `<span style='background:${color};box-shadow: 0 0 10px rgba(180, 0, 170, 1);box-sizing: content-box;border: 2px solid #fff;padding: 0px 5px;'>${a}</span>`;
     };
     return { ss, ssr, getColor, getSpan };
   }
@@ -233,8 +233,6 @@ function readerToolbarCallback(
       if (html) span.textContent = html;
     }
   }
-
-  const debounceSearch = Zotero.Utilities.debounce(search, 300);
 
   const btn = ztoolkit.UI.createElement(doc, "div", {
     namespace: "html",
@@ -268,14 +266,13 @@ function readerToolbarCallback(
             popDiv = undefined;
             pdfDoc
               .querySelector("#viewerContainer")
-              ?.removeEventListener("scroll", debounceSearch);
+              ?.removeEventListener("scroll", () => throttleSearch());
             clearSearch();
           } else {
             pdfDoc
               .querySelector("#viewerContainer")
-              ?.addEventListener("scroll", debounceSearch);
+              ?.addEventListener("scroll", () => throttleSearch());
             div.style.background = "#ddd";
-            searchText = (getPref("search-words") as string) || "";
             debounceSearch();
             createPopDiv(div);
           }
@@ -294,8 +291,8 @@ function readerToolbarCallback(
         properties: { placeholder: "一行一个单词" },
         styles: {
           // left: div.offsetLeft - 300 + "px",
-          right: "10px",
-          // right: "300px",
+          // right: "10px",
+          right: "300px",
           top: div.offsetTop + div.offsetHeight + 5 + "px",
           // top: "0px",
           position: "fixed",
@@ -416,6 +413,16 @@ function readerToolbarCallback(
                 listener: (ev: Event) => {
                   ev.stopPropagation;
                   const ta = ev.target as HTMLTextAreaElement;
+                  const index = highlightWords.words.findIndex(
+                    (f) => f == searchText,
+                  );
+                  if (index == -1) {
+                    //已删除，增加到最后
+                    highlightIndex = highlightWords.words.length;
+                  } else {
+                    //
+                    highlightIndex = index;
+                  }
                   searchText = ta.value;
                   highlightWords.set(searchText, highlightIndex);
                   highlightWords.save();
