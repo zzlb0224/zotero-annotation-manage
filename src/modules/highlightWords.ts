@@ -16,6 +16,12 @@ import { getPref, setPref } from "../utils/prefs";
 import { compare } from "../utils/sort";
 import { col } from "../utils/action-col";
 import { text, timeout } from "d3";
+//@ts-ignore 111
+// const { Services } = ChromeUtils.import("resource://gre/modules/Services.jsm");
+// const pdfjsLib = require("resource://zotero/reader/pdf/build/pdf.js");
+// Services.scriptloader.loadSubScript("resource://zotero/reader/pdf/build/pdf.js");
+// 获取pdf.js 然后后台打开一个，查找位置，记录这些位置，在本地呈现。或许需要npm一个
+
 
 function register() {
   Zotero.Reader.registerEventListener(
@@ -290,6 +296,43 @@ function readerToolbarCallback(
     ],
   });
   append(btn);
+
+  const btn2 = ztoolkit.UI.createElement(doc, "div", {
+    namespace: "html",
+    id: `${config.addonRef}-search-button`,
+    classList: [
+      "toolbarButton",
+      "toolbar-button",
+      `${config.addonRef}-search-button`,
+    ],
+    properties: {
+      tabIndex: -1,
+      title: "高亮",
+    },
+    listeners: [
+      {
+        type: "click",
+        listener: (ev: Event) => {
+
+          Zotero.rrrreader = reader
+          Zotero.rrrdoc = doc
+
+          if (!pdfjsLib.getDocument || !pdfjsViewer.PDFViewer) {
+            // eslint-disable-next-line no-alert
+            alert("Please build the pdfjs-dist library using\n  `gulp dist-install`");
+          }
+
+
+          ztoolkit.log("click2", ev);
+
+          pdfDoc = reader?._iframe?.contentDocument?.querySelector("iframe")
+            ?.contentDocument as Document;
+
+        },
+      },
+    ],
+  });
+  append(btn2);
   let textArea: HTMLTextAreaElement;
   let show: HTMLDivElement;
   function createPopDiv(div: HTMLElement) {
