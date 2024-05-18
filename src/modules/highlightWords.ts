@@ -16,12 +16,24 @@ import { getPref, setPref } from "../utils/prefs";
 import { compare } from "../utils/sort";
 import { col } from "../utils/action-col";
 import { text, timeout } from "d3";
-//@ts-ignore 111
+// import * as PdfJs from 'pdfjs-dist/legacy/build/pdf.mjs' // 'pdfjs-dist/legacy/build/pdf.js'
+// PdfJs.getDocument
+
+// let pdfjsLib;
+// if (typeof window !== "undefined" && window["pdfjs-dist/build/pdf"]) {
+//   pdfjsLib = window["pdfjs-dist/build/pdf"];
+// }
+
 // const { Services } = ChromeUtils.import("resource://gre/modules/Services.jsm");
 // const pdfjsLib = require("resource://zotero/reader/pdf/build/pdf.js");
 // Services.scriptloader.loadSubScript("resource://zotero/reader/pdf/build/pdf.js");
 // 获取pdf.js 然后后台打开一个，查找位置，记录这些位置，在本地呈现。或许需要npm一个
+(async () => {
+  // const pdfjs = await import('pdfjs-dist')
+  // ztoolkit.log("getDocument", pdfjs.getDocument)
+})();
 
+// ztoolkit.log("getDocument", PdfJs.getDocument)
 
 function register() {
   Zotero.Reader.registerEventListener(
@@ -29,6 +41,12 @@ function register() {
     readerToolbarCallback,
     config.addonID,
   );
+
+  // const { pdfjsLib } = ztoolkit.getGlobal("globalThis")
+  // if (pdfjsLib && pdfjsLib.GlobalWorkerOptions) {
+  //   pdfjsLib.GlobalWorkerOptions.workerSrc = '//mozilla.github.io/pdf.js/build/pdf.worker.mjs';
+  // }
+  // Zotero.log("getDocument", pdfjsLib.getDocument)
 }
 function unregister() {
   Zotero.Reader.unregisterEventListener("renderToolbar", readerToolbarCallback);
@@ -297,6 +315,9 @@ function readerToolbarCallback(
   });
   append(btn);
 
+  // setTimeout(() => {
+  //   qqqq();
+  // }, 3000)
   const btn2 = ztoolkit.UI.createElement(doc, "div", {
     namespace: "html",
     id: `${config.addonRef}-search-button`,
@@ -313,28 +334,75 @@ function readerToolbarCallback(
       {
         type: "click",
         listener: (ev: Event) => {
-
-          Zotero.rrrreader = reader
-          Zotero.rrrdoc = doc
-
-          if (!pdfjsLib.getDocument || !pdfjsViewer.PDFViewer) {
-            // eslint-disable-next-line no-alert
-            alert("Please build the pdfjs-dist library using\n  `gulp dist-install`");
-          }
-
-
-          ztoolkit.log("click2", ev);
-
-          pdfDoc = reader?._iframe?.contentDocument?.querySelector("iframe")
-            ?.contentDocument as Document;
-
+          qqqq();
         },
       },
     ],
   });
-  append(btn2);
+  // append(btn2);
   let textArea: HTMLTextAreaElement;
   let show: HTMLDivElement;
+
+  function qqqq() {
+    const win = doc.querySelector("iframe")?.contentWindow;
+    if (win) {
+      Zotero.r_win = win;
+      Zotero.r_reader = reader;
+      Zotero.r_doc = doc;
+      // win.setFindState()
+      //const win =Zotero.r_win;
+      // (async function () {
+      //   const win = Zotero.r_win;
+      //   const findController = win.PDFViewerApplication.findController
+      //   for (const page of win.PDFViewerApplication.pdfViewer._pages) {
+      //     if (page.renderingState == 0) {
+      //       await page.draw()
+      //     }
+      //     win.PDFViewerApplication.findController._eventBus.dispatch("updatetextlayermatches", {
+      //       source: win,
+      //       pageIndex: page.pdfPage._pageIndex,
+      //     });
+      //     while (Zotero.r_win.PDFViewerApplication.pdfViewer.nextPage()) {
+      //       const pageNumber = Zotero.r_win.PDFViewerApplication.pdfViewer.currentPageNumber
+      //       await waitUtilAsync(() => win.PDFViewerApplication.pdfViewer._pages[])
+      //     }
+      //     const highlighter = page._textHighlighter
+      //     highlighter.textContentItemsStr = page.textLayer.textContentItemsStr
+      //     const pageIdx = page.pdfPage._pageIndex
+      //     const pageMatches = findController.pageMatches[pageIdx] || null;
+      //     const pageMatchesLength = findController.pageMatchesLength[pageIdx] || null;
+
+      //     // highlighter.matches = highlighter._convertMatches(pageMatches, pageMatchesLength);
+      //     Zotero.log([pageMatches, pageMatchesLength])
+
+      //   }
+      //   Zotero.log(win.PDFViewerApplication.pdfViewer._pages.map(a => a._textHighlighter.matches?.length))
+      // })()
+      reader._state.primaryViewFindState.query = "and";
+      reader._state.primaryViewFindState.popupOpen = true;
+      reader._state.primaryViewFindState.active = true;
+
+      // reader.toggleFindPopup();
+      ztoolkit.log(reader._state.primaryViewFindState);
+      // const input = (doc.querySelector(".find-popup .toolbar-text-input") as HTMLInputElement)
+      // if (input)
+      //   input.value = "of";
+      reader.findNext(true);
+
+      ztoolkit.log("findNext1", win.document.querySelectorAll(".highlight"));
+      reader.findPrevious(true);
+      reader.findPrevious(true);
+
+      ztoolkit.log("findNext2", win.document.querySelectorAll(".highlight"));
+      // win.PDFViewerApplication.
+      // win.PDFViewerApplication.eventBus.dispatch('find', {
+      //   type: 'again',
+      //   query: "and",
+      //   highlightAll: true,
+      // });
+    }
+  }
+
   function createPopDiv(div: HTMLElement) {
     popDiv = ztoolkit.UI.appendElement(
       {

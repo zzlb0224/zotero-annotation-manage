@@ -111,6 +111,14 @@ async function onMainWindowLoad(win: Window): Promise<void> {
   // window.addEventListener("unhandledrejection", (event) => {
   //   ztoolkit.log(event.reason, event);
   // });
+
+  // Zotero.log("Zotero.pdfjsLib", Zotero.pdfjsLib)
+  // if (!Zotero.pdfjsLib) {
+  //   //@ts-ignore 111
+  //   const pdfjsLib = ChromeUtils.import("resource://zotero/reader/pdf/build/pdf.js")
+  //   Zotero.log("getDocument", pdfjsLib.getDocument)
+  //   Zotero.pdfjsLib = pdfjsLib
+  // }
 }
 
 async function onMainWindowUnload(win: Window): Promise<void> {

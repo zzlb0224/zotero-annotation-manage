@@ -257,12 +257,92 @@ function buildMenu(collectionOrItem: "collection" | "item") {
         label: "按tag导出",
         icon: iconBaseUrl + "favicon.png",
         popupId: `${config.addonRef}-create-note-tag-popup-${collectionOrItem}`,
-        onpopupshowing: `Zotero.${config.addonInstance}.hooks.onMenuEvent("annotationToNoteTags", { window,type:"collection" })`,
+        onpopupshowing: `Zotero.${config.addonInstance}.hooks.onMenuEvent("annotationToNoteTags", { window,type:"${collectionOrItem}" })`,
       },
     ],
   };
   return menu;
 }
+
+export async function createPopMenu(
+  win: Window,
+  collectionOrItem: "collection" | "item" = "collection",
+) {
+  const doc = win.document;
+  const popup = doc.querySelector(
+    `#${config.addonRef}-create-note-tag-popup-${collectionOrItem}`,
+  ) as XUL.MenuPopup;
+  // Remove all children in popup
+  while (popup?.firstChild) {
+    popup.removeChild(popup.firstChild);
+  }
+  // const id = getParentAttr(popup, "id");
+  // const isc = id?.includes("collection");
+  // ztoolkit.log("id", id);
+
+  const ans = getAllAnnotations(
+    await getSelectedItems(collectionOrItem),
+  ).flatMap((a) => a.tags.map((t2) => Object.assign({}, a, { tag: t2 })));
+  const tags = groupBy(ans, (an) => an.tag.tag)
+    .sort(sortFixedTags10ValuesLength)
+    .slice(0, 20);
+  const maxLen = Math.max(...tags.map((a) => a.values.length));
+
+  // Add new children
+  let elemProp: TagElementProps;
+  // const tags =memFixedTags()
+  if (tags.length === 0) {
+    elemProp = {
+      tag: "menuitem",
+      properties: {
+        label: "没有标签",
+      },
+      attributes: {
+        disabled: true,
+      },
+    };
+  } else {
+    elemProp = {
+      tag: "fragment",
+      children: tags.map((tag) => {
+        const color = memFixedColor(tag.key);
+        //取对数可以保留差异比较大的值
+        const pre = (
+          100 -
+          (Math.log(tag.values.length) / Math.log(maxLen)) * 100
+        ).toFixed();
+        return {
+          tag: "menuitem",
+          icon: iconBaseUrl + "favicon.png",
+          styles: {
+            background: `linear-gradient(to left, ${color},  #fff ${pre}%, ${color} ${pre}%)`,
+          },
+          properties: {
+            label: `${tag.key}[${tag.values.length}]`,
+          },
+          // children:[{tag:"div",styles:{height:"2px",background:memFixedColor(tag.key),width:`${tag.values.length/maxLen*100}%`}}],
+          listeners: [
+            {
+              type: "command",
+              listener: (event: any) => {
+                stopPropagation(event);
+                exportSingleNote(tag.key, collectionOrItem);
+              },
+            },
+          ],
+        };
+      }),
+    };
+  }
+  ztoolkit.UI.appendElement(elemProp, popup);
+}
+
+const ID = {
+  root: `${config.addonRef}-ann2note-ChooseTags-root`,
+  action: `${config.addonRef}-ann2note-ChooseTags-root-action`,
+  input: `${config.addonRef}-ann2note-ChooseTags-root-input`,
+  result: `${config.addonRef}-ann2note-ChooseTags-root-result`,
+};
 
 async function topDialog() {
   const dialogData: { [key: string | number]: any } = {
@@ -749,85 +829,6 @@ function funcSplitTag(items: Zotero.Item[], ans: AnnotationRes[]) {
   p.startCloseTimer(3000);
 }
 
-export async function createPopMenu(
-  win: Window,
-  collectionOrItem: "collection" | "item" = "collection",
-) {
-  const doc = win.document;
-  const popup = doc.querySelector(
-    `#${config.addonRef}-create-note-tag-popup-${collectionOrItem}`,
-  ) as XUL.MenuPopup;
-  // Remove all children in popup
-  while (popup?.firstChild) {
-    popup.removeChild(popup.firstChild);
-  }
-  // const id = getParentAttr(popup, "id");
-  // const isc = id?.includes("collection");
-  // ztoolkit.log("id", id);
-
-  const ans = getAllAnnotations(
-    await getSelectedItems(collectionOrItem),
-  ).flatMap((a) => a.tags.map((t2) => Object.assign({}, a, { tag: t2 })));
-  const tags = groupBy(ans, (an) => an.tag.tag)
-    .sort(sortFixedTags10ValuesLength)
-    .slice(0, 20);
-  const maxLen = Math.max(...tags.map((a) => a.values.length));
-
-  // Add new children
-  let elemProp: TagElementProps;
-  // const tags =memFixedTags()
-  if (tags.length === 0) {
-    elemProp = {
-      tag: "menuitem",
-      properties: {
-        label: "没有标签",
-      },
-      attributes: {
-        disabled: true,
-      },
-    };
-  } else {
-    elemProp = {
-      tag: "fragment",
-      children: tags.map((tag) => {
-        const color = memFixedColor(tag.key);
-        //取对数可以保留差异比较大的值
-        const pre = (
-          100 -
-          (Math.log(tag.values.length) / Math.log(maxLen)) * 100
-        ).toFixed();
-        return {
-          tag: "menuitem",
-          icon: iconBaseUrl + "favicon.png",
-          styles: {
-            background: `linear-gradient(to left, ${color},  #fff ${pre}%, ${color} ${pre}%)`,
-          },
-          properties: {
-            label: `${tag.key}[${tag.values.length}]`,
-          },
-          // children:[{tag:"div",styles:{height:"2px",background:memFixedColor(tag.key),width:`${tag.values.length/maxLen*100}%`}}],
-          listeners: [
-            {
-              type: "command",
-              listener: (event: any) => {
-                stopPropagation(event);
-                exportSingleNote(tag.key, collectionOrItem);
-              },
-            },
-          ],
-        };
-      }),
-    };
-  }
-  ztoolkit.UI.appendElement(elemProp, popup);
-}
-
-const ID = {
-  root: `${config.addonRef}-ann2note-ChooseTags-root`,
-  action: `${config.addonRef}-ann2note-ChooseTags-root-action`,
-  input: `${config.addonRef}-ann2note-ChooseTags-root-input`,
-  result: `${config.addonRef}-ann2note-ChooseTags-root-result`,
-};
 function createSearchAnnContent(
   dialogWindow: Window | undefined,
   popupDiv: HTMLElement | undefined,
@@ -1698,6 +1699,24 @@ async function exportNote({
 
   await saveNote(note, `${title}${txt}`);
 }
+function getPublicationTags(topItem: Zotero.Item | undefined) {
+  if (!topItem) {
+    return "！topItem";
+  }
+  if (!Zotero.ZoteroStyle) {
+    return "！ZoteroStyle";
+  }
+  const space = " ㅤㅤ ㅤㅤ";
+  return Array.prototype.map
+    .call(
+      Zotero.ZoteroStyle.api.renderCell(topItem, "publicationTags").childNodes,
+      (e) => {
+        e.innerText = space + e.innerText + space;
+        return e.outerHTML;
+      },
+    )
+    .join(space);
+}
 
 async function getSelectedItems(
   isCollectionOrItem: boolean | "collection" | "item",
@@ -1809,7 +1828,11 @@ async function exportSingleNote(
         groupBy(ans, (a) => a.pdfTitle)
           .sort(sortKey)
           .flatMap((a, index, aa) => [
-            `<h1>(${index + 1}/${aa.length}) ${a.key} ${getCiteItemHtmlWithPage(a.values[0].ann)}</h1>`,
+            // `<h1>(${index + 1}/${aa.length}) ${a.key} ${getCiteItemHtmlWithPage(a.values[0].ann)} </h1>`,
+            // `${getPublicationTags(a.values[0]?.item)}`,
+
+            `<h1>(${index + 1}/${aa.length}) ${getCiteItemHtmlWithPage(a.values[0].ann)} ${getPublicationTags(a.values[0]?.item)}</h1>`,
+            `${a.key}`,
             a.values
               .map(
                 (b) =>
@@ -1846,7 +1869,9 @@ function toText1(ans: AnnotationRes[]) {
     groupBy(ans, (a) => a.pdfTitle)
       .sort(sortKey)
       .flatMap((a, index, aa) => [
-        `<h1>(${index + 1}/${aa.length}) ${a.key} ${getCiteItemHtmlWithPage(a.values[0].ann)}</h1>`,
+        // `<h1>(${index + 1}/${aa.length}) ${a.key} ${getCiteItemHtmlWithPage(a.values[0].ann)}</h1>`,
+        // `${getPublicationTags(a.values[0]?.item)}`,
+        `<h1>(${index + 1}/${aa.length}) ${getCiteItemHtmlWithPage(a.values[0].ann)} ${getPublicationTags(a.values[0]?.item)}</h1>`,
         a.values.map((b) => b.type + b.html).join("\n"),
       ])
       .join("")
