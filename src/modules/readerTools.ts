@@ -11,6 +11,7 @@ import { Relations } from "../utils/Relations";
 import { waitUtilAsync } from "../utils/wait";
 import { getPref } from "../utils/prefs";
 import { compare } from "../utils/sort";
+import { DialogHelper } from "zotero-plugin-toolkit/dist/helpers/dialog";
 
 function register() {
   Zotero.Reader.registerEventListener(
@@ -433,7 +434,7 @@ async function createRelatedContent(
         ],
       },
       content,
-    );
+    ) as HTMLDivElement;
   }
   ztoolkit.UI.appendElement(
     {
@@ -481,7 +482,7 @@ export function showTitle(
       ],
     },
     parent,
-  );
+  ) as HTMLSpanElement;
   if (ms > 0) {
     new Timer(() => d.remove()).startTimer(ms);
   }
@@ -494,7 +495,7 @@ async function createRelatedDialog(readerDoc: Document, anKey: string) {
   );
   const mainWindow = Zotero.getMainWindow();
   const { fromEle, left, top } = getFromEleLeftTop(readerDoc, anKey);
-  let dialogHelper = addon.data.relationDialog;
+  let dialogHelper: DialogHelper | undefined = addon.data.relationDialog;
 
   if (dialogHelper == null) {
     const dialogData: { [key: string | number]: any } = {
@@ -539,11 +540,11 @@ async function createRelatedDialog(readerDoc: Document, anKey: string) {
         top: top,
         fitContent: true,
         resizable: true,
-      });
+      }) as DialogHelper;
     // injectCSS(dialogHelper.window.document, "related.css");
   }
   const fromMouseTimer = new Timer(() => {
-    dialogHelper.window.close();
+    dialogHelper?.window?.close();
   });
   fromEle.addEventListener("mouseover", () => {
     fromMouseTimer.clearTimer();
@@ -554,7 +555,7 @@ async function createRelatedDialog(readerDoc: Document, anKey: string) {
 
   // await waitFor(() => dialogHelper.window.document.querySelector(".content"));
   await waitUtilAsync(
-    () => !!dialogHelper.window.document.querySelector(".content"),
+    () => !!dialogHelper?.window?.document.querySelector(".content"),
   );
   // ztoolkit.log("窗口2",dialogHelper.window)
   const content = dialogHelper.window.document.querySelector(

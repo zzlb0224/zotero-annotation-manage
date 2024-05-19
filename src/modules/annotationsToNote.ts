@@ -652,7 +652,10 @@ async function funcCreateTab(items: Zotero.Item[]) {
   // );
   const tab = await createTabDoc();
   const body = tab.document?.body as HTMLBodyElement;
-  const query = ztoolkit.UI.appendElement({ tag: "div" }, body);
+  const query = ztoolkit.UI.appendElement(
+    { tag: "div" },
+    body,
+  ) as HTMLDivElement;
   const content = ztoolkit.UI.appendElement(
     { tag: "div" },
     body,

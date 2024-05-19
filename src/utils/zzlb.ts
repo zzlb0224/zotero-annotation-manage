@@ -581,7 +581,7 @@ export function createTopDiv(
       },
     },
     div,
-  );
+  ) as HTMLDivElement;
 
   const closeTimer = new Timer(() => div.remove());
   ztoolkit.UI.appendElement(
