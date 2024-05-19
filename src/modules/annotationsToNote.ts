@@ -1255,8 +1255,7 @@ async function getAnnotationContent(ann: Zotero.Item) {
     html = getCiteAnnotationHtml(
       ann,
 
-      `  ${ann.annotationText || ""} ( ${ann.parentItem?.parentItem?.firstCreator}, ${ann.parentItem?.parentItem?.getField("year")}, p.${ann.annotationPageLabel} ) ${
-        ann.annotationComment || ""
+      `  ${ann.annotationText || ""} ( ${ann.parentItem?.parentItem?.firstCreator}, ${ann.parentItem?.parentItem?.getField("year")}, p.${ann.annotationPageLabel} ) ${ann.annotationComment || ""
       }`,
     );
   else html = "==空白==<br/><br/>==空白==<br/><br/>==空白==";
@@ -1494,24 +1493,24 @@ function createActionTag(
     // },
     action
       ? {
-          tag: "button",
-          namespace: "html",
-          properties: { textContent: "确定生成" },
-          // styles: {
-          //   padding: "6px",
-          //   background: "#f99",
-          //   margin: "1px",
-          // },
-          listeners: [
-            {
-              type: "click",
-              listener: (ev: any) => {
-                stopPropagation(ev);
-                action();
-              },
+        tag: "button",
+        namespace: "html",
+        properties: { textContent: "确定生成" },
+        // styles: {
+        //   padding: "6px",
+        //   background: "#f99",
+        //   margin: "1px",
+        // },
+        listeners: [
+          {
+            type: "click",
+            listener: (ev: any) => {
+              stopPropagation(ev);
+              action();
             },
-          ],
-        }
+          },
+        ],
+      }
       : { tag: "span" },
     ...others,
   ];
@@ -1649,12 +1648,12 @@ async function exportNote({
   tags = undefined,
 }: {
   toText:
-    | ((arg0: AnnotationRes[]) => string)
-    | ((arg0: AnnotationRes[]) => Promise<string>);
+  | ((arg0: AnnotationRes[]) => string)
+  | ((arg0: AnnotationRes[]) => Promise<string>);
 
   filter?:
-    | ((arg0: AnnotationRes[]) => AnnotationRes[])
-    | ((arg0: AnnotationRes[]) => Promise<AnnotationRes[]>);
+  | ((arg0: AnnotationRes[]) => AnnotationRes[])
+  | ((arg0: AnnotationRes[]) => Promise<AnnotationRes[]>);
   items?: Zotero.Item[];
   tags?: string[];
 }) {
@@ -1784,7 +1783,8 @@ async function exportNoteByTagPdf(isCollection: boolean = false) {
             `<h1> (${index + 1}) 标签：${tag.key}  (${tag.values.length})</h1>`,
             ...groupBy(tag.values, (a) => a.pdfTitle).flatMap(
               (pdfTitle, index2) => [
-                `<h2> (${index + 1}.${index2 + 1}) ${tag.key} ${pdfTitle.key} (${pdfTitle.values.length})</h2>`,
+                `<h2> (${index + 1}.${index2 + 1}) ${tag.key} ${pdfTitle.key} (${pdfTitle.values.length}) </h2>`,
+                `${getPublicationTags(pdfTitle.values[0].item)}`,
                 ...pdfTitle.values.map((b) => `${b.html}`),
               ],
             ),
@@ -1877,7 +1877,9 @@ function toText1(ans: AnnotationRes[]) {
         // `<h1>(${index + 1}/${aa.length}) ${a.key} ${getCiteItemHtmlWithPage(a.values[0].ann)}</h1>`,
         // `${getPublicationTags(a.values[0]?.item)}`,
         `<h1>(${index + 1}/${aa.length}) ${getCiteItemHtmlWithPage(a.values[0].ann)} ${getPublicationTags(a.values[0]?.item)}</h1>`,
-        a.values.map((b) => b.type + b.html).join("\n"),
+        `${a.key}`,
+        ...a.values.map((b) => b.html),
+        // a.values.map((b) => b.html).join("\n"),
       ])
       .join("")
   );
