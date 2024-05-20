@@ -123,9 +123,33 @@ async function showCurrentCollection(doc?: Document) {
   const selectedCollection = ZoteroPane.getSelectedCollection(false);
   if (selectedCollection) {
     const collectionName = selectedCollection?.name;
+
     currentCollection.textContent = `当前选中：${collectionName}`;
-  } else {
-    currentCollection.textContent = "未选中";
+    currentCollection.innerHTML = "选择配置文件夹";
+    ztoolkit.UI.appendElement({ tag: "button", styles: { padding: "5px" }, properties: { textContent: "我的文库[配置]" } }, currentCollection)
+    const end = ztoolkit.UI.appendElement({ tag: "button", styles: { padding: "5px", marginLeft: "10px" }, properties: { textContent: "刷新目录" } }, currentCollection) as HTMLElement;
+    let currColl = selectedCollection || false
+    while (currColl) {
+      const q = getPref("fixed_tag_" + currColl.key) as string || ""
+
+      ztoolkit.UI.insertElementBefore({
+        tag: "span", styles: { padding: "1px" }, properties: {
+          textContent: "->"
+        }
+      }, end)
+
+      ztoolkit.UI.insertElementBefore({
+        tag: "button", styles: { padding: "5px", background: q ? "#aee" : "" }, properties: {
+          textContent: currColl.name + `${q ? "[配置]" : "[继承]"}` + q
+        }
+      }, end)
+      if (currColl.parentID) {
+        currColl = Zotero.Collections.get(currColl.parentID) as Zotero.Collection || false
+      }
+      else {
+        break
+      }
+    }
   }
 }
 async function updatePrefsUI() {
@@ -568,13 +592,14 @@ async function replaceTagsPreviewDiv(doc?: Document) {
     // ztoolkit.log("replaceTagsPreviewDiv")
     preview.appendChild(rootDiv);
     rootDiv.innerText = `预览批注来自：${from}。条目：${ann.parentItem?.parentItem?.getDisplayTitle()}。
-      包含标签:[${ann
+        包含标签: [${ann
         .getTags()
         .map((a) => a.tag)
         .join(
           ",",
-        )}]内容：${ann.annotationType} ${ann.annotationText || ""} ${ann.annotationComment || ""} 
-      `;
+        )
+      }]内容：${ann.annotationType} ${ann.annotationText || ""} ${ann.annotationComment || ""}
+        `;
     rootDiv.style.position = "";
     rootDiv.style.width = "";
     rootDiv.style.maxHeight = "400px";
