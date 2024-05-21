@@ -6,7 +6,7 @@ import { stopPropagation } from "../modules/annotationsToNote";
 import {
   getColorTags,
   getCiteAnnotationHtml,
-  createPopupWin,
+  getPopupWin,
   popupWin,
 } from "../modules/annotationsToNote";
 import { TagElementProps } from "zotero-plugin-toolkit/dist/tools/ui";
@@ -121,20 +121,35 @@ export const memOptionalColor = memoize(
     (getPref("optional-color") as string)?.match(/#[0-9A-Fa-f]{6}/g)?.[0] ||
     "#ffc0cb",
 );
-export const memFixedTags = memoize((): string[] => {
-  // ztoolkit.log("memFixedTags",memFixedTagColors().filter(f=>f.tag).map(f=>f.tag))
-  return memFixedTagColors()
-    .filter((f) => f.tag)
-    .map((f) => f.tag);
-});
-const memFixedColors = memoize((): string[] => {
-  return memFixedTagColors()
-    .filter((f) => f.tag)
-    .map((f) => f.color);
-});
+export const memFixedTags = memoize(
+  (collectionKey: string | undefined = undefined): string[] => {
+    return memFixedTagColors(collectionKey)
+      .filter((f) => f.tag)
+      .map((f) => f.tag);
+  },
+  (collectionKey) =>
+    collectionKey === undefined
+      ? ZoteroPane.getSelectedCollection()?.key || ""
+      : collectionKey,
+);
+const memFixedColors = memoize(
+  (collectionKey: string | undefined = undefined): string[] => {
+    return memFixedTagColors(collectionKey)
+      .filter((f) => f.tag)
+      .map((f) => f.color);
+  },
+  (collectionKey) =>
+    collectionKey === undefined
+      ? ZoteroPane.getSelectedCollection()?.key || ""
+      : collectionKey,
+);
 export const memFixedColor = memoize(
-  (tag: string, optional: string | undefined = undefined): string => {
-    const color = memFixedTagColors()
+  (
+    tag: string,
+    optional: string | undefined = undefined,
+    collectionKey: string | undefined = undefined,
+  ): string => {
+    const color = memFixedTagColors(collectionKey)
       .filter((f) => f.tag == tag)
       .map((f) => f.color)[0];
 
@@ -143,13 +158,43 @@ export const memFixedColor = memoize(
     if (optional == undefined) return memOptionalColor() as string;
     return optional;
   },
-  (tag: string, optional: string | undefined = undefined) =>
-    tag + "_" + optional,
+  (
+    tag: string,
+    optional: string | undefined = undefined,
+    collectionKey: string | undefined = undefined,
+  ) =>
+    tag +
+    "_" +
+    optional +
+    "_" +
+    (collectionKey === undefined
+      ? ZoteroPane.getSelectedCollection()?.key || ""
+      : collectionKey),
 );
 
-export const memFixedTagColors = memoize(getFixedTagColors);
-function getFixedTagColors() {
-  const fixedTagColorStr = (getPref("fixed-tags-colors") as string) || "";
+export const memFixedTagColors = memoize(getFixedTagColors, (collectionKey) =>
+  collectionKey === undefined
+    ? ZoteroPane.getSelectedCollection()?.key || ""
+    : collectionKey,
+);
+function getFixedTagColors(collectionKey: string | undefined = undefined) {
+  let ck =
+    collectionKey === undefined
+      ? ZoteroPane.getSelectedCollection()?.key || ""
+      : collectionKey;
+  let fixedTagColorStr = (getPref("fixed-tags-colors" + ck) as string) || "";
+  while (!fixedTagColorStr) {
+    const collection =
+      (Zotero.Collections.getByLibraryAndKey(
+        Zotero.Libraries.userLibraryID,
+        ck,
+      ) as Zotero.Collection) || false;
+
+    ck = collection?.parentKey;
+    fixedTagColorStr =
+      (getPref("fixed-tags-colors" + collection?.parentKey) as string) || "";
+    if (!collection) break;
+  }
   const fixedTagColors = TagColor.map(fixedTagColorStr);
   if (!fixedTagColorStr) {
     const prefTags = ((getPref("tags") as string) || "")
@@ -740,7 +785,7 @@ export async function convertHtml(
   });
   //使用Promise.all能并行计算？感觉比for快很多
   const list = await promiseAllWithProgress(data, (progress, index) => {
-    createPopupWin({ lines: [""] });
+    getPopupWin({ lines: [""] });
     popupWin?.changeLine({
       progress,
       text: `[${progress.toFixed()}%] ${index}/${arr.length}`,

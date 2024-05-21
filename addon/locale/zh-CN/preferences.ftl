@@ -79,7 +79,7 @@ pref-search-input = 输入任意文字测试搜索
 
 pref-fixed-tags-color-left = 左移
 pref-fixed-tags-color-right = 右移
-pref-fixed-tags-color-color = 随机颜色
+pref-fixed-tags-random-color = 随机颜色
 pref-fixed-tags-color-remove = 删除
 
 pref-help = { $name } Build { $version } { $time }

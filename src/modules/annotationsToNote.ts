@@ -411,24 +411,22 @@ async function DDDtagClear() {
     .filter((a) => starts.some((start) => a.tag.startsWith(start)))
     .map((a) => Zotero.Tags.getID(a.tag))
     .filter((f) => f) as number[];
-
-  const pw = new ProgressWindow(`需要删除${removeIDs.length}标签`, {
-    closeTime: -1,
-    closeOnClick: true,
-  }).show();
-  pw.createLine({ text: "执行中" });
+  const header = `需要删除${removeIDs.length}标签`;
+  getPopupWin({ header }).createLine({ text: "执行中" });
   await Zotero.Tags.removeFromLibrary(
     libraryID,
     removeIDs,
     (done: number, total: number) => {
-      pw.changeLine({
+      getPopupWin({ header }).changeLine({
         progress: (done / total) * 100,
         text: `执行中:${done}/${total}`,
       });
     },
     [1],
   );
-  pw.createLine({ text: "完成" }).startCloseTimer(5000, false);
+  getPopupWin({ header })
+    .createLine({ text: "完成" })
+    .startCloseTimer(5000, false);
 }
 async function DDDtagRemove(collectionOrItem: "collection" | "item") {
   const items = await getSelectedItems(collectionOrItem);
@@ -447,11 +445,9 @@ async function DDDtagRemove(collectionOrItem: "collection" | "item") {
   }
 
   const total = items.length;
-  const pw = new ProgressWindow(`需要从${total}条目删除标签`, {
-    closeTime: -1,
-    closeOnClick: true,
-  }).show();
-  pw.createLine({ text: "执行中" });
+
+  const header = `需要从${total}条目删除标签`;
+  getPopupWin({ header }).createLine({ text: "执行中" });
   items.forEach((item, done) => {
     const tags = item.getTags();
     let changed = false;
@@ -463,14 +459,16 @@ async function DDDtagRemove(collectionOrItem: "collection" | "item") {
     });
     if (changed) {
       item.saveTx();
-      pw.changeLine({
+      getPopupWin({ header }).changeLine({
         progress: (done / total) * 100,
         text: `执行中:${done}/${total}`,
       });
     }
   });
 
-  pw.createLine({ text: "完成" }).startCloseTimer(5000, false);
+  getPopupWin({ header })
+    .createLine({ text: "完成" })
+    .startCloseTimer(5000, false);
 }
 async function DDDTagSet(collectionOrItem: "collection" | "item") {
   const items = await getSelectedItems(collectionOrItem);
@@ -494,11 +492,8 @@ async function DDDTagSet(collectionOrItem: "collection" | "item") {
     .filter((a) => !a.isAttachment())
     .flatMap((f) => f.getAttachments());
   const pdfs = Zotero.Items.get(ids).filter((f) => f.isPDFAttachment);
-  const pw = new ProgressWindow(`找到${items.length}条目${pdfs.length}pdf`, {
-    closeTime: -1,
-    closeOnClick: true,
-  }).show();
-  pw.createLine({ text: "处理中" });
+  const header = `找到${items.length}条目${pdfs.length}pdf`;
+  getPopupWin({ header }).createLine({ text: "处理中" });
   for (let index = 0; index < pdfs.length; index++) {
     const pdf = pdfs[index];
     if (!pdf.isAttachment() || !pdf.isPDFAttachment()) continue;
@@ -574,14 +569,12 @@ async function DDDTagSet(collectionOrItem: "collection" | "item") {
       }
     }
     if (changed) pdf.parentItem?.saveTx();
-    pw.changeLine({
+    getPopupWin({ header }).changeLine({
       progress: (index / pdfs.length) * 100,
       text: pdf.getDisplayTitle(),
     });
   }
-
-  pw.createLine({ text: `已完成` });
-  pw.startCloseTimer(5000);
+  getPopupWin({ header }).createLine({ text: `已完成` });
 }
 async function funcTranslateAnnotations(
   isCollectionOrItem: boolean | "collection" | "item",
@@ -596,14 +589,8 @@ async function funcTranslateAnnotations(
         an.comment.includes("🔤undefined🔤") ||
         an.comment.includes("🔤[请求错误]"),
     );
-  const pw = new ztoolkit.ProgressWindow(
-    `找到${items.length}条目${ans.length}笔记`,
-    {
-      closeTime: -1,
-      closeOnClick: true,
-    },
-  ).show();
-  pw.createLine({ text: "处理中" });
+  const header = `找到${items.length}条目${ans.length}笔记`;
+  getPopupWin({ header }).createLine({ text: "处理中" });
   for (let index = 0; index < ans.length; index++) {
     const an = ans[index];
     const text = an.ann.annotationText;
@@ -629,15 +616,15 @@ async function funcTranslateAnnotations(
     // an.ann.annotationComment = !an.ann.annotationComment
     //   ? r
     //   : an.ann.annotationComment.replace(/🔤undefined🔤/, r);
-    pw.changeLine({
+    getPopupWin({ header }).changeLine({
       progress: (index / ans.length) * 100,
       text: text.substring(0, 10) + "=>" + r.substring(0, 10),
     });
     an.ann.saveTx();
     Zotero.Promise.delay(500);
   }
-  pw.createLine({ text: "已完成" });
-  pw.startCloseTimer(5000);
+  getPopupWin({ header }).createLine({ text: "已完成" });
+  getPopupWin({ header }).startCloseTimer(5000);
 }
 
 async function funcCreateTab(items: Zotero.Item[]) {
@@ -798,16 +785,11 @@ function createTabDoc(): Promise<Tab> {
 }
 function funcSplitTag(items: Zotero.Item[], ans: AnnotationRes[]) {
   ztoolkit.log(`找到${items.length}条目${ans.length}笔记`);
-  const p = new ztoolkit.ProgressWindow(
-    `找到${items.length}条目${ans.length}笔记`,
-    {
-      closeTime: -1,
-      closeOnClick: true,
-    },
-  ).show();
-  p.createLine({ text: "处理中" });
+
+  const header = `找到${items.length}条目${ans.length}笔记`;
+  getPopupWin({ header }).createLine({ text: "处理中" });
   ans.forEach(async (ann, i) => {
-    p.changeLine({
+    getPopupWin({ header }).changeLine({
       idx: 0,
       progress: (i / ans.length) * 100,
       text: "处理中",
@@ -828,8 +810,8 @@ function funcSplitTag(items: Zotero.Item[], ans: AnnotationRes[]) {
       });
     }
   });
-  p.createLine({ text: "处理完成" });
-  p.startCloseTimer(3000);
+  getPopupWin({ header }).createLine({ text: "处理完成" });
+  getPopupWin({ header }).startCloseTimer(3000);
 }
 
 function createSearchAnnContent(
@@ -1522,13 +1504,7 @@ async function saveNote(targetNoteItem: Zotero.Item, txt: string) {
   // await Zotero.BetterNotes.api.editor.replace(editor,0,1e3,txt)
   await targetNoteItem.saveTx();
   ztoolkit.log("笔记更新完成", new Date().toLocaleTimeString());
-  popupWin
-    ?.createLine({
-      text: `笔记更新完成`,
-      type: "default",
-    })
-    .startCloseTimer(5e3);
-  popupWin = undefined;
+  getPopupWin().createLine({ text: `笔记更新完成`, type: "default" });
 }
 async function createNote(txt = "") {
   const targetNoteItem = new Zotero.Item("note");
@@ -1551,7 +1527,8 @@ async function createNote(txt = "") {
   targetNoteItem.addTag(`${config.addonRef}:生成的笔记`, 0);
   //必须保存后面才能保存图片
   await targetNoteItem.saveTx();
-  popupWin?.createLine({
+  const header = "";
+  getPopupWin({ header }).createLine({
     text: "创建新笔记 ",
     type: "default",
   });
@@ -1617,18 +1594,23 @@ function getAllAnnotations(items: Zotero.Item[]) {
     });
   return data;
 }
-export function createPopupWin({
+export function getPopupWin({
   closeTime = 5000,
   header = "整理笔记",
   lines: defaultLines = [],
 }: { closeTime?: number; header?: string; lines?: string[] } = {}) {
-  if (!popupWin || Date.now() - popupTime > closeTime) {
+  // if (!popupWin || Date.now() - popupTime > closeTime)
+  {
     popupTime = Date.now();
-    popupWin = new ztoolkit.ProgressWindow(header, {
-      closeTime: closeTime,
-    }).show();
-    for (const line of defaultLines) popupWin.createLine({ text: line });
+    // @ts-ignore 通过里面的节点
+    if (!popupWin?.lines?.[0]?._hbox?.isConnected) {
+      popupWin = new ztoolkit.ProgressWindow(header, {
+        closeTime: closeTime,
+      }).show();
+    }
+    // for (const line of defaultLines) popupWin.createLine({ text: line });
     popupWin.startCloseTimer(closeTime);
+    return popupWin;
   }
 }
 
@@ -1658,13 +1640,13 @@ async function exportNote({
   items?: Zotero.Item[];
   tags?: string[];
 }) {
-  createPopupWin();
+  getPopupWin();
   let annotations = items ? getAllAnnotations(items) : [];
   if (filter) {
     annotations = await filter(annotations);
   }
   if (annotations.length == 0) {
-    popupWin
+    getPopupWin()
       ?.createLine({
         text: `没有找到标记，不创建笔记。`,
       })

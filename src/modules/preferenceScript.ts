@@ -114,44 +114,6 @@ function initOptionalColorLabel(doc: Document) {
   }
 }
 
-async function showCurrentCollection(doc?: Document) {
-  if (!doc) return;
-  const currentCollection = doc.querySelector(
-    `#zotero-prefpane-${config.addonRef}-current-collection`,
-  );
-  if (!currentCollection) return;
-  const selectedCollection = ZoteroPane.getSelectedCollection(false);
-  if (selectedCollection) {
-    const collectionName = selectedCollection?.name;
-
-    currentCollection.textContent = `当前选中：${collectionName}`;
-    currentCollection.innerHTML = "选择配置文件夹";
-    ztoolkit.UI.appendElement({ tag: "button", styles: { padding: "5px" }, properties: { textContent: "我的文库[配置]" } }, currentCollection)
-    const end = ztoolkit.UI.appendElement({ tag: "button", styles: { padding: "5px", marginLeft: "10px" }, properties: { textContent: "刷新目录" } }, currentCollection) as HTMLElement;
-    let currColl = selectedCollection || false
-    while (currColl) {
-      const q = getPref("fixed_tag_" + currColl.key) as string || ""
-
-      ztoolkit.UI.insertElementBefore({
-        tag: "span", styles: { padding: "1px" }, properties: {
-          textContent: "->"
-        }
-      }, end)
-
-      ztoolkit.UI.insertElementBefore({
-        tag: "button", styles: { padding: "5px", background: q ? "#aee" : "" }, properties: {
-          textContent: currColl.name + `${q ? "[配置]" : "[继承]"}` + q
-        }
-      }, end)
-      if (currColl.parentID) {
-        currColl = Zotero.Collections.get(currColl.parentID) as Zotero.Collection || false
-      }
-      else {
-        break
-      }
-    }
-  }
-}
 async function updatePrefsUI() {
   // You can initialize some UI elements on prefs window
   // with addon.data.prefs.window.document
@@ -164,7 +126,6 @@ async function updatePrefsUI() {
   replaceColorTagsElement(doc);
   initOptionalColorLabel(doc);
   replaceTagsPreviewDiv(doc);
-  showCurrentCollection(doc);
   setStyleDisplay(doc, `#zotero-prefpane-${config.addonRef}-debug`);
   setStyleDisplay(doc, `#zotero-prefpane-${config.addonRef}-debug-func`);
 }
@@ -179,99 +140,8 @@ function bindPrefEvents() {
   const doc = addon.data.prefs.window.document;
   if (!doc) return;
 
-  function t2Preview() {
-    eFixedTagsColorPreview.innerHTML = "";
-    // for(const c of eFixedTagsColorPreview.children){
-    //   c.remove();
-    // }
-    s.allStr.forEach((currStr, index) => {
-      // const currStr = s.allStr[s.selectIndex-1];
-      const currMa = currStr.match(/[\s,;]*(.*?)[\s,;]*(#[0-9a-fA-F]{6})/);
-      const currTag = currMa ? currMa?.[1] : currStr;
-      const currColor = currMa ? currMa?.[2] : "";
-      ztoolkit.UI.appendElement(
-        {
-          tag: "span",
-          properties: { textContent: index + 1 + ":" + currTag },
-          styles: {
-            background: currColor,
-            fontSize: s.selectIndex - 1 == index ? "2em" : "1em",
-            padding: "5px 1px",
-            margin: "5px 1px",
-            borderRadius: "5px",
-          },
-          listeners: [
-            {
-              type: "click",
-              listener: (e) => {
-                s.selectIndex = index + 1;
-                tPreview();
-              },
-            },
-          ],
-        },
-        eFixedTagsColorPreview,
-      );
-    });
-  }
-  function tPreview() {
-    // ztoolkit.log("tPreview", s);
-    const currStr = s.allStr[s.selectIndex - 1] || "";
-    const currMa = currStr.match(/[\s,;]*(.*?)[\s,;]*(#[0-9a-fA-F]{6})/);
-    const currTag = currMa ? currMa?.[1] : currStr;
-    const currColor = currMa ? currMa?.[2] : "";
-    eFixedTagsColor.textContent = s.selectIndex + ":" + currStr;
-    eFixedTagsColor.style.background = currColor;
-    t2Preview();
-  }
+  bindFixedColors(doc);
 
-  function getS() {
-    const selectionStart = eFixedTagsColors.selectionStart || 0;
-    const ftcStr =
-      eFixedTagsColors.value || (getPref("fixed-tags-colors") as string) || "";
-    const allStr =
-      ftcStr.match(/(.*?)(#[0-9a-fA-F]{6})/g)?.map((a) => a + "") || [];
-    let selectIndex = -1;
-    let maStart = 0;
-    let maEnd = 0;
-    if (allStr.length == 0) {
-      selectIndex = 0;
-      maStart = 0;
-      maEnd = ftcStr.length;
-      allStr.push(ftcStr);
-    } else {
-      for (let index = 0; index < allStr.length; index++) {
-        maEnd += allStr[index].length;
-        if (selectionStart <= maEnd) {
-          selectIndex = index + 1;
-          break;
-        }
-        maStart = maEnd;
-      }
-      if (selectIndex < 0) {
-        selectIndex = allStr.length + 1;
-        maStart = maEnd;
-        maEnd = ftcStr.length;
-        allStr.push(ftcStr.substring(maStart, ftcStr.length));
-      }
-    }
-    return {
-      ftcStr,
-      selectionStart,
-      selectIndex,
-      maStart,
-      maEnd,
-      allStr,
-      setPref: () => {
-        setPref("fixed-tags-colors", allStr.join(""));
-        memFixedTagColors.remove();
-        memFixedColor.remove();
-        memFixedTags.remove();
-
-        tPreview();
-      },
-    };
-  }
   doc
     .querySelector(`#zotero-prefpane-${config.addonRef}-debug`)
     ?.addEventListener("command", (e) => {
@@ -301,84 +171,7 @@ function bindPrefEvents() {
         // Annotations.register()
       }
     });
-  const eFixedTagsColors = doc.querySelector(
-    `#zotero-prefpane-${config.addonRef}-fixed-tags-colors`,
-  ) as HTMLTextAreaElement;
-  const eFixedTagsColor = doc.querySelector(
-    `#zotero-prefpane-${config.addonRef}-fixed-tags-color`,
-  ) as HTMLSpanElement;
-  const eFixedTagsColorPreview = doc.querySelector(
-    `#zotero-prefpane-${config.addonRef}-fixed-tags-color-preview`,
-  ) as HTMLSpanElement;
-  let s = getS();
-  setTimeout(() => tPreview(), 1200);
 
-  ztoolkit.log("bindPrefEvents", eFixedTagsColors, memFixedTagColors());
-  if (eFixedTagsColors) {
-    eFixedTagsColors?.addEventListener("keyup", (e) => {
-      memFixedTagColors.remove();
-      s = getS();
-      tPreview();
-    });
-    eFixedTagsColors.addEventListener("click", (e) => {
-      ztoolkit.log(e, eFixedTagsColors.selectionStart);
-      s = getS();
-      tPreview();
-    });
-    doc
-      .querySelector(
-        `#zotero-prefpane-${config.addonRef}-fixed-tags-color-left`,
-      )
-      ?.addEventListener("click", (e) => {
-        if (s.selectIndex > 1) {
-          const o = [s.allStr[s.selectIndex - 1], s.allStr[s.selectIndex - 2]];
-          s.allStr.splice(s.selectIndex - 2, 2, ...o);
-          s.selectIndex -= 1;
-          s.setPref();
-        }
-        ztoolkit.log(s);
-      });
-    doc
-      .querySelector(
-        `#zotero-prefpane-${config.addonRef}-fixed-tags-color-right`,
-      )
-      ?.addEventListener("click", (e) => {
-        if (s.selectIndex < s.allStr.length) {
-          const o = [s.allStr[s.selectIndex], s.allStr[s.selectIndex - 1]];
-          s.allStr.splice(s.selectIndex - 1, 2, ...o);
-          s.selectIndex += 1;
-          s.setPref();
-        }
-      });
-
-    doc
-      .querySelector(
-        `#zotero-prefpane-${config.addonRef}-fixed-tags-color-remove`,
-      )
-      ?.addEventListener("click", (e) => {
-        if (s.selectIndex > 0) {
-          s.allStr.splice(s.selectIndex - 1, 1);
-          if (s.selectIndex > s.allStr.length) {
-            s.selectIndex -= 1;
-          }
-          s.setPref();
-        }
-      });
-    doc
-      .querySelector(
-        `#zotero-prefpane-${config.addonRef}-fixed-tags-color-color`,
-      )
-      ?.addEventListener("click", (e) => {
-        if (s) {
-          const o = s.allStr[s.selectIndex - 1];
-          const ma = o.match(/^(.*?)(#[0-9a-fA-F]{6})?$/);
-          const tag = ma ? ma[1] : o;
-          const color = getRandomColor();
-          s.allStr.splice(s.selectIndex - 1, 1, tag + color);
-          s.setPref();
-        }
-      });
-  }
   doc
     .querySelector(`#zotero-prefpane-${config.addonRef}-remove-color`)
     ?.addEventListener("command", (e) => {
@@ -504,6 +297,253 @@ function bindPrefEvents() {
     });
 }
 
+function bindFixedColors(doc: Document) {
+  let ftcStr = "";
+  let selectionStart = 0;
+  let allStr: string[] = [];
+  let selectIndex = -1;
+  let maStart = 0;
+  let maEnd = 0;
+  let collectionKey = "";
+
+  const PrefPre = "fixed-tags-colors";
+
+  const eFixedTagsColors = doc.querySelector(
+    `#zotero-prefpane-${config.addonRef}-fixed-tags-colors`,
+  ) as HTMLTextAreaElement;
+  const eFixedTagsColor = doc.querySelector(
+    `#zotero-prefpane-${config.addonRef}-fixed-tags-color`,
+  ) as HTMLSpanElement;
+  const eFixedTagsColorPreview = doc.querySelector(
+    `#zotero-prefpane-${config.addonRef}-fixed-tags-color-preview`,
+  ) as HTMLSpanElement;
+
+  const eColorLeft = doc.querySelector(
+    `#zotero-prefpane-${config.addonRef}-fixed-tags-color-left`,
+  ) as HTMLButtonElement;
+  const eColorRight = doc.querySelector(
+    `#zotero-prefpane-${config.addonRef}-fixed-tags-color-right`,
+  ) as HTMLButtonElement;
+  const eColorRemove = doc.querySelector(
+    `#zotero-prefpane-${config.addonRef}-fixed-tags-color-remove`,
+  ) as HTMLButtonElement;
+  const eRandomColor = doc.querySelector(
+    `#zotero-prefpane-${config.addonRef}-fixed-tags-random-color`,
+  ) as HTMLButtonElement;
+
+  const currentCollection = doc.querySelector(
+    `#zotero-prefpane-${config.addonRef}-current-collection`,
+  ) as HTMLDivElement;
+
+  ztoolkit.log("bindPrefEvents", eFixedTagsColors, memFixedTagColors());
+
+  eFixedTagsColors?.addEventListener("keyup", (e) => {
+    ftcStr = eFixedTagsColors.value;
+    getSelectIndex();
+    saveStr();
+    tPreview();
+  });
+  eFixedTagsColors.addEventListener("click", (e) => {
+    ztoolkit.log(e, eFixedTagsColors.selectionStart);
+    getSelectIndex();
+    saveStr();
+    tPreview();
+  });
+  eColorLeft.addEventListener("click", (e) => {
+    if (selectIndex > 1) {
+      const o = [allStr[selectIndex - 1], allStr[selectIndex - 2]];
+      allStr.splice(selectIndex - 2, 2, ...o);
+      selectIndex -= 1;
+      saveStr();
+    }
+  });
+  eColorRight.addEventListener("click", (e) => {
+    if (selectIndex < allStr.length) {
+      const o = [allStr[selectIndex], allStr[selectIndex - 1]];
+      allStr.splice(selectIndex - 1, 2, ...o);
+      selectIndex += 1;
+      saveStr();
+    }
+  });
+  eColorRemove.addEventListener("click", (e) => {
+    if (selectIndex > 0) {
+      allStr.splice(selectIndex - 1, 1);
+      if (selectIndex > allStr.length) {
+        selectIndex -= 1;
+      }
+      saveStr();
+    }
+  });
+
+  eRandomColor.addEventListener("click", (e) => {
+    const o = allStr[selectIndex - 1];
+    const ma = o.match(/^(.*?)(#[0-9a-fA-F]{6})?$/);
+    const tag = ma ? ma[1] : o;
+    const color = getRandomColor();
+    allStr.splice(selectIndex - 1, 1, tag + color);
+    ftcStr = allStr.join("");
+    saveStr();
+  });
+
+  showCurrentCollection();
+
+  loadStr();
+  setTimeout(() => tPreview(), 1200);
+  function loadStr() {
+    ftcStr = (getPref(PrefPre + collectionKey) as string) || "";
+    allStr = ftcStr.match(/(.*?)(#[0-9a-fA-F]{6})/g)?.map((a) => a + "") || [];
+    eFixedTagsColors.value = ftcStr;
+    tPreview();
+  }
+
+  async function showCurrentCollection() {
+    if (!currentCollection) return;
+    currentCollection.innerHTML = "固定标签配置";
+    const selectedCollection = ZoteroPane.getSelectedCollection(false);
+    if (selectedCollection) {
+      collectionKey = selectedCollection.key;
+      ztoolkit.UI.appendElement(
+        {
+          tag: "button",
+          styles: { padding: "5px", marginLeft: "10px" },
+          properties: { textContent: "刷新目录" },
+          listeners: [
+            {
+              type: "click",
+              listener() {
+                showCurrentCollection();
+              },
+            },
+          ],
+        },
+        currentCollection,
+      ) as HTMLElement;
+
+      let currColl = selectedCollection || false;
+      const arr = [{ key: currColl.key, name: currColl.name }];
+      while (currColl.parentID) {
+        currColl = Zotero.Collections.get(
+          currColl.parentID,
+        ) as Zotero.Collection;
+        arr.push({ key: currColl.key, name: currColl.name });
+      }
+      arr.push({ key: "", name: "我的文库" });
+      arr.reverse();
+      const cs: HTMLButtonElement[] = [];
+      for (const a of arr) {
+        const q = (getPref(PrefPre + a.key) as string) || "";
+        const ele = ztoolkit.UI.appendElement(
+          {
+            tag: "button",
+            styles: {
+              padding: "5px",
+              background: q ? "" : "#aee",
+              color: a.key != collectionKey ? "#000" : "#f00",
+            },
+            properties: {
+              textContent: a.name + `${q ? "[配置]" : "[继承]"}`,
+            },
+            listeners: [
+              {
+                type: "click",
+                listener: () => {
+                  for (const e of cs)
+                    e.style.color = ele != e ? "#000" : "#f00";
+                  collectionKey = a.key;
+                  loadStr();
+                  // tPreview()
+                },
+              },
+            ],
+          },
+          currentCollection,
+        ) as HTMLButtonElement;
+        cs.push(ele);
+      }
+      loadStr();
+    }
+  }
+  function t2Preview() {
+    eFixedTagsColorPreview.innerHTML = "";
+    allStr.forEach((currStr, index) => {
+      const currMa = currStr.match(/[\s,;]*(.*?)[\s,;]*(#[0-9a-fA-F]{6})/);
+      const currTag = currMa ? currMa?.[1] : currStr;
+      const currColor = currMa ? currMa?.[2] : "";
+      ztoolkit.UI.appendElement(
+        {
+          tag: "span",
+          properties: { textContent: index + 1 + ":" + currTag },
+          styles: {
+            background: currColor,
+            fontSize: selectIndex - 1 == index ? "2em" : "1em",
+            padding: "5px 1px",
+            margin: "5px 1px",
+            borderRadius: "5px",
+          },
+          listeners: [
+            {
+              type: "click",
+              listener: (e) => {
+                selectIndex = index + 1;
+                tPreview();
+              },
+            },
+          ],
+        },
+        eFixedTagsColorPreview,
+      );
+    });
+  }
+  function tPreview() {
+    const currStr = allStr[selectIndex - 1] || "";
+    const currMa = currStr.match(/[\s,;]*(.*?)[\s,;]*(#[0-9a-fA-F]{6})/);
+    const currTag = currMa ? currMa?.[1] : currStr;
+    const currColor = currMa ? currMa?.[2] : "";
+    eFixedTagsColor.textContent = selectIndex + ":" + currStr;
+    eFixedTagsColor.style.background = currColor;
+    t2Preview();
+  }
+  function getSelectIndex() {
+    selectionStart = eFixedTagsColors.selectionStart || 0;
+    // const ftcStr = eFixedTagsColors.value || (getPref("fixed-tags-colors") as string) || "";
+    allStr = ftcStr.match(/(.*?)(#[0-9a-fA-F]{6})/g)?.map((a) => a + "") || [];
+
+    if (allStr.length == 0) {
+      selectIndex = 0;
+      maStart = 0;
+      maEnd = ftcStr.length;
+      allStr.push(ftcStr);
+    } else {
+      for (let index = 0; index < allStr.length; index++) {
+        maEnd += allStr[index].length;
+        if (selectionStart <= maEnd) {
+          selectIndex = index + 1;
+          break;
+        }
+        maStart = maEnd;
+      }
+      if (selectIndex < 0) {
+        selectIndex = allStr.length + 1;
+        maStart = maEnd;
+        maEnd = ftcStr.length;
+        allStr.push(ftcStr.substring(maStart, ftcStr.length));
+      }
+    }
+  }
+  function saveStr() {
+    ztoolkit.log(ftcStr, allStr, collectionKey);
+    ftcStr = allStr.join("");
+    eFixedTagsColors.value = ftcStr;
+
+    // setPref("fixed-tags-colors", ftcStr);
+    setPref("fixed-tags-colors" + collectionKey, ftcStr);
+    memFixedTagColors.remove();
+    memFixedColor.remove();
+    memFixedTags.remove();
+    tPreview();
+  }
+}
+
 async function replaceTagsPreviewDiv(doc?: Document) {
   if (!doc) return;
   const preview = doc.querySelector(
@@ -593,12 +633,11 @@ async function replaceTagsPreviewDiv(doc?: Document) {
     preview.appendChild(rootDiv);
     rootDiv.innerText = `预览批注来自：${from}。条目：${ann.parentItem?.parentItem?.getDisplayTitle()}。
         包含标签: [${ann
-        .getTags()
-        .map((a) => a.tag)
-        .join(
-          ",",
-        )
-      }]内容：${ann.annotationType} ${ann.annotationText || ""} ${ann.annotationComment || ""}
+          .getTags()
+          .map((a) => a.tag)
+          .join(
+            ",",
+          )}]内容：${ann.annotationType} ${ann.annotationText || ""} ${ann.annotationComment || ""}
         `;
     rootDiv.style.position = "";
     rootDiv.style.width = "";
