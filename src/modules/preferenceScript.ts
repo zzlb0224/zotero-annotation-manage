@@ -339,7 +339,7 @@ function bindFixedColors(doc: Document) {
   eFixedTagsColors?.addEventListener("keyup", (e) => {
     ftcStr = eFixedTagsColors.value;
     getSelectIndex(); //
-    // saveStr(); //不保存 
+    // saveStr(); //不保存
     tPreview();
   });
   eFixedTagsColors?.addEventListener("blur", (e) => {
@@ -512,7 +512,7 @@ function bindFixedColors(doc: Document) {
     selectionStart = eFixedTagsColors.selectionStart || 0;
     // const ftcStr = eFixedTagsColors.value || (getPref("fixed-tags-colors") as string) || "";
     allStr = ftcStr.match(/(.*?)(#[0-9a-fA-F]{6})/g)?.map((a) => a + "") || [];
-    let si = -1
+    let si = -1;
     let maStart = 0;
     let maEnd = 0;
     if (allStr.length == 0) {
@@ -537,8 +537,8 @@ function bindFixedColors(doc: Document) {
       }
     }
 
-    ztoolkit.log(ftcStr, allStr, si, selectIndex, selectionStart)
-    selectIndex = si
+    ztoolkit.log(ftcStr, allStr, si, selectIndex, selectionStart);
+    selectIndex = si;
   }
   function saveStr() {
     ztoolkit.log(ftcStr, allStr, collectionKey);
@@ -643,11 +643,11 @@ async function replaceTagsPreviewDiv(doc?: Document) {
     preview.appendChild(rootDiv);
     rootDiv.innerText = `预览批注来自：${from}。条目：${ann.parentItem?.parentItem?.getDisplayTitle()}。
         包含标签: [${ann
-        .getTags()
-        .map((a) => a.tag)
-        .join(
-          ",",
-        )}]内容：${ann.annotationType} ${ann.annotationText || ""} ${ann.annotationComment || ""}
+          .getTags()
+          .map((a) => a.tag)
+          .join(
+            ",",
+          )}]内容：${ann.annotationType} ${ann.annotationText || ""} ${ann.annotationComment || ""}
         `;
     rootDiv.style.position = "";
     rootDiv.style.width = "";
