@@ -103,8 +103,8 @@ class AnnotationPopup {
     this.isExistAnno = !!params?.ids;
     this.existAnnotations = this.isExistAnno
       ? this.item!.getAnnotations().filter((f) =>
-          this.params?.ids.includes(f.key),
-        )
+        this.params?.ids.includes(f.key),
+      )
       : [];
     ztoolkit.log(this, this.existAnnotations);
     this.fontSize =
@@ -330,11 +330,14 @@ class AnnotationPopup {
       }
     }, 1000);
   }
+  private countDownDec = Math.max(Math.min(getPref("count-down-close-dec") as number | undefined || 0, 3), -1)
   public countDown = new CountDown(
     (remainingTime) => {
       if (remainingTime > 0) {
         if (this.btnClose) {
-          this.btnClose.textContent = `自动关闭（${Math.round(remainingTime / 100) / 10}s）`;
+          remainingTime
+          // ztoolkit.log(remainingTime, dec, sec)
+          this.btnClose.textContent = `自动关闭（${(remainingTime / 1000).toFixed(this.countDownDec)}s）`;
         }
       } else {
         this.rootDiv?.remove();
@@ -431,7 +434,7 @@ class AnnotationPopup {
     const ts = groupBy(tags, (t9) => t9.tag).sort(sortValuesLength);
     const annLen =
       this.existAnnotations.length > 1
-        ? `选中${this.existAnnotations.length}批注，`
+        ? `选中${this.existAnnotations.length} 批注，`
         : "";
     return {
       tag: "div",
@@ -447,13 +450,13 @@ class AnnotationPopup {
           tag: "button",
           namespace: "html",
           properties: {
-            textContent: `${annLen}包含[${tags.length}]标签：`,
+            textContent: `${annLen} 包含[${tags.length}]标签：`,
             title: "选中后删除",
           },
         },
         ...ts.map((t8) => ({
           tag: "span",
-          properties: { textContent: `[${t8.values.length}]${t8.key}` },
+          properties: { textContent: `[${t8.values.length}]${t8.key} ` },
           styles: {
             margin: "1px",
             padding: "1px",
@@ -506,7 +509,7 @@ class AnnotationPopup {
         background: "#aaff00",
         fontSize: this.fontSize,
       },
-      id: `${config.addonRef}-mae-annotationKey-${copyAn.annotationKey}`,
+      id: `${config.addonRef} -mae - annotationKey - ${copyAn.annotationKey} `,
       listeners: [
         {
           type: "click",
@@ -525,11 +528,11 @@ class AnnotationPopup {
             // }
             // if (this.selectedRelateAns.length != copyAns.length) {
             //   this.doc!.getElementById(
-            //     `${config.addonRef}-mae-annotation-all`,
+            //     `${ config.addonRef } -mae - annotation - all`,
             //   )!.style.boxShadow = "";
             // } else {
             //   this.doc!.getElementById(
-            //     `${config.addonRef}-mae-annotation-all`,
+            //     `${ config.addonRef } -mae - annotation - all`,
             //   )!.style.boxShadow = "#009900 0px 0px 4px 3px";
             // }
           },
@@ -548,7 +551,7 @@ class AnnotationPopup {
         //     background: "#ddff00",
         //     fontSize: this.fontSize,
         //   },
-        //   id: `${config.addonRef}-mae-annotation-all`,
+        //   id: `${ config.addonRef } -mae - annotation - all`,
         //   listeners: [
         //     {
         //       type: "click",
@@ -563,12 +566,12 @@ class AnnotationPopup {
         //         }
         //         copyAns.forEach((copyAn) => {
         //           const e = this.doc!.getElementById(
-        //             `${config.addonRef}-mae-annotationKey-${copyAn.annotationKey}`,
+        //             `${ config.addonRef } -mae - annotationKey - ${ copyAn.annotationKey } `,
         //           );
         //           ztoolkit.log(
         //             this.selectedRelateAns,
         //             e,
-        //             `${config.addonRef}-mae-annotationKey-${copyAn.annotationKey}`,
+        //             `${ config.addonRef } -mae - annotationKey - ${ copyAn.annotationKey } `,
         //             [...(target.parentElement?.children || [])].map((a) => a.id),
         //           );
         //           if (e) {
@@ -901,7 +904,7 @@ class AnnotationPopup {
                 namespace: "html",
                 styles: { textDecorationLine: allHave ? "line-through" : "" },
                 properties: {
-                  textContent: `${allHave || noneHave ? "" : `[${someHave}]`}${tag}`,
+                  textContent: `${allHave || noneHave ? "" : `[${someHave}]`}${tag} `,
                 },
               },
             ],
@@ -912,7 +915,7 @@ class AnnotationPopup {
           namespace: "html",
           classList: ["toolbarButton1"],
           properties: {
-            textContent: `${allHave || noneHave ? "" : `[${someHave}]`}[${label.values.length}]${tag}`,
+            textContent: `${allHave || noneHave ? "" : `[${someHave}]`} [${label.values.length}]${tag} `,
           },
           styles: {
             margin: "2px",
@@ -1150,7 +1153,7 @@ class AnnotationPopup {
     for (const t1 of filterArr) {
       for (const t2 of filterArr) {
         if (t1 != t2) {
-          const nTag = `#${t1}/${t2}`;
+          const nTag = `#${t1} /${t2}`;
           if (allTags.some((s) => s.key == nTag)) {
             list.push(nTag);
           }

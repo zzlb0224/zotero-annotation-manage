@@ -69,6 +69,7 @@ pref-fixed-tags-style =
     .label = 固定标签使用独立样式
 
 pref-count-down-close = 自动关闭弹出窗口时长（至少5秒）
+pref-count-down-close-dec = 小数位数
 
 
 pref-tags-exclude = 使用正则排除不喜欢的相关标签。搜索结果不排除。使用^代表开头，使用$代表结尾，出现/要使用\/代替，.*代表所有字符，\d代表数字。例如：可以使用①^zotero:// ②^# ③# ④\/ 分别排除一些系统的Tags

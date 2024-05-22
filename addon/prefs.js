@@ -6,6 +6,7 @@ pref("__prefsPrefix__.current-collection", true);
 pref("__prefsPrefix__.selected-collection", true);
 pref("__prefsPrefix__.children-collection", true);
 pref("__prefsPrefix__.count-down-close", 15);
+pref("__prefsPrefix__.count-down-close-dec", 2);
 pref("__prefsPrefix__.optional-color", "#ffc0cb");
 pref("__prefsPrefix__.max-show", 50);
 pref("__prefsPrefix__.tags-exclude", "");
