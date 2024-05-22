@@ -201,6 +201,10 @@ class AnnotationPopup {
         root.style.width = maxWidth + "px";
 
         root.style.minWidth = Math.min(width, maxWidth) + "px";
+        if (!getPref("show-relate-tags")) {
+          root.style.minWidth = "";
+          root.style.width = "";
+        }
       }
       const currentPage = this.getCurrentPageDiv();
       ztoolkit.log("getPage", colorsElement, this.params, currentPage);
