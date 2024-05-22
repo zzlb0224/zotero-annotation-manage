@@ -103,8 +103,8 @@ class AnnotationPopup {
     this.isExistAnno = !!params?.ids;
     this.existAnnotations = this.isExistAnno
       ? this.item!.getAnnotations().filter((f) =>
-          this.params?.ids.includes(f.key),
-        )
+        this.params?.ids.includes(f.key),
+      )
       : [];
     ztoolkit.log(this, this.existAnnotations);
     this.fontSize =
@@ -201,10 +201,13 @@ class AnnotationPopup {
         root.style.width = maxWidth + "px";
 
         root.style.minWidth = Math.min(width, maxWidth) + "px";
-        if (!getPref("show-relate-tags")) {
-          root.style.minWidth = "";
-          root.style.width = "";
-        }
+        // 增加这段会引起搜索问题，所以不能要
+        // 
+        // if (!getPref("show-relate-tags")) {
+        //   root.style.minWidth = "";
+        //   root.style.width = "";
+        // }
+
       }
       const currentPage = this.getCurrentPageDiv();
       ztoolkit.log("getPage", colorsElement, this.params, currentPage);
