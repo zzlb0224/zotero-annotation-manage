@@ -301,9 +301,8 @@ function bindFixedColors(doc: Document) {
   let ftcStr = "";
   let selectionStart = 0;
   let allStr: string[] = [];
-  let selectIndex = -1;
-  let maStart = 0;
-  let maEnd = 0;
+  let selectIndex = 1;
+
   let collectionKey = "";
 
   const PrefPre = "fixed-tags-colors";
@@ -338,6 +337,12 @@ function bindFixedColors(doc: Document) {
   ztoolkit.log("bindPrefEvents", eFixedTagsColors, memFixedTagColors());
 
   eFixedTagsColors?.addEventListener("keyup", (e) => {
+    ftcStr = eFixedTagsColors.value;
+    getSelectIndex(); //
+    // saveStr(); //不保存 
+    tPreview();
+  });
+  eFixedTagsColors?.addEventListener("blur", (e) => {
     ftcStr = eFixedTagsColors.value;
     getSelectIndex();
     saveStr();
@@ -507,9 +512,11 @@ function bindFixedColors(doc: Document) {
     selectionStart = eFixedTagsColors.selectionStart || 0;
     // const ftcStr = eFixedTagsColors.value || (getPref("fixed-tags-colors") as string) || "";
     allStr = ftcStr.match(/(.*?)(#[0-9a-fA-F]{6})/g)?.map((a) => a + "") || [];
-
+    let si = -1
+    let maStart = 0;
+    let maEnd = 0;
     if (allStr.length == 0) {
-      selectIndex = 0;
+      si = 1;
       maStart = 0;
       maEnd = ftcStr.length;
       allStr.push(ftcStr);
@@ -517,18 +524,21 @@ function bindFixedColors(doc: Document) {
       for (let index = 0; index < allStr.length; index++) {
         maEnd += allStr[index].length;
         if (selectionStart <= maEnd) {
-          selectIndex = index + 1;
+          si = index + 1;
           break;
         }
         maStart = maEnd;
       }
-      if (selectIndex < 0) {
-        selectIndex = allStr.length + 1;
+      if (si < 0) {
+        si = allStr.length + 1;
         maStart = maEnd;
         maEnd = ftcStr.length;
         allStr.push(ftcStr.substring(maStart, ftcStr.length));
       }
     }
+
+    ztoolkit.log(ftcStr, allStr, si, selectIndex, selectionStart)
+    selectIndex = si
   }
   function saveStr() {
     ztoolkit.log(ftcStr, allStr, collectionKey);
@@ -633,11 +643,11 @@ async function replaceTagsPreviewDiv(doc?: Document) {
     preview.appendChild(rootDiv);
     rootDiv.innerText = `预览批注来自：${from}。条目：${ann.parentItem?.parentItem?.getDisplayTitle()}。
         包含标签: [${ann
-          .getTags()
-          .map((a) => a.tag)
-          .join(
-            ",",
-          )}]内容：${ann.annotationType} ${ann.annotationText || ""} ${ann.annotationComment || ""}
+        .getTags()
+        .map((a) => a.tag)
+        .join(
+          ",",
+        )}]内容：${ann.annotationType} ${ann.annotationText || ""} ${ann.annotationComment || ""}
         `;
     rootDiv.style.position = "";
     rootDiv.style.width = "";
