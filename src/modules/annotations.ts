@@ -134,11 +134,13 @@ class AnnotationPopup {
   }
   public createDiv() {
     if (!this.doc) return;
+
     this.clearDiv();
     const div = ztoolkit.UI.createElement(this.doc, "div", {
       namespace: "html",
       id: this.idRootDiv,
       styles: this.getRootStyle(), //创建的时候就要固定大小
+      classList: ["width100", "minWidth100"],
       children: [
         {
           tag: "link",
@@ -201,12 +203,20 @@ class AnnotationPopup {
         root.style.width = maxWidth + "px";
 
         root.style.minWidth = Math.min(width, maxWidth) + "px";
-        // 增加这段会引起搜索问题，所以不能要
-        //
-        // if (!getPref("show-relate-tags")) {
-        //   root.style.minWidth = "";
-        //   root.style.width = "";
-        // }
+        // 当翻译采用固定大小的时候，跟随它
+        const keepSize = Zotero.Prefs.get(
+          `extensions.zotero.ZoteroPDFTranslate.keepPopupSize`,
+          true,
+        ) as boolean;
+
+        if (keepSize) {
+          if (maxWidth < width) {
+            //说明会越界
+          }
+
+          root.style.minWidth = width + "px";
+          root.style.width = width + "px";
+        }
       }
       const currentPage = this.getCurrentPageDiv();
       ztoolkit.log("getPage", colorsElement, this.params, currentPage);
@@ -819,6 +829,26 @@ class AnnotationPopup {
 
   createTagsDiv(): TagElementProps {
     const fixedTagsStyle = !!getPref("fixed-tags-style");
+    // 动态设置也不可以，因为需要出发弹出窗口计算的那个代码
+    // const colorsElement = this.doc!.querySelector(".selection-popup .colors");
+    // if (colorsElement) {
+    //   ztoolkit.getGlobal("getComputedStyle")(colorsElement).width;
+    //   const maxWidth = this.getSelectTextMaxWidth();
+    //   const width = parseFloat(
+    //     ztoolkit.getGlobal("getComputedStyle")(colorsElement).width,
+    //   );
+    //   if (this.rootDiv) {
+    //     this.rootDiv.style.width = maxWidth + "px";
+
+    //     this.rootDiv.style.minWidth = Math.min(width, maxWidth) + "px";
+
+    //     if (this.tagsDisplay.length == 0) {
+    //       this.rootDiv.style.minWidth = "";
+    //       this.rootDiv.style.width = "";
+    //     }
+    //   }
+    // }
+
     const children = this.tagsDisplay
       .slice(0, (getPref("max-show") as number) || 200)
       .map((label) => {

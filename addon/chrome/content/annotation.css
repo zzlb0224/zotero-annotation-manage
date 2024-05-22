@@ -5,3 +5,21 @@
     font-size: 12px;
   }
 }
+
+#zoteroAnnotationManage-PopupDiv.width100 {
+  width: 100%;
+  width: -moz-available;
+  /* WebKit-based browsers will ignore this. */
+  width: -webkit-fill-available;
+  /* Mozilla-based browsers will ignore this. */
+  width: fill-available;
+}
+
+#zoteroAnnotationManage-PopupDiv.minWidth100 {
+  min-width: 100%;
+  min-width: -moz-available;
+  /* WebKit-based browsers will ignore this. */
+  min-width: -webkit-fill-available;
+  /* Mozilla-based browsers will ignore this. */
+  min-width: fill-available;
+}
