@@ -103,8 +103,8 @@ class AnnotationPopup {
     this.isExistAnno = !!params?.ids;
     this.existAnnotations = this.isExistAnno
       ? this.item!.getAnnotations().filter((f) =>
-        this.params?.ids.includes(f.key),
-      )
+          this.params?.ids.includes(f.key),
+        )
       : [];
     ztoolkit.log(this, this.existAnnotations);
     this.fontSize =
@@ -330,12 +330,15 @@ class AnnotationPopup {
       }
     }, 1000);
   }
-  private countDownDec = Math.max(Math.min(getPref("count-down-close-dec") as number | undefined || 0, 3), -1)
+  private countDownDec = Math.max(
+    Math.min((getPref("count-down-close-dec") as number | undefined) || 0, 3),
+    -1,
+  );
   public countDown = new CountDown(
     (remainingTime) => {
       if (remainingTime > 0) {
         if (this.btnClose) {
-          remainingTime
+          remainingTime;
           // ztoolkit.log(remainingTime, dec, sec)
           this.btnClose.textContent = `自动关闭（${(remainingTime / 1000).toFixed(this.countDownDec)}s）`;
         }
