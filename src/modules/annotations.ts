@@ -171,7 +171,7 @@ class AnnotationPopup {
     this.updateDivStart(div);
     return div;
   }
-  private updateDivStart(root: HTMLDivElement, times = 200) {
+  private updateDivStart(root: HTMLDivElement, times = 20000) {
     if (times < 0) {
       return;
     }
@@ -181,7 +181,7 @@ class AnnotationPopup {
     if (!root) {
       setTimeout(() => {
         this.updateDivStart(root, times - 1);
-      }, 50);
+      }, 1);
       return;
     }
     if (!root.parentNode) {
@@ -219,10 +219,10 @@ class AnnotationPopup {
         }
       }
       const currentPage = this.getCurrentPageDiv();
-      ztoolkit.log("getPage", colorsElement, this.params, currentPage);
+      // ztoolkit.log("getPage", colorsElement, this.params, currentPage);
       setTimeout(() => {
         this.updateDivStart(root, times - 1);
-      }, 50);
+      }, 1);
       return;
     }
     // setTimeout(async () => {

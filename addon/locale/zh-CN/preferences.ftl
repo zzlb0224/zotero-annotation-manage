@@ -62,7 +62,7 @@ pref-hide-in-annotation-context-menu =
     .label = 在批注右键菜单中不加载插件
     
 pref-hide-annotation-link =
-    .label= 隐藏批注双链功能，双链采用dc:relation来建立双链，目前还在测试中
+    .label= 隐藏批注双链功能，双链采用dc:relation来建立双链
 
     
 pref-fixed-tags-style = 
