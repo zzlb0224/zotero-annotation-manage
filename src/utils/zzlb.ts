@@ -99,7 +99,12 @@ export const FixedTagsDefault =
   "目的,假设,框架,数据,量表,方法,理论,结论,贡献,未来,背景,现状,问题,对策";
 export const FixedColorDefault =
   "#ffd400, #ff6666, #5fb236, #2ea8e5, #a28ae5, #e56eee, #f19837, #aaaaaa, #69af15, #ba898e, #ee8574, #6a99e7, #e65fa1, #62e0ef, #f7e8b2";
-
+const FixedColorDefaultArray = FixedColorDefault.split(",").map((f) =>
+  f.trim(),
+);
+export const FixedTagsColorsDefault = FixedTagsDefault.split(",")
+  .flatMap((f, i) => [f.trim(), FixedColorDefaultArray[i]])
+  .join(", ");
 export const COLOR = {
   red: "#ff6666",
   orange: "#f19837",
@@ -127,10 +132,7 @@ export const memFixedTags = memoize(
       .filter((f) => f.tag)
       .map((f) => f.tag);
   },
-  (collectionKey) =>
-    collectionKey === undefined
-      ? ZoteroPane.getSelectedCollection()?.key || ""
-      : collectionKey,
+  getCollectionKey,
 );
 const memFixedColors = memoize(
   (collectionKey: string | undefined = undefined): string[] => {
@@ -138,10 +140,7 @@ const memFixedColors = memoize(
       .filter((f) => f.tag)
       .map((f) => f.color);
   },
-  (collectionKey) =>
-    collectionKey === undefined
-      ? ZoteroPane.getSelectedCollection()?.key || ""
-      : collectionKey,
+  getCollectionKey,
 );
 export const memFixedColor = memoize(
   (
@@ -162,27 +161,20 @@ export const memFixedColor = memoize(
     tag: string,
     optional: string | undefined = undefined,
     collectionKey: string | undefined = undefined,
-  ) =>
-    tag +
-    "_" +
-    optional +
-    "_" +
-    (collectionKey === undefined
-      ? ZoteroPane.getSelectedCollection()?.key || ""
-      : collectionKey),
+  ) => tag + "_" + optional + "_" + getCollectionKey(collectionKey),
 );
 
-export const memFixedTagColors = memoize(getFixedTagColors, (collectionKey) =>
-  collectionKey === undefined
+export const memFixedTagColors = memoize(getFixedTagColors, getCollectionKey);
+function getCollectionKey(collectionKey: string | undefined = undefined) {
+  return collectionKey === undefined
     ? ZoteroPane.getSelectedCollection()?.key || ""
-    : collectionKey,
-);
+    : collectionKey;
+}
+
 function getFixedTagColors(collectionKey: string | undefined = undefined) {
-  let ck =
-    collectionKey === undefined
-      ? ZoteroPane.getSelectedCollection()?.key || ""
-      : collectionKey;
-  let fixedTagColorStr = (getPref("fixed-tags-colors" + ck) as string) || "";
+  let ck = getCollectionKey(collectionKey);
+  let fixedTagColorStr =
+    (getPref("fixed-tags-colors" + ck) as string | undefined) || "";
   while (!fixedTagColorStr) {
     const collection =
       (Zotero.Collections.getByLibraryAndKey(
@@ -190,36 +182,36 @@ function getFixedTagColors(collectionKey: string | undefined = undefined) {
         ck,
       ) as Zotero.Collection) || false;
 
-    ck = collection?.parentKey;
-    fixedTagColorStr =
-      (getPref("fixed-tags-colors" + collection?.parentKey) as string) || "";
+    ck = collection?.parentKey || "";
+    fixedTagColorStr = (getPref("fixed-tags-colors" + ck) as string) || "";
+    ztoolkit.log("fixed-tags-colors" + ck, ck, fixedTagColorStr);
     if (!collection) break;
   }
   const fixedTagColors = TagColor.map(fixedTagColorStr);
-  if (!fixedTagColorStr) {
-    const prefTags = ((getPref("tags") as string) || "")
-      .split(",")
-      .map((a) => a.trim())
-      .filter((f) => f);
-    const fixedColors =
-      (getPref("fixed-colors") as string)
-        ?.match(/#[0-9A-Fa-f]{6}/g)
-        ?.map((a) => a) || [];
-    const optionalColor =
-      (getPref("optional-color") as string)?.match(/#[0-9A-Fa-f]{6}/g)?.[0] ||
-      "#ffc0cb";
-    if (prefTags && prefTags.length > 0) {
-      const r = prefTags.map((a, i) => ({
-        tag: a,
-        color: fixedColors.length > i ? fixedColors[i] : optionalColor,
-      }));
-      fixedTagColors.splice(0, 999, ...r);
-      setPref(
-        "fixed-tags-colors",
-        fixedTagColors.map((a) => a.tag + "," + a.color).join(" , "),
-      );
-    }
-  }
+  // if (!fixedTagColorStr) {
+  //   const prefTags = ((getPref("tags") as string) || "")
+  //     .split(",")
+  //     .map((a) => a.trim())
+  //     .filter((f) => f);
+  //   const fixedColors =
+  //     (getPref("fixed-colors") as string)
+  //       ?.match(/#[0-9A-Fa-f]{6}/g)
+  //       ?.map((a) => a) || [];
+  //   const optionalColor =
+  //     (getPref("optional-color") as string)?.match(/#[0-9A-Fa-f]{6}/g)?.[0] ||
+  //     "#ffc0cb";
+  //   if (prefTags && prefTags.length > 0) {
+  //     const r = prefTags.map((a, i) => ({
+  //       tag: a,
+  //       color: fixedColors.length > i ? fixedColors[i] : optionalColor,
+  //     }));
+  //     fixedTagColors.splice(0, 999, ...r);
+  //     setPref(
+  //       "fixed-tags-colors",
+  //       fixedTagColors.map((a) => a.tag + "," + a.color).join(" , "),
+  //     );
+  //   }
+  // }
   ztoolkit.log("fixedTagColorStr 2 array", fixedTagColorStr, fixedTagColors);
   return fixedTagColors;
 }

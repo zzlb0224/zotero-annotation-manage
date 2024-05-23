@@ -1,6 +1,6 @@
 import { config, homepage } from "../../package.json";
 import { getString } from "../utils/locale";
-import { getPref, setPref } from "../utils/prefs";
+import { clearPref, getPref, setPref } from "../utils/prefs";
 import { sortModified } from "../utils/sort";
 import Annotations from "./annotations";
 import { createRoot } from "react-dom/client";
@@ -9,6 +9,7 @@ import React = require("react");
 import { getNewColor, getRandomColor } from "../utils/color";
 import {
   FixedColorDefault,
+  FixedTagsColorsDefault,
   FixedTagsDefault,
   getChildCollections,
   memFixedColor,
@@ -319,7 +320,7 @@ function bindFixedColors(doc: Document) {
 
   const PrefPre = "fixed-tags-colors";
 
-  const eFixedTagsColors = doc.querySelector(
+  const eFixedTagsColorsTextArea = doc.querySelector(
     `#zotero-prefpane-${config.addonRef}-fixed-tags-colors`,
   ) as HTMLTextAreaElement;
   const eFixedTagsColor = doc.querySelector(
@@ -346,22 +347,22 @@ function bindFixedColors(doc: Document) {
     `#zotero-prefpane-${config.addonRef}-current-collection`,
   ) as HTMLDivElement;
 
-  ztoolkit.log("bindPrefEvents", eFixedTagsColors, memFixedTagColors());
+  ztoolkit.log("bindPrefEvents", eFixedTagsColorsTextArea, memFixedTagColors());
 
-  eFixedTagsColors?.addEventListener("keyup", (e) => {
-    ftcStr = eFixedTagsColors.value;
+  eFixedTagsColorsTextArea?.addEventListener("keyup", (e) => {
+    ftcStr = eFixedTagsColorsTextArea.value;
     getSelectIndex(); //
     // saveStr(); //不保存
     tPreview();
   });
-  eFixedTagsColors?.addEventListener("blur", (e) => {
-    ftcStr = eFixedTagsColors.value;
+  eFixedTagsColorsTextArea?.addEventListener("blur", (e) => {
+    ftcStr = eFixedTagsColorsTextArea.value;
     getSelectIndex();
     saveStr();
     tPreview();
   });
-  eFixedTagsColors.addEventListener("click", (e) => {
-    ztoolkit.log(e, eFixedTagsColors.selectionStart);
+  eFixedTagsColorsTextArea.addEventListener("click", (e) => {
+    ztoolkit.log(e, eFixedTagsColorsTextArea.selectionStart);
     getSelectIndex();
     saveStr();
     tPreview();
@@ -409,7 +410,7 @@ function bindFixedColors(doc: Document) {
   function loadStr() {
     ftcStr = (getPref(PrefPre + collectionKey) as string) || "";
     allStr = ftcStr.match(/(.*?)(#[0-9a-fA-F]{6})/g)?.map((a) => a + "") || [];
-    eFixedTagsColors.value = ftcStr;
+    eFixedTagsColorsTextArea.value = ftcStr;
     tPreview();
   }
 
@@ -521,7 +522,7 @@ function bindFixedColors(doc: Document) {
     t2Preview();
   }
   function getSelectIndex() {
-    selectionStart = eFixedTagsColors.selectionStart || 0;
+    selectionStart = eFixedTagsColorsTextArea.selectionStart || 0;
     // const ftcStr = eFixedTagsColors.value || (getPref("fixed-tags-colors") as string) || "";
     allStr = ftcStr.match(/(.*?)(#[0-9a-fA-F]{6})/g)?.map((a) => a + "") || [];
     let si = -1;
@@ -553,12 +554,19 @@ function bindFixedColors(doc: Document) {
     selectIndex = si;
   }
   function saveStr() {
-    ztoolkit.log(ftcStr, allStr, collectionKey);
+    ztoolkit.log("保存了", ftcStr, allStr, collectionKey);
     ftcStr = allStr.join("");
-    eFixedTagsColors.value = ftcStr;
+    eFixedTagsColorsTextArea.value = ftcStr;
 
     // setPref("fixed-tags-colors", ftcStr);
-    setPref("fixed-tags-colors" + collectionKey, ftcStr);
+    if (!collectionKey && !ftcStr) {
+      ftcStr = FixedTagsColorsDefault;
+    }
+    if (ftcStr) {
+      setPref("fixed-tags-colors" + collectionKey, ftcStr);
+    } else {
+      clearPref("fixed-tags-colors" + collectionKey);
+    }
     memFixedTagColors.remove();
     memFixedColor.remove();
     memFixedTags.remove();
