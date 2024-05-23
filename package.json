@@ -34,8 +34,12 @@
   "homepage": "https://github.com/zzlb0224/zotero-annotation-manage#readme",
   "dependencies": {
     "@types/d3": "^7.4.3",
+    "@types/react": "^18.3.2",
+    "@types/react-dom": "^18.3.0",
     "d3": "^7.9.0",
     "pdfjs-dist": "^4.2.67",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "zotero-plugin-toolkit": "^2.3.31"
   },
   "devDependencies": {

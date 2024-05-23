@@ -3,6 +3,8 @@ import { getString } from "../utils/locale";
 import { getPref, setPref } from "../utils/prefs";
 import { sortModified } from "../utils/sort";
 import Annotations from "./annotations";
+import { createRoot } from "react-dom/client";
+import React = require("react");
 
 import { getNewColor, getRandomColor } from "../utils/color";
 import {
@@ -135,12 +137,22 @@ function setStyleDisplay(doc: Document, id: string) {
   if (df) df.style.display = getPref("debug") ? "" : "none";
 }
 
+function RDiv() {
+  // 基本组件测试
+  return <h1>Hello from React!</h1>;
+}
+
 function bindPrefEvents() {
   if (!addon.data.prefs.window) return;
   const doc = addon.data.prefs.window.document;
   if (!doc) return;
 
   bindFixedColors(doc);
+
+  const root = createRoot(
+    doc.getElementById(`zotero-prefpane-${config.addonRef}-react-preferences`)!,
+  );
+  root.render(<RDiv />);
 
   doc
     .querySelector(`#zotero-prefpane-${config.addonRef}-debug`)
