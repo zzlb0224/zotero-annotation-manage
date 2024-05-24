@@ -17,47 +17,15 @@ import {
   isDebug,
   memAllTagsDB,
   memFixedColor,
+  memFixedTagFromColor,
   memFixedTags,
   memRelateTags,
   str2RegExps,
   uniqueBy,
 } from "../utils/zzlb";
 import { Relations } from "../utils/Relations";
-// import { text2Ma } from "./readerTools";
-function register() {
-  // if (!getPref("enable")) return;
-  // ztoolkit.UI.basicOptions.log.disableZLog = true;
-  // ztoolkit.log("Annotations register");
 
-  // if (!getPref("hide-in-selection-popup"))
-  {
-    Zotero.Reader.registerEventListener(
-      "renderTextSelectionPopup",
-      renderTextSelectionPopup,
-    );
-  }
-
-  // if (!getPref("hide-in-annotation-context-menu"))
-  {
-    Zotero.Reader.registerEventListener(
-      "createAnnotationContextMenu",
-      createAnnotationContextMenu,
-    );
-  }
-}
-function unregister() {
-  ztoolkit.log("Annotations unregister");
-  Zotero.Reader.unregisterEventListener(
-    "renderTextSelectionPopup",
-    renderTextSelectionPopup,
-  );
-  Zotero.Reader.unregisterEventListener(
-    "createAnnotationContextMenu",
-    createAnnotationContextMenu,
-  );
-}
-
-class AnnotationPopup {
+export class AnnotationPopup {
   reader?: _ZoteroTypes.ReaderInstance;
   params?: {
     annotation?: _ZoteroTypes.Annotations.AnnotationJson;
@@ -195,6 +163,76 @@ class AnnotationPopup {
       }
       const colorsElement = this.doc!.querySelector(".selection-popup .colors");
       if (colorsElement) {
+        ztoolkit.log(colorsElement);
+        const fts = memFixedTags();
+        if (colorsElement.firstElementChild?.tagName == "BUTTON") {
+          ztoolkit.log("button", colorsElement);
+          colorsElement.querySelectorAll("button").forEach((b, i) => {
+            const title = `${b.title}   `;
+            b.style.width = "unset";
+            b.style.height = "unset";
+            b.style.display = "flex";
+            b.style.flexDirection = "column";
+            b.querySelector("svg")!.style.minHeight = "20px";
+            if (b.querySelector("span"))
+              b.querySelector("span")!.textContent = title;
+            else b.innerHTML = b.innerHTML + `<span>${title}</span>`;
+            const colorDiv = ztoolkit.UI.appendElement(
+              {
+                tag: "div",
+                styles: { display: "flex", flexDirection: "column" },
+              },
+              colorsElement,
+            ) as HTMLDivElement;
+            colorDiv.appendChild(b);
+            const fixTagSpan = ztoolkit.UI.appendElement(
+              {
+                tag: "span",
+                styles: { width: "unset", height: "unset" },
+                classList: ["toolbar-button", "tag"],
+                properties: { textContent: "" },
+                listeners: [
+                  {
+                    type: "click",
+                    listener: () => {
+                      const tag = fixTagSpan.textContent;
+                      const color = fixTagSpan.getAttribute("data-color") || "";
+                      if (tag && color) {
+                        this.selectedTags.push({
+                          tag,
+                          color,
+                        });
+                        this.saveAnnotationTags();
+                      }
+                    },
+                  },
+                ],
+              },
+              colorDiv,
+            ) as HTMLDivElement;
+            const color = b.querySelector("path")!.getAttribute("fill") || "";
+            if (color) {
+              const tag = memFixedTagFromColor(color);
+              if (tag) {
+                fixTagSpan.textContent = tag;
+                fixTagSpan.setAttribute("data-color", color);
+              }
+            }
+          });
+        } else {
+          ztoolkit.log("div", colorsElement);
+          colorsElement.querySelectorAll("div").forEach((b, i) => {
+            b.querySelector("button span")!.textContent =
+              b.querySelector("button")!.title;
+            const color = b.querySelector("path")!.getAttribute("fill") || "";
+            const fixTagSpan = b.querySelector(".tag");
+            if (color && fixTagSpan) {
+              fixTagSpan.setAttribute("data-color", color);
+              fixTagSpan.textContent = memFixedTagFromColor(color);
+            }
+          });
+        }
+
         ztoolkit.getGlobal("getComputedStyle")(colorsElement).width;
         const maxWidth = this.getSelectTextMaxWidth();
         const width = parseFloat(
@@ -845,16 +883,13 @@ class AnnotationPopup {
     //   );
     //   if (this.rootDiv) {
     //     this.rootDiv.style.width = maxWidth + "px";
-
     //     this.rootDiv.style.minWidth = Math.min(width, maxWidth) + "px";
-
     //     if (this.tagsDisplay.length == 0) {
     //       this.rootDiv.style.minWidth = "";
     //       this.rootDiv.style.width = "";
     //     }
     //   }
     // }
-
     const children = this.tagsDisplay
       .slice(0, (getPref("max-show") as number) || 200)
       .map((label) => {
@@ -1064,7 +1099,6 @@ class AnnotationPopup {
             }
           }
           // annotation.relatedItems;
-
           //  const rs=annotation.getRelations()
           //  //@ts-ignore 1111
           //   const linkAnnotation =rs["link:annotation"] as string[]||[]
@@ -1082,8 +1116,8 @@ class AnnotationPopup {
           //       annotation.removeRelation("link:annotation" as any, relateItem);
           //     });
           // if(this.selectedRelateAns.length>0)
-
           annotation.saveTx(); //增加每一个都要保存，为啥不能批量保存？
+
           // ztoolkit.log(
           //   "保存关联",
           //   this.selectedRelateAns,
@@ -1210,90 +1244,4 @@ class AnnotationPopup {
 
     return pageLeft - this.getViewerPadding();
   }
-  // getPrimaryViewDoc() {
-  //   const doc = this.doc!;
-  //   const pvDoc =
-  //     (doc.querySelector("#primary-view iframe") as HTMLIFrameElement)
-  //       ?.contentDocument || doc;
-  //   const scaleFactor =
-  //     parseFloat(
-  //       (pvDoc.querySelector("#viewer") as HTMLElement)?.style.getPropertyValue(
-  //         "--scale-factor",
-  //       ),
-  //     ) || 1;
-  //   const clientWidthWithSlider =
-  //     doc.querySelector("body,div,hbox,vbox")!.clientWidth; //包括侧边栏的宽度
-  //   const clientWidthWithoutSlider =
-  //     pvDoc.querySelector("body,div,hbox,vbox")!.clientWidth; //不包括侧边栏的宽度
-  //   const page = (pvDoc.querySelector("#viewer .page") as HTMLElement)!;
-  //   let pageLeft = page.offsetLeft || 0;
-  //   pageLeft -= (pvDoc.querySelector("#viewerContainer") as HTMLElement)!
-  //     .scrollLeft;
-  //   // const st = ztoolkit.getGlobal("getComputedStyle")(page);
-  //   // const stp = ztoolkit.getGlobal("getComputedStyle")(page.parentElement!);
-  //   // ztoolkit.log(st.width, st.left, st.top, page.scrollLeft, page, st, stp);
-  //   return {
-  //     clientWidthWithoutSlider,
-  //     scaleFactor,
-  //     clientWidthWithSlider,
-  //     pageLeft,
-  //   };
-  // }
 }
-
-function renderTextSelectionPopup(
-  event: _ZoteroTypes.Reader.EventParams<"renderTextSelectionPopup">,
-) {
-  const { append, reader, doc, params } = event;
-  if (getPref("hide-in-selection-popup")) {
-    return;
-  }
-  const ap = new AnnotationPopup(reader, params);
-  // addon.data.test = ap;
-  const div = ap.rootDiv;
-  // const div = createDiv(reader, params);
-  if (div) {
-    append(div);
-  }
-}
-function createAnnotationContextMenu(
-  event: _ZoteroTypes.Reader.EventParams<"createAnnotationContextMenu">,
-) {
-  const { reader, params, append } = event;
-  if (getPref("hide-in-annotation-context-menu")) {
-    return;
-  }
-  const doc = reader?._iframeWindow?.document;
-  if (!doc) return;
-  //这里不能用异步
-  const currentAnnotations = reader._item
-    .getAnnotations()
-    .filter((f) => params.ids.includes(f.key));
-  const currentTags = groupBy(
-    currentAnnotations.flatMap((f) => f.getTags()),
-    (t7) => t7.tag,
-  ).sort(sortValuesLength);
-  const currentTagsString = currentTags
-    .map((f) => `${f.key}[${f.values.length}]`)
-    .join(",");
-  const label =
-    currentTags.length > 0
-      ? `添加标签，已有${currentTags.length}个Tag【${currentTagsString.length > 11 ? currentTagsString.slice(0, 10) + "..." : currentTagsString}】`
-      : "添加标签";
-  //
-  append({
-    label: label,
-    onCommand: () => {
-      // const div = createDiv(reader, params);
-      const popDiv = new AnnotationPopup(reader, params);
-      const div = popDiv.rootDiv;
-      // popDiv.startCountDown();
-      popDiv.countDown.start();
-      if (div) {
-        doc.body.appendChild(div);
-      }
-    },
-  });
-}
-
-export default { register, unregister, AnnotationPopup };
