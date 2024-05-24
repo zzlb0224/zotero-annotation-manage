@@ -14,6 +14,7 @@ import {
   getChildCollections,
   memFixedColor,
   memFixedTagColors,
+  memFixedTagFromColor,
   memFixedTags,
   memOptionalColor,
   memRelateTags,
@@ -570,6 +571,7 @@ function bindFixedColors(doc: Document) {
     memFixedTagColors.remove();
     memFixedColor.remove();
     memFixedTags.remove();
+    memFixedTagFromColor.remove();
     tPreview();
   }
 }
