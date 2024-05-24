@@ -142,6 +142,17 @@ const memFixedColors = memoize(
   },
   getCollectionKey,
 );
+
+export const memFixedTagFromColor = memoize(
+  (color: string, collectionKey: string | undefined = undefined): string => {
+    const tcs = getFixedTagColors(collectionKey);
+    for (const tc of tcs) {
+      if (tc.color === color) return tc.tag;
+    }
+    return "";
+  },
+);
+
 export const memFixedColor = memoize(
   (
     tag: string,

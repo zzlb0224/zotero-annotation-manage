@@ -93,6 +93,14 @@ function buildMenu(collectionOrItem: "collection" | "item") {
           },
           {
             tag: "menuitem",
+            label: "测试React弹出窗口",
+            icon: iconBaseUrl + "favicon.png",
+            commandListener: async (ev: Event) => {
+              topDialogRect();
+            },
+          },
+          {
+            tag: "menuitem",
             label: "重新翻译空批注",
             icon: iconBaseUrl + "favicon.png",
             commandListener: async (ev: Event) => {
@@ -344,6 +352,62 @@ const ID = {
   result: `${config.addonRef}-ann2note-ChooseTags-root-result`,
 };
 
+import { createRoot } from "react-dom/client";
+import React = require("react");
+import { MyButton } from "./MyButton";
+async function topDialogRect() {
+  const dialogData: { [key: string | number]: any } = {
+    inputValue: "test",
+    checkboxValue: true,
+    loadCallback: () => {
+      const content = dialogHelper.window.document.querySelector(".content");
+      ztoolkit.log(dialogData, "Dialog Opened!", content);
+      if (content)
+        createRoot(content).render(
+          <>
+            <MyButton title="增加一个按钮" disabled />
+            <MyButton title="可以点击" disabled={false} />
+          </>,
+        );
+    },
+    unloadCallback: () => {
+      ztoolkit.log(dialogData, "Dialog closed!");
+    },
+  };
+
+  const dialogWidth = Math.max(window.outerWidth * 0.6, 720);
+  const dialogHeight = Math.max(window.outerHeight * 0.8, 720);
+  const left = window.screenX + window.outerWidth / 2 - dialogWidth / 2;
+  const top = window.screenY + window.outerHeight / 2 - dialogHeight / 2;
+
+  const dialogHelper = new ztoolkit.Dialog(1, 1)
+    .addCell(0, 0, {
+      tag: "div",
+      classList: ["content"],
+      properties: { innerHTML: "0 0" },
+    })
+    .setDialogData(dialogData)
+    .open("这是一个React的弹出框", {
+      alwaysRaised: false,
+      left,
+      top,
+      height: dialogHeight,
+      width: dialogWidth,
+      // fitContent: true,
+      resizable: true,
+      noDialogMode: true,
+    });
+
+  addon.data.dialog = dialogHelper;
+  await dialogData.unloadLock.promise;
+  addon.data.dialog = undefined;
+  if (addon.data.alive) {
+    //  ztoolkit.getGlobal("alert")(
+    //   `Close dialog with ${dialogData._lastButtonId}.\nCheckbox: ${dialogData.checkboxValue}\nInput: ${dialogData.inputValue}.`,
+    // );
+  }
+  ztoolkit.log(dialogData);
+}
 async function topDialog() {
   const dialogData: { [key: string | number]: any } = {
     inputValue: "test",
