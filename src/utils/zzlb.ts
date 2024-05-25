@@ -759,7 +759,10 @@ export async function convertHtml(
     )) as string;
     if (html) {
       //
-    } else if (ann.ann.annotationType == ("underline" as string)) {
+    } else if (
+      ann.ann.annotationType == ("underline" as string) ||
+      ann.ann.annotationType == ("text" as string)
+    ) {
       html = getCiteAnnotationHtml(
         ann.ann,
         `  ${ann.ann.annotationText || ""}

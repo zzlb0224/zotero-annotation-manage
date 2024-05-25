@@ -1297,7 +1297,10 @@ async function getAnnotationContent(ann: Zotero.Item) {
       /<img /g,
       '<img style="max-width: 100%;height: auto;" ',
     );
-  else if (ann.annotationType == ("underline" as string))
+  else if (
+    ann.annotationType == ("underline" as string) ||
+    ann.annotationType == ("text" as string)
+  )
     html = getCiteAnnotationHtml(
       ann,
 
