@@ -164,75 +164,90 @@ export class AnnotationPopup {
       const colorsElement = this.doc!.querySelector(".selection-popup .colors");
       if (colorsElement) {
         ztoolkit.log(colorsElement);
-        const fts = memFixedTags();
-        if (colorsElement.firstElementChild?.tagName == "BUTTON") {
-          ztoolkit.log("button", colorsElement);
-          colorsElement.querySelectorAll("button").forEach((b, i) => {
-            const title = `${b.title}   `;
-            b.style.width = "unset";
-            b.style.height = "unset";
-            b.style.display = "flex";
-            b.style.flexDirection = "column";
-            b.querySelector("svg")!.style.minHeight = "20px";
-            if (b.querySelector("span"))
-              b.querySelector("span")!.textContent = title;
-            else b.innerHTML = b.innerHTML + `<span>${title}</span>`;
-            const colorDiv = ztoolkit.UI.appendElement(
-              {
-                tag: "div",
-                styles: { display: "flex", flexDirection: "column" },
-              },
-              colorsElement,
-            ) as HTMLDivElement;
-            colorDiv.appendChild(b);
-            const fixTagSpan = ztoolkit.UI.appendElement(
-              {
-                tag: "span",
-                styles: { width: "unset", height: "unset" },
-                classList: ["toolbar-button", "tag"],
-                properties: { textContent: "" },
-                listeners: [
-                  {
-                    type: "click",
-                    listener: () => {
-                      const tag = fixTagSpan.textContent;
-                      const color = fixTagSpan.getAttribute("data-color") || "";
-                      if (tag && color) {
-                        this.selectedTags.push({
-                          tag,
-                          color,
-                        });
-                        this.saveAnnotationTags();
-                      }
-                    },
-                  },
-                ],
-              },
-              colorDiv,
-            ) as HTMLDivElement;
-            const color = b.querySelector("path")!.getAttribute("fill") || "";
+        const showColorTag = getPref("show-selected-popup-colors-tag");
+        const showMatchTag = getPref("show-selected-popup-match-tag");
+        if (showColorTag || showMatchTag) {
+          //初始化
+          if (colorsElement.firstElementChild?.tagName == "BUTTON") {
+            ztoolkit.log("button", colorsElement);
+            colorsElement.querySelectorAll("button").forEach((btn, i) => {
+              const colorDiv = ztoolkit.UI.appendElement(
+                {
+                  tag: "div",
+                  styles: { display: "flex", flexDirection: "column" },
+                  classList: ["colorDiv"],
+                },
+                colorsElement,
+              ) as HTMLDivElement;
+              colorDiv.appendChild(btn);
+            });
+          }
+          //更新组件
+          colorsElement.querySelectorAll("div.colorDiv").forEach((d, i) => {
+            const colorDiv = d as HTMLDivElement;
+            const btn = colorDiv.querySelector("button") as HTMLButtonElement;
+            let spanColorTag = btn.querySelector(
+              "span.color-tag",
+            ) as HTMLSpanElement | null;
+            if (showColorTag) {
+              if (!spanColorTag) {
+                spanColorTag = ztoolkit.UI.appendElement(
+                  { tag: "span", classList: ["color-tag"] },
+                  btn,
+                ) as HTMLSpanElement;
+                spanColorTag.textContent = btn.title;
+                btn.querySelector("svg")!.style.minHeight = "20px";
+                btn.style.width = "unset";
+                btn.style.height = "unset";
+                btn.style.display = "flex";
+                btn.style.flexDirection = "column";
+              }
+              spanColorTag.textContent = `${btn.title}   `;
+            } else {
+              spanColorTag?.remove();
+            }
+            const color = btn.querySelector("path")!.getAttribute("fill") || "";
             if (color) {
-              const tag = memFixedTagFromColor(color);
-              if (tag) {
-                fixTagSpan.textContent = tag;
+              let fixTagSpan = colorDiv.querySelector(
+                "span.match-tag",
+              ) as HTMLSpanElement | null;
+              if (showMatchTag) {
+                if (!fixTagSpan) {
+                  fixTagSpan = ztoolkit.UI.appendElement(
+                    {
+                      tag: "span",
+                      styles: { width: "unset", height: "unset" },
+                      classList: ["toolbar-button", "match-tag"],
+                      properties: { textContent: "" },
+                      listeners: [
+                        {
+                          type: "click",
+                          listener: () => {
+                            const tag = fixTagSpan?.textContent;
+                            const color =
+                              fixTagSpan?.getAttribute("data-color") || "";
+                            if (tag && color) {
+                              this.selectedTags.push({
+                                tag,
+                                color,
+                              });
+                              this.saveAnnotationTags();
+                            }
+                          },
+                        },
+                      ],
+                    },
+                    colorDiv,
+                  ) as HTMLDivElement;
+                }
                 fixTagSpan.setAttribute("data-color", color);
+                fixTagSpan.textContent = memFixedTagFromColor(color);
+              } else {
+                fixTagSpan?.remove();
               }
             }
           });
-        } else {
-          ztoolkit.log("div", colorsElement);
-          colorsElement.querySelectorAll("div").forEach((b, i) => {
-            b.querySelector("button span")!.textContent =
-              b.querySelector("button")!.title;
-            const color = b.querySelector("path")!.getAttribute("fill") || "";
-            const fixTagSpan = b.querySelector(".tag");
-            if (color && fixTagSpan) {
-              fixTagSpan.setAttribute("data-color", color);
-              fixTagSpan.textContent = memFixedTagFromColor(color);
-            }
-          });
         }
-
         ztoolkit.getGlobal("getComputedStyle")(colorsElement).width;
         const maxWidth = this.getSelectTextMaxWidth();
         const width = parseFloat(
