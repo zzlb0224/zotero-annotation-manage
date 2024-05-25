@@ -12,6 +12,7 @@ import Annotations from "./modules/annotations";
 import AnnotationsToNote, { createPopMenu } from "./modules/annotationsToNote";
 import readerTools from "./modules/readerTools";
 import highlightWords from "./modules/highlightWords";
+import spaceRemove from "./modules/spaceRemove";
 
 async function onStartup() {
   await Promise.all([
@@ -97,6 +98,7 @@ async function onMainWindowLoad(win: Window): Promise<void> {
   AnnotationsToNote.register();
   readerTools.register();
   highlightWords.register();
+  // spaceRemove.register();
   // Relations.checkLinkAnnotation();
   // window.addEventListener("error", function (event) {
   //   ztoolkit.log(
@@ -126,6 +128,7 @@ async function onMainWindowUnload(win: Window): Promise<void> {
   AnnotationsToNote.unregister();
   readerTools.unregister();
   highlightWords.unregister();
+  // spaceRemove.unregister();
   ztoolkit.unregisterAll();
   // addon.data.dialog?.window?.close();
 }
