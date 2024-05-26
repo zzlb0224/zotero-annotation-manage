@@ -258,6 +258,14 @@ function buildMenu(collectionOrItem: "collection" | "item") {
               exportNoteByType("highlight", collectionOrItem);
             },
           },
+          {
+            tag: "menuitem",
+            label: "类型：文字",
+            icon: iconBaseUrl + "favicon.png",
+            commandListener: (ev: Event) => {
+              exportNoteByType("text" as _ZoteroTypes.Annotations.AnnotationType, collectionOrItem);
+            },
+          },
         ],
       },
       {
