@@ -1675,15 +1675,17 @@ function getAllAnnotations(items: Zotero.Item[]) {
 export function getPopupWin({
   closeTime = 5000,
   header = "整理笔记",
-  lines: defaultLines = [],
+  lines = [],
 }: { closeTime?: number; header?: string; lines?: string[] } = {}) {
+  ztoolkit.log("getPopupWin", Date.now() - popupTime);
   if (!popupWin || Date.now() - popupTime > closeTime) {
     popupWin = new ztoolkit.ProgressWindow(header, {
       closeTime: closeTime,
+      closeOnClick: true,
     }).show();
   }
   popupTime = Date.now();
-  // for (const line of defaultLines) popupWin.createLine({ text: line });
+  if (lines) for (const line of lines) popupWin.createLine({ text: line });
   popupWin.startCloseTimer(closeTime);
   return popupWin;
 }
