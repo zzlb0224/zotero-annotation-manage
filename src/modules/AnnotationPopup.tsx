@@ -271,6 +271,17 @@ export class AnnotationPopup {
           root.style.width = width + "px";
         }
       }
+      setTimeout(() => {
+        const textarea = this.doc?.querySelector(
+          ".zoteropdftranslate-popup-textarea.zoteropdftranslate-readerpopup",
+        ) as HTMLTextAreaElement | undefined;
+        const selectionMenu = this.doc?.querySelector(".selection-popup") as
+          | HTMLDivElement
+          | undefined;
+        if (textarea && selectionMenu) {
+          updatePopupSize(selectionMenu, textarea, true);
+        }
+      }, 300);
       const currentPage = this.getCurrentPageDiv();
       // ztoolkit.log("getPage", colorsElement, this.params, currentPage);
       setTimeout(() => {
@@ -1259,4 +1270,39 @@ export class AnnotationPopup {
 
     return pageLeft - this.getViewerPadding();
   }
+}
+
+//因为我的窗口行为改变了翻译的窗口大小，使用他的代码修复一下
+//方法来自pdf-translate\src\modules\popup.ts 338行 [windingwind/zotero-pdf-translate](https://github.com/windingwind/zotero-pdf-translate)
+function updatePopupSize(
+  selectionMenu: HTMLDivElement,
+  textarea: HTMLTextAreaElement,
+  resetSize: boolean = true,
+): void {
+  // const keepSize = getPref("keepPopupSize") as boolean;
+  // if (keepSize) {
+  //   return;
+  // }
+  if (resetSize) {
+    textarea.style.width = "-moz-available";
+    textarea.style.height = "30px";
+  }
+
+  const viewer = selectionMenu.ownerDocument.body;
+  // Get current H & W
+  const textHeight = textarea.scrollHeight;
+  const textWidth = textarea.scrollWidth;
+  const newWidth = textWidth + 20;
+  // Check until H/W<0.75 and don't overflow viewer border
+  if (
+    textHeight / textWidth > 0.75 &&
+    selectionMenu.offsetLeft + newWidth < viewer.offsetWidth
+  ) {
+    // Update width
+    textarea.style.width = `${newWidth}px`;
+    updatePopupSize(selectionMenu, textarea, false);
+    return;
+  }
+  // Update height
+  textarea.style.height = `${textHeight + 3}px`;
 }
