@@ -3,7 +3,6 @@ import {
   Timer,
   createTopDiv,
   getItem,
-  injectCSS,
   memSVG,
   openAnnotation,
 } from "../utils/zzlb";

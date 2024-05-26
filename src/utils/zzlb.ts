@@ -519,7 +519,9 @@ export async function injectCSS(
   doc: Document | HTMLDivElement,
   filename: string = "annotation.css",
 ) {
-  const href = `chrome://${config.addonRef}/content/${filename}`;
+  // if (Zotero) return;
+  //chrome
+  const href = `resource://${config.addonRef}/content/${filename}`;
 
   const d = ztoolkit.UI.appendElement(
     {

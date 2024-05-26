@@ -1,21 +1,4 @@
 import { config } from "../../package.json";
-import {
-  Timer,
-  createTopDiv,
-  getFileContent,
-  getItem,
-  injectCSS,
-  memFixedTagColors,
-  memSVG,
-  openAnnotation,
-  uniqueBy,
-} from "../utils/zzlb";
-import { Relations } from "../utils/Relations";
-import { waitUtilAsync } from "../utils/wait";
-import { getPref, setPref } from "../utils/prefs";
-import { compare } from "../utils/sort";
-import { col } from "../utils/action-col";
-import { text, timeout } from "d3";
 
 function register() {
   Zotero.Reader.registerEventListener(

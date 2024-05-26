@@ -74,12 +74,15 @@ export class AnnotationPopup {
           this.params?.ids.includes(f.key),
         )
       : [];
-    ztoolkit.log(this, this.existAnnotations);
+    // 这里引发的 #38 ，可能是json循环输出的问题？
+    // ztoolkit.log(this, this.existAnnotations);
+
     this.fontSize =
       (Zotero.Prefs.get(
         `extensions.zotero.ZoteroPDFTranslate.fontSize`,
         true,
       ) || 18) + "px";
+
     ztoolkit.log("初始化", this.createDiv());
   }
 
@@ -104,6 +107,7 @@ export class AnnotationPopup {
     if (!this.doc) return;
 
     this.clearDiv();
+
     const div = ztoolkit.UI.createElement(this.doc, "div", {
       namespace: "html",
       id: this.idRootDiv,
@@ -114,7 +118,7 @@ export class AnnotationPopup {
           tag: "link",
           properties: {
             rel: "stylesheet",
-            href: `chrome://${config.addonRef}/content/annotation.css`,
+            href: `resource://${config.addonRef}/content/annotation.css`,
           },
         },
       ],
@@ -136,6 +140,7 @@ export class AnnotationPopup {
     // setTimeout(async () => {
     //   await this.updateDiv(div);
     // }, 500);
+
     this.updateDivStart(div);
     return div;
   }
@@ -152,6 +157,7 @@ export class AnnotationPopup {
       }, 1);
       return;
     }
+
     if (!root.parentNode) {
       const dd: HTMLElement | false = false;
       //应该在这里计算位置，这里最准确
@@ -289,6 +295,7 @@ export class AnnotationPopup {
       }, 1);
       return;
     }
+
     // setTimeout(async () => {
     //这里只更新内容 不更新大小
     // if (isDebug()) {
@@ -299,6 +306,7 @@ export class AnnotationPopup {
     // }
     //   await this.updateDiv(root);
     // }, 50);
+
     this.updateDiv(root);
   }
 
@@ -323,6 +331,7 @@ export class AnnotationPopup {
     } else {
       relateTags = groupBy(memRelateTags(this.item), (t10) => t10.tag);
     }
+
     if (getPref("show-relate-tags")) groupByResultIncludeFixedTags(relateTags);
     if (getPref("sort") == "2") {
       //2 固定标签 + 修改时间

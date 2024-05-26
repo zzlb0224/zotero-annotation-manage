@@ -263,7 +263,10 @@ function buildMenu(collectionOrItem: "collection" | "item") {
             label: "类型：文字",
             icon: iconBaseUrl + "favicon.png",
             commandListener: (ev: Event) => {
-              exportNoteByType("text" as _ZoteroTypes.Annotations.AnnotationType, collectionOrItem);
+              exportNoteByType(
+                "text" as _ZoteroTypes.Annotations.AnnotationType,
+                collectionOrItem,
+              );
             },
           },
         ],
@@ -1674,19 +1677,15 @@ export function getPopupWin({
   header = "整理笔记",
   lines: defaultLines = [],
 }: { closeTime?: number; header?: string; lines?: string[] } = {}) {
-  // if (!popupWin || Date.now() - popupTime > closeTime)
-  {
-    popupTime = Date.now();
-    // @ts-ignore 通过里面的节点
-    if (!popupWin?.lines?.[0]?._hbox?.isConnected) {
-      popupWin = new ztoolkit.ProgressWindow(header, {
-        closeTime: closeTime,
-      }).show();
-    }
-    // for (const line of defaultLines) popupWin.createLine({ text: line });
-    popupWin.startCloseTimer(closeTime);
-    return popupWin;
+  if (!popupWin || Date.now() - popupTime > closeTime) {
+    popupWin = new ztoolkit.ProgressWindow(header, {
+      closeTime: closeTime,
+    }).show();
   }
+  popupTime = Date.now();
+  // for (const line of defaultLines) popupWin.createLine({ text: line });
+  popupWin.startCloseTimer(closeTime);
+  return popupWin;
 }
 
 function getTitleFromAnnotations(annotations: AnnotationRes[]) {

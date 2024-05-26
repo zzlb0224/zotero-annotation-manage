@@ -44,6 +44,7 @@ function renderTextSelectionPopup(
     return;
   }
   const ap = new AnnotationPopup(reader, params);
+
   // addon.data.test = ap;
   const div = ap.rootDiv;
   // const div = createDiv(reader, params);
