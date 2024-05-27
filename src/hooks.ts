@@ -1,4 +1,3 @@
-import { BasicExampleFactory } from "./modules/examples";
 import { config } from "../package.json";
 import { initLocale } from "./utils/locale";
 import {
@@ -12,7 +11,6 @@ import Annotations from "./modules/annotations";
 import AnnotationsToNote, { createPopMenu } from "./modules/annotationsToNote";
 import RelationHeader from "./modules/RelationHeader";
 import highlightWords from "./modules/highlightWords";
-import spaceRemove from "./modules/spaceRemove";
 
 async function onStartup() {
   await Promise.all([
