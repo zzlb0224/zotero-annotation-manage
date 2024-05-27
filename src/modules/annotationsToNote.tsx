@@ -32,7 +32,7 @@ import {
 import { createTopDiv } from "../utils/zzlb";
 import { convertHtml } from "../utils/zzlb";
 import { AnnotationRes } from "../utils/zzlb";
-import { showTitle } from "./readerTools";
+import { showTitle } from "./RelationHeader";
 import { createDialog } from "../utils/zzlb";
 
 export let popupWin: ProgressWindowHelper | undefined = undefined;

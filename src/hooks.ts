@@ -10,7 +10,7 @@ import {
 import { createZToolkit } from "./utils/ztoolkit";
 import Annotations from "./modules/annotations";
 import AnnotationsToNote, { createPopMenu } from "./modules/annotationsToNote";
-import readerTools from "./modules/readerTools";
+import RelationHeader from "./modules/RelationHeader";
 import highlightWords from "./modules/highlightWords";
 import spaceRemove from "./modules/spaceRemove";
 
@@ -20,13 +20,6 @@ async function onStartup() {
     Zotero.unlockPromise,
     Zotero.uiReadyPromise,
   ]);
-
-  // TODO: Remove this after zotero#3387 is merged
-  if (__env__ === "development") {
-    // Keep in sync with the scripts/startup.mjs
-    const loadDevToolWhen = `Plugin ${config.addonID} startup`;
-    ztoolkit.log(loadDevToolWhen);
-  }
 
   initLocale();
   await initPrefSettings();
@@ -96,7 +89,7 @@ async function onMainWindowLoad(win: Window): Promise<void> {
   registerPrefsWindow();
   Annotations.register();
   AnnotationsToNote.register();
-  readerTools.register();
+  RelationHeader.register();
   highlightWords.register();
   // spaceRemove.register();
   // Relations.checkLinkAnnotation();
@@ -126,7 +119,7 @@ async function onMainWindowLoad(win: Window): Promise<void> {
 async function onMainWindowUnload(win: Window): Promise<void> {
   Annotations.unregister();
   AnnotationsToNote.unregister();
-  readerTools.unregister();
+  RelationHeader.unregister();
   highlightWords.unregister();
   // spaceRemove.unregister();
   ztoolkit.unregisterAll();

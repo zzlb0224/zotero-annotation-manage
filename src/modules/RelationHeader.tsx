@@ -589,7 +589,7 @@ async function getAnnotationContent(ann: Zotero.Item) {
     .replace(/<br>/g, "<br/>") // br 导致无法显示
     .replace(/<\/br>/g, "") // br 导致无法显示
     .replace(/<p>/g, `<p style="margin:0px">`); // 缩减头尾的空白
-  ztoolkit.log(html, html2);
+  // ztoolkit.log(html, html2);
   return html2;
 }
 
