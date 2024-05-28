@@ -2,7 +2,7 @@ import { ProgressWindowHelper } from "zotero-plugin-toolkit/dist/helpers/progres
 import { MenuitemOptions } from "zotero-plugin-toolkit/dist/managers/menu";
 import { TagElementProps } from "zotero-plugin-toolkit/dist/tools/ui";
 import { config } from "../../package.json";
-import { getPref } from "../utils/prefs";
+import { getPref, setPref } from "../utils/prefs";
 import {
   compare,
   sortAsc,
@@ -171,6 +171,7 @@ function buildMenu(collectionOrItem: "collection" | "item") {
         tag: "menuitem",
         label: "搜索批注文字和标签导出div",
         icon: iconBaseUrl + "favicon.png",
+        hidden: getPref("debug") as boolean ||false,
         commandListener: async (ev: Event) => {
           const target = ev.target as HTMLElement;
           const doc = target.ownerDocument;
@@ -188,7 +189,7 @@ function buildMenu(collectionOrItem: "collection" | "item") {
       },
       {
         tag: "menuitem",
-        label: "搜索批注文字和标签导出dialog",
+        label: "搜索批注文字和标签导出",
         icon: iconBaseUrl + "favicon.png",
         commandListener: async (ev: Event) => {
           const target = ev.target as HTMLElement;
@@ -208,11 +209,15 @@ function buildMenu(collectionOrItem: "collection" | "item") {
               classList: ["content"],
               // properties: { innerHTML: "2 0" },
               styles: {
-                minHeight: "20px",
-                minWidth: "100px",
                 display: "flex",
-                maxHeight: mainWindow.innerHeight - 40 + "px",
-                maxWidth: Math.max(mainWindow.outerWidth - 180, 1000) + "px",
+                // minHeight: "20px",
+                // minWidth: "100px", 
+                // height: Math.max(mainWindow.innerHeight*0.7,700)+ "px",
+                // width: Math.max(mainWindow.outerWidth *0.8, 700) + "px",
+                // minHeight: Math.max(mainWindow.innerHeight*0.7,700)+ "px",
+                // minWidth: Math.max(mainWindow.outerWidth *0.8, 700) + "px",
+                // maxHeight:  Math.max(mainWindow.innerHeight*0.9,700) + "px",
+                // maxWidth: Math.max(mainWindow.outerWidth -180, 700) + "px",
                 flexWrap: "wrap",
                 overflowY: "scroll",
               },
@@ -366,6 +371,7 @@ const ID = {
 import { createRoot } from "react-dom/client";
 import React = require("react");
 import { MyButton } from "./MyButton";
+import { getAnnotationContent } from '../utils/zzlb';
 async function topDialogRect() {
   const dialogData: { [key: string | number]: any } = {
     inputValue: "test",
@@ -899,7 +905,7 @@ function createSearchAnnContent(
   if (!doc) return;
   let text = "";
   let tag = "";
-  let pageSize = 12;
+  let pageSize =getPref("SearchAnnPageSize") as number|| 16;
   let pageIndex = 1;
   const selectedAnnotationType: string[] = [];
   let ans: AnnotationRes[] = annotations;
@@ -960,7 +966,7 @@ function createSearchAnnContent(
       {
         tag: "div",
         properties: { textContent: "类型：" },
-        children: ["highlight", "image", "underline", "note", "ink"].flatMap(
+        children: ["highlight", "image", "underline", "note", "ink","text"].flatMap(
           (a) => [
             {
               tag: "label",
@@ -1026,6 +1032,7 @@ function createSearchAnnContent(
                   );
                   if (pageSize <= 0) pageSize = 1;
                   (ev.target as HTMLInputElement).value = pageSize + "";
+                  setPref("SearchAnnPageSize",pageSize)
                   updateContent();
                 },
               },
@@ -1056,7 +1063,12 @@ function createSearchAnnContent(
                   pageIndex = parseInt(
                     (ev.target as HTMLInputElement).value.trim(),
                   );
-                  if (pageIndex <= 0) pageIndex = 1;
+                  // if (pageIndex <= 0) pageIndex = 1;
+                  if(pageIndex<=0){
+                    pageIndex=Math.floor( ans.length/pageSize+1)
+                  }else if(pageIndex>ans.length/pageSize+1){
+                    pageIndex=1
+                  }
                   (ev.target as HTMLInputElement).value = pageIndex + "";
                   updateContent();
                 },
@@ -1081,22 +1093,22 @@ function createSearchAnnContent(
           },
         ],
       },
-      {
-        tag: "button",
-        properties: { textContent: "关闭" },
-        listeners: [
-          {
-            type: "click",
-            listener: (e) => {
-              e.stopPropagation();
+      // {
+      //   tag: "button",
+      //   properties: { textContent: "关闭" },
+      //   listeners: [
+      //     {
+      //       type: "click",
+      //       listener: (e) => {
+      //         e.stopPropagation();
 
-              dialogWindow?.close();
-              popupDiv?.remove();
-            },
-            options: { capture: true },
-          },
-        ],
-      },
+      //         dialogWindow?.close();
+      //         popupDiv?.remove();
+      //       },
+      //       options: { capture: true },
+      //     },
+      //   ],
+      // },
       // {
       //   tag: "button",
       //   properties: { textContent: "" },
@@ -1116,8 +1128,26 @@ function createSearchAnnContent(
     ],
   };
   ztoolkit.UI.appendElement(inputTag!, query);
-
+  // content.addEventListener("wheel",(e)=>{ztoolkit.log("wheel",e)})
+  // content.addEventListener("onmousewheel",(e)=>{ztoolkit.log("onmousewheel",e)}) 
+  content.addEventListener("DOMMouseScroll_只要底层捕捉，上面的div不要处理这个事件",(e)=>{
+      // e.preventDefault()
+      const DMS= e as any
+      // ztoolkit.log("DOMMouseScroll",e)      
+      pageIndex+=DMS.detail?1:-1
+      if(pageIndex<=0){
+                    pageIndex=Math.floor( ans.length/pageSize+1)
+      }else if(pageIndex>ans.length/pageSize+1){
+                    pageIndex=1
+      }
+      const pIE=query.querySelector(".pageIndex")as HTMLInputElement
+      if(pIE){
+        pIE.value = pageIndex+""
+      }    
+      updatePageContent() 
+    })
   updateContent();
+  // return { text, tag, showN: pageSize, ans };
   async function updateContent() {
     const txtRegExp = str2RegExps(text);
     const tagRegExp = str2RegExps(tag);
@@ -1137,9 +1167,15 @@ function createSearchAnnContent(
           selectedAnnotationType.length == 0 ||
           selectedAnnotationType.includes(f.type),
       )
-      .sort(sortModified);
+      .sort((a,b)=>{
+        return sortAsc( b.year,a.year)*1000
+        +sortAsc(a.author,b.author)*100
+        +sortAsc(parseInt( a.ann.annotationPageLabel),parseInt( b.ann.annotationPageLabel))*10
+        +sortAsc(a.ann.annotationPosition,b.ann.annotationPosition)*1
+      });
     clearChild(content);
     clearChild(status);
+   
 
     if ((pageIndex - 1) * pageSize > ans.length) {
       pageIndex = 1;
@@ -1150,9 +1186,12 @@ function createSearchAnnContent(
     // ztoolkit.UI.appendElement(,status);
 
     await updatePageContent();
-    if (isWin) (dialogWindow as any).sizeToContent();
+    //大小变化不需要了
+    // if (isWin) (dialogWindow as any).sizeToContent();
 
-    async function updatePageContent() {
+    
+  }
+  async function updatePageContent() {
       const showAn = ans.slice(
         (pageIndex - 1) * pageSize,
         pageIndex * pageSize,
@@ -1252,7 +1291,7 @@ function createSearchAnnContent(
                   tag: "div",
                   styles: {
                     background: anTo.annotationColor + "60", //width: "200px",
-                    maxHeight: "100px",
+                    height: "100px",
                     overflowY: "scroll",
                   },
                   properties: { innerHTML: await getAnnotationContent(anTo) },
@@ -1295,33 +1334,8 @@ function createSearchAnnContent(
         content,
       );
     }
-  }
-  return { text, tag, showN: pageSize, ans };
 }
 
-async function getAnnotationContent(ann: Zotero.Item) {
-  let html = (await Zotero.BetterNotes.api.convert.annotations2html([ann], {
-    noteItem: undefined,
-  })) as string;
-  if (html)
-    html = html.replace(
-      /<img /g,
-      '<img style="max-width: 100%;height: auto;" ',
-    );
-  else if (
-    ann.annotationType == ("underline" as string) ||
-    ann.annotationType == ("text" as string)
-  )
-    html = getCiteAnnotationHtml(
-      ann,
-
-      `  ${ann.annotationText || ""} ( ${ann.parentItem?.parentItem?.firstCreator}, ${ann.parentItem?.parentItem?.getField("year")}, p.${ann.annotationPageLabel} ) ${
-        ann.annotationComment || ""
-      }`,
-    );
-  else html = "==空白==<br/><br/>==空白==<br/><br/>==空白==";
-  return html.replace(/<br\s*>/g, "<br/>");
-}
 function createChild(doc: Document, items: Zotero.Item[]) {
   const annotations = getAllAnnotations(items).flatMap((f) =>
     f.tags.map((t3) => Object.assign(f, { tag: t3 })),
