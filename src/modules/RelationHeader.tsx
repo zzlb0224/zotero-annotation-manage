@@ -4,6 +4,7 @@ import {
   createTopDiv,
   getAnnotationContent,
   getItem,
+  getPublicationTags,
   memSVG,
   openAnnotation,
 } from "../utils/zzlb";
@@ -423,10 +424,11 @@ async function createRelatedContent(
                   background: anTo.annotationColor + "10", //width: "200px"
                 },
                 properties: {
-                  textContent: anTo
-                    .getTags()
-                    .map((a) => a.tag)
-                    .join(","),
+                  innerHTML:
+                    anTo
+                      .getTags()
+                      .map((a) => a.tag)
+                      .join(",") + getPublicationTags(anTo),
                 },
               },
             ],

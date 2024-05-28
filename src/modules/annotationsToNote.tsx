@@ -372,6 +372,7 @@ import { createRoot } from "react-dom/client";
 import React = require("react");
 import { MyButton } from "./MyButton";
 import { getAnnotationContent } from "../utils/zzlb";
+import { getPublicationTags } from "../utils/zzlb";
 async function topDialogRect() {
   const dialogData: { [key: string | number]: any } = {
     inputValue: "test",
@@ -1781,26 +1782,6 @@ async function exportNote({
 
   await saveNote(note, `${title}${txt}`);
 }
-function getPublicationTags(topItem: Zotero.Item | undefined) {
-  if (!topItem) {
-    return "";
-  }
-  while (topItem.parentItem) topItem = topItem.parentItem;
-  if (!Zotero.ZoteroStyle) {
-    return "";
-  }
-  const space = " ㅤㅤ ㅤㅤ";
-  return Array.prototype.map
-    .call(
-      Zotero.ZoteroStyle.api.renderCell(topItem, "publicationTags").childNodes,
-      (e) => {
-        e.innerText = space + e.innerText + space;
-        return e.outerHTML;
-      },
-    )
-    .join(space);
-}
-
 async function getSelectedItems(
   isCollectionOrItem: boolean | "collection" | "item",
 ) {

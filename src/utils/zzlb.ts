@@ -936,3 +936,22 @@ export async function getAnnotationContent(ann: Zotero.Item) {
   else html = "==空白==<br/><br/>==空白==<br/><br/>==空白==";
   return html.replace(/<br\s*>/g, "<br/>");
 }
+export function getPublicationTags(topItem: Zotero.Item | undefined) {
+  if (!topItem) {
+    return "";
+  }
+  while (topItem.parentItem) topItem = topItem.parentItem;
+  if (!Zotero.ZoteroStyle) {
+    return "";
+  }
+  const space = " ㅤㅤ ㅤㅤ";
+  return Array.prototype.map
+    .call(
+      Zotero.ZoteroStyle.api.renderCell(topItem, "publicationTags").childNodes,
+      (e) => {
+        e.innerText = space + e.innerText + space;
+        return e.outerHTML;
+      },
+    )
+    .join(space);
+}
