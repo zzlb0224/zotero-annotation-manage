@@ -1783,11 +1783,11 @@ async function exportNote({
 }
 function getPublicationTags(topItem: Zotero.Item | undefined) {
   if (!topItem) {
-    return "！topItem";
+    return "";
   }
   while (topItem.parentItem) topItem = topItem.parentItem;
   if (!Zotero.ZoteroStyle) {
-    return "！ZoteroStyle";
+    return "";
   }
   const space = " ㅤㅤ ㅤㅤ";
   return Array.prototype.map
