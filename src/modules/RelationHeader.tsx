@@ -2,6 +2,7 @@ import { config } from "../../package.json";
 import {
   Timer,
   createTopDiv,
+  getAnnotationContent,
   getItem,
   memSVG,
   openAnnotation,
@@ -577,21 +578,21 @@ async function relatedDialogResize(win: Window, top: number, left: number) {
   }
 }
 
-async function getAnnotationContent(ann: Zotero.Item) {
-  const html = (await Zotero.BetterNotes.api.convert.annotations2html([ann], {
-    noteItem: undefined,
-  })) as string;
-  const html2 = html
-    .replace(
-      /<img (?<attrs>(?!style).*)\/>/g,
-      '<div style="height:100px"><img style="height:100%;width:100%;object-fit:contain;" $<attrs>/></div>',
-    ) //图片自适应  如果已经有style属性了，那么就跳过
-    .replace(/<br>/g, "<br/>") // br 导致无法显示
-    .replace(/<\/br>/g, "") // br 导致无法显示
-    .replace(/<p>/g, `<p style="margin:0px">`); // 缩减头尾的空白
-  // ztoolkit.log(html, html2);
-  return html2;
-}
+// async function getAnnotationContent(ann: Zotero.Item) {
+//   const html = (await Zotero.BetterNotes.api.convert.annotations2html([ann], {
+//     noteItem: undefined,
+//   })) as string;
+//   const html2 = html
+//     .replace(
+//       /<img (?<attrs>(?!style).*)\/>/g,
+//       '<div style="height:100px"><img style="height:100%;width:100%;object-fit:contain;" $<attrs>/></div>',
+//     ) //图片自适应  如果已经有style属性了，那么就跳过
+//     .replace(/<br>/g, "<br/>") // br 导致无法显示
+//     .replace(/<\/br>/g, "") // br 导致无法显示
+//     .replace(/<p>/g, `<p style="margin:0px">`); // 缩减头尾的空白
+//   // ztoolkit.log(html, html2);
+//   return html2;
+// }
 
 function getRelatedItemsAnnotations(ann: Zotero.Item) {
   if (ann.relatedItems && ann.relatedItems.length > 0) {

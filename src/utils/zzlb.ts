@@ -339,12 +339,12 @@ const memAllTagsInLibraryAsync = memoize(async () => {
     );
   const itemTags = getPref("item-tags")
     ? items.flatMap((f) =>
-        f.getTags().map((a) => ({
-          tag: a.tag,
-          type: a.type,
-          dateModified: f.dateModified,
-        })),
-      )
+      f.getTags().map((a) => ({
+        tag: a.tag,
+        type: a.type,
+        dateModified: f.dateModified,
+      })),
+    )
     : [];
   return groupBy([...tags, ...itemTags], (t14) => t14.tag);
 });
@@ -445,9 +445,9 @@ export function getItem(itemOrKeyOrId: Zotero.Item | string | number) {
     ? Zotero.Items.get(itemOrKeyOrId)
     : typeof itemOrKeyOrId == "string"
       ? (Zotero.Items.getByLibraryAndKey(
-          Zotero.Libraries.userLibraryID,
-          itemOrKeyOrId,
-        ) as Zotero.Item)
+        Zotero.Libraries.userLibraryID,
+        itemOrKeyOrId,
+      ) as Zotero.Item)
       : itemOrKeyOrId;
 }
 export async function openAnnotation(
@@ -534,11 +534,11 @@ export async function injectCSS(
       ignoreIfExists: true,
     },
     doc.querySelector("linkset") ||
-      doc.querySelector("head") ||
-      doc.querySelector("body") ||
-      doc.querySelector("div") ||
-      doc.children[0] ||
-      doc,
+    doc.querySelector("head") ||
+    doc.querySelector("body") ||
+    doc.querySelector("div") ||
+    doc.children[0] ||
+    doc,
   );
   // ztoolkit.log("加载css", d);
 }
@@ -612,9 +612,9 @@ export function createTopDiv(
       ],
     },
     doc.querySelector("#browser") ||
-      doc.querySelector("body") ||
-      doc.children[0] ||
-      doc,
+    doc.querySelector("body") ||
+    doc.children[0] ||
+    doc,
   ) as HTMLDivElement;
 
   const modal = ztoolkit.UI.appendElement(
@@ -900,7 +900,9 @@ export async function createDialog(title: string, children: TagElementProps[]) {
     .open(title, {
       // alwaysRaised: true,
       left: 120,
-      fitContent: true,
+      // fitContent: true,
+      height: Zotero.getMainWindow().innerHeight - 100,
+      width: Zotero.getMainWindow().innerWidth - 130,
       resizable: true,
     });
 
@@ -908,3 +910,26 @@ export async function createDialog(title: string, children: TagElementProps[]) {
   addon.data.exportDialog = dialogHelper;
   return dialogHelper.window;
 }
+export async function getAnnotationContent(ann: Zotero.Item) {
+  let html = (await Zotero.BetterNotes.api.convert.annotations2html([ann], {
+    noteItem: undefined,
+  })) as string;
+  if (html)
+    html = html.replace(
+      /<img (?<attrs>(?!style).*)\/>/g,
+      '<div style="height:100px"><img style="height:100%;width:100%;object-fit:contain;" $<attrs>/></div>',
+    ) //图片自适应  如果已经有style属性了，那么就跳过
+      .replace(/<br>/g, "<br/>") // br 导致无法显示
+      .replace(/<\/br>/g, "") // br 导致无法显示
+      .replace(/<p>/g, `<p style="margin:0px">`); // 缩减头尾的空白
+  else if (ann.annotationType == ("underline" as string) ||
+    ann.annotationType == ("text" as string))
+    html = getCiteAnnotationHtml(
+      ann,
+
+      `  ${ann.annotationText || ""} ( ${ann.parentItem?.parentItem?.firstCreator}, ${ann.parentItem?.parentItem?.getField("year")}, p.${ann.annotationPageLabel} ) ${ann.annotationComment || ""}`
+    );
+  else html = "==空白==<br/><br/>==空白==<br/><br/>==空白==";
+  return html.replace(/<br\s*>/g, "<br/>");
+}
+
