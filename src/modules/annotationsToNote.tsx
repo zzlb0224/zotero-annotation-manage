@@ -1308,10 +1308,11 @@ function createSearchAnnContent(
                   background: anTo.annotationColor + "10", //width: "200px"
                 },
                 properties: {
-                  textContent: anTo
-                    .getTags()
-                    .map((a) => a.tag)
-                    .join(","),
+                  innerHTML:
+                    anTo
+                      .getTags()
+                      .map((a) => a.tag)
+                      .join(",") + getPublicationTags(anTo),
                 },
               },
             ],
@@ -1784,6 +1785,7 @@ function getPublicationTags(topItem: Zotero.Item | undefined) {
   if (!topItem) {
     return "！topItem";
   }
+  while (topItem.parentItem) topItem = topItem.parentItem;
   if (!Zotero.ZoteroStyle) {
     return "！ZoteroStyle";
   }
