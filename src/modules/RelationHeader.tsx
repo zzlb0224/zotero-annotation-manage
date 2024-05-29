@@ -11,7 +11,7 @@ import {
 import { Relations } from "../utils/Relations";
 import { waitUtilAsync } from "../utils/wait";
 import { getPref } from "../utils/prefs";
-import { compare } from "../utils/sort";
+import { compare, sortAsc } from "../utils/sort";
 import { DialogHelper } from "zotero-plugin-toolkit/dist/helpers/dialog";
 
 function register() {
@@ -255,20 +255,34 @@ async function createRelatedContent(
       type: "链接",
       ann: getItem(Zotero.URI.getURIItemID(toItemURI) || ""),
     }))
-    .map((a) =>
-      Object.assign(a, {
-        parentID: a.ann.parentID,
-        annotationPageLabel: parseInt(a.ann.annotationPageLabel),
-        annotationPosition: a.ann.annotationPosition,
-      }),
-    )
+    // .map((a) =>
+    //   Object.assign(a, {
+    //     parentID: a.ann.parentID,
+    //     annotationPageLabel: parseInt(a.ann.annotationPageLabel),
+    //     annotationPosition: a.ann.annotationPosition,
+    //   }),
+    // )
+    // .sort(
+    //    compare(
+    //      "parentID",
+    //      "annotationPageLabel",
+    //      "annotationPosition",
+    //      undefined,
+    //    ),
+    // );
     .sort(
-      compare(
-        "parentID",
-        "annotationPageLabel",
-        "annotationPosition",
-        undefined,
-      ),
+      (a, b) =>
+        sortAsc(
+          b.ann.parentItem?.parentItem?.getField("year"),
+          b.ann.parentItem?.parentItem?.getField("year"),
+        ) *
+          1000 +
+        sortAsc(
+          a.ann.parentItemKey || undefined,
+          b.ann.parentItemKey || undefined,
+        ) *
+          10 +
+        sortAsc(a.ann.annotationSortIndex, b.ann.annotationSortIndex),
     );
   content.innerHTML = "";
   const fromURI = Zotero.URI.getItemURI(anFrom);

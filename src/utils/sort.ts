@@ -29,7 +29,19 @@ export function sortTags(
     return sortTags(fixed, a.key, b.key);
   return 0;
 }
-export function sortAsc(a: string | number, b: string | number) {
+export function sortAsc(
+  a: string | number | undefined,
+  b: string | number | undefined,
+) {
+  if (a === undefined && b === undefined) {
+    return 0;
+  }
+  if (a === undefined) {
+    return -1;
+  }
+  if (b === undefined) {
+    return 1;
+  }
   return a == b ? 0 : a < b ? -1 : 1;
 }
 
