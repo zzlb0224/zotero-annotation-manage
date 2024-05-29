@@ -500,6 +500,7 @@ async function DDDtagClear() {
     removeIDs,
     (done: number, total: number) => {
       getPopupWin({ header }).changeLine({
+        idx: 0,
         progress: (done / total) * 100,
         text: `执行中:${done}/${total}`,
       });
@@ -542,6 +543,7 @@ async function DDDtagRemove(collectionOrItem: "collection" | "item") {
     if (changed) {
       item.saveTx();
       getPopupWin({ header }).changeLine({
+        idx: 0,
         progress: (done / total) * 100,
         text: `执行中:${done}/${total}`,
       });
@@ -652,6 +654,7 @@ async function DDDTagSet(collectionOrItem: "collection" | "item") {
     }
     if (changed) pdf.parentItem?.saveTx();
     getPopupWin({ header }).changeLine({
+      idx: 0,
       progress: (index / pdfs.length) * 100,
       text: pdf.getDisplayTitle(),
     });
@@ -699,6 +702,7 @@ async function funcTranslateAnnotations(
     //   ? r
     //   : an.ann.annotationComment.replace(/🔤undefined🔤/, r);
     getPopupWin({ header }).changeLine({
+      idx: 0,
       progress: (index / ans.length) * 100,
       text: text.substring(0, 10) + "=>" + r.substring(0, 10),
     });
@@ -706,7 +710,7 @@ async function funcTranslateAnnotations(
     Zotero.Promise.delay(500);
   }
   getPopupWin({ header }).createLine({ text: "已完成" });
-  getPopupWin({ header }).startCloseTimer(5000);
+  // getPopupWin({ header }).startCloseTimer(5000);
 }
 
 async function funcCreateTab(items: Zotero.Item[]) {
@@ -1694,6 +1698,7 @@ function getAllAnnotations(items: Zotero.Item[]) {
     });
   return data;
 }
+let popupWinId = 1;
 export function getPopupWin({
   closeTime = 5000,
   header = "整理笔记",
@@ -1705,10 +1710,22 @@ export function getPopupWin({
       closeTime: closeTime,
       closeOnClick: true,
     }).show();
+    //@ts-ignore 测试代码
+    popupWin.id = popupWinId++;
+    // popupWin.startCloseTimer(closeTime,false);
+    const oriCloseAll = Zotero.ProgressWindowSet.closeAll;
+    Zotero.ProgressWindowSet.closeAll = () => {
+      //@ts-ignore 测试代码
+      ztoolkit.log("触发关闭所有", popupWin.id);
+      popupWin = undefined;
+      oriCloseAll();
+      Zotero.ProgressWindowSet.closeAll = oriCloseAll;
+    };
   }
   popupTime = Date.now();
-  if (lines) for (const line of lines) popupWin.createLine({ text: line });
-  popupWin.startCloseTimer(closeTime);
+  if (lines && lines.length > 0)
+    for (const line of lines) popupWin.createLine({ text: line });
+  popupWin.startCloseTimer(closeTime, false);
   return popupWin;
 }
 
