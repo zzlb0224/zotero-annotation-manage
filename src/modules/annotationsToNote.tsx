@@ -2,7 +2,7 @@ import { ProgressWindowHelper } from "zotero-plugin-toolkit/dist/helpers/progres
 import { MenuitemOptions } from "zotero-plugin-toolkit/dist/managers/menu";
 import { TagElementProps } from "zotero-plugin-toolkit/dist/tools/ui";
 import { config } from "../../package.json";
-import { getPref, setPref } from "../utils/prefs";
+import { getPref, getPrefT, setPref } from "../utils/prefs";
 import {
   compare,
   sortAsc,
@@ -912,6 +912,7 @@ function createSearchAnnContent(
   let tag = "";
   let pageSize = (getPref("SearchAnnPageSize") as number) || 16;
   let pageIndex = 1;
+  let fontSize = (getPref("SearchAnnFontSize") as number) || 16;
   const selectedAnnotationType: string[] = [];
   let ans: AnnotationRes[] = annotations;
 
@@ -919,6 +920,7 @@ function createSearchAnnContent(
   const query = doc.querySelector(".query") as HTMLElement;
   const status = doc.querySelector(".status") as HTMLElement;
   ztoolkit.log(content, query, status);
+  content.parentElement!.style.fontSize = fontSize + "px";
   const inputTag: TagElementProps = {
     tag: "div",
     styles: { display: "flex", flexDirection: "row", flexWrap: "wrap" },
@@ -1103,6 +1105,40 @@ function createSearchAnnContent(
           },
         ],
       },
+
+      {
+        tag: "div",
+        properties: { textContent: "预览文字大小" },
+        children: [
+          {
+            tag: "input",
+            namespace: "html",
+            classList: ["fontSize"],
+            properties: {
+              placeholder: "输入数字",
+              value: fontSize,
+              type: "number",
+            },
+            styles: { width: "30px" },
+            listeners: [
+              {
+                type: "change",
+                listener: (ev: Event) => {
+                  stopPropagation(ev);
+                  const input = ev.target as HTMLInputElement;
+                  fontSize = parseInt(input.value.trim());
+                  if (fontSize < 6) fontSize = 6;
+                  if (fontSize > 50) fontSize = 50;
+                  input.value = fontSize + "";
+                  setPref("SearchAnnFontSize", fontSize);
+                  content.parentElement!.style.fontSize = fontSize + "px";
+                },
+              },
+            ],
+          },
+        ],
+      },
+
       // {
       //   tag: "button",
       //   properties: { textContent: "关闭" },
@@ -1156,9 +1192,12 @@ function createSearchAnnContent(
       if (pIE) {
         pIE.value = pageIndex + "";
       }
-      updatePageContent();
+      updatePageContentDebounce();
     },
   );
+
+  const updatePageContentDebounce =
+    Zotero.Utilities.debounce(updatePageContent);
   updateContent();
   // return { text, tag, showN: pageSize, ans };
   async function updateContent() {
@@ -1203,8 +1242,7 @@ function createSearchAnnContent(
     }
     status.innerHTML = `总${annotations.length}条笔记，筛选出了${ans.length}条。预览${(pageIndex - 1) * pageSize + 1}-${Math.min(pageIndex * pageSize, ans.length)}条。`;
     // ztoolkit.UI.appendElement(,status);
-
-    await updatePageContent();
+    await updatePageContentDebounce();
     //大小变化不需要了
     // if (isWin) (dialogWindow as any).sizeToContent();
   }
