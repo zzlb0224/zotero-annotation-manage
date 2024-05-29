@@ -1184,12 +1184,14 @@ function createSearchAnnContent(
         return (
           sortAsc(b.year, a.year) * 1000 +
           sortAsc(a.author, b.author) * 100 +
-          sortAsc(
-            parseInt(a.ann.annotationPageLabel),
-            parseInt(b.ann.annotationPageLabel),
-          ) *
-            10 +
-          sortAsc(a.ann.annotationPosition, b.ann.annotationPosition) * 1
+          sortAsc(a.item.key, b.item.key) * 10 +
+          sortAsc(a.ann.annotationSortIndex, b.ann.annotationSortIndex)
+          // sortAsc(
+          //   parseInt(a.ann.annotationPageLabel),
+          //   parseInt(b.ann.annotationPageLabel),
+          // ) *
+          //   10 +
+          // sortAsc(a.ann.annotationPosition, b.ann.annotationPosition) * 1
         );
       });
     clearChild(content);
