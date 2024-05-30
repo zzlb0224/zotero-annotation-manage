@@ -135,57 +135,10 @@ function buildMenu(collectionOrItem: "collection" | "item") {
 
       {
         tag: "menuseparator",
-      },
+      },  
       {
         tag: "menuitem",
-        label: "选择多个标签导出",
-        icon: iconBaseUrl + "favicon.png",
-        commandListener: (ev: Event) => {
-          const target = ev.target as HTMLElement;
-          const doc = target.ownerDocument;
-          const div = createChooseTagsDiv(doc, collectionOrItem);
-          // ztoolkit.log("自选标签", div);
-          // setTimeout(()=>d.remove(),10000)
-        },
-      },
-      {
-        tag: "menuitem",
-        label: "按类型统计标签数量",
-        hidden: !isDebug(),
-        icon: iconBaseUrl + "favicon.png",
-        commandListener: (ev: Event) => {
-          const target = ev.target as HTMLElement;
-          const doc = target.ownerDocument;
-          // const id = getParentAttr(ev.target as HTMLElement, "id");
-          // const div =
-          createChooseTagsDiv(doc, collectionOrItem);
-          // ztoolkit.log("自选标签", div);
-          // setTimeout(()=>d.remove(),10000)
-        },
-      },
-      {
-        tag: "menuitem",
-        label: "搜索批注文字和标签导出div",
-        icon: iconBaseUrl + "favicon.png",
-        hidden: true,
-        commandListener: async (ev: Event) => {
-          const target = ev.target as HTMLElement;
-          const doc = target.ownerDocument;
-          const items = await getSelectedItems(collectionOrItem);
-          const annotations = getAllAnnotations(items);
-          // const div = createSearchAnnDiv(doc);
-          const div = createTopDiv(doc, config.addonRef + `-TopDiv`, [
-            { tag: "div", classList: ["action"] },
-            { tag: "div", classList: ["query"] },
-            { tag: "div", classList: ["status"] },
-            { tag: "div", classList: ["content"] },
-          ])!;
-          createSearchAnnContent(undefined, div, annotations);
-        },
-      },
-      {
-        tag: "menuitem",
-        label: "搜索批注文字和标签导出", //原dialog
+        label: "预览批注导出",  
         icon: iconBaseUrl + "favicon.png",
         commandListener: async (ev: Event) => {
           const target = ev.target as HTMLElement;
@@ -193,7 +146,13 @@ function buildMenu(collectionOrItem: "collection" | "item") {
           const items = await getSelectedItems(collectionOrItem);
           const annotations = getAllAnnotations(items);
           const mainWindow = Zotero.getMainWindow();
-          const win = await createDialog("搜索批注文字和标签导出", [
+          let  header = ""
+          if(collectionOrItem)
+            header="collection:"+ZoteroPane.getSelectedCollection()?.name||""
+          else if(items.length==1)
+            header ="单条目:"+items[0].getDisplayTitle()
+            else header=`已选择${items.length}个条目`
+          const win = await createDialog(header, [
             { tag: "div", classList: ["query"] },
             {
               tag: "div",
@@ -222,70 +181,55 @@ function buildMenu(collectionOrItem: "collection" | "item") {
           createSearchAnnContent(win, undefined, annotations);
         },
       },
-      // {
-      //   tag: "menu",
-      //   label: "按类型导出",
-      //   icon: iconBaseUrl + "favicon.png",
-      //   children: [
-      //     {
-      //       tag: "menuitem",
-      //       label: "类型：图片",
-      //       icon: iconBaseUrl + "favicon.png",
-      //       commandListener: (ev: Event) => {
-      //         exportNoteByType("image", collectionOrItem);
-      //       },
-      //     },
-      //     {
-      //       tag: "menuitem",
-      //       label: "类型：ink",
-      //       icon: iconBaseUrl + "favicon.png",
-      //       commandListener: (ev: Event) => {
-      //         exportNoteByType("ink", collectionOrItem);
-      //       },
-      //     },
-      //     {
-      //       tag: "menuitem",
-      //       label: "类型：纯笔记",
-      //       icon: iconBaseUrl + "favicon.png",
-      //       commandListener: (ev: Event) => {
-      //         exportNoteByType("note", collectionOrItem);
-      //       },
-      //     },
-      //     {
-      //       tag: "menuitem",
-      //       label: "类型：高亮",
-      //       icon: iconBaseUrl + "favicon.png",
-      //       commandListener: (ev: Event) => {
-      //         exportNoteByType("highlight", collectionOrItem);
-      //       },
-      //     },
-      //     {
-      //       tag: "menuitem",
-      //       label: "类型：文字",
-      //       icon: iconBaseUrl + "favicon.png",
-      //       commandListener: (ev: Event) => {
-      //         exportNoteByType(
-      //           "text" as _ZoteroTypes.Annotations.AnnotationType,
-      //           collectionOrItem,
-      //         );
-      //       },
-      //     },
-      //   ],
-      // },
       {
-        tag: "menu",
-        label: "按类型导出",
+        tag: "menuseparator",
+      },  
+      {
+        tag: "menuitem",
+        label: "选择多个Tag导出",
         icon: iconBaseUrl + "favicon.png",
-        popupId: `${config.addonRef}-create-note-type-popup-${collectionOrItem}`,
-        onpopupshowing: `Zotero.${config.addonInstance}.hooks.onMenuEvent("annotationToNoteType", { window,type:"${collectionOrItem}" })`,
+        commandListener: (ev: Event) => {
+          const target = ev.target as HTMLElement;
+          const doc = target.ownerDocument;
+          const div = createChooseTagsDiv(doc, collectionOrItem);
+          // ztoolkit.log("自选标签", div);
+          // setTimeout(()=>d.remove(),10000)
+        },
       },
+      
       {
         tag: "menu",
-        label: "按tag导出",
+        label: "选择单个Tag导出",
         icon: iconBaseUrl + "favicon.png",
         popupId: `${config.addonRef}-create-note-tag-popup-${collectionOrItem}`,
         onpopupshowing: `Zotero.${config.addonInstance}.hooks.onMenuEvent("annotationToNoteTags", { window,type:"${collectionOrItem}" })`,
       },
+      {
+        tag: "menuseparator",
+      },  
+      {
+        tag: "menuitem",
+        label: "选择多个Type导出",
+        hidden: !isDebug(),
+        icon: iconBaseUrl + "favicon.png",
+        commandListener: (ev: Event) => {
+          const target = ev.target as HTMLElement;
+          const doc = target.ownerDocument;
+          // const id = getParentAttr(ev.target as HTMLElement, "id");
+          // const div =
+          createChooseTagsDiv(doc, collectionOrItem);
+          // ztoolkit.log("自选标签", div);
+          // setTimeout(()=>d.remove(),10000)
+        },
+      },
+      {
+        tag: "menu",
+        label: "选择单个Type导出",
+        icon: iconBaseUrl + "favicon.png",
+        popupId: `${config.addonRef}-create-note-type-popup-${collectionOrItem}`,
+        onpopupshowing: `Zotero.${config.addonInstance}.hooks.onMenuEvent("annotationToNoteType", { window,type:"${collectionOrItem}" })`,
+      },
+   
     ],
   };
   return menu;
