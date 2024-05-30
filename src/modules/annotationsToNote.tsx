@@ -2,17 +2,14 @@ import { ProgressWindowHelper } from "zotero-plugin-toolkit/dist/helpers/progres
 import { MenuitemOptions } from "zotero-plugin-toolkit/dist/managers/menu";
 import { TagElementProps } from "zotero-plugin-toolkit/dist/tools/ui";
 import { config } from "../../package.json";
-import { getPref, getPrefT, setPref } from "../utils/prefs";
+import { getPref, setPref } from "../utils/prefs";
 import {
-  compare,
   sortAsc,
   sortBy,
   sortFixedTags10ValuesLength,
-  sortKey,
-  sortModified,
-  sortTags10AscByKey,
+  sortKey, sortTags10AscByKey,
   sortValuesLength,
-  sortValuesLengthKeyAsc,
+  sortValuesLengthKeyAsc
 } from "../utils/sort";
 import { Tab } from "../utils/tab";
 import {
@@ -39,9 +36,7 @@ export let popupWin: ProgressWindowHelper | undefined = undefined;
 let popupTime = -1;
 
 const iconBaseUrl = `chrome://${config.addonRef}/content/icons/`;
-function register() {
-  // if (!getPref("exportenable")) return;
-
+function register() { 
   if (!getPref("hide-in-item-menu"))
     ztoolkit.Menu.register("item", buildMenu("item"));
   if (!getPref("hide-in-collection-menu"))
@@ -113,7 +108,7 @@ function buildMenu(collectionOrItem: "collection" | "item") {
             icon: iconBaseUrl + "favicon.png",
             hidden: !getPref("debug"),
             commandListener: async (ev: Event) => {
-              await DDDtagClear();
+              await DDDTagClear();
             },
           },
           {
@@ -122,7 +117,7 @@ function buildMenu(collectionOrItem: "collection" | "item") {
             icon: iconBaseUrl + "favicon.png",
             hidden: !getPref("debug"),
             commandListener: async (ev: Event) => {
-              await DDDtagRemove(collectionOrItem);
+              await DDDTagRemove(collectionOrItem);
             },
           },
           {
@@ -171,7 +166,7 @@ function buildMenu(collectionOrItem: "collection" | "item") {
         tag: "menuitem",
         label: "搜索批注文字和标签导出div",
         icon: iconBaseUrl + "favicon.png",
-        hidden: (getPref("debug") as boolean) || false,
+        hidden: true,
         commandListener: async (ev: Event) => {
           const target = ev.target as HTMLElement;
           const doc = target.ownerDocument;
@@ -226,55 +221,62 @@ function buildMenu(collectionOrItem: "collection" | "item") {
           createSearchAnnContent(win, undefined, annotations);
         },
       },
+      // {
+      //   tag: "menu",
+      //   label: "按类型导出",
+      //   icon: iconBaseUrl + "favicon.png",
+      //   children: [
+      //     {
+      //       tag: "menuitem",
+      //       label: "类型：图片",
+      //       icon: iconBaseUrl + "favicon.png",
+      //       commandListener: (ev: Event) => {
+      //         exportNoteByType("image", collectionOrItem);
+      //       },
+      //     },
+      //     {
+      //       tag: "menuitem",
+      //       label: "类型：ink",
+      //       icon: iconBaseUrl + "favicon.png",
+      //       commandListener: (ev: Event) => {
+      //         exportNoteByType("ink", collectionOrItem);
+      //       },
+      //     },
+      //     {
+      //       tag: "menuitem",
+      //       label: "类型：纯笔记",
+      //       icon: iconBaseUrl + "favicon.png",
+      //       commandListener: (ev: Event) => {
+      //         exportNoteByType("note", collectionOrItem);
+      //       },
+      //     },
+      //     {
+      //       tag: "menuitem",
+      //       label: "类型：高亮",
+      //       icon: iconBaseUrl + "favicon.png",
+      //       commandListener: (ev: Event) => {
+      //         exportNoteByType("highlight", collectionOrItem);
+      //       },
+      //     },
+      //     {
+      //       tag: "menuitem",
+      //       label: "类型：文字",
+      //       icon: iconBaseUrl + "favicon.png",
+      //       commandListener: (ev: Event) => {
+      //         exportNoteByType(
+      //           "text" as _ZoteroTypes.Annotations.AnnotationType,
+      //           collectionOrItem,
+      //         );
+      //       },
+      //     },
+      //   ],
+      // },
       {
         tag: "menu",
         label: "按类型导出",
         icon: iconBaseUrl + "favicon.png",
-        children: [
-          {
-            tag: "menuitem",
-            label: "类型：图片",
-            icon: iconBaseUrl + "favicon.png",
-            commandListener: (ev: Event) => {
-              exportNoteByType("image", collectionOrItem);
-            },
-          },
-          {
-            tag: "menuitem",
-            label: "类型：ink",
-            icon: iconBaseUrl + "favicon.png",
-            commandListener: (ev: Event) => {
-              exportNoteByType("ink", collectionOrItem);
-            },
-          },
-          {
-            tag: "menuitem",
-            label: "类型：纯笔记",
-            icon: iconBaseUrl + "favicon.png",
-            commandListener: (ev: Event) => {
-              exportNoteByType("note", collectionOrItem);
-            },
-          },
-          {
-            tag: "menuitem",
-            label: "类型：高亮",
-            icon: iconBaseUrl + "favicon.png",
-            commandListener: (ev: Event) => {
-              exportNoteByType("highlight", collectionOrItem);
-            },
-          },
-          {
-            tag: "menuitem",
-            label: "类型：文字",
-            icon: iconBaseUrl + "favicon.png",
-            commandListener: (ev: Event) => {
-              exportNoteByType(
-                "text" as _ZoteroTypes.Annotations.AnnotationType,
-                collectionOrItem,
-              );
-            },
-          },
-        ],
+        popupId: `${config.addonRef}-create-note-type-popup-${collectionOrItem}`,
+        onpopupshowing: `Zotero.${config.addonInstance}.hooks.onMenuEvent("annotationToNoteType", { window,type:"${collectionOrItem}" })`,
       },
       {
         tag: "menu",
@@ -287,8 +289,79 @@ function buildMenu(collectionOrItem: "collection" | "item") {
   };
   return menu;
 }
+export async function annotationToNoteType(
+  win: Window,
+  collectionOrItem: "collection" | "item" = "collection"){
+ const doc = win.document;
+  const popup = doc.querySelector(
+    `#${config.addonRef}-create-note-type-popup-${collectionOrItem}`,
+  ) as XUL.MenuPopup;
+  // Remove all children in popup
+  while (popup?.firstChild) {
+    popup.removeChild(popup.firstChild);
+  }
+  // const id = getParentAttr(popup, "id");
+  // const isc = id?.includes("collection");
+  // ztoolkit.log("id", id);
 
-export async function createPopMenu(
+  const ans = getAllAnnotations(
+    await getSelectedItems(collectionOrItem),
+  )//.flatMap((a) => a.tags.map((t2) => Object.assign({}, a, { tag: t2 })));
+  const tags = groupBy(ans, (an) => an.type)
+    .sort(sortValuesLength)
+    .slice(0, 20);
+  const maxLen = Math.max(...tags.map((a) => a.values.length));
+
+  // Add new children
+  let elemProp: TagElementProps;
+  // const tags =memFixedTags()
+  if (tags.length === 0) {
+    elemProp = {
+      tag: "menuitem",
+      properties: {
+        label: "没有标签",
+      },
+      attributes: {
+        disabled: true,
+      },
+    };
+  } else {
+    elemProp = {
+      tag: "fragment",
+      children: tags.map((tag) => {
+        const color = memFixedColor(tag.key);
+        //取对数可以保留差异比较大的值
+        const pre = (
+          100 -
+          (Math.log(tag.values.length) / Math.log(maxLen)) * 100
+        ).toFixed();
+        return {
+          tag: "menuitem",
+          icon: iconBaseUrl + "favicon.png",
+          styles: {
+            background: `linear-gradient(to left, ${color},  #fff ${pre}%, ${color} ${pre}%)`,
+          },
+          properties: {
+            label: `${tag.key}[${tag.values.length}]`,
+          },
+          // children:[{tag:"div",styles:{height:"2px",background:memFixedColor(tag.key),width:`${tag.values.length/maxLen*100}%`}}],
+          listeners: [
+            {
+              type: "command",
+              listener: (event: any) => {
+                stopPropagation(event);
+                exportNoteByType(tag.key as _ZoteroTypes.Annotations.AnnotationType, collectionOrItem);
+              },
+            },
+          ],
+        };
+      }),
+    };
+  }
+  ztoolkit.UI.appendElement(elemProp, popup);
+}
+
+export async function annotationToNoteTags(
   win: Window,
   collectionOrItem: "collection" | "item" = "collection",
 ) {
@@ -369,10 +442,10 @@ const ID = {
 };
 
 import { createRoot } from "react-dom/client";
-import React = require("react");
 import { MyButton } from "./MyButton";
 import { getAnnotationContent } from "../utils/zzlb";
 import { getPublicationTags } from "../utils/zzlb";
+import React = require("react");
 async function topDialogRect() {
   const dialogData: { [key: string | number]: any } = {
     inputValue: "test",
@@ -472,7 +545,7 @@ async function topDialog() {
   ztoolkit.log(dialogData);
 }
 
-async function DDDtagClear() {
+async function DDDTagClear() {
   const ProgressWindow = ztoolkit.ProgressWindow,
     d1p = getPref("date-1-pre"),
     d2p = getPref("date-2-pre"),
@@ -511,7 +584,7 @@ async function DDDtagClear() {
     .createLine({ text: "完成" })
     .startCloseTimer(5000, false);
 }
-async function DDDtagRemove(collectionOrItem: "collection" | "item") {
+async function DDDTagRemove(collectionOrItem: "collection" | "item") {
   const items = await getSelectedItems(collectionOrItem);
   const ProgressWindow = ztoolkit.ProgressWindow,
     d1p = getPref("date-1-pre"),

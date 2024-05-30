@@ -34,19 +34,19 @@ const readerButtonCSS = `
     font-size:18px
   }
   #${config.addonRef}-space-button-pop .nav{
-     display:none;
+    display:none;
   } 
   #${config.addonRef}-space-button-pop.enter .nav{
-     display:flex;
-     flex-direction:row;
-     justify-content: flex-end;
+    display:flex;
+    flex-direction:row;
+    justify-content: flex-end;
   }
 
   #${config.addonRef}-space-button-pop textarea{
-     display:none
+    display:none
   } 
   #${config.addonRef}-space-button-pop.enter textarea{
-     display:block
+    display:block
   } 
   `;
 

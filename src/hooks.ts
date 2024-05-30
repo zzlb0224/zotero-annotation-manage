@@ -8,7 +8,7 @@ import {
 } from "./modules/preferenceScript";
 import { createZToolkit } from "./utils/ztoolkit";
 import Annotations from "./modules/annotations";
-import AnnotationsToNote, { createPopMenu } from "./modules/annotationsToNote";
+import AnnotationsToNote, { annotationToNoteTags as annotationToNoteTags, annotationToNoteType } from "./modules/annotationsToNote";
 import RelationHeader from "./modules/RelationHeader";
 import highlightWords from "./modules/highlightWords";
 
@@ -134,7 +134,7 @@ function onShutdown(): void {
 
 /**
  * This function is just an example of dispatcher for Notify events.
- * Any operations should be placed in a function to keep this funcion clear.
+ * Any operations should be placed in a function to keep this function clear.
  */
 async function onNotify(
   event: string,
@@ -157,7 +157,7 @@ async function onNotify(
 
 /**
  * This function is just an example of dispatcher for Preference UI events.
- * Any operations should be placed in a function to keep this funcion clear.
+ * Any operations should be placed in a function to keep this function clear.
  * @param type event type
  * @param data event data
  */
@@ -188,12 +188,15 @@ function onShortcuts(type: string) {
 }
 
 async function onMenuEvent(
-  type: "annotationToNoteTags",
+  type: "annotationToNoteTags" | "annotationToNoteType",
   data: { [key: string]: any },
 ) {
   switch (type) {
     case "annotationToNoteTags":
-      createPopMenu(data.window, data.type);
+      annotationToNoteTags(data.window, data.type);
+      break;
+    case "annotationToNoteType":
+      annotationToNoteType(data.window, data.type);
       break;
     default:
       return;
