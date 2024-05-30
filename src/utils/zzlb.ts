@@ -899,10 +899,13 @@ export async function createDialog(title: string, children: TagElementProps[]) {
     .setDialogData(dialogData)
     .open(title, {
       // alwaysRaised: true,
-      left: 120,
+      left: 0,
+      top: 0,
       // fitContent: true,
-      height: Zotero.getMainWindow().innerHeight - 100,
-      width: Zotero.getMainWindow().innerWidth - 130,
+      // centerscreen: true,
+      height: Zotero.getMainWindow().innerHeight,
+      width: Zotero.getMainWindow().innerWidth,
+      noDialogMode: true,
       resizable: true,
     });
 

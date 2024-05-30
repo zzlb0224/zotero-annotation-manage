@@ -189,7 +189,7 @@ function buildMenu(collectionOrItem: "collection" | "item") {
       },
       {
         tag: "menuitem",
-        label: "搜索批注文字和标签导出",
+        label: "搜索批注文字和标签导出", //原dialog
         icon: iconBaseUrl + "favicon.png",
         commandListener: async (ev: Event) => {
           const target = ev.target as HTMLElement;
@@ -941,7 +941,7 @@ function createSearchAnnContent(
                 listener: (ev: any) => {
                   stopPropagation(ev);
                   text = (ev.target as HTMLInputElement).value;
-                  updateContent();
+                  updateFilter();
                 },
               },
             ],
@@ -963,7 +963,7 @@ function createSearchAnnContent(
                 listener: (ev: Event) => {
                   stopPropagation(ev);
                   tag = (ev.target as HTMLInputElement).value.trim();
-                  updateContent();
+                  updateFilter();
                 },
               },
             ],
@@ -1011,7 +1011,7 @@ function createSearchAnnContent(
                         selectedAnnotationType.push(a);
                         ck.checked = true;
                       }
-                      updateContent();
+                      updateFilter();
                     },
                     options: { capture: true },
                   },
@@ -1045,14 +1045,13 @@ function createSearchAnnContent(
                   if (pageSize <= 0) pageSize = 1;
                   (ev.target as HTMLInputElement).value = pageSize + "";
                   setPref("SearchAnnPageSize", pageSize);
-                  updateContent();
+                  updatePageContentDebounce();
                 },
               },
             ],
           },
         ],
       },
-
       {
         tag: "div",
         properties: { textContent: "第几页" },
@@ -1082,7 +1081,7 @@ function createSearchAnnContent(
                     pageIndex = 1;
                   }
                   (ev.target as HTMLInputElement).value = pageIndex + "";
-                  updateContent();
+                  updateFilter();
                 },
               },
             ],
@@ -1198,9 +1197,10 @@ function createSearchAnnContent(
 
   const updatePageContentDebounce =
     Zotero.Utilities.debounce(updatePageContent);
-  updateContent();
+  const updateFilterDebounce = Zotero.Utilities.debounce(updateFilter);
+  updateFilterDebounce();
   // return { text, tag, showN: pageSize, ans };
-  async function updateContent() {
+  async function updateFilter() {
     const txtRegExp = str2RegExps(text);
     const tagRegExp = str2RegExps(tag);
     ans = annotations
@@ -1235,18 +1235,19 @@ function createSearchAnnContent(
       });
     clearChild(content);
     clearChild(status);
-    if ((pageIndex - 1) * pageSize > ans.length) {
-      pageIndex = 1;
-      (query.querySelector(".pageIndex") as HTMLInputElement).value =
-        pageIndex + "";
-    }
-    status.innerHTML = `总${annotations.length}条笔记，筛选出了${ans.length}条。预览${(pageIndex - 1) * pageSize + 1}-${Math.min(pageIndex * pageSize, ans.length)}条。`;
+
     // ztoolkit.UI.appendElement(,status);
     await updatePageContentDebounce();
     //大小变化不需要了
     // if (isWin) (dialogWindow as any).sizeToContent();
   }
   async function updatePageContent() {
+    if ((pageIndex - 1) * pageSize > ans.length) {
+      pageIndex = 1;
+      (query.querySelector(".pageIndex") as HTMLInputElement).value =
+        pageIndex + "";
+    }
+    status.innerHTML = `总${annotations.length}条笔记，筛选出了${ans.length}条。预览${(pageIndex - 1) * pageSize + 1}-${Math.min(pageIndex * pageSize, ans.length)}条。`;
     const showAn = ans.slice((pageIndex - 1) * pageSize, pageIndex * pageSize);
     clearChild(content);
     content.innerHTML = "";
