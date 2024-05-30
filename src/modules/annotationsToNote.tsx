@@ -135,10 +135,10 @@ function buildMenu(collectionOrItem: "collection" | "item") {
 
       {
         tag: "menuseparator",
-      },  
+      },
       {
         tag: "menuitem",
-        label: "预览批注导出",  
+        label: "预览批注导出",
         icon: iconBaseUrl + "favicon.png",
         commandListener: async (ev: Event) => {
           const target = ev.target as HTMLElement;
@@ -146,12 +146,13 @@ function buildMenu(collectionOrItem: "collection" | "item") {
           const items = await getSelectedItems(collectionOrItem);
           const annotations = getAllAnnotations(items);
           const mainWindow = Zotero.getMainWindow();
-          let  header = ""
-          if(collectionOrItem)
-            header="collection:"+ZoteroPane.getSelectedCollection()?.name||""
-          else if(items.length==1)
-            header ="单条目:"+items[0].getDisplayTitle()
-            else header=`已选择${items.length}个条目`
+          let header = "";
+          if (collectionOrItem)
+            header =
+              "collection:" + ZoteroPane.getSelectedCollection()?.name || "";
+          else if (items.length == 1)
+            header = "单条目:" + items[0].getDisplayTitle();
+          else header = `已选择${items.length}个条目`;
           const win = await createDialog(header, [
             { tag: "div", classList: ["query"] },
             {
@@ -183,7 +184,7 @@ function buildMenu(collectionOrItem: "collection" | "item") {
       },
       {
         tag: "menuseparator",
-      },  
+      },
       {
         tag: "menuitem",
         label: "选择多个Tag导出",
@@ -196,7 +197,7 @@ function buildMenu(collectionOrItem: "collection" | "item") {
           // setTimeout(()=>d.remove(),10000)
         },
       },
-      
+
       {
         tag: "menu",
         label: "选择单个Tag导出",
@@ -206,7 +207,7 @@ function buildMenu(collectionOrItem: "collection" | "item") {
       },
       {
         tag: "menuseparator",
-      },  
+      },
       {
         tag: "menuitem",
         label: "选择多个Type导出",
@@ -229,7 +230,6 @@ function buildMenu(collectionOrItem: "collection" | "item") {
         popupId: `${config.addonRef}-create-note-type-popup-${collectionOrItem}`,
         onpopupshowing: `Zotero.${config.addonInstance}.hooks.onMenuEvent("annotationToNoteType", { window,type:"${collectionOrItem}" })`,
       },
-   
     ],
   };
   return menu;
