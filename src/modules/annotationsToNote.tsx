@@ -7,9 +7,10 @@ import {
   sortAsc,
   sortBy,
   sortFixedTags10ValuesLength,
-  sortKey, sortTags10AscByKey,
+  sortKey,
+  sortTags10AscByKey,
   sortValuesLength,
-  sortValuesLengthKeyAsc
+  sortValuesLengthKeyAsc,
 } from "../utils/sort";
 import { Tab } from "../utils/tab";
 import {
@@ -36,7 +37,7 @@ export let popupWin: ProgressWindowHelper | undefined = undefined;
 let popupTime = -1;
 
 const iconBaseUrl = `chrome://${config.addonRef}/content/icons/`;
-function register() { 
+function register() {
   if (!getPref("hide-in-item-menu"))
     ztoolkit.Menu.register("item", buildMenu("item"));
   if (!getPref("hide-in-collection-menu"))
@@ -291,8 +292,9 @@ function buildMenu(collectionOrItem: "collection" | "item") {
 }
 export async function annotationToNoteType(
   win: Window,
-  collectionOrItem: "collection" | "item" = "collection"){
- const doc = win.document;
+  collectionOrItem: "collection" | "item" = "collection",
+) {
+  const doc = win.document;
   const popup = doc.querySelector(
     `#${config.addonRef}-create-note-type-popup-${collectionOrItem}`,
   ) as XUL.MenuPopup;
@@ -304,9 +306,7 @@ export async function annotationToNoteType(
   // const isc = id?.includes("collection");
   // ztoolkit.log("id", id);
 
-  const ans = getAllAnnotations(
-    await getSelectedItems(collectionOrItem),
-  )//.flatMap((a) => a.tags.map((t2) => Object.assign({}, a, { tag: t2 })));
+  const ans = getAllAnnotations(await getSelectedItems(collectionOrItem)); //.flatMap((a) => a.tags.map((t2) => Object.assign({}, a, { tag: t2 })));
   const tags = groupBy(ans, (an) => an.type)
     .sort(sortValuesLength)
     .slice(0, 20);
@@ -350,7 +350,10 @@ export async function annotationToNoteType(
               type: "command",
               listener: (event: any) => {
                 stopPropagation(event);
-                exportNoteByType(tag.key as _ZoteroTypes.Annotations.AnnotationType, collectionOrItem);
+                exportNoteByType(
+                  tag.key as _ZoteroTypes.Annotations.AnnotationType,
+                  collectionOrItem,
+                );
               },
             },
           ],

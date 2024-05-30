@@ -82,8 +82,8 @@ export class AnnotationPopup {
         `extensions.zotero.ZoteroPDFTranslate.fontSize`,
         true,
       ) || 18) + "px";
-      ztoolkit.log("初始化", );
-      this.createDiv()
+    ztoolkit.log("初始化");
+    this.createDiv();
   }
 
   private clearDiv() {
@@ -134,17 +134,17 @@ export class AnnotationPopup {
           },
         },
       ],
-    }); 
+    });
     //创建完成之后用异步来更新
     // setTimeout(async () => {
     //   await this.updateDiv(div);
     // }, 500);
 
-    this.updateDivStart(); 
+    this.updateDivStart();
   }
-  private updateDivStart( times = 2000,delay=10) {
-    const root = this.rootDiv
-    if(!root)return;
+  private updateDivStart(times = 2000, delay = 10) {
+    const root = this.rootDiv;
+    if (!root) return;
     if (times < 0) {
       return;
     }
@@ -153,7 +153,7 @@ export class AnnotationPopup {
 
     if (!root) {
       setTimeout(() => {
-        this.updateDivStart( times - 1);
+        this.updateDivStart(times - 1);
       }, delay);
       return;
     }
@@ -170,23 +170,23 @@ export class AnnotationPopup {
 
       // ztoolkit.log("getPage", colorsElement, this.params, currentPage);
       setTimeout(() => {
-        this.updateDivStart( times - 1);
+        this.updateDivStart(times - 1);
       }, delay);
       return;
     }
     this.updateColorsElement();
-      setTimeout(() => {
-        const textarea = this.doc?.querySelector(
-          ".zoteropdftranslate-popup-textarea.zoteropdftranslate-readerpopup",
-        ) as HTMLTextAreaElement | undefined;
-        const selectionMenu = this.doc?.querySelector(".selection-popup") as
-          | HTMLDivElement
-          | undefined;
-        if (textarea && selectionMenu) {
-          updatePopupSize(selectionMenu, textarea, true);
-        }
-      }, 300);
-      const currentPage = this.getCurrentPageDiv();
+    setTimeout(() => {
+      const textarea = this.doc?.querySelector(
+        ".zoteropdftranslate-popup-textarea.zoteropdftranslate-readerpopup",
+      ) as HTMLTextAreaElement | undefined;
+      const selectionMenu = this.doc?.querySelector(".selection-popup") as
+        | HTMLDivElement
+        | undefined;
+      if (textarea && selectionMenu) {
+        updatePopupSize(selectionMenu, textarea, true);
+      }
+    }, 300);
+    const currentPage = this.getCurrentPageDiv();
 
     // setTimeout(async () => {
     //这里只更新内容 不更新大小
@@ -203,8 +203,8 @@ export class AnnotationPopup {
   }
 
   private updateColorsElement() {
-    const root = this.rootDiv
-    if(!root)return;
+    const root = this.rootDiv;
+    if (!root) return;
     const colorsElement = this.doc!.querySelector(".selection-popup .colors");
     if (colorsElement) {
       ztoolkit.log(colorsElement);
@@ -221,7 +221,7 @@ export class AnnotationPopup {
                 styles: { display: "flex", flexDirection: "column" },
                 classList: ["colorDiv"],
               },
-              colorsElement
+              colorsElement,
             ) as HTMLDivElement;
             colorDiv.appendChild(btn);
           });
@@ -231,13 +231,13 @@ export class AnnotationPopup {
           const colorDiv = d as HTMLDivElement;
           const btn = colorDiv.querySelector("button") as HTMLButtonElement;
           let spanColorTag = btn.querySelector(
-            "span.color-tag"
+            "span.color-tag",
           ) as HTMLSpanElement | null;
           if (showColorTag) {
             if (!spanColorTag) {
               spanColorTag = ztoolkit.UI.appendElement(
                 { tag: "span", classList: ["color-tag"] },
-                btn
+                btn,
               ) as HTMLSpanElement;
               spanColorTag.textContent = btn.title;
               btn.querySelector("svg")!.style.minHeight = "20px";
@@ -253,7 +253,7 @@ export class AnnotationPopup {
           const color = btn.querySelector("path")!.getAttribute("fill") || "";
           if (color) {
             let fixTagSpan = colorDiv.querySelector(
-              "span.match-tag"
+              "span.match-tag",
             ) as HTMLSpanElement | null;
             if (showMatchTag) {
               if (!fixTagSpan) {
@@ -268,7 +268,8 @@ export class AnnotationPopup {
                         type: "click",
                         listener: () => {
                           const tag = fixTagSpan?.textContent;
-                          const color = fixTagSpan?.getAttribute("data-color") || "";
+                          const color =
+                            fixTagSpan?.getAttribute("data-color") || "";
                           if (tag && color) {
                             this.selectedTags.push({
                               tag,
@@ -280,7 +281,7 @@ export class AnnotationPopup {
                       },
                     ],
                   },
-                  colorDiv
+                  colorDiv,
                 ) as HTMLDivElement;
               }
               fixTagSpan.setAttribute("data-color", color);
@@ -294,7 +295,7 @@ export class AnnotationPopup {
       ztoolkit.getGlobal("getComputedStyle")(colorsElement).width;
       const maxWidth = this.getSelectTextMaxWidth();
       const width = parseFloat(
-        ztoolkit.getGlobal("getComputedStyle")(colorsElement).width
+        ztoolkit.getGlobal("getComputedStyle")(colorsElement).width,
       );
       root.style.width = maxWidth + "px";
 
@@ -302,7 +303,7 @@ export class AnnotationPopup {
       // 当翻译采用固定大小的时候，跟随它
       const keepSize = Zotero.Prefs.get(
         `extensions.zotero.ZoteroPDFTranslate.keepPopupSize`,
-        true
+        true,
       ) as boolean;
 
       if (keepSize) {
@@ -324,8 +325,8 @@ export class AnnotationPopup {
   }
 
   private async updateDiv() {
-    const root = this.rootDiv
-    if(!root)return;
+    const root = this.rootDiv;
+    if (!root) return;
     const doc = this.doc;
     if (!doc) return;
     let relateTags: groupByResult<{

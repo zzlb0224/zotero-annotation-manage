@@ -8,7 +8,10 @@ import {
 } from "./modules/preferenceScript";
 import { createZToolkit } from "./utils/ztoolkit";
 import Annotations from "./modules/annotations";
-import AnnotationsToNote, { annotationToNoteTags as annotationToNoteTags, annotationToNoteType } from "./modules/annotationsToNote";
+import AnnotationsToNote, {
+  annotationToNoteTags as annotationToNoteTags,
+  annotationToNoteType,
+} from "./modules/annotationsToNote";
 import RelationHeader from "./modules/RelationHeader";
 import highlightWords from "./modules/highlightWords";
 
