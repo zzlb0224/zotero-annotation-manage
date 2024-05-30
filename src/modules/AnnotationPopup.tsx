@@ -82,8 +82,8 @@ export class AnnotationPopup {
         `extensions.zotero.ZoteroPDFTranslate.fontSize`,
         true,
       ) || 18) + "px";
-
-    ztoolkit.log("初始化", this.createDiv());
+      ztoolkit.log("初始化", );
+      this.createDiv()
   }
 
   private clearDiv() {
@@ -108,7 +108,7 @@ export class AnnotationPopup {
 
     this.clearDiv();
 
-    const div = ztoolkit.UI.createElement(this.doc, "div", {
+    this.rootDiv = ztoolkit.UI.createElement(this.doc, "div", {
       namespace: "html",
       id: this.idRootDiv,
       styles: this.getRootStyle(), //创建的时候就要固定大小
@@ -134,17 +134,17 @@ export class AnnotationPopup {
           },
         },
       ],
-    });
-    this.rootDiv = div;
+    }); 
     //创建完成之后用异步来更新
     // setTimeout(async () => {
     //   await this.updateDiv(div);
     // }, 500);
 
-    this.updateDivStart(div);
-    return div;
+    this.updateDivStart(); 
   }
-  private updateDivStart(root: HTMLDivElement, times = 20000) {
+  private updateDivStart( times = 2000,delay=10) {
+    const root = this.rootDiv
+    if(!root)return;
     if (times < 0) {
       return;
     }
@@ -153,11 +153,11 @@ export class AnnotationPopup {
 
     if (!root) {
       setTimeout(() => {
-        this.updateDivStart(root, times - 1);
-      }, 1);
+        this.updateDivStart( times - 1);
+      }, delay);
       return;
     }
-
+    //无法保证每次都在附加之前
     if (!root.parentNode) {
       const dd: HTMLElement | false = false;
       //应该在这里计算位置，这里最准确
@@ -167,116 +167,14 @@ export class AnnotationPopup {
         //   root,
         // ) as HTMLDivElement;
       }
-      const colorsElement = this.doc!.querySelector(".selection-popup .colors");
-      if (colorsElement) {
-        ztoolkit.log(colorsElement);
-        const showColorTag = getPref("show-selected-popup-colors-tag");
-        const showMatchTag = getPref("show-selected-popup-match-tag");
-        if (showColorTag || showMatchTag) {
-          //初始化
-          if (colorsElement.firstElementChild?.tagName == "BUTTON") {
-            ztoolkit.log("button", colorsElement);
-            colorsElement.querySelectorAll("button").forEach((btn, i) => {
-              const colorDiv = ztoolkit.UI.appendElement(
-                {
-                  tag: "div",
-                  styles: { display: "flex", flexDirection: "column" },
-                  classList: ["colorDiv"],
-                },
-                colorsElement,
-              ) as HTMLDivElement;
-              colorDiv.appendChild(btn);
-            });
-          }
-          //更新组件
-          colorsElement.querySelectorAll("div.colorDiv").forEach((d, i) => {
-            const colorDiv = d as HTMLDivElement;
-            const btn = colorDiv.querySelector("button") as HTMLButtonElement;
-            let spanColorTag = btn.querySelector(
-              "span.color-tag",
-            ) as HTMLSpanElement | null;
-            if (showColorTag) {
-              if (!spanColorTag) {
-                spanColorTag = ztoolkit.UI.appendElement(
-                  { tag: "span", classList: ["color-tag"] },
-                  btn,
-                ) as HTMLSpanElement;
-                spanColorTag.textContent = btn.title;
-                btn.querySelector("svg")!.style.minHeight = "20px";
-                btn.style.width = "unset";
-                btn.style.height = "unset";
-                btn.style.display = "flex";
-                btn.style.flexDirection = "column";
-              }
-              spanColorTag.textContent = `${btn.title}   `;
-            } else {
-              spanColorTag?.remove();
-            }
-            const color = btn.querySelector("path")!.getAttribute("fill") || "";
-            if (color) {
-              let fixTagSpan = colorDiv.querySelector(
-                "span.match-tag",
-              ) as HTMLSpanElement | null;
-              if (showMatchTag) {
-                if (!fixTagSpan) {
-                  fixTagSpan = ztoolkit.UI.appendElement(
-                    {
-                      tag: "span",
-                      styles: { width: "unset", height: "unset" },
-                      classList: ["toolbar-button", "match-tag"],
-                      properties: { textContent: "" },
-                      listeners: [
-                        {
-                          type: "click",
-                          listener: () => {
-                            const tag = fixTagSpan?.textContent;
-                            const color =
-                              fixTagSpan?.getAttribute("data-color") || "";
-                            if (tag && color) {
-                              this.selectedTags.push({
-                                tag,
-                                color,
-                              });
-                              this.saveAnnotationTags();
-                            }
-                          },
-                        },
-                      ],
-                    },
-                    colorDiv,
-                  ) as HTMLDivElement;
-                }
-                fixTagSpan.setAttribute("data-color", color);
-                fixTagSpan.textContent = memFixedTagFromColor(color);
-              } else {
-                fixTagSpan?.remove();
-              }
-            }
-          });
-        }
-        ztoolkit.getGlobal("getComputedStyle")(colorsElement).width;
-        const maxWidth = this.getSelectTextMaxWidth();
-        const width = parseFloat(
-          ztoolkit.getGlobal("getComputedStyle")(colorsElement).width,
-        );
-        root.style.width = maxWidth + "px";
 
-        root.style.minWidth = Math.min(width, maxWidth) + "px";
-        // 当翻译采用固定大小的时候，跟随它
-        const keepSize = Zotero.Prefs.get(
-          `extensions.zotero.ZoteroPDFTranslate.keepPopupSize`,
-          true,
-        ) as boolean;
-
-        if (keepSize) {
-          if (maxWidth < width) {
-            //说明会越界
-          }
-
-          root.style.minWidth = width + "px";
-          root.style.width = width + "px";
-        }
-      }
+      // ztoolkit.log("getPage", colorsElement, this.params, currentPage);
+      setTimeout(() => {
+        this.updateDivStart( times - 1);
+      }, delay);
+      return;
+    }
+    this.updateColorsElement();
       setTimeout(() => {
         const textarea = this.doc?.querySelector(
           ".zoteropdftranslate-popup-textarea.zoteropdftranslate-readerpopup",
@@ -289,12 +187,6 @@ export class AnnotationPopup {
         }
       }, 300);
       const currentPage = this.getCurrentPageDiv();
-      // ztoolkit.log("getPage", colorsElement, this.params, currentPage);
-      setTimeout(() => {
-        this.updateDivStart(root, times - 1);
-      }, 1);
-      return;
-    }
 
     // setTimeout(async () => {
     //这里只更新内容 不更新大小
@@ -307,7 +199,121 @@ export class AnnotationPopup {
     //   await this.updateDiv(root);
     // }, 50);
 
-    this.updateDiv(root);
+    this.updateDiv();
+  }
+
+  private updateColorsElement() {
+    const root = this.rootDiv
+    if(!root)return;
+    const colorsElement = this.doc!.querySelector(".selection-popup .colors");
+    if (colorsElement) {
+      ztoolkit.log(colorsElement);
+      const showColorTag = getPref("show-selected-popup-colors-tag");
+      const showMatchTag = getPref("show-selected-popup-match-tag");
+      if (showColorTag || showMatchTag) {
+        //初始化
+        if (colorsElement.firstElementChild?.tagName == "BUTTON") {
+          ztoolkit.log("button", colorsElement);
+          colorsElement.querySelectorAll("button").forEach((btn, i) => {
+            const colorDiv = ztoolkit.UI.appendElement(
+              {
+                tag: "div",
+                styles: { display: "flex", flexDirection: "column" },
+                classList: ["colorDiv"],
+              },
+              colorsElement
+            ) as HTMLDivElement;
+            colorDiv.appendChild(btn);
+          });
+        }
+        //更新组件
+        colorsElement.querySelectorAll("div.colorDiv").forEach((d, i) => {
+          const colorDiv = d as HTMLDivElement;
+          const btn = colorDiv.querySelector("button") as HTMLButtonElement;
+          let spanColorTag = btn.querySelector(
+            "span.color-tag"
+          ) as HTMLSpanElement | null;
+          if (showColorTag) {
+            if (!spanColorTag) {
+              spanColorTag = ztoolkit.UI.appendElement(
+                { tag: "span", classList: ["color-tag"] },
+                btn
+              ) as HTMLSpanElement;
+              spanColorTag.textContent = btn.title;
+              btn.querySelector("svg")!.style.minHeight = "20px";
+              btn.style.width = "unset";
+              btn.style.height = "unset";
+              btn.style.display = "flex";
+              btn.style.flexDirection = "column";
+            }
+            spanColorTag.textContent = `${btn.title}   `;
+          } else {
+            spanColorTag?.remove();
+          }
+          const color = btn.querySelector("path")!.getAttribute("fill") || "";
+          if (color) {
+            let fixTagSpan = colorDiv.querySelector(
+              "span.match-tag"
+            ) as HTMLSpanElement | null;
+            if (showMatchTag) {
+              if (!fixTagSpan) {
+                fixTagSpan = ztoolkit.UI.appendElement(
+                  {
+                    tag: "span",
+                    styles: { width: "unset", height: "unset" },
+                    classList: ["toolbar-button", "match-tag"],
+                    properties: { textContent: "" },
+                    listeners: [
+                      {
+                        type: "click",
+                        listener: () => {
+                          const tag = fixTagSpan?.textContent;
+                          const color = fixTagSpan?.getAttribute("data-color") || "";
+                          if (tag && color) {
+                            this.selectedTags.push({
+                              tag,
+                              color,
+                            });
+                            this.saveAnnotationTags();
+                          }
+                        },
+                      },
+                    ],
+                  },
+                  colorDiv
+                ) as HTMLDivElement;
+              }
+              fixTagSpan.setAttribute("data-color", color);
+              fixTagSpan.textContent = memFixedTagFromColor(color);
+            } else {
+              fixTagSpan?.remove();
+            }
+          }
+        });
+      }
+      ztoolkit.getGlobal("getComputedStyle")(colorsElement).width;
+      const maxWidth = this.getSelectTextMaxWidth();
+      const width = parseFloat(
+        ztoolkit.getGlobal("getComputedStyle")(colorsElement).width
+      );
+      root.style.width = maxWidth + "px";
+
+      root.style.minWidth = Math.min(width, maxWidth) + "px";
+      // 当翻译采用固定大小的时候，跟随它
+      const keepSize = Zotero.Prefs.get(
+        `extensions.zotero.ZoteroPDFTranslate.keepPopupSize`,
+        true
+      ) as boolean;
+
+      if (keepSize) {
+        if (maxWidth < width) {
+          //说明会越界
+        }
+
+        root.style.minWidth = width + "px";
+        root.style.width = width + "px";
+      }
+    }
   }
 
   private getCurrentPageDiv() {
@@ -317,7 +323,9 @@ export class AnnotationPopup {
     return currentPage as HTMLDivElement;
   }
 
-  private async updateDiv(root: HTMLDivElement) {
+  private async updateDiv() {
+    const root = this.rootDiv
+    if(!root)return;
     const doc = this.doc;
     if (!doc) return;
     let relateTags: groupByResult<{
