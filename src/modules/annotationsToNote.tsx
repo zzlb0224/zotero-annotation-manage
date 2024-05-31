@@ -148,7 +148,7 @@ function buildMenu(collectionOrItem: "collection" | "item") {
           const annotations = getAllAnnotations(items);
           const mainWindow = Zotero.getMainWindow();
           let header = "";
-          if (collectionOrItem)
+          if (collectionOrItem=="collection")
             header =
               "collection:" + ZoteroPane.getSelectedCollection()?.name || "";
           else if (items.length == 1)
