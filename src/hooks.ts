@@ -26,7 +26,7 @@ async function onStartup() {
 
   initLocale();
 
-  // BasicExampleFactory.registerPrefs();
+  BasicExampleFactory.registerPrefs();
 
   // BasicExampleFactory.registerNotifier();
 
