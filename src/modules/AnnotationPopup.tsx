@@ -24,6 +24,8 @@ import {
   uniqueBy,
 } from "../utils/zzlb";
 import { Relations } from "../utils/Relations";
+import { createRoot } from "react-dom/client";
+import * as React from "react";
 
 export class AnnotationPopup {
   reader?: _ZoteroTypes.ReaderInstance;
@@ -157,11 +159,11 @@ export class AnnotationPopup {
       }, delay);
       return;
     }
-    //无法保证每次都在附加之前
+    //确保已经附加到上级
     if (!root.parentNode) {
-      const dd: HTMLElement | false = false;
       //应该在这里计算位置，这里最准确
       if (isDebug()) {
+        // const dd: HTMLElement | false = false;
         // dd = ztoolkit.UI.appendElement(
         //   { tag: "div", properties: { textContent: "正在附加div" } },
         //   root,
@@ -175,6 +177,7 @@ export class AnnotationPopup {
       return;
     }
     this.updateColorsElement();
+    //重置大小
     setTimeout(() => {
       const textarea = this.doc?.querySelector(
         ".zoteropdftranslate-popup-textarea.zoteropdftranslate-readerpopup",
@@ -186,7 +189,7 @@ export class AnnotationPopup {
         updatePopupSize(selectionMenu, textarea, true);
       }
     }, 300);
-    const currentPage = this.getCurrentPageDiv();
+    // const currentPage = this.getCurrentPageDiv();
 
     // setTimeout(async () => {
     //这里只更新内容 不更新大小
@@ -200,6 +203,9 @@ export class AnnotationPopup {
     // }, 50);
 
     this.updateDiv();
+    //  createRoot(
+    //   root,
+    //   ).render(<APopup />);
   }
 
   private updateColorsElement() {
@@ -1328,4 +1334,12 @@ function updatePopupSize(
   }
   // Update height
   textarea.style.height = `${textHeight + 3}px`;
+}
+
+function APopup() {
+  return (
+    <>
+      <div>APopup</div>
+    </>
+  );
 }
