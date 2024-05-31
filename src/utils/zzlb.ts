@@ -299,8 +299,7 @@ export function getCssTranslate(t1: HTMLElement) {
   for (const k in t1.style) {
     const v = t1.style[k];
     if (k == "transform" && v) {
-      //没有附加到Dom无法调用 new WebKitCSSMatrix，只能这样使用
-      ("translate(26.0842px, 108.715px)");
+      //没有附加到Dom无法调用 new WebKitCSSMatrix，只能这样使用      ("translate(26.0842px, 108.715px)");
       const translateLeftTop = v.match(
         /translate[(]([\d.]*)px,\s?([\d.]*)px[)]/,
       );

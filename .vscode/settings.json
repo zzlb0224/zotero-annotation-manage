@@ -3,6 +3,5 @@
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
-  },
-  "cSpell.words": ["Zotero", "ztoolkit", "Prefs", "zzlb", "pdfs"]
+  }
 }

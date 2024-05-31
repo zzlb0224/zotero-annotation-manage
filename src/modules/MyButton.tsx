@@ -1,5 +1,5 @@
-import React = require("react");
 import { useState } from "react";
+import * as React from "react";
 interface MyButtonProps {
   /** 按钮文字 */
   title: string;

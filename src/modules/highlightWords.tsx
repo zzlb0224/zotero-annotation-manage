@@ -521,7 +521,7 @@ function readerToolbarCallback(
               {
                 type: "input",
                 listener: (ev: Event) => {
-                  ev.stopPropagation;
+                  ev.stopPropagation();
                   const ta = ev.target as HTMLTextAreaElement;
                   const index = highlightWords.words.findIndex(
                     (f) => f == searchText,
@@ -553,7 +553,7 @@ function readerToolbarCallback(
           {
             type: "mouseover",
             listener: (ev: Event) => {
-              ev.stopPropagation;
+              ev.stopPropagation();
               if (!popDiv?.classList.contains("enter"))
                 popDiv?.classList.add("enter");
               if (timeout) {
@@ -566,7 +566,7 @@ function readerToolbarCallback(
           {
             type: "mouseout",
             listener: (ev: Event) => {
-              ev.stopPropagation;
+              ev.stopPropagation();
               timeout = setTimeout(() => {
                 if (popDiv?.classList.contains("enter"))
                   popDiv?.classList.remove("enter");

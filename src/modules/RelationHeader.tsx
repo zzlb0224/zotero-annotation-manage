@@ -1,4 +1,5 @@
 import { config } from "../../package.json";
+import * as React from "react";
 import {
   Timer,
   createTopDiv,
@@ -780,6 +781,6 @@ export function text2Ma(text: string) {
       page: a[3],
       annotationKey: a[4],
     }));
-  man;
+  // man;
   return man;
 }

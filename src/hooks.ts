@@ -1,11 +1,13 @@
-import { config } from "../package.json";
-import { initLocale } from "./utils/locale";
 import {
-  // registerPrefsScripts,
-  initPrefSettings,
-  registerPrefsScripts,
-  registerPrefsWindow,
-} from "./modules/preferenceScript";
+  BasicExampleFactory,
+  HelperExampleFactory,
+  KeyExampleFactory,
+  PromptExampleFactory,
+  UIExampleFactory,
+} from "./modules/examples";
+import { config } from "../package.json";
+import { getString, initLocale } from "./utils/locale";
+import { registerPrefsScripts } from "./modules/preferenceScript";
 import { createZToolkit } from "./utils/ztoolkit";
 import Annotations from "./modules/annotations";
 import AnnotationsToNote, {
@@ -23,19 +25,30 @@ async function onStartup() {
   ]);
 
   initLocale();
-  await initPrefSettings();
 
   // BasicExampleFactory.registerPrefs();
 
   // BasicExampleFactory.registerNotifier();
 
   // KeyExampleFactory.registerShortcuts();
+
+  // await UIExampleFactory.registerExtraColumn();
+
+  // await UIExampleFactory.registerExtraColumnWithCustomCell();
+
+  // UIExampleFactory.registerItemPaneSection();
+
+  // UIExampleFactory.registerReaderItemPaneSection();
+
   await onMainWindowLoad(window);
 }
 
 async function onMainWindowLoad(win: Window): Promise<void> {
   // Create ztoolkit for every window
   addon.data.ztoolkit = createZToolkit();
+
+  // @ts-ignore This is a moz feature
+  // window.MozXULElement.insertFTLIfNeeded(`${config.addonRef}-mainWindow.ftl`);
 
   // const popupWin = new ztoolkit.ProgressWindow(config.addonName, {
   //   closeOnClick: true,
@@ -62,15 +75,7 @@ async function onMainWindowLoad(win: Window): Promise<void> {
 
   // UIExampleFactory.registerWindowMenuWithSeparator();
 
-  // await UIExampleFactory.registerExtraColumn();
-
-  // await UIExampleFactory.registerExtraColumnWithCustomCell();
-
   // await UIExampleFactory.registerCustomItemBoxRow();
-
-  // UIExampleFactory.registerLibraryTabPanel();
-
-  // await UIExampleFactory.registerReaderTabPanel();
 
   // PromptExampleFactory.registerNormalCommandExample();
 
@@ -87,34 +92,10 @@ async function onMainWindowLoad(win: Window): Promise<void> {
   // popupWin.startCloseTimer(5000);
 
   // addon.hooks.onDialogEvents("dialogExample");
-  registerPrefsWindow();
   Annotations.register();
   AnnotationsToNote.register();
   RelationHeader.register();
   highlightWords.register();
-  // spaceRemove.register();
-  // Relations.checkLinkAnnotation();
-  // window.addEventListener("error", function (event) {
-  //   ztoolkit.log(
-  //     event.error,
-  //     event.message,
-  //     event.filename,
-  //     event.lineno,
-  //     event.colno,
-  //     event,
-  //   );
-  // });
-  // window.addEventListener("unhandledrejection", (event) => {
-  //   ztoolkit.log(event.reason, event);
-  // });
-
-  // Zotero.log("Zotero.pdfjsLib", Zotero.pdfjsLib)
-  // if (!Zotero.pdfjsLib) {
-  //   //@ts-ignore 111
-  //   const pdfjsLib = ChromeUtils.import("resource://zotero/reader/pdf/build/pdf.js")
-  //   Zotero.log("getDocument", pdfjsLib.getDocument)
-  //   Zotero.pdfjsLib = pdfjsLib
-  // }
 }
 
 async function onMainWindowUnload(win: Window): Promise<void> {
@@ -122,14 +103,13 @@ async function onMainWindowUnload(win: Window): Promise<void> {
   AnnotationsToNote.unregister();
   RelationHeader.unregister();
   highlightWords.unregister();
-  // spaceRemove.unregister();
   ztoolkit.unregisterAll();
-  // addon.data.dialog?.window?.close();
+  addon.data.dialog?.window?.close();
 }
 
 function onShutdown(): void {
   ztoolkit.unregisterAll();
-  // addon.data.dialog?.window?.close();
+  addon.data.dialog?.window?.close();
   // Remove addon object
   addon.data.alive = false;
   delete Zotero[config.addonInstance];
@@ -137,7 +117,7 @@ function onShutdown(): void {
 
 /**
  * This function is just an example of dispatcher for Notify events.
- * Any operations should be placed in a function to keep this function clear.
+ * Any operations should be placed in a function to keep this funcion clear.
  */
 async function onNotify(
   event: string,
@@ -152,7 +132,7 @@ async function onNotify(
     type == "tab" &&
     extraData[ids[0]].type == "reader"
   ) {
-    // BasicExampleFactory.exampleNotifierCallback();
+    BasicExampleFactory.exampleNotifierCallback();
   } else {
     return;
   }
@@ -160,30 +140,27 @@ async function onNotify(
 
 /**
  * This function is just an example of dispatcher for Preference UI events.
- * Any operations should be placed in a function to keep this function clear.
+ * Any operations should be placed in a function to keep this funcion clear.
  * @param type event type
  * @param data event data
  */
-// async function onPrefsEvent(type: string, data: { [key: string]: any }) {
-//   switch (type) {
-//     case "load":
-//       registerPrefsScripts(data.window);
-//       break;
-//     default:
-//       return;
-//   }
-// }
-function onPrefsLoad(event: Event) {
-  registerPrefsScripts((event.target as any).ownerGlobal);
+async function onPrefsEvent(type: string, data: { [key: string]: any }) {
+  switch (type) {
+    case "load":
+      registerPrefsScripts(data.window);
+      break;
+    default:
+      return;
+  }
 }
 
 function onShortcuts(type: string) {
   switch (type) {
     case "larger":
-      // KeyExampleFactory.exampleShortcutLargerCallback();
+      KeyExampleFactory.exampleShortcutLargerCallback();
       break;
     case "smaller":
-      // KeyExampleFactory.exampleShortcutSmallerCallback();
+      KeyExampleFactory.exampleShortcutSmallerCallback();
       break;
     default:
       break;
@@ -208,19 +185,19 @@ async function onMenuEvent(
 function onDialogEvents(type: string) {
   switch (type) {
     case "dialogExample":
-      // HelperExampleFactory.dialogExample();
+      HelperExampleFactory.dialogExample();
       break;
     case "clipboardExample":
-      // HelperExampleFactory.clipboardExample();
+      HelperExampleFactory.clipboardExample();
       break;
     case "filePickerExample":
-      // HelperExampleFactory.filePickerExample();
+      HelperExampleFactory.filePickerExample();
       break;
     case "progressWindowExample":
-      // HelperExampleFactory.progressWindowExample();
+      HelperExampleFactory.progressWindowExample();
       break;
     case "vtableExample":
-      // HelperExampleFactory.vtableExample();
+      HelperExampleFactory.vtableExample();
       break;
     default:
       break;
@@ -233,17 +210,12 @@ function onDialogEvents(type: string) {
 
 export default {
   onStartup,
+  onShutdown,
   onMainWindowLoad,
   onMainWindowUnload,
-  onShutdown,
   onNotify,
-  onPrefsLoad,
+  onPrefsEvent,
   onShortcuts,
-  // onTranslate,
-  // onTranslateInBatch,
-  // onReaderPopupShow,
-  // onReaderPopupRefresh,
-  // onReaderTabPanelRefresh,
   onDialogEvents,
   onMenuEvent,
 };

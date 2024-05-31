@@ -1,3 +1,4 @@
+import * as React from "react";
 import { ProgressWindowHelper } from "zotero-plugin-toolkit/dist/helpers/progressWindow";
 import { MenuitemOptions } from "zotero-plugin-toolkit/dist/managers/menu";
 import { TagElementProps } from "zotero-plugin-toolkit/dist/tools/ui";
@@ -392,7 +393,7 @@ import { createRoot } from "react-dom/client";
 import { MyButton } from "./MyButton";
 import { getAnnotationContent } from "../utils/zzlb";
 import { getPublicationTags } from "../utils/zzlb";
-import React = require("react");
+// import React = require("react");
 async function topDialogRect() {
   const dialogData: { [key: string | number]: any } = {
     inputValue: "test",

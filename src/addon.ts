@@ -2,7 +2,6 @@ import { ColumnOptions } from "zotero-plugin-toolkit/dist/helpers/virtualizedTab
 import { DialogHelper } from "zotero-plugin-toolkit/dist/helpers/dialog";
 import hooks from "./hooks";
 import { createZToolkit } from "./utils/ztoolkit";
-// import { Annotations } from "./modules/annotations";
 
 class Addon {
   public data: {
@@ -13,15 +12,15 @@ class Addon {
     locale?: {
       current: any;
     };
-    prefs: {
-      window: Window | null;
+    prefs?: {
+      window: Window;
+      columns: Array<ColumnOptions>;
+      rows: Array<{ [dataKey: string]: string }>;
     };
     dialog?: DialogHelper;
     relationDialog?: DialogHelper;
     exportDialog?: DialogHelper;
-    // annotations?: Annotations;
     copyText: string;
-    // test: any;
   };
   // Lifecycle hooks
   public hooks: typeof hooks;
@@ -32,7 +31,7 @@ class Addon {
     this.data = {
       alive: true,
       env: __env__,
-      prefs: { window: null },
+      // prefs: { window: null },
       ztoolkit: createZToolkit(),
       copyText: "",
     };

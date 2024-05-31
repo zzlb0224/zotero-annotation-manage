@@ -1,12 +1,10 @@
-import { config, homepage } from "../../package.json";
+// import React = require("react");
+// import { createRoot } from "react-dom/client";
+import { config } from "../../package.json";
+import { getNewColor, getRandomColor } from "../utils/color";
 import { getString } from "../utils/locale";
 import { clearPref, getPref, setPref } from "../utils/prefs";
 import { sortModified } from "../utils/sort";
-import Annotations from "./annotations";
-import { createRoot } from "react-dom/client";
-import React = require("react");
-
-import { getNewColor, getRandomColor } from "../utils/color";
 import {
   FixedColorDefault,
   FixedTagsColorsDefault,
@@ -21,28 +19,46 @@ import {
 } from "../utils/zzlb";
 import annotations from "./annotations";
 
-export function registerPrefsWindow() {
-  Zotero.PreferencePanes.register({
-    pluginID: config.addonID,
-    src: rootURI + "chrome/content/preferences.xhtml",
-    // label: getString("pref-addon-title")||"标签管理",
-    label: getString("prefs-title"),
-    image: `chrome://${config.addonRef}/content/icons/favicon.png`,
-    // image: `chrome://${config.addonRef}/content/icons/favicon.png`,
-    // image:rootURI + `chrome/content/icons/favicon.png`,
-    helpURL: homepage,
-  });
-  // ztoolkit.log("2222222222", getString("pref-addon-title"));
-}
-
 export async function registerPrefsScripts(_window: Window) {
   // This function is called when the prefs window is opened
-
-  addon.data.prefs.window = _window;
-
+  // See addon/chrome/content/preferences.xul onpaneload
+  if (!addon.data.prefs) {
+    addon.data.prefs = {
+      window: _window,
+      columns: [
+        {
+          dataKey: "title",
+          label: getString("prefs-table-title"),
+          fixedWidth: true,
+          width: 150,
+        },
+        {
+          dataKey: "detail",
+          label: getString("prefs-table-detail"),
+        },
+      ],
+      rows: [
+        {
+          title: "Orange",
+          detail: "It's juicy",
+        },
+        {
+          title: "Banana",
+          detail: "It's sweet",
+        },
+        {
+          title: "Apple",
+          detail: "I mean the fruit APPLE",
+        },
+      ],
+    };
+  } else {
+    addon.data.prefs.window = _window;
+  }
   updatePrefsUI();
   bindPrefEvents();
 }
+
 function replaceColorTagsElement(doc: Document) {
   const id = `zotero-prefpane-${config.addonRef}-coloredTags`;
   const btnRemove = doc.querySelector(
@@ -139,22 +155,12 @@ function setStyleDisplay(doc: Document, id: string) {
   if (df) df.style.display = getPref("debug") ? "" : "none";
 }
 
-function RDiv() {
-  // 基本组件测试
-  return <h1>Hello from React!</h1>;
-}
-
 function bindPrefEvents() {
-  if (!addon.data.prefs.window) return;
-  const doc = addon.data.prefs.window.document;
+  if (!addon.data.prefs!.window) return;
+  const doc = addon.data.prefs!.window.document;
   if (!doc) return;
 
   bindFixedColors(doc);
-
-  const root = createRoot(
-    doc.getElementById(`zotero-prefpane-${config.addonRef}-react-preferences`)!,
-  );
-  root.render(<RDiv />);
 
   doc
     .querySelector(`#zotero-prefpane-${config.addonRef}-debug`)

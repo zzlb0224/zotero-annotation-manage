@@ -61,9 +61,10 @@ export function memoize2<TFunc extends (this: any, ...newArgs: any[]) => any>(
   }
   memoized.remove = (cacheKey: string | RegExp | undefined = undefined) =>
     cacheKey instanceof RegExp || cacheKey === undefined
-      ? Object.keys(cacheTime).forEach((key2) => {
-          (cacheKey === undefined || cacheKey.test(key2)) && del(key2);
-        })
+      ? Object.keys(cacheTime).forEach(
+          (key2) =>
+            (cacheKey === undefined || cacheKey.test(key2)) && del(key2),
+        )
       : del(cacheKey);
   return memoized;
 }

@@ -27,11 +27,21 @@ jobs:
           node-version: 20
 
       - name: Install deps
-        run: npm install
+        run: npm install -f
+
+      - name: Build
+        run: |
+          npm run build
 
       - name: Release to GitHub
         run: |
-          npm run release -- --no-increment --no-git --github.release --ci --VV
+          npm run release
+          # cp build/update.json update.json
+          # cp build/update-beta.json update-beta.json
+          # git add update.json
+          # git add update-beta.json
+          # git commit -m 'chore(publish): synchronizing `update.json`'
+          # git push
           sleep 1s
 
       - name: Notify release

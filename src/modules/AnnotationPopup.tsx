@@ -292,7 +292,7 @@ export class AnnotationPopup {
           }
         });
       }
-      ztoolkit.getGlobal("getComputedStyle")(colorsElement).width;
+      // ztoolkit.getGlobal("getComputedStyle")(colorsElement).width;
       const maxWidth = this.getSelectTextMaxWidth();
       const width = parseFloat(
         ztoolkit.getGlobal("getComputedStyle")(colorsElement).width,
@@ -398,16 +398,16 @@ export class AnnotationPopup {
       clearInterval(this.intervalId);
     }
     if (stop) {
-      this.intervalId && clearInterval(this.intervalId);
+      if (this.intervalId) clearInterval(this.intervalId);
       return;
     }
 
     this.intervalId = setInterval(() => {
       if (remainingTime <= 0 || stop) {
-        this.intervalId && clearInterval(this.intervalId);
-        callback && callback(remainingTime);
+        if (this.intervalId) clearInterval(this.intervalId);
+        if (callback) callback(remainingTime);
       } else {
-        callback && callback(remainingTime);
+        if (callback) callback(remainingTime);
         remainingTime--;
       }
     }, 1000);
@@ -420,7 +420,7 @@ export class AnnotationPopup {
     (remainingTime) => {
       if (remainingTime > 0) {
         if (this.btnClose) {
-          remainingTime;
+          // remainingTime;
           // ztoolkit.log(remainingTime, dec, sec)
           this.btnClose.textContent = `自动关闭（${(remainingTime / 1000).toFixed(this.countDownDec)}s）`;
         }
