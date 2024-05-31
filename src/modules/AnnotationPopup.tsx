@@ -140,9 +140,9 @@ export class AnnotationPopup {
     //   await this.updateDiv(div);
     // }, 500);
 
-    this.updateDivStart();
+    this.updateDivAble();
   }
-  private updateDivStart(times = 2000, delay = 10) {
+  private updateDivAble(times = 2000, delay = 10) {
     const root = this.rootDiv;
     if (!root) return;
     if (times < 0) {
@@ -153,7 +153,7 @@ export class AnnotationPopup {
 
     if (!root) {
       setTimeout(() => {
-        this.updateDivStart(times - 1);
+        this.updateDivAble(times - 1);
       }, delay);
       return;
     }
@@ -170,7 +170,7 @@ export class AnnotationPopup {
 
       // ztoolkit.log("getPage", colorsElement, this.params, currentPage);
       setTimeout(() => {
-        this.updateDivStart(times - 1);
+        this.updateDivAble(times - 1);
       }, delay);
       return;
     }
@@ -1045,6 +1045,11 @@ export class AnnotationPopup {
         flexWrap: "wrap",
         justifyContent: "space-start",
         fontSize: this.fontSize,
+      },
+      properties: {
+        textContent: this.searchTag
+          ? "搜索中"
+          : `${ZoteroPane.getSelectedCollection()?.name || ""}`,
       },
       children,
     };

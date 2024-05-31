@@ -148,12 +148,13 @@ function buildMenu(collectionOrItem: "collection" | "item") {
           const annotations = getAllAnnotations(items);
           const mainWindow = Zotero.getMainWindow();
           let header = "";
-          if (collectionOrItem=="collection")
-            header =
-              "collection:" + ZoteroPane.getSelectedCollection()?.name || "";
-          else if (items.length == 1)
-            header = "单条目:" + items[0].getDisplayTitle();
-          else header = `已选择${items.length}个条目`;
+          if (collectionOrItem == "collection") {
+            header = `collection:${ZoteroPane.getSelectedCollection()?.name}`;
+          } else if (items.length == 1) {
+            header = `单条目:${items[0].getDisplayTitle()}`;
+          } else {
+            header = `多条目:${items.length}个条目`;
+          }
           const win = await createDialog(header, [
             { tag: "div", classList: ["query"] },
             {
