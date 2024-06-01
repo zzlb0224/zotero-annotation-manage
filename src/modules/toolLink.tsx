@@ -1,0 +1,115 @@
+import { config } from "../../package.json";
+
+function register() {
+  Zotero.Reader.registerEventListener(
+    "renderToolbar",
+    readerToolbarCallback,
+    config.addonID,
+  );
+
+  // const { pdfjsLib } = ztoolkit.getGlobal("globalThis")
+  // if (pdfjsLib && pdfjsLib.GlobalWorkerOptions) {
+  //   pdfjsLib.GlobalWorkerOptions.workerSrc = '//mozilla.github.io/pdf.js/build/pdf.worker.mjs';
+  // }
+  // Zotero.log("getDocument", pdfjsLib.getDocument)
+}
+function unregister() {
+  Zotero.Reader.unregisterEventListener("renderToolbar", readerToolbarCallback);
+}
+export default { register, unregister };
+
+function readerToolbarCallback(
+  event: Parameters<_ZoteroTypes.Reader.EventHandler<"renderToolbar">>[0],
+) {
+  const { append, doc, reader, params } = event;
+  if (doc.getElementById(`${config.addonRef}-space-button`)) return;
+  let enable = false;
+  const root =
+    doc.querySelector("body") || (doc.querySelector("div") as HTMLElement);
+  const readerRoot =
+    reader._iframe?.contentDocument?.querySelector("body") ||
+    (reader._iframe?.contentDocument?.querySelector("div") as HTMLElement);
+  let pdfDoc = reader?._iframe?.contentDocument?.querySelector("iframe")
+    ?.contentDocument as Document;
+
+  const btn = ztoolkit.UI.createElement(doc, "div", {
+    namespace: "html",
+    id: `${config.addonRef}-space-button`,
+    styles: { width: "unset" },
+    classList: ["toolbarButton", "toolbar-button"],
+    properties: {
+      tabIndex: -1,
+      title: "",
+      textContent: "链接",
+    },
+    listeners: [
+      {
+        type: "click",
+        listener: (ev: Event) => {
+          const evm = ev as MouseEvent;
+          const div = evm.target as HTMLElement;
+          pdfDoc = reader?._iframe?.contentDocument?.querySelector("iframe")
+            ?.contentDocument as Document;
+          if (!pdfDoc || !pdfDoc.querySelector("#viewerContainer")) return;
+
+          ztoolkit.log(root, readerRoot);
+          const p = root.querySelector("#reader-ui .primary");
+          if (enable) {
+            enable = false;
+            div.style.background = "";
+            popDiv?.remove();
+            popDiv = undefined;
+            p?.removeEventListener("DOMSubtreeModified", DOMSubtreeModified);
+          } else {
+            enable = true;
+            div.style.background = "#ddd";
+            createPopDiv(div);
+
+            p?.addEventListener(
+              "DOMSubtreeModified",
+              DOMSubtreeModified,
+              false,
+            );
+          }
+          function DOMSubtreeModified(e: Event) {
+            const p = e.target as HTMLDivElement;
+            if (p.classList.contains("primary")) {
+              const refRows = p.querySelectorAll(".reference-row");
+              for (const refRow of refRows as NodeListOf<HTMLDivElement>) {
+                ztoolkit.log(
+                  refRow.dataset,
+                  refRow.textContent,
+                  "在这里判断是否在我的文库当中，不在文库当中显示添加到文库按钮",
+                );
+              }
+            }
+          }
+        },
+      },
+    ],
+  });
+  append(btn);
+  let popDiv: HTMLDivElement | undefined = undefined;
+  function createPopDiv(div: HTMLElement) {
+    popDiv = ztoolkit.UI.appendElement(
+      {
+        tag: "div",
+        id: `${config.addonRef}-space-button-pop`,
+        properties: { textContent: "正在处理链接" },
+        styles: {
+          right: "100px",
+          top: div.offsetTop + div.offsetHeight + 5 + "px",
+          // top: "0px",
+          position: "fixed",
+          zIndex: "9999",
+          background: "#ddd",
+          padding: "10px",
+          borderRadius: "5px",
+          display: "flex",
+          flexDirection: "column",
+        },
+      },
+      readerRoot,
+    ) as HTMLDivElement;
+  }
+}

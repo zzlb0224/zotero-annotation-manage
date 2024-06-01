@@ -16,6 +16,7 @@ import AnnotationsToNote, {
 } from "./modules/annotationsToNote";
 import RelationHeader from "./modules/RelationHeader";
 import highlightWords from "./modules/highlightWords";
+import toolLink from "./modules/toolLink";
 
 async function onStartup() {
   await Promise.all([
@@ -96,6 +97,7 @@ async function onMainWindowLoad(win: Window): Promise<void> {
   AnnotationsToNote.register();
   RelationHeader.register();
   highlightWords.register();
+  toolLink.register();
 }
 
 async function onMainWindowUnload(win: Window): Promise<void> {
@@ -103,6 +105,8 @@ async function onMainWindowUnload(win: Window): Promise<void> {
   AnnotationsToNote.unregister();
   RelationHeader.unregister();
   highlightWords.unregister();
+  toolLink.unregister();
+
   ztoolkit.unregisterAll();
   addon.data.dialog?.window?.close();
 }

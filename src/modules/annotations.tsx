@@ -1,3 +1,4 @@
+import { config } from "../../package.json";
 import { getPref } from "../utils/prefs";
 import { sortValuesLength } from "../utils/sort";
 import { groupBy } from "../utils/zzlb";
@@ -13,6 +14,7 @@ function register() {
     Zotero.Reader.registerEventListener(
       "renderTextSelectionPopup",
       renderTextSelectionPopup,
+      config.addonID,
     );
   }
 
@@ -21,6 +23,7 @@ function register() {
     Zotero.Reader.registerEventListener(
       "createAnnotationContextMenu",
       createAnnotationContextMenu,
+      config.addonID,
     );
   }
 }

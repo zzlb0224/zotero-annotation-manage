@@ -1049,7 +1049,7 @@ export class AnnotationPopup {
         display: "flex",
         flexDirection: "row",
         flexWrap: "wrap",
-        justifyContent: "space-start",
+        justifyContent: "space-between", //"space-start",
         fontSize: this.fontSize,
       },
       properties: {
