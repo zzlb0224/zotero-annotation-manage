@@ -61,6 +61,9 @@ pref-fixed-tags-color-remove = remove
 pref-fixed-tags-style = 
     .label = fixed tags style
     
+pref-show-query-href = 
+    .label=show query href
+
 pref-count-down-close = count down close second
 pref-count-down-close-dec = decimal places
 pref-show-selected-popup-colors-tag = show-selected-popup-colors-tag

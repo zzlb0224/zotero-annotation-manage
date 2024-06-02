@@ -65,6 +65,10 @@ pref-hide-annotation-link =
     .label= 隐藏批注双链功能，双链采用dc:relation来建立双链
 
     
+pref-show-query-href = 
+    .label=显示查询链接
+
+    
 pref-fixed-tags-style = 
     .label = 固定标签使用独立样式
 
