@@ -7,12 +7,6 @@ function register() {
     readerToolbarCallback,
     config.addonID,
   );
-
-  // const { pdfjsLib } = ztoolkit.getGlobal("globalThis")
-  // if (pdfjsLib && pdfjsLib.GlobalWorkerOptions) {
-  //   pdfjsLib.GlobalWorkerOptions.workerSrc = '//mozilla.github.io/pdf.js/build/pdf.worker.mjs';
-  // }
-  // Zotero.log("getDocument", pdfjsLib.getDocument)
 }
 function unregister() {
   Zotero.Reader.unregisterEventListener("renderToolbar", readerToolbarCallback);
@@ -28,16 +22,11 @@ function readerToolbarCallback(
   let enable = getPrefT("show-query-href", false);
   const root =
     doc.querySelector("body") || (doc.querySelector("div") as HTMLElement);
-  const readerRoot =
-    reader._iframe?.contentDocument?.querySelector("body") ||
-    (reader._iframe?.contentDocument?.querySelector("div") as HTMLElement);
-  let pdfDoc = reader?._iframe?.contentDocument?.querySelector("iframe")
-    ?.contentDocument as Document;
 
-  const btn = ztoolkit.UI.createElement(doc, "div", {
+  const toolbarBtn = ztoolkit.UI.createElement(doc, "div", {
     namespace: "html",
     id: `${config.addonRef}-space-button`,
-    styles: { width: "unset" },
+    styles: { width: "unset", background: enable ? "#ddd" : "" },
     classList: ["toolbarButton", "toolbar-button"],
     properties: {
       tabIndex: -1,
@@ -49,26 +38,16 @@ function readerToolbarCallback(
         type: "click",
         listener: (ev: Event) => {
           const evm = ev as MouseEvent;
-          const btn = evm.target as HTMLElement;
-          pdfDoc = reader?._iframe?.contentDocument?.querySelector("iframe")
-            ?.contentDocument as Document;
-          if (!pdfDoc || !pdfDoc.querySelector("#viewerContainer")) return;
-
-          ztoolkit.log(root, readerRoot);
-          const p = root.querySelector("#reader-ui .primary");
+          const toolbarBtn = evm.target as HTMLElement;
+          // ztoolkit.log(root, readerRoot);
+          const p = doc.querySelector("#reader-ui .primary");
           if (enable) {
             enable = false;
-            setPref("show-query-href", enable);
-            btn.style.background = "";
-            // popDiv?.remove();
-            // popDiv = undefined;
+            toolbarBtn.style.background = "";
             p?.removeEventListener("DOMSubtreeModified", DOMSubtreeModified);
           } else {
             enable = true;
-            setPref("show-query-href", enable);
-            btn.style.background = "#ddd";
-            // createPopDiv(btn);
-
+            toolbarBtn.style.background = "#ddd";
             p?.addEventListener(
               "DOMSubtreeModified",
               DOMSubtreeModified,
@@ -79,48 +58,12 @@ function readerToolbarCallback(
       },
     ],
   });
-  append(btn);
-  // let popDiv: HTMLDivElement | undefined = undefined;
-  //  const p = root.querySelector("#reader-ui .primary");
-  //         if (!enable) {
-  //           enable = false;
-  //           btn.style.background = "";
-  //           // popDiv.remove();
-  //           popDiv = undefined;
-  //           p?.removeEventListener("DOMSubtreeModified", DOMSubtreeModified);
-  //         } else {
-  //           enable = true;
-  //           btn.style.background = "#ddd";
-  //           popDiv=createPopDiv(btn);
-
-  //           p?.addEventListener(
-  //             "DOMSubtreeModified",
-  //             DOMSubtreeModified,
-  //             false,
-  //           );
-  //         }
-  // function createPopDiv(div: HTMLElement) {
-  //  return popDiv = ztoolkit.UI.appendElement(
-  //     {
-  //       tag: "div",
-  //       id: `${config.addonRef}-space-button-pop`,
-  //       properties: { textContent: "正在处理链接" },
-  //       styles: {
-  //         right: "100px",
-  //         top: div.offsetTop + div.offsetHeight + 5 + "px",
-  //         // top: "0px",
-  //         position: "fixed",
-  //         zIndex: "9999",
-  //         background: "#ddd",
-  //         padding: "10px",
-  //         borderRadius: "5px",
-  //         display: "flex",
-  //         flexDirection: "column",
-  //       },
-  //     },
-  //     readerRoot,
-  //   ) as HTMLDivElement;
-  // }
+  append(toolbarBtn);
+  if (enable) {
+    root
+      .querySelector("#reader-ui .primary")
+      ?.addEventListener("DOMSubtreeModified", DOMSubtreeModified, false);
+  }
 }
 function DOMSubtreeModified(e: Event) {
   const p = e.target as HTMLDivElement;
@@ -132,7 +75,7 @@ function DOMSubtreeModified(e: Event) {
         refRow.dataset,
         refRow.textContent,
         "在这里判断是否在我的文库当中，不在文库当中显示添加到文库按钮",
-        citeTest(refRow.textContent || ""),
+        m,
       );
       if (m) {
         //检测本地是否存在
