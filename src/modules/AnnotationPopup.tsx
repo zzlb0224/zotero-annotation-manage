@@ -979,7 +979,7 @@ export class AnnotationPopup {
                   textContent: `[${label.values.length}]`,
                 },
                 styles: {
-                  // margin: "2px",
+                  margin: "2px",
                   padding: "2px",
                   background: bgColor,
                   fontSize: this.fontSize,
@@ -1049,7 +1049,7 @@ export class AnnotationPopup {
         display: "flex",
         flexDirection: "row",
         flexWrap: "wrap",
-        justifyContent: "space-between", //"space-start",
+        justifyContent: "space-start",
         fontSize: this.fontSize,
       },
       properties: {
