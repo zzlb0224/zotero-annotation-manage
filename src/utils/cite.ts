@@ -74,3 +74,23 @@ async function searchItem(info: { doi: string; title: string; year: string }) {
   });
   if (items.length) return items[0];
 }
+
+export async function createItemByZotero(doi: string) {
+  //@ts-ignore extractIdentifiers
+  const identifiers = Zotero.Utilities.extractIdentifiers(doi);
+  if (!identifiers.length) {
+    const translate = new Zotero.Translate.Search();
+    translate.setIdentifier(identifiers);
+    const translators = await translate.getTranslators();
+    translate.setTranslator(translators);
+    const libraryID = ZoteroPane.getSelectedLibraryID();
+    const collections = [ZoteroPane.getSelectedCollection(true)];
+    return (
+      await translate.translate({
+        libraryID,
+        collections,
+        saveAttachments: true,
+      })
+    )[0];
+  }
+}

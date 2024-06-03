@@ -1,6 +1,7 @@
 import { config } from "../../package.json";
-import { citeTest } from "../utils/cite";
+import { citeTest, createItemByZotero } from "../utils/cite";
 import { getPrefT, setPref } from "../utils/prefs";
+import { openAnnotation } from "../utils/zzlb";
 function register() {
   Zotero.Reader.registerEventListener(
     "renderToolbar",
@@ -79,7 +80,51 @@ async function DOMSubtreeModified(e: Event) {
       );
       if (m) {
         //检测本地是否存在
-
+        if (m.itemKey) {
+          ztoolkit.UI.appendElement(
+            {
+              tag: "div",
+              properties: {
+                textContent: "转到",
+              },
+              styles: {
+                backgroundColor: "#97497120",
+                margin: "5px",
+              },
+              listeners: [
+                {
+                  type: "type",
+                  listener() {
+                    openAnnotation(m.itemKey!, "", "");
+                  },
+                },
+              ],
+            },
+            refRow,
+          );
+        } else if (m.groups?.doi) {
+          ztoolkit.UI.appendElement(
+            {
+              tag: "div",
+              properties: {
+                textContent: "添加到文库",
+              },
+              styles: {
+                backgroundColor: "#97497120",
+                margin: "5px",
+              },
+              listeners: [
+                {
+                  type: "type",
+                  listener() {
+                    createItemByZotero(m.groups?.doi || "");
+                  },
+                },
+              ],
+            },
+            refRow,
+          );
+        }
         ztoolkit.UI.appendElement(
           {
             tag: "div",
