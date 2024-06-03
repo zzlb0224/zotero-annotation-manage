@@ -79,13 +79,26 @@ async function DOMSubtreeModified(e: Event) {
         m,
       );
       if (m) {
+        ztoolkit.UI.appendElement(
+          {
+            tag: "div",
+            properties: {
+              textContent: "识别结果:" + JSON.stringify(m),
+            },
+            styles: {
+              backgroundColor: "#97497120",
+              margin: "5px",
+            },
+          },
+          refRow,
+        );
         //检测本地是否存在
         if (m.itemKey) {
           ztoolkit.UI.appendElement(
             {
               tag: "div",
               properties: {
-                textContent: "转到",
+                textContent: "已在数据库",
               },
               styles: {
                 backgroundColor: "#97497120",
@@ -102,42 +115,44 @@ async function DOMSubtreeModified(e: Event) {
             },
             refRow,
           );
-        } else if (m.groups?.doi) {
+        } else {
           ztoolkit.UI.appendElement(
             {
-              tag: "div",
+              tag: "span",
               properties: {
-                textContent: "添加到文库",
+                textContent: "未找到",
               },
               styles: {
-                backgroundColor: "#97497120",
+                backgroundColor: "#a20",
                 margin: "5px",
               },
-              listeners: [
-                {
-                  type: "type",
-                  listener() {
-                    createItemByZotero(m.groups?.doi || "");
-                  },
-                },
-              ],
             },
             refRow,
           );
+          if (m.groups?.doi) {
+            ztoolkit.UI.appendElement(
+              {
+                tag: "div",
+                properties: {
+                  textContent: "添加到文库",
+                },
+                styles: {
+                  backgroundColor: "#97497120",
+                  margin: "5px",
+                },
+                listeners: [
+                  {
+                    type: "type",
+                    listener() {
+                      createItemByZotero(m.groups?.doi || "");
+                    },
+                  },
+                ],
+              },
+              refRow,
+            );
+          }
         }
-        ztoolkit.UI.appendElement(
-          {
-            tag: "div",
-            properties: {
-              textContent: "识别结果:" + JSON.stringify(m),
-            },
-            styles: {
-              backgroundColor: "#97497120",
-              margin: "5px",
-            },
-          },
-          refRow,
-        );
 
         //增加查询按钮
         // if (refRow.querySelector("a")) return; //跳过已有链接的
@@ -150,13 +165,15 @@ async function DOMSubtreeModified(e: Event) {
 
           ztoolkit.UI.appendElement(
             {
-              tag: "span",
+              tag: "a",
+              namespace: "html",
               properties: {
                 textContent: `谷歌查询`,
               },
               styles: {
                 backgroundColor: "#e9ba36",
                 margin: "5px",
+                cursor: "pointer",
               },
               listeners: [
                 {
@@ -174,13 +191,15 @@ async function DOMSubtreeModified(e: Event) {
 
           ztoolkit.UI.appendElement(
             {
-              tag: "span",
+              tag: "a",
+              namespace: "html",
               properties: {
                 textContent: `谷歌镜像`,
               },
               styles: {
                 backgroundColor: "#b4f281",
                 margin: "5px",
+                cursor: "pointer",
               },
               listeners: [
                 {
@@ -194,6 +213,20 @@ async function DOMSubtreeModified(e: Event) {
             refRow,
           );
         }
+      } else {
+        ztoolkit.UI.appendElement(
+          {
+            tag: "span",
+            properties: {
+              textContent: "等待作者识别链接",
+            },
+            styles: {
+              backgroundColor: "#66aa6644",
+              margin: "5px",
+            },
+          },
+          refRow,
+        );
       }
     }
   }

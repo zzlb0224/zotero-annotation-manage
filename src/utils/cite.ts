@@ -1,31 +1,36 @@
-const apa_doi =
-  /(?<author>[^(]+)\(\s*(?<year>[\d]+)[a-f]?\s*\)\.\s*(?<title>.+?)\s*\.\s*(?<journal>.+?)\s*(?<volume>[\d]*)\s*(?:\((?<series>[\s\d]+)\))?,\s*(?<page>[\s\d–-]+)\.\s*doi:\s*(?<doi>.*)/;
-const apa =
-  /(?<author>[^(]+)\(\s*(?<year>[\d]+)[a-f]?\s*\)\.\s*(?<title>.+?)\s*\.\s*(?<journal>.+?),\s*(?<volume>[\s\d]*)(?:\((?<series>[\s\d]+)\))?,\s*(?<page>[\s\d–-]+)\./;
+const or = (s: string) => `(?:${s})?`;
+const space = "\\s*";
+const xuhao = `(?:${space}\\[\\d+\\]${space})?`;
+const author = space + `(?<author>.+)` + space;
+const author1 = space + `(?<author>[^\\.]+?)` + space;
+const title = space + `(?<title>.+?)` + space;
+const journal = `\\s*(?<journal>.+?)\\s*`;
+const year = `\\s*(?<year>[\\d]+)[a-z]?\\s*`;
+const page = space + `(?<page>[\\d–-]+)` + space;
+const volume = space + `(?<volume>[\\d]*)` + space;
+const volume1 = space + `\\(${space}(?<volume>[\\d]*)${space}\\)` + space;
+const doi = `${space}(?:doi|DOI):${space}(?<doi>.*)${space}`;
+const nn = new RegExp(
+  `${xuhao}${author1}\\.${title}\\.${space}(?:In Proc\\.)?${journal}\\,${space}\\w*${space}${year},${space}pp\\.${page}\\.${doi}`,
+);
 
-const a2 =
-  /(?<author>.+)\.\s*(?<title>.+?)\s*\.\s*(?<journal>.+?)\.\s*(?<volume>[\d]*)\s*(?:\((?<series>[\s\d]+)\))?,\s*(?<page>[\s\d–-]+),\s*(?<year>\d{4}[a-f]?)\./;
-const regexps = [apa_doi, apa, a2];
-function t() {
-  const strings = [
-    `11. PENG H., SHEN N., YING H.Q., WANG Q.W. Can environmental regulation directly promote green innovation behavior? - Based on situation of industrial agglomeration. Journal of Cleaner Production. 314, 128044, 2021.`,
-    `Hong, Z., and Guo, X. (2019). Green product supply chain contracts considering environmental responsibilities. Omega 83, 155–166. doi: 10.1016/j.omega.2018.02.010`,
-    `Koskelainen, T., Kalmi, P., Scornavacca, E., & Vartiainen, T. (2023). Financial literacy in the  digital age—A research agenda. Journal of Consumer Affairs, 57(1), 507–528.`,
-    `Hong, H., Kacperczyk, M., 2009. The price of sin: the effects of social norms on markets. J. Financ. Econ. 93 (1), 15–36.`,
-    `Bolton, P., Kacperczyk, M., 2019. Do Investors Care About Carbon risk?. Columbia University, New York Unpublished working paper.`,
-    `Gompers, P., Ishii, J., Metrick, A., 2003. Corporate governance and equity prices. Q. J. Econ. 118 (1), 107–156.`,
-    `Hong, H., Kacperczyk, M., 2009. The price of sin: the effects of social norms on markets. J. Financ. Econ. 93 (1), 15–36.`,
-    `Fernandes, D., Lynch, J.G. Jr and Netemeyer, R.G. (2014), “Financial literacy, financial education, and downstream financial behaviors”, Management Science, Vol. 60 No. 8, pp. 1861-1883.`,
-    `Patel, S.S. (2014), “Should you trade stocks on your iPhone?”, available at: https://www.marketwatch. com/story/the-rise-of-the-iphone-stock-trader-2014-04-07?mg5prod/accounts-mw.`,
-    `BusinessWire (2014), “Fidelity® study: frequent users of mobile financial apps feel it gives them a competitive investing edge”, available at: https://www.businesswire.com/news/home/ 20141028005759/en/Fidelity®-Study-Frequent-Users-Mobile-Financial-Apps.`,
-  ];
-  for (const s1 of strings) {
-    if (!s1) return;
-    for (const r of regexps) {
-      console.log(r, s1.match(r));
-    }
-  }
-}
+`[49] Karpus A, Vagliano I, Goczyla K. Serendipitous recommendations through ontology-based contextual pre-ﬁltering. In Proc. the 13th International Conference on Beyond Databases, May 2017, pp.246-259. DOI: 10.1007/978-3-31958274-0 21.`.match(
+  nn,
+);
+
+const apa_doi =
+  /\s*(?<author>[^(]+)\(\s*(?<year>[\d]+)[a-f]?\s*\)\.\s*(?<title>.+?)\s*\.\s*(?<journal>.+?)\s*(?<volume>[\d]*)\s*(?:\((?<series>[\s\d]+)\))?,\s*(?<page>[\s\d–-]+)\.\s*doi:\s*(?<doi>.*)/;
+const apa =
+  /\s*(?<author>[^(]+)\(\s*(?<year>[\d]+)[a-f]?\s*\)\.\s*(?<title>.+?)\s*\.\s*(?<journal>.+?),\s*(?<volume>[\s\d]*)(?:\((?<series>[\s\d]+)\))?,\s*(?<page>[\s\d–-]+)\./;
+
+const apa3 =
+  /\s*(?<author>.+)\.\s*(?<title>.+?)\s*\.\s*(?<journal>.+?)\.\s*(?<volume>[\d]*)\s*(?:\((?<series>[\s\d]+)\))?,\s*(?<page>[\s\d–-]+),\s*(?<year>\d{4}[a-f]?)\./;
+//[49] Karpus A, Vagliano I, Goczyla K. Serendipitous recommendations through ontology-based contextual pre-ﬁltering. In Proc. the 13th International Conference on Beyond Databases, May 2017, pp.246-259. DOI: 10.1007/978-3-31958274-0 21.
+const apa4 = new RegExp(
+  `${xuhao}${author1}\\.${title}\\.${space}(?:In Proc\\.)?${journal}\\,${space}\\w*[\\.]?${space}${year},${space}pp\\.${page}\\.${doi}`,
+);
+
+const regexps = [apa_doi, apa, apa3, apa4];
 
 export async function citeTest(str: string) {
   for (let index = 0; index < regexps.length; index++) {
@@ -40,7 +45,7 @@ export async function citeTest(str: string) {
           title: groups.title,
           year: groups.year,
         });
-        return { index, r: rStr, groups, itemKey: item?.key };
+        return { index, r: rStr + "", groups, itemKey: item?.key };
       }
     }
   }
