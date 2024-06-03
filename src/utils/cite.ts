@@ -1,8 +1,15 @@
-const apa1 =
-  /(?<author>[^(]+)\(\s*(?<year>[\d]+)[a-f]?\s*\)(?<title>.+?),(?<volume>[\s\d]*)(?:\((?<series>[\s\d]+)\))?,(?<page>[\s\d–-]+)\./;
-const regexps = [apa1];
+const apa_doi =
+  /(?<author>[^(]+)\(\s*(?<year>[\d]+)[a-f]?\s*\)\.\s*(?<title>.+?)\s*\.\s*(?<journal>.+?)\s*(?<volume>[\d]*)\s*(?:\((?<series>[\s\d]+)\))?,\s*(?<page>[\s\d–-]+)\.\s*doi:\s*(?<doi>.*)/;
+const apa =
+  /(?<author>[^(]+)\(\s*(?<year>[\d]+)[a-f]?\s*\)\.\s*(?<title>.+?)\s*\.\s*(?<journal>.+?),\s*(?<volume>[\s\d]*)(?:\((?<series>[\s\d]+)\))?,\s*(?<page>[\s\d–-]+)\./;
+
+const a2 =
+  /(?<author>.+)\.\s*(?<title>.+?)\s*\.\s*(?<journal>.+?)\.\s*(?<volume>[\d]*)\s*(?:\((?<series>[\s\d]+)\))?,\s*(?<page>[\s\d–-]+),\s*(?<year>\d{4}[a-f]?)\./;
+const regexps = [apa_doi, apa, a2];
 function t() {
   const strings = [
+    `11. PENG H., SHEN N., YING H.Q., WANG Q.W. Can environmental regulation directly promote green innovation behavior? - Based on situation of industrial agglomeration. Journal of Cleaner Production. 314, 128044, 2021.`,
+    `Hong, Z., and Guo, X. (2019). Green product supply chain contracts considering environmental responsibilities. Omega 83, 155–166. doi: 10.1016/j.omega.2018.02.010`,
     `Koskelainen, T., Kalmi, P., Scornavacca, E., & Vartiainen, T. (2023). Financial literacy in the  digital age—A research agenda. Journal of Consumer Affairs, 57(1), 507–528.`,
     `Hong, H., Kacperczyk, M., 2009. The price of sin: the effects of social norms on markets. J. Financ. Econ. 93 (1), 15–36.`,
     `Bolton, P., Kacperczyk, M., 2019. Do Investors Care About Carbon risk?. Columbia University, New York Unpublished working paper.`,
@@ -20,12 +27,50 @@ function t() {
   }
 }
 
-export function citeTest(str: string) {
-  for (const r of regexps) {
-    const m = str.match(r);
+export async function citeTest(str: string) {
+  for (let index = 0; index < regexps.length; index++) {
+    const rStr = regexps[index];
+    const m = str.match(rStr);
     if (m) {
-      ztoolkit.log(r, m);
-      return m?.groups;
+      ztoolkit.log(rStr, m);
+      const groups = m.groups;
+      if (groups) {
+        const item = await searchItem({
+          doi: groups.doi,
+          title: groups.title,
+          year: groups.year,
+        });
+        return { index, r: rStr, groups, itemKey: item?.key };
+      }
     }
   }
+}
+
+async function searchItem(info: { doi: string; title: string; year: string }) {
+  if (!info) return;
+  const s = new Zotero.Search();
+
+  if (info.doi) {
+    //@ts-ignore joinMode any
+    s.addCondition("joinMode", "any");
+    s.addCondition("DOI", "is", info.doi);
+    s.addCondition("DOI", "is", info.doi.toLowerCase());
+    s.addCondition("DOI", "is", info.doi.toUpperCase());
+  } else {
+    if (info.title && info.title.length > 8) {
+      s.addCondition("title", "contains", info.title);
+    }
+    if (info.year) {
+      s.addCondition("year", "is", info.year);
+    }
+  }
+  const ids = await s.search();
+  const items = (await Zotero.Items.getAsync(ids)).filter((i) => {
+    return (
+      !i.itemType.startsWith("attachment") &&
+      i.isRegularItem &&
+      i.isRegularItem()
+    );
+  });
+  if (items.length) return items[0];
 }

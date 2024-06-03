@@ -65,12 +65,12 @@ function readerToolbarCallback(
       ?.addEventListener("DOMSubtreeModified", DOMSubtreeModified, false);
   }
 }
-function DOMSubtreeModified(e: Event) {
+async function DOMSubtreeModified(e: Event) {
   const p = e.target as HTMLDivElement;
   if (p.classList.contains("primary")) {
     const refRows = p.querySelectorAll(".reference-row");
     for (const refRow of refRows as NodeListOf<HTMLDivElement>) {
-      const m = citeTest(refRow.textContent || "");
+      const m = await citeTest(refRow.textContent || "");
       ztoolkit.log(
         refRow.dataset,
         refRow.textContent,
@@ -80,58 +80,75 @@ function DOMSubtreeModified(e: Event) {
       if (m) {
         //检测本地是否存在
 
+        ztoolkit.UI.appendElement(
+          {
+            tag: "div",
+            properties: {
+              textContent: "识别结果:" + JSON.stringify(m),
+            },
+            styles: {
+              backgroundColor: "#97497120",
+              margin: "5px",
+            },
+          },
+          refRow,
+        );
+
         //增加查询按钮
         // if (refRow.querySelector("a")) return; //跳过已有链接的
-        const exePath =
-          "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe";
-        const url = `https://scholar.google.com/scholar_lookup?title=${encodeURIComponent(m.title)}&author=${encodeURIComponent(m.author)}&publication_year=${m.year}`;
-        const url2 = `https://sc.panda985.com/scholar?q=${encodeURIComponent(m.title)}+&hl=zh-CN&as_sdt=0%2C5&as_ylo=${m.year}&as_yhi=${m.year}`;
+        const { groups } = m;
+        if (groups) {
+          const exePath =
+            "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe";
+          const url = `https://scholar.google.com/scholar_lookup?title=${encodeURIComponent(groups.title)}&author=${encodeURIComponent(groups.author)}&publication_year=${groups.year}`;
+          const url2 = `https://sc.panda985.com/scholar?q=${encodeURIComponent(groups.title)}+&hl=zh-CN&as_sdt=0%2C5&as_ylo=${groups.year}&as_yhi=${groups.year}`;
 
-        ztoolkit.UI.appendElement(
-          {
-            tag: "span",
-            properties: {
-              textContent: `谷歌查询`,
-            },
-            styles: {
-              backgroundColor: "#e9ba36",
-              margin: "5px",
-            },
-            listeners: [
-              {
-                type: "click",
-                listener: () => {
-                  //两种打开方式都可以
-                  Zotero.Utilities.Internal.exec(exePath, [url]);
-                  // Zotero.launchFileWithApplication(url, exePath);
-                },
+          ztoolkit.UI.appendElement(
+            {
+              tag: "span",
+              properties: {
+                textContent: `谷歌查询`,
               },
-            ],
-          },
-          refRow,
-        );
+              styles: {
+                backgroundColor: "#e9ba36",
+                margin: "5px",
+              },
+              listeners: [
+                {
+                  type: "click",
+                  listener: () => {
+                    //两种打开方式都可以
+                    Zotero.Utilities.Internal.exec(exePath, [url]);
+                    // Zotero.launchFileWithApplication(url, exePath);
+                  },
+                },
+              ],
+            },
+            refRow,
+          );
 
-        ztoolkit.UI.appendElement(
-          {
-            tag: "span",
-            properties: {
-              textContent: `谷歌镜像`,
-            },
-            styles: {
-              backgroundColor: "#b4f281",
-              margin: "5px",
-            },
-            listeners: [
-              {
-                type: "click",
-                listener: () => {
-                  Zotero.launchFileWithApplication(url2, exePath);
-                },
+          ztoolkit.UI.appendElement(
+            {
+              tag: "span",
+              properties: {
+                textContent: `谷歌镜像`,
               },
-            ],
-          },
-          refRow,
-        );
+              styles: {
+                backgroundColor: "#b4f281",
+                margin: "5px",
+              },
+              listeners: [
+                {
+                  type: "click",
+                  listener: () => {
+                    Zotero.launchFileWithApplication(url2, exePath);
+                  },
+                },
+              ],
+            },
+            refRow,
+          );
+        }
       }
     }
   }
