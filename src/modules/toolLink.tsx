@@ -158,7 +158,7 @@ async function DOMSubtreeModified(e: Event) {
         //增加查询按钮
         // if (refRow.querySelector("a")) return; //跳过已有链接的
         const { groups } = m;
-        if (groups) {
+        if (groups&&!groups.doi) {
           const exePath =
             "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe";
           const url = `https://scholar.google.com/scholar_lookup?title=${encodeURIComponent(groups.title)}&author=${encodeURIComponent(groups.author)}&publication_year=${groups.year}`;
