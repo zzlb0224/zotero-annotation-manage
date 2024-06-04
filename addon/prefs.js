@@ -17,3 +17,4 @@ pref("__prefsPrefix__.split-nested-tags-keep-first", true);
 pref("__prefsPrefix__.split-nested-tags-keep-second", true);
 
 pref("__prefsPrefix__.show-query-href", false);
+pref("__prefsPrefix__.google-scholar-mirroring", "");

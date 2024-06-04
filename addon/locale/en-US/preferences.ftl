@@ -68,6 +68,7 @@ pref-count-down-close = count down close second
 pref-count-down-close-dec = decimal places
 pref-show-selected-popup-colors-tag = show-selected-popup-colors-tag
 pref-show-selected-popup-match-tag = show-selected-popup-match-tag
+pref-google-scholar-mirroring = google-scholar-mirroring
 
 pref-tags-exclude = Use RegExp to exclude related labels that you don't like. Search results are not excluded. Use ^ for the beginning, use $for the end, appear/to use \/ instead,.* for all characters, and \d for numbers. For example, you can use ①^zotero://②^#③#④\/ to exclude some system Tags separately
 pref-max-show = Maximum number of labels to be displayed

@@ -1,7 +1,7 @@
 import { config } from "../../package.json";
 import { citeTest, createItemByZotero } from "../utils/cite";
 import { getPrefT, setPref } from "../utils/prefs";
-import { openAnnotation } from "../utils/zzlb";
+import { isDebug, openAnnotation } from "../utils/zzlb";
 function register() {
   Zotero.Reader.registerEventListener(
     "renderToolbar",
@@ -79,29 +79,30 @@ async function DOMSubtreeModified(e: Event) {
         m,
       );
       if (m) {
-        ztoolkit.UI.appendElement(
-          {
-            tag: "div",
-            properties: {
-              textContent: "识别结果:" + JSON.stringify(m),
+        if (isDebug())
+          ztoolkit.UI.appendElement(
+            {
+              tag: "div",
+              properties: {
+                textContent: "识别结果:" + JSON.stringify(m),
+              },
+              styles: {
+                backgroundColor: "#97497120",
+                margin: "5px",
+              },
             },
-            styles: {
-              backgroundColor: "#97497120",
-              margin: "5px",
-            },
-          },
-          refRow,
-        );
+            refRow,
+          );
         //检测本地是否存在
         if (m.itemKey) {
           ztoolkit.UI.appendElement(
             {
               tag: "div",
               properties: {
-                textContent: "已在数据库",
+                textContent: "已在我的文库中",
               },
               styles: {
-                backgroundColor: "#97497120",
+                backgroundColor: "#97497110",
                 margin: "5px",
               },
               listeners: [
@@ -120,10 +121,10 @@ async function DOMSubtreeModified(e: Event) {
             {
               tag: "span",
               properties: {
-                textContent: "未找到",
+                textContent: "在我的文库中未找到",
               },
               styles: {
-                backgroundColor: "#a20",
+                // backgroundColor: "#a20",
                 margin: "5px",
               },
             },
@@ -162,6 +163,16 @@ async function DOMSubtreeModified(e: Event) {
             "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe";
           const url = `https://scholar.google.com/scholar_lookup?title=${encodeURIComponent(groups.title)}&author=${encodeURIComponent(groups.author)}&publication_year=${groups.year}`;
           const url2 = `https://sc.panda985.com/scholar?q=${encodeURIComponent(groups.title)}+&hl=zh-CN&as_sdt=0%2C5&as_ylo=${groups.year}&as_yhi=${groups.year}`;
+          const gss = getPrefT("google-scholar-mirroring", "")
+            .split("\n")
+            .map((a) => a.trim())
+            .filter((f) => f)
+            .map((a) => a.split(" "))
+            .map((a) => (a.length == 1 ? ["谷歌镜像", a[0]] : a))
+            .map((a) => ({
+              title: a[0],
+              url: `${a[1]}${a[1].includes("?") ? "" : "?"}q=${encodeURIComponent(groups.title)}+&hl=zh-CN&as_sdt=0%2C5&as_ylo=${groups.year}&as_yhi=${groups.year}`,
+            }));
 
           ztoolkit.UI.appendElement(
             {
@@ -188,30 +199,30 @@ async function DOMSubtreeModified(e: Event) {
             },
             refRow,
           );
-
-          ztoolkit.UI.appendElement(
-            {
-              tag: "a",
-              namespace: "html",
-              properties: {
-                textContent: `谷歌镜像`,
-              },
-              styles: {
-                backgroundColor: "#b4f281",
-                margin: "5px",
-                cursor: "pointer",
-              },
-              listeners: [
-                {
-                  type: "click",
-                  listener: () => {
-                    Zotero.launchFileWithApplication(url2, exePath);
-                  },
+          for (const gs of gss)
+            ztoolkit.UI.appendElement(
+              {
+                tag: "a",
+                namespace: "html",
+                properties: {
+                  textContent: gs.title,
                 },
-              ],
-            },
-            refRow,
-          );
+                styles: {
+                  backgroundColor: "#b4f281",
+                  margin: "5px",
+                  cursor: "pointer",
+                },
+                listeners: [
+                  {
+                    type: "click",
+                    listener: () => {
+                      Zotero.launchFileWithApplication(gs.url, exePath);
+                    },
+                  },
+                ],
+              },
+              refRow,
+            );
         }
       } else {
         ztoolkit.UI.appendElement(

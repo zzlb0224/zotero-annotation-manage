@@ -72,6 +72,7 @@ pref-show-query-href =
 pref-fixed-tags-style = 
     .label = 固定标签使用独立样式
 
+pref-google-scholar-mirroring = 谷歌学术镜像，一行一个，空格分割说明和网址。网址可以带？也可以不带，
 pref-count-down-close = 自动关闭弹出窗口时长（至少5秒）
 pref-count-down-close-dec = 小数位数
 pref-show-selected-popup-colors-tag = 

@@ -6,15 +6,16 @@ const author1 = space + `(?<author>[^\\.]+?)` + space;
 const title = space + `(?<title>.+?)` + space;
 const journal = `\\s*(?<journal>.+?)\\s*`;
 const year = `\\s*(?<year>[\\d]+)[a-z]?\\s*`;
+const year1 = `${space}\\(${space}(?<year>[\\d]+)[a-z]?${space}\\)${space}`;
 const page = space + `(?<page>[\\d–-]+)` + space;
 const volume = space + `(?<volume>[\\d]*)` + space;
 const volume1 = space + `\\(${space}(?<volume>[\\d]*)${space}\\)` + space;
-const doi = `${space}(?:doi|DOI):${space}(?<doi>.*)${space}`;
+const doi = `${space}(?:doi:|DOI:|https://doi.org/)${space}(?<doi>.*)${space}`;
 const nn = new RegExp(
-  `${xuhao}${author1}\\.${title}\\.${space}(?:In Proc\\.)?${journal}\\,${space}\\w*${space}${year},${space}pp\\.${page}\\.${doi}`,
+  `${author1}${year1}${title}\\.${journal}${volume}:${page}\\.${doi}`,
 );
 
-`[49] Karpus A, Vagliano I, Goczyla K. Serendipitous recommendations through ontology-based contextual pre-ﬁltering. In Proc. the 13th International Conference on Beyond Databases, May 2017, pp.246-259. DOI: 10.1007/978-3-31958274-0 21.`.match(
+`Cao S et al (2021) Digital finance, green technological innovation and energy-environmental performance: evidence from China’s regional economies. J Clean Prod 327:129–458. https://doi.org/ 10.1016/j.jclepro.2021.129458`.match(
   nn,
 );
 
@@ -29,8 +30,11 @@ const apa3 =
 const apa4 = new RegExp(
   `${xuhao}${author1}\\.${title}\\.${space}(?:In Proc\\.)?${journal}\\,${space}\\w*[\\.]?${space}${year},${space}pp\\.${page}\\.${doi}`,
 );
+const apa5 = new RegExp(
+  `${author1}${year1}${title}\\.${journal}${volume}:${page}\\.${doi}`,
+);
 
-const regexps = [apa_doi, apa, apa3, apa4];
+const regexps = [apa_doi, apa, apa3, apa4, apa5];
 
 export async function citeTest(str: string) {
   for (let index = 0; index < regexps.length; index++) {

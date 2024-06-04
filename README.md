@@ -93,6 +93,13 @@
 
 ![高亮显示特定单词](doc/4高亮显示特定单词.png)
 
+### 第五个功能 添加链接的搜索按钮
+
+添加搜索按钮纯粹为了我自己的方便
+![搜索按钮](doc/添加搜索按钮.png)
+镜像站点做成配置
+![使用镜像](doc/添加镜像站点.png)
+
 ## 感谢
 
 本插件基于[@windingwind](https://github.com/windingwind)的[zotero-plugin-template](https://github.com/windingwind/zotero-plugin-template)开发，在此表示感谢。
