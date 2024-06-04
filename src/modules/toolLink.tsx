@@ -1,5 +1,5 @@
 import { config } from "../../package.json";
-import { citeTest, createItemByZotero } from "../utils/cite";
+import { refSearch, createItemByZotero, searchItem } from "../utils/cite";
 import { getPrefT, setPref } from "../utils/prefs";
 import { isDebug, openAnnotation } from "../utils/zzlb";
 function register() {
@@ -71,7 +71,8 @@ async function DOMSubtreeModified(e: Event) {
   if (p.classList.contains("primary")) {
     const refRows = p.querySelectorAll(".reference-row");
     for (const refRow of refRows as NodeListOf<HTMLDivElement>) {
-      for await (const m of citeTest(refRow.textContent || "")) {
+      const m = await refSearch(refRow.textContent || "");
+      {
         ztoolkit.log(
           refRow.dataset,
           refRow.textContent,
@@ -80,7 +81,12 @@ async function DOMSubtreeModified(e: Event) {
         );
         if (m) {
           //检测本地是否存在
-          if (m.itemKey) {
+          const item = await searchItem({
+            doi: m.groups.doi,
+            title: m.groups.title,
+            year: m.groups.year,
+          });
+          if (item?.key) {
             ztoolkit.UI.appendElement(
               {
                 tag: "div",
@@ -95,7 +101,7 @@ async function DOMSubtreeModified(e: Event) {
                   {
                     type: "type",
                     listener() {
-                      openAnnotation(m.itemKey!, "", "");
+                      openAnnotation(item, "", "");
                     },
                   },
                 ],
@@ -116,29 +122,6 @@ async function DOMSubtreeModified(e: Event) {
               },
               refRow,
             );
-            if (m.groups?.doi) {
-              ztoolkit.UI.appendElement(
-                {
-                  tag: "div",
-                  properties: {
-                    textContent: "添加到文库",
-                  },
-                  styles: {
-                    backgroundColor: "#97497120",
-                    margin: "5px",
-                  },
-                  listeners: [
-                    {
-                      type: "type",
-                      listener() {
-                        createItemByZotero(m.groups?.doi || "");
-                      },
-                    },
-                  ],
-                },
-                refRow,
-              );
-            }
           }
 
           //增加查询按钮
@@ -159,7 +142,31 @@ async function DOMSubtreeModified(e: Event) {
                 title: a[0],
                 url: `${a[1]}${a[1].includes("?") ? "" : "?"}q=${encodeURIComponent(groups.title)}+&hl=zh-CN&as_sdt=0%2C5&as_ylo=${groups.year}&as_yhi=${groups.year}`,
               }));
-            if (groups.doi)
+            if (groups.doi) {
+              const doi = groups.doi.replace(/\s/g, "").replace(/\\.$/, "");
+
+              ztoolkit.UI.appendElement(
+                {
+                  tag: "span",
+                  properties: {
+                    textContent: "添加到文库",
+                  },
+                  styles: {
+                    backgroundColor: "#97497120",
+                    margin: "5px",
+                    cursor: "pointer",
+                  },
+                  listeners: [
+                    {
+                      type: "click",
+                      listener() {
+                        createItemByZotero(doi || "");
+                      },
+                    },
+                  ],
+                },
+                refRow,
+              );
               ztoolkit.UI.appendElement(
                 {
                   tag: "a",
@@ -187,6 +194,7 @@ async function DOMSubtreeModified(e: Event) {
                 },
                 refRow,
               );
+            }
             ztoolkit.UI.appendElement(
               {
                 tag: "a",
@@ -256,10 +264,10 @@ async function DOMSubtreeModified(e: Event) {
             {
               tag: "span",
               properties: {
-                textContent: "等待作者识别链接",
+                textContent: "请等待插件作者更新识别链接的代码",
               },
               styles: {
-                backgroundColor: "#66aa6644",
+                backgroundColor: "#66aa6620",
                 margin: "5px",
               },
             },
