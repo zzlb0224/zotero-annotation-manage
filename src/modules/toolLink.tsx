@@ -71,144 +71,131 @@ async function DOMSubtreeModified(e: Event) {
   if (p.classList.contains("primary")) {
     const refRows = p.querySelectorAll(".reference-row");
     for (const refRow of refRows as NodeListOf<HTMLDivElement>) {
-      const m = await citeTest(refRow.textContent || "");
-      ztoolkit.log(
-        refRow.dataset,
-        refRow.textContent,
-        "在这里判断是否在我的文库当中，不在文库当中显示添加到文库按钮",
-        m,
-      );
-      if (m) {
-        if (isDebug())
-          ztoolkit.UI.appendElement(
-            {
-              tag: "div",
-              properties: {
-                textContent: "识别结果:" + JSON.stringify(m),
-              },
-              styles: {
-                backgroundColor: "#97497120",
-                margin: "5px",
-              },
-            },
-            refRow,
-          );
-        //检测本地是否存在
-        if (m.itemKey) {
-          ztoolkit.UI.appendElement(
-            {
-              tag: "div",
-              properties: {
-                textContent: "已在我的文库中",
-              },
-              styles: {
-                backgroundColor: "#97497110",
-                margin: "5px",
-              },
-              listeners: [
-                {
-                  type: "type",
-                  listener() {
-                    openAnnotation(m.itemKey!, "", "");
-                  },
-                },
-              ],
-            },
-            refRow,
-          );
-        } else {
-          ztoolkit.UI.appendElement(
-            {
-              tag: "span",
-              properties: {
-                textContent: "在我的文库中未找到",
-              },
-              styles: {
-                // backgroundColor: "#a20",
-                margin: "5px",
-              },
-            },
-            refRow,
-          );
-          if (m.groups?.doi) {
+      for await (const m of citeTest(refRow.textContent || "")) {
+        ztoolkit.log(
+          refRow.dataset,
+          refRow.textContent,
+          "在这里判断是否在我的文库当中，不在文库当中显示添加到文库按钮",
+          m,
+        );
+        if (m) {
+          //检测本地是否存在
+          if (m.itemKey) {
             ztoolkit.UI.appendElement(
               {
                 tag: "div",
                 properties: {
-                  textContent: "添加到文库",
+                  textContent: "已在我的文库中",
                 },
                 styles: {
-                  backgroundColor: "#97497120",
+                  backgroundColor: "#97497110",
                   margin: "5px",
                 },
                 listeners: [
                   {
                     type: "type",
                     listener() {
-                      createItemByZotero(m.groups?.doi || "");
+                      openAnnotation(m.itemKey!, "", "");
                     },
                   },
                 ],
               },
               refRow,
             );
-          }
-        }
-
-        //增加查询按钮
-        // if (refRow.querySelector("a")) return; //跳过已有链接的
-        const { groups } = m;
-        if (groups&&!groups.doi) {
-          const exePath =
-            "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe";
-          const url = `https://scholar.google.com/scholar_lookup?title=${encodeURIComponent(groups.title)}&author=${encodeURIComponent(groups.author)}&publication_year=${groups.year}`;
-          const url2 = `https://sc.panda985.com/scholar?q=${encodeURIComponent(groups.title)}+&hl=zh-CN&as_sdt=0%2C5&as_ylo=${groups.year}&as_yhi=${groups.year}`;
-          const gss = getPrefT("google-scholar-mirroring", "")
-            .split("\n")
-            .map((a) => a.trim())
-            .filter((f) => f)
-            .map((a) => a.split(" "))
-            .map((a) => (a.length == 1 ? ["谷歌镜像", a[0]] : a))
-            .map((a) => ({
-              title: a[0],
-              url: `${a[1]}${a[1].includes("?") ? "" : "?"}q=${encodeURIComponent(groups.title)}+&hl=zh-CN&as_sdt=0%2C5&as_ylo=${groups.year}&as_yhi=${groups.year}`,
-            }));
-
-          ztoolkit.UI.appendElement(
-            {
-              tag: "a",
-              namespace: "html",
-              properties: {
-                textContent: `谷歌查询`,
-              },
-              styles: {
-                backgroundColor: "#e9ba36",
-                margin: "5px",
-                cursor: "pointer",
-              },
-              listeners: [
-                {
-                  type: "click",
-                  listener: () => {
-                    //两种打开方式都可以
-                    Zotero.Utilities.Internal.exec(exePath, [url]);
-                    // Zotero.launchFileWithApplication(url, exePath);
-                  },
+          } else {
+            ztoolkit.UI.appendElement(
+              {
+                tag: "span",
+                properties: {
+                  textContent: "在我的文库中未找到",
                 },
-              ],
-            },
-            refRow,
-          );
-          for (const gs of gss)
+                styles: {
+                  // backgroundColor: "#a20",
+                  margin: "5px",
+                },
+              },
+              refRow,
+            );
+            if (m.groups?.doi) {
+              ztoolkit.UI.appendElement(
+                {
+                  tag: "div",
+                  properties: {
+                    textContent: "添加到文库",
+                  },
+                  styles: {
+                    backgroundColor: "#97497120",
+                    margin: "5px",
+                  },
+                  listeners: [
+                    {
+                      type: "type",
+                      listener() {
+                        createItemByZotero(m.groups?.doi || "");
+                      },
+                    },
+                  ],
+                },
+                refRow,
+              );
+            }
+          }
+
+          //增加查询按钮
+          // if (refRow.querySelector("a")) return; //跳过已有链接的
+          const { groups } = m;
+          if (groups) {
+            const exePath =
+              "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe";
+            const url = `https://scholar.google.com/scholar_lookup?title=${encodeURIComponent(groups.title)}&author=${encodeURIComponent(groups.author)}&publication_year=${groups.year}`;
+            const url2 = `https://sc.panda985.com/scholar?q=${encodeURIComponent(groups.title)}+&hl=zh-CN&as_sdt=0%2C5&as_ylo=${groups.year}&as_yhi=${groups.year}`;
+            const gss = getPrefT("google-scholar-mirroring", "")
+              .split("\n")
+              .map((a) => a.trim())
+              .filter((f) => f)
+              .map((a) => a.split(" "))
+              .map((a) => (a.length == 1 ? ["谷歌镜像", a[0]] : a))
+              .map((a) => ({
+                title: a[0],
+                url: `${a[1]}${a[1].includes("?") ? "" : "?"}q=${encodeURIComponent(groups.title)}+&hl=zh-CN&as_sdt=0%2C5&as_ylo=${groups.year}&as_yhi=${groups.year}`,
+              }));
+            if (groups.doi)
+              ztoolkit.UI.appendElement(
+                {
+                  tag: "a",
+                  namespace: "html",
+                  properties: {
+                    textContent: `DOI`,
+                  },
+                  styles: {
+                    backgroundColor: "#e9ba36",
+                    margin: "5px",
+                    cursor: "pointer",
+                  },
+                  listeners: [
+                    {
+                      type: "click",
+                      listener: () => {
+                        //两种打开方式都可以
+                        Zotero.Utilities.Internal.exec(exePath, [
+                          "https://doi.org/" + groups.doi,
+                        ]);
+                        // Zotero.launchFileWithApplication(url, exePath);
+                      },
+                    },
+                  ],
+                },
+                refRow,
+              );
             ztoolkit.UI.appendElement(
               {
                 tag: "a",
                 namespace: "html",
                 properties: {
-                  textContent: gs.title,
+                  textContent: `谷歌查询`,
                 },
                 styles: {
-                  backgroundColor: "#b4f281",
+                  backgroundColor: "#e9ba36",
                   margin: "5px",
                   cursor: "pointer",
                 },
@@ -216,28 +203,70 @@ async function DOMSubtreeModified(e: Event) {
                   {
                     type: "click",
                     listener: () => {
-                      Zotero.launchFileWithApplication(gs.url, exePath);
+                      //两种打开方式都可以
+                      Zotero.Utilities.Internal.exec(exePath, [url]);
+                      // Zotero.launchFileWithApplication(url, exePath);
                     },
                   },
                 ],
               },
               refRow,
             );
+            for (const gs of gss)
+              ztoolkit.UI.appendElement(
+                {
+                  tag: "a",
+                  namespace: "html",
+                  properties: {
+                    textContent: gs.title,
+                  },
+                  styles: {
+                    backgroundColor: "#b4f281",
+                    margin: "5px",
+                    cursor: "pointer",
+                  },
+                  listeners: [
+                    {
+                      type: "click",
+                      listener: () => {
+                        Zotero.launchFileWithApplication(gs.url, exePath);
+                      },
+                    },
+                  ],
+                },
+                refRow,
+              );
+          }
+          if (isDebug())
+            ztoolkit.UI.appendElement(
+              {
+                tag: "div",
+                properties: {
+                  textContent: "识别结果:" + JSON.stringify(m),
+                },
+                styles: {
+                  backgroundColor: "#97497120",
+                  margin: "5px",
+                },
+              },
+              refRow,
+            );
+        } else {
+          ztoolkit.UI.appendElement(
+            {
+              tag: "span",
+              properties: {
+                textContent: "等待作者识别链接",
+              },
+              styles: {
+                backgroundColor: "#66aa6644",
+                margin: "5px",
+              },
+            },
+            refRow,
+          );
         }
-      } else {
-        ztoolkit.UI.appendElement(
-          {
-            tag: "span",
-            properties: {
-              textContent: "等待作者识别链接",
-            },
-            styles: {
-              backgroundColor: "#66aa6644",
-              margin: "5px",
-            },
-          },
-          refRow,
-        );
+        break;
       }
     }
   }

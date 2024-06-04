@@ -4,18 +4,21 @@ const xuhao = `(?:${space}\\[\\d+\\]${space})?`;
 const author = space + `(?<author>.+)` + space;
 const author1 = space + `(?<author>[^\\.]+?)` + space;
 const title = space + `(?<title>.+?)` + space;
+const title1 = space + `(?<title>[^\\.]+?)` + space;
 const journal = `\\s*(?<journal>.+?)\\s*`;
 const year = `\\s*(?<year>[\\d]+)[a-z]?\\s*`;
 const year1 = `${space}\\(${space}(?<year>[\\d]+)[a-z]?${space}\\)${space}`;
 const page = space + `(?<page>[\\d–-]+)` + space;
+const issue = space + `(?<issue>[\\d]*)` + space;
 const volume = space + `(?<volume>[\\d]*)` + space;
 const volume1 = space + `\\(${space}(?<volume>[\\d]*)${space}\\)` + space;
 const doi = `${space}(?:doi:|DOI:|https://doi.org/)${space}(?<doi>.*)${space}`;
+const doi1 = `${space}(?:doi:|DOI:|https://doi.org/)${space}(?<doi>.*)?${space}`;
 const nn = new RegExp(
-  `${author1}${year1}${title}\\.${journal}${volume}:${page}\\.${doi}`,
+  `${author},${year}${title1}\\.${journal}${issue}${volume1}:${page}\\.${doi}`,
 );
 
-`Cao S et al (2021) Digital finance, green technological innovation and energy-environmental performance: evidence from China’s regional economies. J Clean Prod 327:129–458. https://doi.org/ 10.1016/j.jclepro.2021.129458`.match(
+`Sharabati, A.-A.A., Naji Jawad, S., Bontis, N., 2010. Intellectual capital and business performance in the pharmaceutical sector of Jordan. Manag. Decis. 48 (1), 105–131.`.match(
   nn,
 );
 
@@ -33,10 +36,12 @@ const apa4 = new RegExp(
 const apa5 = new RegExp(
   `${author1}${year1}${title}\\.${journal}${volume}:${page}\\.${doi}`,
 );
+const a6 = new RegExp(
+  `${author},${year}\\.${title1}\\.${journal}${issue}${volume1},${page}\\.${doi1}`,
+);
+const regexps = [apa_doi, apa, apa3, apa4, apa5, a6];
 
-const regexps = [apa_doi, apa, apa3, apa4, apa5];
-
-export async function citeTest(str: string) {
+export async function* citeTest(str: string) {
   for (let index = 0; index < regexps.length; index++) {
     const rStr = regexps[index];
     const m = str.match(rStr);
@@ -49,7 +54,7 @@ export async function citeTest(str: string) {
           title: groups.title,
           year: groups.year,
         });
-        return { index, r: rStr + "", groups, itemKey: item?.key };
+        yield { index, r: rStr + "", groups, itemKey: item?.key };
       }
     }
   }
