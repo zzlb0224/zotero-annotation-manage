@@ -54,9 +54,9 @@ const rules = [
   {
     title: "",
     re: /a/,
-    examples: ["a"]
-  }
-]
+    examples: ["a"],
+  },
+];
 export function ruleSearch(str: string) {
   for (let index = 0; index < rules.length; index++) {
     const rule = rules[index];
@@ -77,12 +77,11 @@ export function ruleTest() {
     for (const str of rule.examples) {
       const m = str.match(rule.re);
       if (m) {
-        ztoolkit.log("OK", index, str)
+        ztoolkit.log("OK", index, str);
       } else {
-        ztoolkit.log("error", index, str, rule)
+        ztoolkit.log("error", index, str, rule);
       }
     }
-
   }
 }
 export function ruleTestAll(str: string) {
@@ -94,10 +93,15 @@ export function ruleTestAll(str: string) {
       for (const str of e.examples) {
         const m = str.match(rule.re);
         if (m) {
-          if (ei == index) { ztoolkit.log("OK", index, str) }
-          else { ztoolkit.log("error", index, ei, str, rule) }
+          if (ei == index) {
+            ztoolkit.log("OK", index, str);
+          } else {
+            ztoolkit.log("error", index, ei, str, rule);
+          }
         } else {
-          if (ei == index) { ztoolkit.log("error", index, ei, str, rule) }
+          if (ei == index) {
+            ztoolkit.log("error", index, ei, str, rule);
+          }
         }
       }
     }
@@ -118,7 +122,8 @@ function refTest() {
     a6,
     `Yook, K.H., Choi, J.H., Suresh, N.C., 2018. Linking green purchasing capabilities to environmental and economic performance: the moderating role of firm size. J. Purch. Supply Manag. 24, 326–337. https://doi.org/10.1016/j. pursup.2017.09.001.`,
     a7,
-    `Yu, C., Moslehpour, M., Tran, T.K., et al., 2023. Impact of non-renewable energy and natural resources on economic recovery: empirical evidence from selected developing economies. Resour. Policy 80, 103221. Yue, P., Korkmaz, A.G., Yin, Z., et al., 2022. The rise of digital finance: financial inclusion or debt trap? Financ. Res. Lett. 47, 102604. Zhang, J., Mishra, A.K., Zhu, P., et al., 2020. Land rental market and agricultural labor productivity in rural China: a mediation analysis. World Dev. 135, 105089.`, a8
+    `Yu, C., Moslehpour, M., Tran, T.K., et al., 2023. Impact of non-renewable energy and natural resources on economic recovery: empirical evidence from selected developing economies. Resour. Policy 80, 103221. Yue, P., Korkmaz, A.G., Yin, Z., et al., 2022. The rise of digital finance: financial inclusion or debt trap? Financ. Res. Lett. 47, 102604. Zhang, J., Mishra, A.K., Zhu, P., et al., 2020. Land rental market and agricultural labor productivity in rural China: a mediation analysis. World Dev. 135, 105089.`,
+    a8,
   ];
   for (let i = 0; i < rrr.length; i += 2) {
     const str = rrr[i] as string;
@@ -135,7 +140,6 @@ function refTest() {
 Zotero.ref_test = { refTest, ruleTest, ruleTestAll };
 
 export function refSearch(str: string, log = false) {
-
   for (let index = 0; index < regexps.length; index++) {
     const rStr = regexps[index];
     const m = str.match(rStr);
