@@ -3,6 +3,7 @@ const space = "\\s*";
 const num = `(?:${space}\\[\\d+\\]${space})?`;
 const author = space + `(?<author>.+)` + space;
 const author1 = space + `(?<author>[^\\.]+?)` + space;
+const author2 = space + `(?<author>[^\d]+?)` + space;
 const title = space + `(?<title>.+?)` + space;
 const title1 = space + `(?<title>[^\\.]+?)` + space;
 const journal = `\\s*(?<journal>.+?)\\s*`;
@@ -15,10 +16,10 @@ const volume1 = space + `\\(${space}(?<volume>[\\d]*)${space}\\)` + space;
 const doi = `${space}(?:doi:|DOI:|https://doi.org/)${space}(?<doi>.*)[\\.]?${space}`;
 const doi1 = `${space}(?:doi:|DOI:|https://doi.org/)${space}(?<doi>.*)?[\\.]?${space}`;
 const nn = new RegExp(
-  `${author},${year}${title1}\\.${journal}${issue},${page}\\.${doi}`,
+  `${author2},${year}\\.${title1}\\.${journal}${issue},${page}\\.`,
 );
 
-`Yook, K.H., Choi, J.H., Suresh, N.C., 2018. Linking green purchasing capabilities to environmental and economic performance: the moderating role of firm size. J. Purch. Supply Manag. 24, 326–337. https://doi.org/10.1016/j. pursup.2017.09.001.`.match(
+`Yu, C., Moslehpour, M., Tran, T.K., et al., 2023. Impact of non-renewable energy and natural resources on economic recovery: empirical evidence from selected developing economies. Resour. Policy 80, 103221. Yue, P., Korkmaz, A.G., Yin, Z., et al., 2022. The rise of digital finance: financial inclusion or debt trap? Financ. Res. Lett. 47, 102604. Zhang, J., Mishra, A.K., Zhu, P., et al., 2020. Land rental market and agricultural labor productivity in rural China: a mediation analysis. World Dev. 135, 105089.`.match(
   nn,
 );
 
@@ -45,29 +46,96 @@ const a6 = new RegExp(
 const a7 = new RegExp(
   `${author},${year}${title1}\\.${journal}${issue},${page}\\.${doi}`,
 );
-const regexps = [apa_doi0, apa1, apa2, apa3, apa4, a5, a6, a7];
+const a8 = new RegExp(
+  `${author2},${year}\\.${title1}\\.${journal}${issue},${page}\\.`,
+);
+const regexps = [apa_doi0, apa1, apa2, apa3, apa4, a5, a6, a7, a8];
+const rules = [
+  {
+    title: "",
+    re: /a/,
+    examples: ["a"]
+  }
+]
+export function ruleSearch(str: string) {
+  for (let index = 0; index < rules.length; index++) {
+    const rule = rules[index];
+    const m = str.match(rule.re);
+    if (m) {
+      // ztoolkit.log(rStr, m);
+      const groups = m.groups;
+      if (groups) {
+        return { index, rule, groups };
+      }
+    }
+  }
+}
+
+export function ruleTest() {
+  for (let index = 0; index < rules.length; index++) {
+    const rule = rules[index];
+    for (const str of rule.examples) {
+      const m = str.match(rule.re);
+      if (m) {
+        ztoolkit.log("OK", index, str)
+      } else {
+        ztoolkit.log("error", index, str, rule)
+      }
+    }
+
+  }
+}
+export function ruleTestAll(str: string) {
+  for (let index = 0; index < rules.length; index++) {
+    const rule = rules[index];
+
+    for (let ei = 0; ei < rules.length; ei++) {
+      const e = rules[ei];
+      for (const str of e.examples) {
+        const m = str.match(rule.re);
+        if (m) {
+          if (ei == index) { ztoolkit.log("OK", index, str) }
+          else { ztoolkit.log("error", index, ei, str, rule) }
+        } else {
+          if (ei == index) { ztoolkit.log("error", index, ei, str, rule) }
+        }
+      }
+    }
+
+    const m = str.match(rule.re);
+    if (m) {
+      // ztoolkit.log(rStr, m);
+      const groups = m.groups;
+      if (groups) {
+        return { index, rule, groups };
+      }
+    }
+  }
+}
 function refTest() {
   const rrr = [
     `Sharabati, A.-A.A., Naji Jawad, S., Bontis, N., 2010. Intellectual capital and business performance in the pharmaceutical sector of Jordan. Manag. Decis. 48 (1), 105–131.`,
-    6,
+    a6,
     `Yook, K.H., Choi, J.H., Suresh, N.C., 2018. Linking green purchasing capabilities to environmental and economic performance: the moderating role of firm size. J. Purch. Supply Manag. 24, 326–337. https://doi.org/10.1016/j. pursup.2017.09.001.`,
-    7,
+    a7,
+    `Yu, C., Moslehpour, M., Tran, T.K., et al., 2023. Impact of non-renewable energy and natural resources on economic recovery: empirical evidence from selected developing economies. Resour. Policy 80, 103221. Yue, P., Korkmaz, A.G., Yin, Z., et al., 2022. The rise of digital finance: financial inclusion or debt trap? Financ. Res. Lett. 47, 102604. Zhang, J., Mishra, A.K., Zhu, P., et al., 2020. Land rental market and agricultural labor productivity in rural China: a mediation analysis. World Dev. 135, 105089.`, a8
   ];
   for (let i = 0; i < rrr.length; i += 2) {
     const str = rrr[i] as string;
-    const ind = rrr[i + 1] as number;
+    const rStr = rrr[i + 1] as RegExp;
     const a = refSearch(str);
-    if (a?.index == ind) {
-      ztoolkit.log("refTest", i / 2, "ok");
+    if (a?.rStr == rStr) {
+      ztoolkit.log(i / 2 + 1, "refTest", a.index, "ok");
     } else {
       refSearch(str, true);
       // ztoolkit.log(i, ind, a)
     }
   }
 }
-Zotero.ref_test = refTest;
+Zotero.ref_test = { refTest, ruleTest, ruleTestAll };
 
 export function refSearch(str: string, log = false) {
+
   for (let index = 0; index < regexps.length; index++) {
     const rStr = regexps[index];
     const m = str.match(rStr);
@@ -78,7 +146,7 @@ export function refSearch(str: string, log = false) {
       // ztoolkit.log(rStr, m);
       const groups = m.groups;
       if (groups) {
-        return { index, r: rStr + "", groups };
+        return { index, rStr, r: rStr + "", groups };
       }
     }
   }
