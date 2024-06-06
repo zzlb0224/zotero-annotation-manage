@@ -203,9 +203,11 @@ export class AnnotationPopup {
     // }, 50);
 
     this.updateDiv();
-    //  createRoot(
-    //   root,
-    //   ).render(<APopup />);
+    const rr = ztoolkit.UI.appendElement(
+      { tag: "div" },
+      root,
+    ) as HTMLDivElement;
+    if (isDebug()) createRoot(rr).render(<PopupRoot />);
   }
 
   private updateColorsElement() {
@@ -1336,10 +1338,58 @@ function updatePopupSize(
   textarea.style.height = `${textHeight + 3}px`;
 }
 
-function APopup() {
+function PopupRoot() {
   return (
     <>
-      <div>APopup</div>
+      <div>
+        这里保存状态
+        <Config></Config>
+        <ExistingTags></ExistingTags>
+        <SearchDiv></SearchDiv>
+      </div>
+    </>
+  );
+}
+function Config() {
+  return (
+    <>
+      <div>通用配置</div>
+      <div>颜色条配置</div>
+      <div>字体大小</div>
+    </>
+  );
+}
+
+function ExistingTags() {
+  return (
+    <>
+      <div>已存在的标签</div>
+      <ExistingTagsConfig></ExistingTagsConfig>
+    </>
+  );
+}
+
+function ExistingTagsConfig() {
+  return (
+    <>
+      <div>已存在的标签配置</div>
+    </>
+  );
+}
+
+function SearchDiv() {
+  return (
+    <>
+      <div>搜索窗口</div>
+      <SearchResult searchText=""></SearchResult>
+    </>
+  );
+}
+
+function SearchResult({ searchText = "" }) {
+  return (
+    <>
+      <div>搜索结果</div>
     </>
   );
 }
