@@ -57,8 +57,8 @@ function readerToolbarCallback(
               DOMSubtreeModified,
               false,
             );
-          
-        },
+          }
+        }, 
       },
     ],
   });
