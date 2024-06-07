@@ -1480,47 +1480,43 @@ async function createChooseTagsDiv(
     { tag: "div", classList: ["content"] },
   ]);
   if (div) {
-    const actionTag = createActionTag(
-      div,
-      () => {
-        if (selectedTags.length > 0) {
-          exportTagsNote(selectedTags, items);
-          div?.remove();
-        } else {
-          exportTagsNote(
-            tags.map((a) => a.key),
-            items,
-          );
-        }
-      },
-      [
-        {
-          tag: "button",
-          namespace: "html",
-          properties: { textContent: "-点击隐藏可选标签" },
-          styles: { background: "#fff", padding: "6px" },
-          listeners: [
-            {
-              type: "click",
-              listener: (ev: Event) => {
-                stopPropagation(ev);
-                const tp = toggleProperty(
-                  (document.getElementById(idTags) as HTMLElement | undefined)
-                    ?.style,
-                  "display",
-                  ["none", "flex"],
-                );
-                setProperty(
-                  ev.target as HTMLButtonElement,
-                  "textContent",
-                  tp == "none" ? "+点击展开可选标签" : "-点击隐藏可选标签",
-                );
-              },
+    const actionTag = createActionTag(div, () => {
+      if (selectedTags.length > 0) {
+        exportTagsNote(selectedTags, items);
+        div?.remove();
+      } else {
+        exportTagsNote(
+          tags.map((a) => a.key),
+          items,
+        );
+      }
+    }, [
+      {
+        tag: "button",
+        namespace: "html",
+        properties: { textContent: "-点击隐藏可选标签" },
+        styles: { background: "#fff", padding: "6px" },
+        listeners: [
+          {
+            type: "click",
+            listener: (ev: Event) => {
+              stopPropagation(ev);
+              const tp = toggleProperty(
+                (document.getElementById(idTags) as HTMLElement | undefined)
+                  ?.style,
+                "display",
+                ["none", "flex"],
+              );
+              setProperty(
+                ev.target as HTMLButtonElement,
+                "textContent",
+                tp == "none" ? "+点击展开可选标签" : "-点击隐藏可选标签",
+              );
             },
-          ],
-        },
-      ],
-    );
+          },
+        ],
+      },
+    ]);
     const queryTag = {
       tag: "div",
       properties: { textContent: "tag" },

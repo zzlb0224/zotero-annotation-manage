@@ -26,7 +26,7 @@ import {
 import { Relations } from "../utils/Relations";
 import { createRoot } from "react-dom/client";
 import * as React from "react";
-import { useState } from 'react';
+import { useState } from "react";
 
 export class AnnotationPopup {
   reader?: _ZoteroTypes.ReaderInstance;
@@ -1340,13 +1340,16 @@ function updatePopupSize(
 }
 
 function PopupRoot() {
-  const [isShowConfig,setShowConfig] = useState(false);
+  const [isShowConfig, setShowConfig] = useState(false);
   return (
     <>
       <div>
-    <Config></Config>
+        <Config></Config>
         <ExistingTags></ExistingTags>
-        <SearchDiv isShowConfig={isShowConfig} onChangeShowConfig={()=>setShowConfig(!isShowConfig)}></SearchDiv>
+        <SearchDiv
+          isShowConfig={isShowConfig}
+          onChangeShowConfig={() => setShowConfig(!isShowConfig)}
+        ></SearchDiv>
       </div>
     </>
   );
@@ -1378,13 +1381,21 @@ function ExistingTagsConfig() {
   );
 }
 
-
-function SearchDiv({isShowConfig,onChangeShowConfig}:{isShowConfig:Boolean,onChangeShowConfig:Function}) {
+function SearchDiv({
+  isShowConfig,
+  onChangeShowConfig,
+}: {
+  isShowConfig: boolean;
+  onChangeShowConfig: () => void;
+}) {
   return (
     <>
-      <div>搜索窗口 
-        <span onClick={()=>onChangeShowConfig()}>{isShowConfig?"关闭配置":"打开配置"} </span> 
-        </div>
+      <div>
+        搜索窗口
+        <span onClick={() => onChangeShowConfig()}>
+          {isShowConfig ? "关闭配置" : "打开配置"}{" "}
+        </span>
+      </div>
       <SearchResult searchText=""></SearchResult>
     </>
   );

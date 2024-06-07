@@ -54,8 +54,12 @@ const regexps = [apa_doi0, apa1, apa2, apa3, apa4, a5, a6, a7, a8];
 const rules = [
   {
     title: "apa Article 在page前面",
-    re: new RegExp(`${author3}\\(${year}\\)${title1}\\.${journal}${issue},${space}Article${page}\\.`),
-    examples: ["Moore, K., Buchmann, A., Månsson, M., & Fisher, D. (2021). Authenticity in tourism theory and experience. Practically indispensable and theoretically mischievous? Annals of Tourism Research, 89, Article 103208."],
+    re: new RegExp(
+      `${author3}\\(${year}\\)${title1}\\.${journal}${issue},${space}Article${page}\\.`,
+    ),
+    examples: [
+      "Moore, K., Buchmann, A., Månsson, M., & Fisher, D. (2021). Authenticity in tourism theory and experience. Practically indispensable and theoretically mischievous? Annals of Tourism Research, 89, Article 103208.",
+    ],
   },
 ];
 export function ruleSearch(str: string) {
@@ -119,7 +123,6 @@ export function ruleTestCross() {
   }
 }
 export function ruleTestSingle(str: string) {
-
   ztoolkit.log("Test", str);
   for (let index = 0; index < rules.length; index++) {
     const rule = rules[index];
