@@ -8,14 +8,15 @@ const author3 = space + `(?<author>[^\\(]+?)` + space;
 const title = space + `(?<title>.+?)` + space;
 const title1 = space + `(?<title>[^\\.]+?)` + space;
 const journal = `\\s*(?<journal>.+?)\\s*`;
+const journal1 = `\\s*(?<journal>[^?]+?)\\s*`;
 const year = `\\s*(?<year>[\\d]+)[a-z]?\\s*`;
 const year1 = `${space}\\(${space}(?<year>[\\d]+)[a-z]?${space}\\)${space}`;
 const page = space + `(?<page>[\\d–-]+)` + space;
 const issue = space + `(?<issue>[\\d]*)` + space;
 const volume = space + `(?<volume>[\\d]*)` + space;
 const volume1 = space + `\\(${space}(?<volume>[\\d]*)${space}\\)` + space;
-const doi = `${space}(?:doi:|DOI:|https://doi.org/)${space}(?<doi>.*)[\\.]?${space}`;
-const doi1 = `${space}(?:doi:|DOI:|https://doi.org/)${space}(?<doi>.*)?[\\.]?${space}`;
+const doi = `${space}(?:doi:|DOI:|https://doi.org/|https:// doi.org/)${space}(?<doi>.*)[\\.]?${space}`;
+const doi1 = `${space}(?:doi:|DOI:|https://doi.org/|https:// doi.org/)${space}(?<doi>.*)?[\\.]?${space}`;
 const nn = new RegExp(
   `${author2},${year}\\.${title1}\\.${journal}${issue},${page}\\.`,
 );
@@ -53,12 +54,48 @@ const a8 = new RegExp(
 const regexps = [apa_doi0, apa1, apa2, apa3, apa4, a5, a6, a7, a8];
 const rules = [
   {
-    title: "apa Article 在page前面",
+    re: apa_doi0,
+  },
+  {
+    re: apa1,
+  },
+  {
+    re: apa2,
+  },
+  {
+    re: apa3,
+  },
+  {
+    re: apa4,
+  },
+  {
+    re: a5,
+  },
+  {
+    re: a6,
+  },
+  {
+    re: a7,
+  },
+  {
+    re: a8,
+  },
+  {
+    title: "apa page前面带Article，标题还带了个问号结尾",
     re: new RegExp(
-      `${author3}\\(${year}\\)${title1}\\.${journal}${issue},${space}Article${page}\\.`,
+      `${author3}\\(${year}\\)${space}\\.${title}[\\.?]${journal1},${issue},${space}Article${page}\\.`,
     ),
     examples: [
       "Moore, K., Buchmann, A., Månsson, M., & Fisher, D. (2021). Authenticity in tourism theory and experience. Practically indispensable and theoretically mischievous? Annals of Tourism Research, 89, Article 103208.",
+    ],
+  },
+  {
+    title: "apa DOI",
+    re: new RegExp(
+      `${author3}\\(${year}\\)${space}\\.${title}[\\.?]${journal1},${issue},${page}\\.${doi}`,
+    ),
+    examples: [
+      "Balakrishnan, J., & Dwivedi, Y. K. (2021). Conversational commerce: Entering the next stage of AI-powered digital assistants. Annals of Operations Research, 1–35. https:// doi.org/10.1007/s10479-021-04049-5",
     ],
   },
 ];
@@ -78,15 +115,20 @@ export function ruleSearch(str: string) {
 
 export function ruleTestInner(index: number | undefined = undefined) {
   for (let i = 0; i < rules.length; i++) {
-    if (index !== undefined && index !== i) continue;
+    if (index !== undefined && index !== i && index + rules.length !== i)
+      continue;
     const rule = rules[i];
-    for (const str of rule.examples) {
-      const m = str.match(rule.re);
-      if (m) {
-        ztoolkit.log("OK", i, str);
-      } else {
-        ztoolkit.log("error", i, str, rule);
+    if (rule.examples) {
+      for (const str of rule.examples) {
+        const m = str.match(rule.re);
+        if (m) {
+          ztoolkit.log("OK", i, str, m.groups);
+        } else {
+          ztoolkit.log("error", i, str, rule);
+        }
       }
+    } else {
+      ztoolkit.log("OK", i, "没有测试用例");
     }
   }
 }
@@ -96,28 +138,21 @@ export function ruleTestCross() {
 
     for (let ei = 0; ei < rules.length; ei++) {
       const e = rules[ei];
-      for (const str of e.examples) {
-        const m = str.match(rule.re);
-        if (m) {
-          if (ei == index) {
-            ztoolkit.log("OK", index, str);
+      if (e.examples) {
+        for (const str of e.examples) {
+          const m = str.match(rule.re);
+          if (m) {
+            if (ei == index) {
+              ztoolkit.log("OK", index, str);
+            } else {
+              ztoolkit.log("error", index, ei, str, rule);
+            }
           } else {
-            ztoolkit.log("error", index, ei, str, rule);
-          }
-        } else {
-          if (ei == index) {
-            ztoolkit.log("error", index, ei, str, rule);
+            if (ei == index) {
+              ztoolkit.log("error", index, ei, str, rule);
+            }
           }
         }
-      }
-    }
-
-    const m = str.match(rule.re);
-    if (m) {
-      // ztoolkit.log(rStr, m);
-      const groups = m.groups;
-      if (groups) {
-        return { index, rule, groups };
       }
     }
   }

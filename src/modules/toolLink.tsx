@@ -1,5 +1,5 @@
 import { config } from "../../package.json";
-import { refSearch, createItemByZotero, searchItem } from "../utils/cite";
+import { refSearch, createItemByZotero, searchItem, ruleSearch, ruleTestSingle } from "../utils/cite";
 import { getPrefT, setPref } from "../utils/prefs";
 import { isDebug, openAnnotation } from "../utils/zzlb";
 function register() {
@@ -23,7 +23,7 @@ function readerToolbarCallback(
   let enable = getPrefT("show-query-href", false);
   const root =
     doc.querySelector("body") || (doc.querySelector("div") as HTMLElement);
-
+ 
   const toolbarBtn = ztoolkit.UI.createElement(doc, "div", {
     namespace: "html",
     id: `${config.addonRef}-space-button`,
@@ -46,6 +46,9 @@ function readerToolbarCallback(
             enable = false;
             toolbarBtn.style.background = "";
             p?.removeEventListener("DOMSubtreeModified", DOMSubtreeModified);
+          
+ 
+
           } else {
             enable = true;
             toolbarBtn.style.background = "#ddd";
@@ -54,7 +57,7 @@ function readerToolbarCallback(
               DOMSubtreeModified,
               false,
             );
-          }
+          
         },
       },
     ],
@@ -68,14 +71,18 @@ function readerToolbarCallback(
 }
 async function DOMSubtreeModified(e: Event) {
   const p = e.target as HTMLDivElement;
+  ztoolkit.log("DOMSubtreeModified",p.classList)
   if (p.classList.contains("primary")) {
     const refRows = p.querySelectorAll(".reference-row");
+  ztoolkit.log("DOMSubtreeModified",p.classList,refRows.length)
     for (const refRow of refRows as NodeListOf<HTMLDivElement>) {
-      const m = await refSearch(refRow.textContent || "");
+      const text=refRow.textContent || ""
+      
+      const m = ruleSearch(text);
       {
         ztoolkit.log(
           refRow.dataset,
-          refRow.textContent,
+          text,
           "在这里判断是否在我的文库当中，不在文库当中显示添加到文库按钮",
           m,
         );
@@ -260,6 +267,7 @@ async function DOMSubtreeModified(e: Event) {
               refRow,
             );
         } else {
+          ruleTestSingle(text)
           ztoolkit.UI.appendElement(
             {
               tag: "span",
@@ -274,7 +282,7 @@ async function DOMSubtreeModified(e: Event) {
             refRow,
           );
         }
-        break;
+        // break;
       }
     }
   }
