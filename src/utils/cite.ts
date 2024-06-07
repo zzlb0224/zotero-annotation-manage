@@ -4,6 +4,7 @@ const num = `(?:${space}\\[\\d+\\]${space})?`;
 const author = space + `(?<author>.+)` + space;
 const author1 = space + `(?<author>[^\\.]+?)` + space;
 const author2 = space + `(?<author>[^\\d]+?)` + space;
+const author3 = space + `(?<author>[^\\(]+?)` + space;
 const title = space + `(?<title>.+?)` + space;
 const title1 = space + `(?<title>[^\\.]+?)` + space;
 const journal = `\\s*(?<journal>.+?)\\s*`;
@@ -52,9 +53,9 @@ const a8 = new RegExp(
 const regexps = [apa_doi0, apa1, apa2, apa3, apa4, a5, a6, a7, a8];
 const rules = [
   {
-    title: "",
-    re: /a/,
-    examples: ["a"],
+    title: "apa Article 在page前面",
+    re: new RegExp(`${author3}\\(${year}\\)${title1}\\.${journal}${issue},${space}Article${page}\\.`),
+    examples: ["Moore, K., Buchmann, A., Månsson, M., & Fisher, D. (2021). Authenticity in tourism theory and experience. Practically indispensable and theoretically mischievous? Annals of Tourism Research, 89, Article 103208."],
   },
 ];
 export function ruleSearch(str: string) {
@@ -71,20 +72,21 @@ export function ruleSearch(str: string) {
   }
 }
 
-export function ruleTest() {
-  for (let index = 0; index < rules.length; index++) {
-    const rule = rules[index];
+export function ruleTestInner(index: number | undefined = undefined) {
+  for (let i = 0; i < rules.length; i++) {
+    if (index !== undefined && index !== i) continue;
+    const rule = rules[i];
     for (const str of rule.examples) {
       const m = str.match(rule.re);
       if (m) {
-        ztoolkit.log("OK", index, str);
+        ztoolkit.log("OK", i, str);
       } else {
-        ztoolkit.log("error", index, str, rule);
+        ztoolkit.log("error", i, str, rule);
       }
     }
   }
 }
-export function ruleTestAll(str: string) {
+export function ruleTestCross() {
   for (let index = 0; index < rules.length; index++) {
     const rule = rules[index];
 
@@ -116,6 +118,21 @@ export function ruleTestAll(str: string) {
     }
   }
 }
+export function ruleTestSingle(str: string) {
+
+  ztoolkit.log("Test", str);
+  for (let index = 0; index < rules.length; index++) {
+    const rule = rules[index];
+
+    const m = str.match(rule.re);
+    if (m) {
+      ztoolkit.log("OK", index, str);
+    } else {
+      ztoolkit.log("error", index, str, rule);
+    }
+  }
+}
+
 function refTest() {
   const rrr = [
     `Sharabati, A.-A.A., Naji Jawad, S., Bontis, N., 2010. Intellectual capital and business performance in the pharmaceutical sector of Jordan. Manag. Decis. 48 (1), 105–131.`,
@@ -137,7 +154,7 @@ function refTest() {
     }
   }
 }
-Zotero.ref_test = { refTest, ruleTest, ruleTestAll };
+Zotero.ref_test = { refTest, ruleTestInner, ruleTestCross, ruleTestSingle };
 
 export function refSearch(str: string, log = false) {
   for (let index = 0; index < regexps.length; index++) {
