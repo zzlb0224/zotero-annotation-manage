@@ -1,5 +1,11 @@
 import { config } from "../../package.json";
-import { refSearch, createItemByZotero, searchItem, ruleSearch, ruleTestSingle } from "../utils/cite";
+import {
+  refSearch,
+  createItemByZotero,
+  searchItem,
+  ruleSearch,
+  ruleTestSingle,
+} from "../utils/cite";
 import { getPrefT, setPref } from "../utils/prefs";
 import { isDebug, openAnnotation } from "../utils/zzlb";
 function register() {
@@ -23,7 +29,7 @@ function readerToolbarCallback(
   let enable = getPrefT("show-query-href", false);
   const root =
     doc.querySelector("body") || (doc.querySelector("div") as HTMLElement);
- 
+
   const toolbarBtn = ztoolkit.UI.createElement(doc, "div", {
     namespace: "html",
     id: `${config.addonRef}-space-button`,
@@ -46,9 +52,6 @@ function readerToolbarCallback(
             enable = false;
             toolbarBtn.style.background = "";
             p?.removeEventListener("DOMSubtreeModified", DOMSubtreeModified);
-          
- 
-
           } else {
             enable = true;
             toolbarBtn.style.background = "#ddd";
@@ -58,7 +61,7 @@ function readerToolbarCallback(
               false,
             );
           }
-        }, 
+        },
       },
     ],
   });
@@ -71,13 +74,13 @@ function readerToolbarCallback(
 }
 async function DOMSubtreeModified(e: Event) {
   const p = e.target as HTMLDivElement;
-  ztoolkit.log("DOMSubtreeModified",p.classList)
+  ztoolkit.log("DOMSubtreeModified", p.classList);
   if (p.classList.contains("primary")) {
     const refRows = p.querySelectorAll(".reference-row");
-  ztoolkit.log("DOMSubtreeModified",p.classList,refRows.length)
+    ztoolkit.log("DOMSubtreeModified", p.classList, refRows.length);
     for (const refRow of refRows as NodeListOf<HTMLDivElement>) {
-      const text=refRow.textContent || ""
-      
+      const text = refRow.textContent || "";
+
       const m = ruleSearch(text);
       {
         ztoolkit.log(
@@ -267,7 +270,7 @@ async function DOMSubtreeModified(e: Event) {
               refRow,
             );
         } else {
-          ruleTestSingle(text)
+          ruleTestSingle(text);
           ztoolkit.UI.appendElement(
             {
               tag: "span",
