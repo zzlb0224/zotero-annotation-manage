@@ -26,6 +26,7 @@ import {
 import { Relations } from "../utils/Relations";
 import { createRoot } from "react-dom/client";
 import * as React from "react";
+import { useState } from 'react';
 
 export class AnnotationPopup {
   reader?: _ZoteroTypes.ReaderInstance;
@@ -1339,13 +1340,13 @@ function updatePopupSize(
 }
 
 function PopupRoot() {
+  const [isShowConfig,setShowConfig] = useState(false);
   return (
     <>
       <div>
-        这里保存状态
-        <Config></Config>
+    <Config></Config>
         <ExistingTags></ExistingTags>
-        <SearchDiv></SearchDiv>
+        <SearchDiv isShowConfig={isShowConfig} onChangeShowConfig={()=>setShowConfig(!isShowConfig)}></SearchDiv>
       </div>
     </>
   );
@@ -1353,7 +1354,7 @@ function PopupRoot() {
 function Config() {
   return (
     <>
-      <div>通用配置</div>
+      <div>通用配置功能启用</div>
       <div>颜色条配置</div>
       <div>字体大小</div>
     </>
@@ -1377,10 +1378,13 @@ function ExistingTagsConfig() {
   );
 }
 
-function SearchDiv() {
+
+function SearchDiv({isShowConfig,onChangeShowConfig}:{isShowConfig:Boolean,onChangeShowConfig:Function}) {
   return (
     <>
-      <div>搜索窗口</div>
+      <div>搜索窗口 
+        <span onClick={()=>onChangeShowConfig()}>{isShowConfig?"关闭配置":"打开配置"} </span> 
+        </div>
       <SearchResult searchText=""></SearchResult>
     </>
   );
