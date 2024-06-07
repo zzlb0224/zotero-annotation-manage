@@ -1,3 +1,5 @@
+import { getItem } from "./zzlb";
+
 interface Rule {
   title: string;
   re: RegExp;
@@ -12,11 +14,13 @@ const author2 = `${space}(?<author>[^\\d]+?)${space}`;
 const author3 = `${space}(?<author>[^\\(]+?)${space}`;
 const title0 = `${space}(?<title>.+?)${space}`;
 const title1 = `${space}(?<title>[^\\.]+?)${space}`;
+const title2 = `${space}["“]+${space}(?<title>.+?)${space}["”]+${space}`;
 const journal0 = `${space}(?<journal>.+?)${space}`;
 const journal1 = `${space}(?<journal>[^?]+?)${space}`;
 const year0 = `${space}(?<year>[\\d]+)[a-z]?${space}`;
 const year1 = `${space}\\(${space}(?<year>[\\d]+)[a-z]?${space}\\)${space}`;
 const page0 = `${space}(?<page>[\\d–-]+)${space}`;
+const page1 = `${space}(?<page>[\\d–-\\s]+)${space}`;
 const issue = `${space}(?<issue>[\\d]*)${space}`;
 const volume = `${space}(?<volume>[\\d]*)${space}`;
 const volume1 = `${space}\\(${space}(?<volume>[\\d]*)${space}\\)${space}`;
@@ -108,7 +112,7 @@ const rules: Rule[] = [
   {
     title: "apa vol no",
     re: new RegExp(
-      `${author3}\\(${year0}\\),${space}["“]${title0}["“],${journal1},${issue},${page0}\\.${doi0}`,
+      `${author0}${year1},${title2},${journal1},${space}Vol\\.${volume}No\\.${issue},${space}pp\\.${page1}\\.${doi0}`,
     ),
     examples: [
       "Wood, R.and Zaichkowsky, J.L. (2004), “Attitudes and trading behavior of stock market investors: a segmentation approach”, Journal of Behavioral Finance, Vol. 5 No. 3, pp. 170 - 179.",
@@ -284,5 +288,17 @@ export async function createItemByZotero(doi: string) {
         saveAttachments: true,
       })
     )[0];
+  }
+}
+
+export async function showInLibrary(
+  itemOrKeyOrId: Zotero.Item | string | number,
+) {
+  const win = Zotero.getMainWindow();
+  if (win) {
+    const item = getItem(itemOrKeyOrId);
+    const id = item.parentID || item.id;
+    win.ZoteroPane.selectItems([id]);
+    win.focus();
   }
 }

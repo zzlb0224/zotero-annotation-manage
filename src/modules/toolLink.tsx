@@ -5,6 +5,7 @@ import {
   searchItem,
   ruleSearch,
   ruleTestSingle,
+  showInLibrary,
 } from "../utils/cite";
 import { getPrefT, setPref } from "../utils/prefs";
 import { isDebug, openAnnotation } from "../utils/zzlb";
@@ -99,19 +100,21 @@ async function DOMSubtreeModified(e: Event) {
           if (item?.key) {
             ztoolkit.UI.appendElement(
               {
-                tag: "div",
+                tag: "span",
                 properties: {
-                  textContent: "已在我的文库中",
+                  textContent: "在我的文库中显示...",
                 },
                 styles: {
-                  backgroundColor: "#97497110",
+                  backgroundColor: "#ef4971",
+                  color: "#fff",
                   margin: "5px",
                 },
                 listeners: [
                   {
-                    type: "type",
+                    type: "click",
                     listener() {
-                      openAnnotation(item, "", "");
+                      // openAnnotation(item, "", "");
+                      showInLibrary(item);
                     },
                   },
                 ],
