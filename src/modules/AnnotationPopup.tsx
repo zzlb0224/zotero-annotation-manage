@@ -1,6 +1,6 @@
 import { TagElementProps } from "zotero-plugin-toolkit/dist/tools/ui";
 import { config } from "../../package.json";
-import { getPref } from "../utils/prefs";
+import { getPref, getPrefT, setPref } from "../utils/prefs";
 import {
   mapDateModified,
   sortAsc,
@@ -27,6 +27,7 @@ import { Relations } from "../utils/Relations";
 import { createRoot } from "react-dom/client";
 import * as React from "react";
 import { useState } from "react";
+import { getString } from "../utils/locale";
 
 export class AnnotationPopup {
   reader?: _ZoteroTypes.ReaderInstance;
@@ -1340,16 +1341,56 @@ function updatePopupSize(
 }
 
 function PopupRoot() {
-  const [isShowConfig, setShowConfig] = useState(false);
+  const [isShowConfig, setShowConfig] = useState(
+    getPrefT("show-config", false),
+  );
+  const [isShowSelectedPopupColorsTag, setShowSelectedPopupColorsTag] =
+    useState(getPrefT("show-selected-popup-colors-tag", false));
   return (
     <>
       <div>
-        <Config></Config>
-        <ExistingTags></ExistingTags>
-        <SearchDiv
-          isShowConfig={isShowConfig}
-          onChangeShowConfig={() => setShowConfig(!isShowConfig)}
-        ></SearchDiv>
+        {isShowConfig && (
+          <div>
+            <label>
+              <input
+                type="checkbox"
+                defaultChecked={isShowSelectedPopupColorsTag}
+                onInput={(e) => {
+                  setPref(
+                    "show-selected-popup-colors-tag",
+                    e.currentTarget.checked,
+                  );
+                  setShowSelectedPopupColorsTag(e.currentTarget.checked);
+                }}
+              />
+              {getString("pref-show-selected-popup-colors-tag", {
+                branch: "label",
+              })}  
+            </label>
+
+           
+
+            <div>
+              {getString("addon-static-example")}
+              {getString("addon-static-example", { branch: "branch-example" })}
+            </div>
+          </div>
+        )}
+        {isShowConfig && <div>通用配置占一行</div>}
+        <div>已存在的标签。{isShowConfig && "已存在标签的配置"}</div>
+        <div>
+          <span
+            style={{ color: isShowConfig ? "red" : "blue" }}
+            onClick={() => {
+              setPref("show-config", !isShowConfig);
+              setShowConfig(!isShowConfig);
+            }}
+          >
+            设置
+          </span>
+          =搜索input。{isShowConfig && "标签配置，字体大小，"}
+        </div>
+        <div>搜索结果</div>
       </div>
     </>
   );
@@ -1393,7 +1434,7 @@ function SearchDiv({
       <div>
         搜索窗口
         <span onClick={() => onChangeShowConfig()}>
-          {isShowConfig ? "关闭配置" : "打开配置"}{" "}
+          {isShowConfig ? "关闭配置" : "打开配置"}
         </span>
       </div>
       <SearchResult searchText=""></SearchResult>

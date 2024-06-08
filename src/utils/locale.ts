@@ -10,7 +10,14 @@ function initLocale() {
     typeof Localization === "undefined"
       ? ztoolkit.getGlobal("Localization")
       : Localization
-  )([`${config.addonRef}-addon.ftl`], true);
+  )(
+    [
+      `${config.addonRef}-addon.ftl`,
+      `${config.addonRef}-mainWindow.ftl`,
+      `${config.addonRef}-preferences.ftl`,
+    ],
+    true,
+  );
   addon.data.locale = {
     current: l10n,
   };
@@ -72,6 +79,11 @@ function _getString(
     return localStringWithPrefix;
   }
   if (branch && pattern.attributes) {
+    for (const attr of pattern.attributes) {
+      if (attr.name === branch) {
+        return attr.value;
+      }
+    }
     return pattern.attributes[branch] || localStringWithPrefix;
   } else {
     return pattern.value || localStringWithPrefix;
