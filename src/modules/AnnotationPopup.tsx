@@ -1346,11 +1346,31 @@ function PopupRoot() {
   );
   const [isShowSelectedPopupColorsTag, setShowSelectedPopupColorsTag] =
     useState(getPrefT("show-selected-popup-colors-tag", false));
+  const [isShowSelectedPopupMatchTag, setShowSelectedPopupMatchTag] = useState(
+    getPrefT("show-selected-popup-match-tag", false),
+  );
+
+  const [fontSize, setFontSize] = useState(getPrefT("font-size-10", 170));
+  const [lineHeight, setLineHeight] = useState(getPrefT("line-height-10", 15));
   return (
     <>
-      <div>
+      <style>{` .btn {  margin:5px; background:#aaa;padding:5px} `}</style>
+      <div
+        style={{ fontSize: fontSize / 10 + "px", lineHeight: lineHeight / 10 }}
+      >
+        <span
+          className="btn"
+          style={{ color: isShowConfig ? "red" : "blue" }}
+          onClick={() => {
+            setPref("show-config", !isShowConfig);
+            setShowConfig(!isShowConfig);
+          }}
+        >
+          设置
+        </span>
         {isShowConfig && (
-          <div>
+          <span className="btn">
+            顶部颜色栏配置：
             <label>
               <input
                 type="checkbox"
@@ -1365,32 +1385,75 @@ function PopupRoot() {
               />
               {getString("pref-show-selected-popup-colors-tag", {
                 branch: "label",
-              })}  
+              })}
             </label>
-
-           
-
-            <div>
-              {getString("addon-static-example")}
-              {getString("addon-static-example", { branch: "branch-example" })}
-            </div>
-          </div>
-        )}
-        {isShowConfig && <div>通用配置占一行</div>}
-        <div>已存在的标签。{isShowConfig && "已存在标签的配置"}</div>
-        <div>
-          <span
-            style={{ color: isShowConfig ? "red" : "blue" }}
-            onClick={() => {
-              setPref("show-config", !isShowConfig);
-              setShowConfig(!isShowConfig);
-            }}
-          >
-            设置
+            <label>
+              <input
+                type="checkbox"
+                defaultChecked={isShowSelectedPopupMatchTag}
+                onInput={(e) => {
+                  setPref(
+                    "show-selected-popup-match-tag",
+                    e.currentTarget.checked,
+                  );
+                  setShowSelectedPopupMatchTag(e.currentTarget.checked);
+                }}
+              />
+              {getString("pref-show-selected-popup-match-tag", {
+                branch: "label",
+              })}
+            </label>
           </span>
-          =搜索input。{isShowConfig && "标签配置，字体大小，"}
-        </div>
-        <div>搜索结果</div>
+        )}
+        {isShowConfig && (
+          <span>
+            通用配置占一行
+            <span
+              className="btn"
+              onClick={() => {
+                const f = fontSize > 60 ? fontSize - 5 : 60;
+                setPref("font-size-10", f);
+                setFontSize(f);
+              }}
+            >
+              减小字体
+            </span>
+            <span
+              className="btn"
+              onClick={() => {
+                const f = fontSize + 5;
+                setPref("font-size-10", f);
+                setFontSize(f);
+              }}
+            >
+              增大字体
+            </span>
+            <span
+              className="btn"
+              onClick={() => {
+                const f = lineHeight > 7 ? lineHeight - 1 : 7;
+                setPref("line-height-10", f);
+                setLineHeight(f);
+              }}
+            >
+              减小行高
+            </span>
+            <span
+              className="btn"
+              onClick={() => {
+                const f = lineHeight + 1;
+                setPref("line-height-10", f);
+                setLineHeight(f);
+              }}
+            >
+              增大行高
+            </span>
+            <br />
+          </span>
+        )}
+        <span>已存在的标签。{isShowConfig && "已存在标签的配置"}</span>
+        <span>搜索input。{isShowConfig && "标签配置，字体大小，"}</span>
+        <span>搜索结果</span>
       </div>
     </>
   );
