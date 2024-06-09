@@ -76,8 +76,8 @@ export class AnnotationPopup {
     this.isExistAnno = !!params?.ids;
     this.existAnnotations = this.isExistAnno
       ? this.item!.getAnnotations().filter((f) =>
-          this.params?.ids.includes(f.key),
-        )
+        this.params?.ids.includes(f.key),
+      )
       : [];
     // 这里引发的 #38 ，可能是json循环输出的问题？
     // ztoolkit.log(this, this.existAnnotations);
@@ -212,7 +212,7 @@ export class AnnotationPopup {
       root,
     ) as HTMLDivElement;
     // if (isDebug())
-
+    // 新面板没有删除标签功能
     createRoot(rr).render(
       <PopupRoot
         reader={this.reader!}
