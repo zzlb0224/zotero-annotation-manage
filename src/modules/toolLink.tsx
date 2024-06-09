@@ -75,7 +75,7 @@ function readerToolbarCallback(
               //   false,
               // );
               observerAddRowRef.observe(pr, {
-                attributes: true,
+                // attributes: true,
                 childList: true,
                 subtree: true,
               });
@@ -92,7 +92,7 @@ function readerToolbarCallback(
       // pr.addEventListener("DOMSubtreeModified", DOMSubtreeModified, false);
       //这里应该用observer代替
       observerAddRowRef.observe(pr, {
-        attributes: true,
+        // attributes: true,
         childList: true,
         subtree: true,
       });

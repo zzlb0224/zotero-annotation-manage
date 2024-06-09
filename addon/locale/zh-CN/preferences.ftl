@@ -76,9 +76,9 @@ pref-google-scholar-mirroring = 谷歌学术镜像，一行一个，空格分割
 pref-count-down-close = 自动关闭弹出窗口时长（至少5秒）
 pref-count-down-close-dec = 小数位数
 pref-show-selected-popup-colors-tag = 
-    .label=显示弹出颜色的命名标签（可以在Style插件定制颜色）
+    .label=显示颜色的标签
 pref-show-selected-popup-match-tag = 
-    .label=显示弹出颜色的匹配的固定标签（可以在Style插件查看颜色，在固定标签进行配置）
+    .label=显示颜色匹配的固定标签
 
 
 pref-tags-exclude = 使用正则排除不喜欢的相关标签。搜索结果不排除。使用^代表开头，使用$代表结尾，出现/要使用\/代替，.*代表所有字符，\d代表数字。例如：可以使用①^zotero:// ②^# ③# ④\/ 分别排除一些系统的Tags

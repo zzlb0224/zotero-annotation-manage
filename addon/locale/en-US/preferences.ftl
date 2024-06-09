@@ -77,5 +77,4 @@ pref-search-preview = Related label preview
 pref-search-input = Enter any text to test the search
 
 pref-help = { $name } Build { $version } { $time }
-
-zoteroAnnotationManage-pref-addon-title = 标签管理
+ 
