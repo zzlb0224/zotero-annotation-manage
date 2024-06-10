@@ -1941,7 +1941,9 @@ function PopupRoot({
               }}
               onClick={() => {
                 saveAnnotationTags(tag.key, [], [], reader, params, doc);
-                root.remove();
+                if (params.ids) {
+                  root.remove();
+                }
               }}
             >
               <span>[{tag.values.length}]</span>
