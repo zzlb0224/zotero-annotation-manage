@@ -865,7 +865,6 @@ export class AnnotationPopup {
                 {
                   type: "click",
                   listener: (e: Event) => {
-                    // if (searchTag) onTagClick(searchTag, getFixedColor(searchTag));
                     this.saveAnnotationTags();
                   },
                 },
@@ -1141,7 +1140,7 @@ export class AnnotationPopup {
     }
   }
 
-  async saveAnnotationTags() {
+  private async saveAnnotationTags() {
     const selectedTags = this.selectedTags;
     const searchTag = this.searchTag;
     const delTags = this.delTags;
@@ -1159,7 +1158,9 @@ export class AnnotationPopup {
       params,
       doc,
     );
-    root?.remove();
+    if (params.ids) {
+      root?.remove();
+    }
   }
 
   getPrimaryViewDoc1() {
@@ -1915,10 +1916,14 @@ function PopupRoot({
             defaultValue={searchTag}
             onInput={(e) => setSearchTag(e.currentTarget.value)}
             style={{ ...inputWidth(searchTag), minWidth: "15ch" }}
+            placeholder='搜索标签，按回车添加'
             onKeyDown={(e) => {
               // ztoolkit.log(e)
               if (e.code == "Enter") {
                 saveAnnotationTags(searchTag, [], [], reader, params, doc);
+                if (params.ids) {
+                  root.remove();
+                }
               }
             }}
           />
