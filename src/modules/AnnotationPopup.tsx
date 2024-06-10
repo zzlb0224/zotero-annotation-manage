@@ -29,6 +29,9 @@ import * as React from "react";
 import { useEffect, useRef, useState } from "react";
 import { getString } from "../utils/locale";
 import { useImmer } from "use-immer";
+import { ChromePicker } from "react-color"
+
+
 
 export class AnnotationPopup {
   reader?: _ZoteroTypes.ReaderInstance;
@@ -81,6 +84,8 @@ export class AnnotationPopup {
       : [];
     // 这里引发的 #38 ，可能是json循环输出的问题？
     // ztoolkit.log(this, this.existAnnotations);
+    ztoolkit.log("bbbb", params)
+
 
     this.fontSize =
       (Zotero.Prefs.get(
@@ -110,7 +115,8 @@ export class AnnotationPopup {
   }
   public createDiv() {
     if (!this.doc) return;
-
+    Zotero.test_doc = this.doc
+    Zotero.test_params = this.params
     this.clearDiv();
 
     this.rootDiv = ztoolkit.UI.createElement(this.doc, "div", {
@@ -472,8 +478,8 @@ export class AnnotationPopup {
     if (this.isExistAnno) {
       rootStyle.zIndex = "99990";
       rootStyle.position = "fixed";
-      rootStyle.top = this.params?.y + "px";
-      rootStyle.left = this.params?.x + "px"; //只有左边需要改，其它的固定
+      rootStyle.top = (this.params?.y || 0) + "px";
+      rootStyle.left = (this.params?.x || 0) + "px"; //只有左边需要改，其它的固定
 
       //对已有标签处理 防止出现右边超出边界
       if (this.params?.x || 0 > clientWidthWithSlider - maxWidth) {
@@ -1919,11 +1925,17 @@ function PopupRoot({
             placeholder='搜索标签，按回车添加'
             onKeyDown={(e) => {
               // ztoolkit.log(e)
+              if (time > 0) { setTime(-1) }
               if (e.code == "Enter") {
                 saveAnnotationTags(searchTag, [], [], reader, params, doc);
                 if (params.ids) {
                   root.remove();
                 }
+              }
+              if (e.code == "Escape") {
+                //@ts-ignore _onSetSelectionPopup
+                reader?._primaryView._onSetSelectionPopup(null);
+                root.remove()
               }
             }}
           />
@@ -1945,6 +1957,7 @@ function PopupRoot({
                 // borderRadius: "3px",
               }}
               onClick={() => {
+                if (isShowConfig) return;
                 saveAnnotationTags(tag.key, [], [], reader, params, doc);
                 if (params.ids) {
                   root.remove();
@@ -1952,65 +1965,21 @@ function PopupRoot({
               }}
             >
               <span>[{tag.values.length}]</span>
-              <span> {tag.key}</span>
+              <span>{tag.key}</span>
+
+              {isShowConfig && (<>
+                <span style={{ background: "#fff", color: "#000", border: "1px solid #000" }}>选择颜色</span>
+                {memFixedTags().includes(tag.key) ? (<><span style={{ background: "#fff", color: "#000", border: "1px solid #000" }}>移除固定</span>
+                  <span style={{ background: "#fff", color: "#000", border: "1px solid #000" }}>左移</span>
+                  <span style={{ background: "#fff", color: "#000", border: "1px solid #000" }}>右移</span>
+
+                </>) :
+                  <span style={{ background: "#fff", color: "#000", border: "1px solid #000" }}>设置固定</span>}
+              </>)}
             </span>
           ))}
         </span>
       </div>
-    </>
-  );
-}
-function Config() {
-  return (
-    <>
-      <div>通用配置功能启用</div>
-      <div>颜色条配置</div>
-      <div>字体大小</div>
-    </>
-  );
-}
-
-function ExistingTags() {
-  return (
-    <>
-      <div>已存在的标签</div>
-      <ExistingTagsConfig></ExistingTagsConfig>
-    </>
-  );
-}
-
-function ExistingTagsConfig() {
-  return (
-    <>
-      <div>已存在的标签配置</div>
-    </>
-  );
-}
-
-function SearchDiv({
-  isShowConfig,
-  onChangeShowConfig,
-}: {
-  isShowConfig: boolean;
-  onChangeShowConfig: () => void;
-}) {
-  return (
-    <>
-      <div>
-        搜索窗口
-        <span onClick={() => onChangeShowConfig()}>
-          {isShowConfig ? "关闭配置" : "打开配置"}
-        </span>
-      </div>
-      <SearchResult searchText=""></SearchResult>
-    </>
-  );
-}
-
-function SearchResult({ searchText = "" }) {
-  return (
-    <>
-      <div>搜索结果</div>
     </>
   );
 }

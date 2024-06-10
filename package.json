@@ -29,8 +29,10 @@
   },
   "dependencies": {
     "@types/react": "^18.3.3",
+    "@types/react-color": "^3.0.12",
     "@types/react-dom": "^18.3.0",
     "react": "^18.3.1",
+    "react-color": "^2.19.3",
     "react-dom": "^18.3.1",
     "use-immer": "^0.9.0",
     "zotero-plugin-toolkit": "^2.3.32"
