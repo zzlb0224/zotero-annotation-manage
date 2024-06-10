@@ -26,7 +26,7 @@ import {
 import { Relations } from "../utils/Relations";
 import { createRoot } from "react-dom/client";
 import * as React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getString } from "../utils/locale";
 import { useImmer } from "use-immer";
 
@@ -211,8 +211,7 @@ export class AnnotationPopup {
       { tag: "div" },
       root,
     ) as HTMLDivElement;
-    // if (isDebug())
-    // 新面板没有删除标签功能
+    // if (isDebug()) 
     createRoot(rr).render(
       <PopupRoot
         reader={this.reader!}
@@ -465,10 +464,10 @@ export class AnnotationPopup {
     const clientWidthWithSlider = this.getClientWidthWithSlider();
     const maxWidth = 888;
     const rootStyle: Partial<CSSStyleDeclaration> = {
-      background: "#eeeeee",
+      // background: "#eeeeee",
       border: "#cc9999",
       overflowY: "scroll",
-      maxHeight: "350px",
+      maxHeight: "300px",
     };
     if (this.isExistAnno) {
       rootStyle.zIndex = "99990";
@@ -1151,15 +1150,16 @@ export class AnnotationPopup {
     const params = this.params!;
     const existAnnotations = this.existAnnotations;
     const root = this.rootDiv;
+
     await saveAnnotationTags(
       searchTag,
       selectedTags,
       delTags,
       reader,
       params,
-      root,
       doc,
     );
+    root?.remove();
   }
 
   getPrimaryViewDoc1() {
@@ -1221,7 +1221,7 @@ async function saveAnnotationTags(
     x?: number | undefined;
     y?: number | undefined;
   },
-  root: HTMLElement | undefined,
+  // root: HTMLElement | undefined,
   doc: Document,
 ) {
   if (selectedTags.length == 0 && searchTag) {
@@ -1256,7 +1256,7 @@ async function saveAnnotationTags(
           }
           annotation.saveTx(); //增加每一个都要保存，为啥不能批量保存？
         }
-        root?.remove();
+        // root?.remove();
       } else {
         const color =
           selectedTags.map((a) => a.color).filter((f) => f)[0] ||
@@ -1380,14 +1380,13 @@ function PopupRoot({
     getPrefT("show-selected-popup-match-tag", false),
   );
 
-  const [fontSize, setFontSize] = useState(getPrefT("font-size", "17"));
+  const [fontSize, setFontSize] = useState(getPrefT("font-size", 17));
   const [lineHeight, setLineHeight] = useState(getPrefT("line-height", "1.45"));
-  const [buttonMargin, setButtonMargin] = useState(
-    getPrefT("button-margin", "5px"),
-  );
+
   const [buttonMarginTopBottom, setButtonMarginTopBottom] = useState(
     getPrefT("buttonMarginTopBottom", 0),
   );
+  const [sortType, setSortType] = useState(getPrefT("sortType", "0"));
   const [buttonMarginLeftRight, setButtonMarginLeftRight] = useState(
     getPrefT("buttonMarginLeftRight", 0),
   );
@@ -1400,10 +1399,6 @@ function PopupRoot({
   const [buttonBorderRadius, setButtonBorderRadius] = useState(
     getPrefT("buttonBorderRadius", 5),
   );
-  const [buttonPadding, setButtonPadding] = useState(
-    getPrefT("button-padding", "5px"),
-  );
-
   const [relateItemShowAll, setRelateItemShowAll] = useState(
     getPrefT("relateItemShowAll", false),
   );
@@ -1417,6 +1412,11 @@ function PopupRoot({
   const [existAnnotations, updateExistAnnotations] = useImmer(
     [] as Zotero.Item[],
   );
+
+  const [existTags, updateExistTags] = useImmer([] as string[]);
+
+  const [delTags, updateDelTags] = useImmer([] as string[]);
+
   const [displayTags, setDisplayTags] = useState(
     [] as groupByResult<{ tag: string; type: number }>[],
   );
@@ -1428,18 +1428,19 @@ function PopupRoot({
   const [showTagsLength, setShowTagsLength] = useState(
     getPrefT("showTagsLength", 20),
   );
-  const [searchTags, updateSearchTags] = useState(
-    [] as groupByResult<{ tag: string; type: number; dateModified: string }>[],
-  );
+
   const [relateTags, setRelateTags] = useState(
     [] as groupByResult<{ tag: string; type: number; dateModified: string }>[],
   );
   useEffect(() => {
     async function loadData() {
       if (params.ids) {
-        updateExistAnnotations((a) =>
-          item.getAnnotations().filter((f) => params.ids.includes(f.key)),
-        );
+        const ea = item
+          .getAnnotations()
+          .filter((f) => params.ids.includes(f.key));
+        updateExistAnnotations((a) => ea);
+        const ta = ea.flatMap((f) => f.getTags()).map((a) => a.tag);
+        updateExistTags((a) => ta);
       }
 
       let relateTags: groupByResult<{
@@ -1480,7 +1481,7 @@ function PopupRoot({
       setRelateTags(relateTags);
     }
     loadData();
-  }, [relateItemShowAll, relateItemShowRelateTags, showTagsLength]);
+  }, [relateItemShowAll, relateItemShowRelateTags, relateItemSort]);
 
   useEffect(() => {
     async function search() {
@@ -1506,12 +1507,28 @@ function PopupRoot({
     }
 
     search();
-  }, [searchTag, relateTags, showTagsLength]);
-  const btnStyle = {
-    margin: buttonMargin,
-    background: "#aaa",
-    padding: buttonPadding,
-  };
+  }, [searchTag, relateTags, showTagsLength, relateItemSort]);
+  // ztoolkit.log("ids", params.ids)
+  const [time, setTime] = useState(
+    params.ids ? getPrefT("autoCloseSeconds", 15) : -1,
+  ); //只在倒计时时间
+  const timeRef = useRef<NodeJS.Timeout>(); //设置延时器
+  //倒计时
+  useEffect(() => {
+    //如果设置倒计时且倒计时不为0
+    if (time > 0) {
+      timeRef.current = setTimeout(() => {
+        setTime((time) => time - 1);
+      }, 1000);
+    }
+    if (time == 0) {
+      root.remove();
+    }
+    return () => {
+      clearTimeout(timeRef.current);
+    };
+  }, [time]);
+
   const tagStyle = {
     marginLeft: buttonMarginLeftRight + "px",
     marginRight: buttonMarginLeftRight + "px",
@@ -1522,19 +1539,31 @@ function PopupRoot({
     paddingTop: buttonPaddingTopBottom + "px",
     paddingBottom: buttonPaddingTopBottom + "px",
     borderRadius: buttonBorderRadius + "px",
-    lineHeight: lineHeight,
     fontSize: fontSize + "px",
+    lineHeight: lineHeight,
   };
   function inputWidth(searchTag: string) {
     return {
       width: `${Math.min(searchTag.length + (searchTag.match(/[\u4E00-\u9FA5]/g) || "").length + 4)}ch`,
-      minWidth: "5ch",
+      minWidth: "3ch",
       maxWidth: "100%",
     };
   }
+  function handleRelateItemSortChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setPref("relateItemSort", e.target.value);
+    setRelateItemSort(e.target.value);
+  }
   return (
     <>
-      <div style={{ fontSize: "18px", lineHeight: "1.5" }}>
+      <div
+        style={{
+          fontSize: "18px",
+          lineHeight: "1.5",
+          background: "#fff",
+          boxShadow: params.ids ? "rgb(0, 0, 0) 0 0 3px 0px inset" : "",
+        }}
+        onClick={() => setTime(-1)}
+      >
         {isShowConfig && (
           <span>
             {!params.ids && (
@@ -1583,7 +1612,7 @@ function PopupRoot({
                 defaultValue={showTagsLength}
                 min={0}
                 max={100}
-                style={{ width: "5ch" }}
+                style={inputWidth("zlb")}
                 onInput={(e) => {
                   setPref("showTagsLength", e.currentTarget.value);
                   setShowTagsLength(e.currentTarget.valueAsNumber);
@@ -1599,10 +1628,12 @@ function PopupRoot({
                 max={72}
                 step={0.5}
                 defaultValue={fontSize}
-                style={inputWidth(fontSize)}
+                style={inputWidth("zlb")}
                 onInput={(e) => {
-                  setPref("font-size", e.currentTarget.value + "");
-                  setFontSize(e.currentTarget.value);
+                  if (e.currentTarget.value) {
+                    setPref("font-size", e.currentTarget.valueAsNumber);
+                    setFontSize(e.currentTarget.valueAsNumber);
+                  }
                 }}
               />
               px。
@@ -1614,7 +1645,7 @@ function PopupRoot({
               min={0.1}
               max={3}
               step={0.1}
-              style={inputWidth(lineHeight)}
+              style={inputWidth("zlb")}
               onInput={(e) => {
                 setPref("line-height", e.currentTarget.value);
                 setLineHeight(e.currentTarget.value);
@@ -1627,10 +1658,15 @@ function PopupRoot({
               max={200}
               step={0.5}
               defaultValue={buttonMarginTopBottom}
-              style={{ width: "7ch" }}
+              style={inputWidth("zlb")}
               onInput={(e) => {
-                setPref("buttonMarginTopBottom", e.currentTarget.value);
-                setButtonMarginTopBottom(e.currentTarget.valueAsNumber);
+                if (e.currentTarget.value) {
+                  setPref(
+                    "buttonMarginTopBottom",
+                    e.currentTarget.valueAsNumber,
+                  );
+                  setButtonMarginTopBottom(e.currentTarget.valueAsNumber);
+                }
               }}
             />
             <input
@@ -1639,10 +1675,15 @@ function PopupRoot({
               max={200}
               step={0.5}
               defaultValue={buttonMarginLeftRight}
-              style={{ width: "7ch" }}
+              style={inputWidth("zlb")}
               onInput={(e) => {
-                setPref("buttonMarginLeftRight", e.currentTarget.value);
-                setButtonMarginLeftRight(e.currentTarget.valueAsNumber);
+                if (e.currentTarget.value) {
+                  setPref(
+                    "buttonMarginLeftRight",
+                    e.currentTarget.valueAsNumber,
+                  );
+                  setButtonMarginLeftRight(e.currentTarget.valueAsNumber);
+                }
               }}
             />
             padding:
@@ -1652,10 +1693,15 @@ function PopupRoot({
               max={200}
               step={0.5}
               defaultValue={buttonPaddingTopBottom}
-              style={{ width: "7ch" }}
+              style={inputWidth("zlb")}
               onInput={(e) => {
-                setPref("buttonPaddingTopBottom", e.currentTarget.value);
-                setButtonPaddingTopBottom(e.currentTarget.valueAsNumber);
+                if (e.currentTarget.value) {
+                  setPref(
+                    "buttonPaddingTopBottom",
+                    e.currentTarget.valueAsNumber,
+                  );
+                  setButtonPaddingTopBottom(e.currentTarget.valueAsNumber);
+                }
               }}
             />
             <input
@@ -1664,53 +1710,108 @@ function PopupRoot({
               max={200}
               step={0.5}
               defaultValue={buttonPaddingLeftRight}
-              style={{ width: "7ch" }}
+              style={inputWidth("zlb")}
               onInput={(e) => {
-                setPref("buttonPaddingLeftRight", e.currentTarget.value);
-                setButtonPaddingLeftRight(e.currentTarget.valueAsNumber);
+                if (e.currentTarget.value) {
+                  setPref(
+                    "buttonPaddingLeftRight",
+                    e.currentTarget.valueAsNumber,
+                  );
+                  setButtonPaddingLeftRight(e.currentTarget.valueAsNumber);
+                }
               }}
             />
-            圆角
+            圆角:
             <input
               type="number"
-              min={-10}
-              max={20}
+              min={0}
+              max={30}
               step={0.5}
               defaultValue={buttonBorderRadius}
-              style={{ width: "7ch" }}
+              style={inputWidth("zlb")}
               onInput={(e) => {
-                setPref("buttonBorderRadius", e.currentTarget.value || "0");
-                setButtonBorderRadius(
-                  e.currentTarget.value ? e.currentTarget.valueAsNumber : 0,
-                );
+                if (e.currentTarget.value) {
+                  setPref("buttonBorderRadius", e.currentTarget.valueAsNumber);
+                  setButtonBorderRadius(e.currentTarget.valueAsNumber);
+                }
               }}
             />
+            <div>
+              排序规则：（未完成）
+              <label>
+                <input
+                  type="radio"
+                  value="0"
+                  name="relateItemSort"
+                  checked={relateItemSort === "0"}
+                  onChange={handleRelateItemSortChange}
+                />
+                字母顺序
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  value="1"
+                  name="relateItemSort"
+                  checked={relateItemSort === "1"}
+                  onChange={handleRelateItemSortChange}
+                />
+                使用次数
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  value="2"
+                  name="relateItemSort"
+                  checked={relateItemSort === "2"}
+                  onChange={handleRelateItemSortChange}
+                />
+                使用时间
+              </label>
+            </div>
+            <div>
+              相关标签的范围：（未完成）
+              <label>
+                <input
+                  type="checkbox"
+                  value="0"
+                  defaultChecked={getPrefT("TagRangeSelfItem", false)}
+                />
+                本条目
+              </label>
+              <label>
+                <input
+                  type="checkbox"
+                  value="0"
+                  defaultChecked={getPrefT("TagRangeSelfCollection", false)}
+                />
+                本条目所在文件夹[]
+              </label>
+              <label>
+                <input
+                  type="checkbox"
+                  value="0"
+                  defaultChecked={getPrefT("TagRangeSelfCollection", false)}
+                />
+                本条目所在文件夹以及子文件夹[]
+              </label>
+              <label>
+                <input
+                  type="checkbox"
+                  value="0"
+                  defaultChecked={getPrefT("TagRangeSelfCollection", false)}
+                />
+                我的文库所有文件
+              </label>
+            </div>
+            <div>Nest标签相关：（未完成）</div>
+            <div>Tag排除规则：（未完成）</div>
           </span>
         )}
 
-        {existAnnotations.length > 0 && (
-          <span
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              fontSize: fontSize + "px",
-              lineHeight: lineHeight,
-            }}
-          ></span>
-        )}
         <span
           style={{ display: "flex", flexWrap: "wrap", alignItems: "center" }}
         >
-          {params.ids && (
-            <span
-              style={{ ...tagStyle, background: "#990000", color: "#fff" }}
-              onClick={() => {
-                root.remove();
-              }}
-            >
-              关闭
-            </span>
-          )}
           <span
             style={{
               ...tagStyle,
@@ -1723,7 +1824,91 @@ function PopupRoot({
           >
             设置
           </span>
-          <span style={{ margin: 0 }}></span>
+          {existTags.length > 0 && (
+            <span
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                fontSize: fontSize + "px",
+                lineHeight: lineHeight,
+                alignItems: "center",
+              }}
+            >
+              现有标签：
+              {groupBy(existTags, (a) => a)
+                .sort(sortValuesLength)
+                .map((a) => (
+                  <span
+                    key={a.key}
+                    style={{
+                      ...tagStyle,
+                      whiteSpace: "nowrap",
+                      wordWrap: "normal",
+                      backgroundColor: memFixedColor(a.key, ""),
+                      boxShadow: "#ccc 0px 0px 4px 3px",
+                    }}
+                    onClick={() => {
+                      updateDelTags((dt) => {
+                        const i = dt.findIndex((f) => f == a.key);
+                        if (i > -1) {
+                          dt.splice(i, 1);
+                        } else {
+                          dt.push(a.key);
+                        }
+                      });
+                    }}
+                  >
+                    [{a.values.length}/{existAnnotations.length}]{a.key}
+                    {delTags.includes(a.key) && (
+                      <span style={{ background: "#990000", color: "#fff" }}>
+                        [待删除]
+                      </span>
+                    )}
+                  </span>
+                ))}
+            </span>
+          )}
+          {params.ids && (
+            <>
+              <span
+                style={{
+                  ...tagStyle,
+                  background: delTags.length > 0 ? "#990000" : "#009900",
+                  color: "#fff",
+                }}
+                onClick={() => {
+                  saveAnnotationTags("", [], delTags, reader, params, doc);
+                  root.remove();
+                }}
+              >
+                {delTags.length == 0
+                  ? (time > 0 ? time + "s" : "点击") + "关闭"
+                  : "确认删除"}
+              </span>
+              {isShowConfig && (
+                <>
+                  设置
+                  <input
+                    style={inputWidth("zlb")}
+                    type="number"
+                    min={5}
+                    max={100}
+                    defaultValue={getPrefT("autoCloseSeconds", 15)}
+                    onInput={(e) => {
+                      if (e.currentTarget.value) {
+                        setTime(e.currentTarget.valueAsNumber);
+                        setPref(
+                          "autoCloseSeconds",
+                          e.currentTarget.valueAsNumber,
+                        );
+                      }
+                    }}
+                  />
+                  秒后自动关闭
+                </>
+              )}
+            </>
+          )}
           <input
             type="text"
             autoFocus={true}
@@ -1733,22 +1918,15 @@ function PopupRoot({
             onKeyDown={(e) => {
               // ztoolkit.log(e)
               if (e.code == "Enter") {
-                saveAnnotationTags(
-                  searchTag,
-                  [],
-                  [],
-                  reader,
-                  params,
-                  root,
-                  doc,
-                );
+                saveAnnotationTags(searchTag, [], [], reader, params, doc);
               }
             }}
           />
-
+          <span style={tagStyle}>固定标签来自【{currentPosition}】 </span>{" "}
           <span style={tagStyle}>
-            {currentPosition}
-            {displayTags.length}/{searchResultLength}:
+            {" "}
+            相关标签来自【{currentPosition}】{displayTags.length}/
+            {searchResultLength}:
           </span>
           {displayTags.map((tag) => (
             <span
@@ -1762,7 +1940,8 @@ function PopupRoot({
                 // borderRadius: "3px",
               }}
               onClick={() => {
-                saveAnnotationTags(tag.key, [], [], reader, params, root, doc);
+                saveAnnotationTags(tag.key, [], [], reader, params, doc);
+                root.remove();
               }}
             >
               <span>[{tag.values.length}]</span>

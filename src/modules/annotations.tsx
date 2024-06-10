@@ -87,7 +87,7 @@ function createAnnotationContextMenu(
       const popDiv = new AnnotationPopup(reader, params);
       const div = popDiv.rootDiv;
       // popDiv.startCountDown();
-      popDiv.countDown.start();
+      // popDiv.countDown.start();
       if (div) {
         doc.body.appendChild(div);
       }
