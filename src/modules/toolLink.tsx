@@ -350,19 +350,19 @@ async function changeFromText(text: string, panel: HTMLDivElement) {
         );
     } else {
       ruleTestSingle(text);
-      ztoolkit.UI.appendElement(
-        {
-          tag: "span",
-          properties: {
-            textContent: "请等待插件作者更新识别链接的代码",
-          },
-          styles: {
-            backgroundColor: "#66aa6620",
-            margin: "5px",
-          },
-        },
-        panel,
-      );
+      // ztoolkit.UI.appendElement(
+      //   {
+      //     tag: "span",
+      //     properties: {
+      //       // textContent: "请等待插件作者更新识别链接的代码",
+      //     },
+      //     styles: {
+      //       // backgroundColor: "#66aa6620",
+      //       // margin: "5px",
+      //     },
+      //   },
+      //   panel,
+      // );
     }
     // break;
   }
