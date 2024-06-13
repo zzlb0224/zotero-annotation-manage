@@ -29,6 +29,7 @@ export function uniqueBy<T>(arr: T[], fn: (item: T) => string) {
 }
 export interface groupByResult<T> {
   key: string;
+  value?: T;
   values: T[];
 }
 export class TagColor {
@@ -59,17 +60,17 @@ export class TagColor {
 }
 
 export function groupBy<T>(arr: T[], fn: (item: T) => string) {
-  const groupedBy: { [key: string]: T[] } = {};
+  const groupedByValues: { [key: string]: T[] } = {};
   for (const curr of arr) {
     const groupKey = fn(curr);
-    if (groupedBy[groupKey]) {
-      groupedBy[groupKey].push(curr);
+    if (groupedByValues[groupKey]) {
+      groupedByValues[groupKey].push(curr);
     } else {
-      groupedBy[groupKey] = [curr];
+      groupedByValues[groupKey] = [curr];
     }
   }
-  return Object.keys(groupedBy).map(
-    (key) => ({ key, values: groupedBy[key] }) as groupByResult<T>,
+  return Object.keys(groupedByValues).map(
+    (key) => ({ key, value: groupedByValues[key][0], values: groupedByValues[key] }) as groupByResult<T>,
   );
 }
 export function promiseAllWithProgress<T>(
@@ -338,12 +339,12 @@ const memAllTagsInLibraryAsync = memoize(async () => {
     );
   const itemTags = getPref("item-tags")
     ? items.flatMap((f) =>
-        f.getTags().map((a) => ({
-          tag: a.tag,
-          type: a.type,
-          dateModified: f.dateModified,
-        })),
-      )
+      f.getTags().map((a) => ({
+        tag: a.tag,
+        type: a.type,
+        dateModified: f.dateModified,
+      })),
+    )
     : [];
   return groupBy([...tags, ...itemTags], (t14) => t14.tag);
 });
@@ -444,9 +445,9 @@ export function getItem(itemOrKeyOrId: Zotero.Item | string | number) {
     ? Zotero.Items.get(itemOrKeyOrId)
     : typeof itemOrKeyOrId == "string"
       ? (Zotero.Items.getByLibraryAndKey(
-          Zotero.Libraries.userLibraryID,
-          itemOrKeyOrId,
-        ) as Zotero.Item)
+        Zotero.Libraries.userLibraryID,
+        itemOrKeyOrId,
+      ) as Zotero.Item)
       : itemOrKeyOrId;
 }
 export async function openAnnotation(
@@ -533,11 +534,11 @@ export async function injectCSS(
       ignoreIfExists: true,
     },
     doc.querySelector("linkset") ||
-      doc.querySelector("head") ||
-      doc.querySelector("body") ||
-      doc.querySelector("div") ||
-      doc.children[0] ||
-      doc,
+    doc.querySelector("head") ||
+    doc.querySelector("body") ||
+    doc.querySelector("div") ||
+    doc.children[0] ||
+    doc,
   );
   // ztoolkit.log("加载css", d);
 }
@@ -611,9 +612,9 @@ export function createTopDiv(
       ],
     },
     doc.querySelector("#browser") ||
-      doc.querySelector("body") ||
-      doc.children[0] ||
-      doc,
+    doc.querySelector("body") ||
+    doc.children[0] ||
+    doc,
   ) as HTMLDivElement;
 
   const modal = ztoolkit.UI.appendElement(
