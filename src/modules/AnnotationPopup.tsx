@@ -30,7 +30,7 @@ import * as React from "react";
 import { useEffect, useRef, useState } from "react";
 import { getString } from "../utils/locale";
 import { useImmer } from "use-immer";
-import { ArrowContainer, Popover } from "react-tiny-popover";
+import { ArrowContainer, Popover, usePopover } from "react-tiny-popover";
 import { HexColorPicker } from "react-colorful";
 
 export class AnnotationPopup {
@@ -224,6 +224,7 @@ export class AnnotationPopup {
           doc={this.doc!}
           params={this.params!}
           root={root}
+          maxWidth={this.getSelectTextMaxWidth()}
         />
       </>,
     );
@@ -1330,7 +1331,7 @@ async function getNestedTags(tags: string[]) {
 //方法来自pdf-translate\src\modules\popup.ts 338行 [windingwind/zotero-pdf-translate](https://github.com/windingwind/zotero-pdf-translate)
 function updatePopupSize(
   selectionMenu: HTMLDivElement,
-  textarea: HTMLTextAreaElement,
+  textarea: HTMLElement,
   resetSize: boolean = true,
 ): void {
   // const keepSize = getPref("keepPopupSize") as boolean;
@@ -1366,6 +1367,7 @@ function PopupRoot({
   params,
   doc,
   root,
+  maxWidth,
 }: {
   reader: _ZoteroTypes.ReaderInstance;
   params: {
@@ -1377,6 +1379,7 @@ function PopupRoot({
   };
   doc: Document;
   root: HTMLDivElement;
+  maxWidth: number;
 }) {
   const item = reader._item;
   const [isShowConfig, setShowConfig] = useState(
@@ -1581,7 +1584,6 @@ function PopupRoot({
   // }, tabDiv)
   const parentElement = tabDiv;
   const boundaryElement = tabDiv;
-  useEffect(() => {});
   // const c = ztoolkit.UI.appendElement({ tag: "div" }, root) as HTMLDivElement
   useEffect(() => {
     const MutationObserver = ztoolkit.getGlobal("MutationObserver");
@@ -1623,6 +1625,7 @@ function PopupRoot({
   ).contentDocument?.querySelector(
     "#reader-ui .selection-popup",
   ) as HTMLDivElement;
+  const selectionPopupRef = useRef(selectionPopup);
   // const popSize = useSize(selectionPopup)
   const [selectionPopupSize, setSelectionPopupSize] = useState({
     width: 0,
@@ -1631,20 +1634,55 @@ function PopupRoot({
   useEffect(() => {
     const resizeChange = () => {
       setSelectionPopupSize({
-        width: selectionPopup.clientWidth,
-        height: selectionPopup.clientHeight,
+        width: selectionPopupRef.current.clientWidth,
+        height: selectionPopupRef.current.clientHeight,
       });
     };
     // 监听
-    selectionPopup.addEventListener("resize", resizeChange);
+    selectionPopupRef.current.addEventListener("resize", resizeChange);
     setSelectionPopupSize({
-      width: selectionPopup.clientWidth,
-      height: selectionPopup.clientHeight,
+      width: selectionPopupRef.current.clientWidth,
+      height: selectionPopupRef.current.clientHeight,
     });
     // 销毁
-    return () => selectionPopup.removeEventListener("resize", resizeChange);
+    return () =>
+      selectionPopupRef.current.removeEventListener("resize", resizeChange);
   }, []);
-  // ztoolkit.log("selectionPopup", selectionPopup, popSize, selectionPopupSize)
+
+  const popMaxWidthRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const c = popMaxWidthRef.current;
+    if (!c) return;
+    // c.style.maxWidth = "unset"
+    c.style.width = "600px";
+
+    function updatePopupSize(): void {
+      const viewer = tabDiv;
+      const rootHeight = root.scrollHeight;
+      const rootWidth = root.scrollWidth;
+      if (rootHeight / rootWidth > 2) {
+        //
+      } else if (rootHeight / rootWidth < 0.5) {
+        //
+      } else {
+        //
+      }
+      // const newWidth = rootWidth + 20;
+      // Check until H/W<0.75 and don't overflow viewer border
+      // if (
+      //   // textHeight / rootWidth > 0.75 &&
+      //   // selectionMenu.offsetLeft + newWidth < viewer.offsetWidth
+      // ) {
+      //   // Update width
+      //   // textarea.style.width = `${newWidth}px`;
+      //   // updatePopupSize(selectionMenu, textarea, false);
+      //   return;
+      // }
+      // root.style.height = `${rootHeight + 3}px`;
+    }
+
+    updatePopupSize();
+  }, [selectionPopupSize]);
 
   return (
     <>
@@ -1678,12 +1716,14 @@ function PopupRoot({
             // arrowClassName='popover-arrow'
           >
             <div
+              ref={popMaxWidthRef}
               style={{
                 backgroundColor: bgColor,
                 opacity: 1,
                 whiteSpace: "break-spaces",
                 display: "flex",
                 flexWrap: "wrap",
+                // maxWidth: Math.max(600, maxWidth) + "px",
                 maxWidth: "600px",
               }}
               // onClick={() => setIsPopoverOpen(!isPopoverOpen)}
@@ -2340,19 +2380,19 @@ function PopupRoot({
                       <span>[{tag.values.length}]</span>
                       <span>{tag.key}</span>
 
-                      {isShowConfig && (
-                        <>
-                          <span
-                            style={{
-                              background: "#fff",
-                              color: "#000",
-                              border: "1px solid #000",
-                            }}
-                          >
-                            选择颜色
-                          </span>
+                      {/* {isShowConfig && (
+                        <> 
                           {memFixedTags().includes(tag.key) ? (
                             <>
+                              <span
+                                style={{
+                                  background: "#fff",
+                                  color: "#000",
+                                  border: "1px solid #000",
+                                }}
+                              >
+                                选择颜色
+                              </span>
                               <span
                                 style={{
                                   background: "#fff",
@@ -2393,7 +2433,7 @@ function PopupRoot({
                             </span>
                           )}
                         </>
-                      )}
+                      )} */}
                     </span>
                   ))}
                 </span>
@@ -2405,6 +2445,7 @@ function PopupRoot({
         <div
           style={{
             width: "100%",
+            // width: "600px",
             position: "absolute",
             height: (selectionPopupSize?.height || 120) + "px",
             top: "0",
@@ -2420,6 +2461,171 @@ function PopupRoot({
           {/* {JSON.stringify(selectionPopupSize)} */}
         </div>
       </Popover>
+    </>
+  );
+}
+function popDiv({
+  reader,
+  params,
+  doc,
+  root,
+  maxWidth,
+}: {
+  reader: _ZoteroTypes.ReaderInstance;
+  params: {
+    annotation?: _ZoteroTypes.Annotations.AnnotationJson;
+    ids?: any;
+    currentID?: string;
+    x?: number;
+    y?: number;
+  };
+  doc: Document;
+  root: HTMLDivElement;
+  maxWidth: number;
+}) {
+  const [isPop, setIsPop] = useState(false);
+  const p = { reader, doc, params, root, maxWidth };
+  const [isPopoverOpen, setIsPopoverOpen] = useState(true);
+  // const parentElement = doc.firstChild as HTMLElement;
+  ztoolkit.log(doc, reader);
+  const tabDiv = Zotero_Tabs.deck.querySelector(
+    "#" + Zotero_Tabs.selectedID,
+  ) as HTMLDivElement;
+  const [bgColor, setBgColor] = useState(getPrefAs("bgColor", "#fff"));
+  const sp = (
+    tabDiv.querySelector("browser") as HTMLIFrameElement
+  ).contentDocument?.querySelector("#reader-ui ") as HTMLDivElement;
+  // const react_popover_root = tabDiv.querySelector(".react_popover_root") as HTMLDivElement || ztoolkit.UI.appendElement({
+  //   tag: "div",
+  //   styles: { width: "calc(100% - 80px)", height: "calc(100% - 100px)", position: "fixed", left: "40px", top: "80px", zIndex: "0", background: "transparent", border: "1px solid black" },
+  //   classList: ["react_popover_root"],
+
+  // }, tabDiv)
+  const parentElement = tabDiv;
+  const boundaryElement = tabDiv;
+  const [pPadding, setPPadding] = useState(getPrefAs("pPadding", 0));
+  const [pBoundaryInset, setPBoundaryInset] = useState(
+    getPrefAs("pBoundaryInset", 0),
+  );
+  const [pArrowSize, setPArrowSize] = useState(getPrefAs("pArrowSize", 0));
+  const [pPositions, updatePPositions] = useImmer(
+    getPrefAs("pPositions", "bottom,left,top,right").split(","),
+  );
+  const [pFixedContentLocation, setPFixedContentLocation] = useState(
+    getPrefAs("pFixedContentLocation", false),
+  );
+  const [pFixedContentLocationLeft, setPFixedContentLocationLeft] = useState(
+    getPrefAs("pFixedContentLocationLeft", 0),
+  );
+  const [pFixedContentLocationTop, setPFixedContentLocationTop] = useState(
+    getPrefAs("pFixedContentLocationTop", 0),
+  );
+  const selectionPopup = (
+    tabDiv.querySelector("browser") as HTMLIFrameElement
+  ).contentDocument?.querySelector(
+    "#reader-ui .selection-popup",
+  ) as HTMLDivElement;
+  const selectionPopupRef = useRef(selectionPopup);
+  // const popSize = useSize(selectionPopup)
+  const [selectionPopupSize, setSelectionPopupSize] = useState({
+    width: 0,
+    height: 0,
+  });
+  useEffect(() => {
+    const resizeChange = () => {
+      setSelectionPopupSize({
+        width: selectionPopupRef.current.clientWidth,
+        height: selectionPopupRef.current.clientHeight,
+      });
+    };
+    // 监听
+    selectionPopupRef.current.addEventListener("resize", resizeChange);
+    setSelectionPopupSize({
+      width: selectionPopupRef.current.clientWidth,
+      height: selectionPopupRef.current.clientHeight,
+    });
+    // 销毁
+    return () =>
+      selectionPopupRef.current.removeEventListener("resize", resizeChange);
+  }, []);
+  return (
+    <>
+      {isPop ? (
+        <Popover
+          parentElement={parentElement}
+          boundaryElement={boundaryElement}
+          isOpen={isPopoverOpen}
+          positions={pPositions as any}
+          padding={pPadding}
+          boundaryInset={pBoundaryInset}
+          transformMode={pFixedContentLocation ? "absolute" : "relative"}
+          transform={
+            pFixedContentLocation
+              ? {
+                  left: pFixedContentLocationLeft,
+                  top: pFixedContentLocationTop,
+                }
+              : (popoverState) => ({
+                  top: -popoverState.nudgedTop + 65,
+                  left: -popoverState.nudgedLeft,
+                })
+          }
+          // onClickOutside={() => setIsPopoverOpen(false)}
+          // ref={clickMeButtonRef} // if you'd like a ref to your popover's child, you can grab one here
+          content={({ position, childRect, popoverRect }) => (
+            <ArrowContainer // if you'd like an arrow, you can import the ArrowContainer!
+              position={position}
+              childRect={childRect}
+              popoverRect={popoverRect}
+              arrowColor={"#aaaaaa"}
+              arrowSize={pArrowSize}
+              arrowStyle={{ opacity: 0.6 }}
+              // className='popover-arrow-container'
+              // arrowClassName='popover-arrow'
+            >
+              <div
+                style={{
+                  backgroundColor: bgColor,
+                  opacity: 1,
+                  whiteSpace: "break-spaces",
+                  display: "flex",
+                  flexWrap: "wrap",
+                  maxWidth: Math.max(600, maxWidth) + "px",
+                }}
+                // onClick={() => setIsPopoverOpen(!isPopoverOpen)}
+              >
+                <PopupRoot
+                  reader={reader}
+                  doc={doc}
+                  params={params}
+                  root={root}
+                  maxWidth={maxWidth}
+                />
+              </div>
+            </ArrowContainer>
+          )}
+        >
+          <div
+            style={{
+              width: "100%",
+              position: "absolute",
+              height: (selectionPopupSize?.height || 120) + "px",
+              top: "0",
+              // background: "#f00", opacity: "0",
+              zIndex: "-1",
+            }}
+          >
+            {/* <button onClick={() => setIsPopoverOpen(!isPopoverOpen)}
+            style={{ backgroundColor: color + " !important" }}>
+            Click me! {JSON.stringify(popSize) + "1"} {JSON.stringify(selectionPopupSize) + "2"}
+          </button>
+          <span style={{ backgroundColor: color }}> {color}</span> */}
+            {/* {JSON.stringify(selectionPopupSize)} */}
+          </div>
+        </Popover>
+      ) : (
+        <PopupRoot {...p} />
+      )}
     </>
   );
 }
