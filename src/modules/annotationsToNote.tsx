@@ -63,7 +63,6 @@ function buildMenu(collectionOrItem: "collection" | "item") {
           {
             tag: "menuitem",
             label: "拆分#标签",
-            id: "",
             icon: iconBaseUrl + "favicon.png",
             commandListener: async (ev: Event) => {
               const items = await getSelectedItems(collectionOrItem);
@@ -78,6 +77,100 @@ function buildMenu(collectionOrItem: "collection" | "item") {
             commandListener: async (ev: Event) => {
               const items = await getSelectedItems(collectionOrItem);
               funcCreateTab(items);
+            },
+          },
+          {
+            tag: "menuitem",
+            label: "测试 react popover",
+            icon: iconBaseUrl + "favicon.png",
+            id: "react_popover_root",
+            commandListener: async (ev: Event) => {
+              const tabDiv = Zotero_Tabs.deck.querySelector(
+                "#" + Zotero_Tabs.selectedID,
+              ) as HTMLDivElement;
+              const react_popover_root =
+                (tabDiv.querySelector(
+                  ".react_popover_root",
+                ) as HTMLDivElement) ||
+                ztoolkit.UI.appendElement(
+                  {
+                    tag: "div",
+                    styles: {
+                      width: "calc(100% - 80px)",
+                      height: "calc(100% - 100px)",
+                      position: "fixed",
+                      left: "40px",
+                      top: "80px",
+                      zIndex: "99999",
+                      background: "#aaa",
+                    },
+                    classList: ["react_popover_root"],
+                    children: [
+                      {
+                        tag: "span",
+                        styles: {
+                          background: "#333",
+                          padding: "20px",
+                          margin: "20px",
+                        },
+                        properties: { textContent: "关闭" },
+                        listeners: [
+                          {
+                            type: "click",
+                            listener: () => {
+                              react_popover_root.remove();
+                            },
+                          },
+                        ],
+                      },
+
+                      {
+                        tag: "div",
+                        styles: {
+                          background: "#996",
+                          padding: "20px",
+                          margin: "20px",
+                        },
+                        properties: { textContent: "占位div" },
+                      },
+                    ],
+                  },
+                  tabDiv,
+                );
+              react_popover_root
+                .querySelector(".react_popover_root_popover")
+                ?.remove();
+              const popover = ztoolkit.UI.appendElement(
+                {
+                  tag: "div",
+                  styles: {
+                    background: "#996",
+                    padding: "20px",
+                    margin: "20px",
+                  },
+                  properties: { textContent: "react_popover_root_popover" },
+                  classList: ["react_popover_root_popover"],
+                },
+                react_popover_root,
+              ) as HTMLDivElement;
+              ztoolkit.log(window, window.console);
+              // const parentElement = Object.assign(root, { ownerDocument: { body: root } })
+              createRoot(popover).render(
+                <>
+                  <PickerColor
+                    parentElement={react_popover_root}
+                    defaultColor="#aabbcc"
+                    onChange={(c) => {
+                      ztoolkit.log("ddddd", c);
+                    }}
+                  ></PickerColor>
+                </>,
+              );
+              // createRoot(root.querySelector(".react_popover_root_popover")!).render(
+              //   <>
+              //     <div>{new Date().toLocaleTimeString()}</div>
+              //   </>,
+              // );
             },
           },
           {
@@ -394,6 +487,8 @@ import { createRoot } from "react-dom/client";
 import { MyButton } from "./MyButton";
 import { getAnnotationContent } from "../utils/zzlb";
 import { getPublicationTags } from "../utils/zzlb";
+import { PickerColor } from "../component/PickerColor";
+import { PopoverPicker } from "../component/PopoverPicker";
 // import React = require("react");
 async function topDialogRect() {
   const dialogData: { [key: string | number]: any } = {

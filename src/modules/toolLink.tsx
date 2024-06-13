@@ -7,7 +7,7 @@ import {
   ruleTestSingle,
   showInLibrary,
 } from "../utils/cite";
-import { getPrefT, setPref } from "../utils/prefs";
+import { getPrefAs, setPref } from "../utils/prefs";
 import { isDebug, openAnnotation } from "../utils/zzlb";
 function register() {
   Zotero.Reader.registerEventListener(
@@ -26,16 +26,27 @@ function readerToolbarCallback(
 ) {
   const { append, doc, reader, params } = event;
   if (doc.getElementById(`${config.addonRef}-space-button`)) return;
+  // setTimeout(() => {
+  //   const tabDiv = Zotero_Tabs.deck.querySelector("#" + Zotero_Tabs.selectedID) as HTMLDivElement
 
-  let enable = getPrefT("show-query-href", false);
+  //   const root = tabDiv.querySelector(".react_popover_root") as HTMLDivElement || ztoolkit.UI.appendElement({
+  //     tag: "div",
+  //     styles: {
+  //       width: "calc(100% - 80px)", height: "calc(100% - 100px)", position: "fixed", left: "40px", top: "80px", zIndex: "99999", background: "transparent", border: "1px solid black"
+  //     },
+  //     classList: ["react_popover_root"]
+  //   }, tabDiv)
+  //   ztoolkit.log("cccc", tabDiv, root)
+  // }, 1000)
+  let enable = getPrefAs("show-query-href", false);
   const root =
     doc.querySelector("body") || (doc.querySelector("div") as HTMLElement);
 
   const MutationObserver = ztoolkit.getGlobal("MutationObserver");
   const observerAddRowRef = new MutationObserver((mutationsList) => {
-    ztoolkit.log("aaaaobserverAddRowRef", mutationsList);
+    // ztoolkit.log("aaaaobserverAddRowRef", mutationsList);
     for (const mr of mutationsList) {
-      ztoolkit.log(mr, mr.type);
+      // ztoolkit.log(mr, mr.type);
       if (mr.addedNodes.length > 0) {
         createPanel(mr.target as HTMLDivElement);
       }
@@ -99,20 +110,9 @@ function readerToolbarCallback(
     }
   }
 }
-async function DOMSubtreeModified(e: Event) {
-  const p = e.target as HTMLDivElement;
-  ztoolkit.log("DOMSubtreeModified", p.className, e);
-  // if (p.classList.contains("primary"))
-  {
-    setTimeout(async () => {
-      await createPanel(p);
-    }, 100);
-  }
-}
+
 async function createPanel(p: HTMLDivElement) {
-  ztoolkit.log("DOMSubtreeModified primary", p.className);
   const refRows = p.querySelectorAll(".reference-row");
-  ztoolkit.log("DOMSubtreeModified", p.className, refRows.length);
   for (const refRow of refRows as NodeListOf<HTMLDivElement>) {
     updateRefRow(refRow);
   }
@@ -130,7 +130,7 @@ function updateRefRow(refRow: HTMLDivElement) {
       }
       const MutationObserver = ztoolkit.getGlobal("MutationObserver");
       const observerTextChange = new MutationObserver((mutationsList) => {
-        ztoolkit.log("dom 变化了, ", mutationsList);
+        // ztoolkit.log("dom 变化了, ", mutationsList);
         for (const mr of mutationsList) {
           if (mr.addedNodes.length > 0) {
             changeFromText(mr.target.textContent || "", panel);
@@ -221,7 +221,7 @@ async function changeFromText(text: string, panel: HTMLDivElement) {
           "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe";
         const url = `https://scholar.google.com/scholar_lookup?title=${encodeURIComponent(groups.title)}&author=${encodeURIComponent(groups.author)}&publication_year=${groups.year}`;
         const url2 = `https://sc.panda985.com/scholar?q=${encodeURIComponent(groups.title)}+&hl=zh-CN&as_sdt=0%2C5&as_ylo=${groups.year}&as_yhi=${groups.year}`;
-        const gss = getPrefT("google-scholar-mirroring", "")
+        const gss = getPrefAs("google-scholar-mirroring", "")
           .split("\n")
           .map((a) => a.trim())
           .filter((f) => f)

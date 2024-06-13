@@ -1,9 +1,10 @@
 import { TagElementProps } from "zotero-plugin-toolkit/dist/tools/ui";
 import { config } from "../../package.json";
-import { getPref, getPrefT, setPref } from "../utils/prefs";
+import { getPref, getPrefAs, setPref } from "../utils/prefs";
 import {
   mapDateModified,
   sortAsc,
+  sortFixed,
   sortFixedTags100Modified10Asc,
   sortFixedTags10ValuesLength,
   sortTags1000Ann100Modified10Asc,
@@ -29,9 +30,8 @@ import * as React from "react";
 import { useEffect, useRef, useState } from "react";
 import { getString } from "../utils/locale";
 import { useImmer } from "use-immer";
-import { ChromePicker } from "react-color"
-
-
+import { ArrowContainer, Popover } from "react-tiny-popover";
+import { HexColorPicker } from "react-colorful";
 
 export class AnnotationPopup {
   reader?: _ZoteroTypes.ReaderInstance;
@@ -45,7 +45,7 @@ export class AnnotationPopup {
   doc?: Document;
   isExistAnno: boolean;
   existAnnotations: Zotero.Item[];
-  rootDiv?: HTMLElement; //占位div
+  rootDiv?: HTMLDivElement; //占位div
   fontSize: string = "18px";
   relateTags: groupByResult<{ tag: string; type: number }>[] = [];
   tagsDisplay: groupByResult<{ tag: string; type: number }>[] = [];
@@ -79,13 +79,12 @@ export class AnnotationPopup {
     this.isExistAnno = !!params?.ids;
     this.existAnnotations = this.isExistAnno
       ? this.item!.getAnnotations().filter((f) =>
-        this.params?.ids.includes(f.key),
-      )
+          this.params?.ids.includes(f.key),
+        )
       : [];
     // 这里引发的 #38 ，可能是json循环输出的问题？
     // ztoolkit.log(this, this.existAnnotations);
-    ztoolkit.log("bbbb", params)
-
+    ztoolkit.log("bbbb", params);
 
     this.fontSize =
       (Zotero.Prefs.get(
@@ -115,15 +114,14 @@ export class AnnotationPopup {
   }
   public createDiv() {
     if (!this.doc) return;
-    Zotero.test_doc = this.doc
-    Zotero.test_params = this.params
+    Zotero.test_doc = this.doc;
+    Zotero.test_params = this.params;
     this.clearDiv();
-
     this.rootDiv = ztoolkit.UI.createElement(this.doc, "div", {
       namespace: "html",
       id: this.idRootDiv,
-      styles: this.getRootStyle(), //创建的时候就要固定大小
-      classList: ["width100", "minWidth100"],
+      // styles: this.getRootStyle(), //创建的时候就要固定大小
+      // classList: ["width100", "minWidth100"],
       children: [
         {
           tag: "link",
@@ -188,17 +186,17 @@ export class AnnotationPopup {
     }
     this.updateColorsElement();
     //重置大小
-    setTimeout(() => {
-      const textarea = this.doc?.querySelector(
-        ".zoteropdftranslate-popup-textarea.zoteropdftranslate-readerpopup",
-      ) as HTMLTextAreaElement | undefined;
-      const selectionMenu = this.doc?.querySelector(".selection-popup") as
-        | HTMLDivElement
-        | undefined;
-      if (textarea && selectionMenu) {
-        updatePopupSize(selectionMenu, textarea, true);
-      }
-    }, 300);
+    // setTimeout(() => {
+    //   const textarea = this.doc?.querySelector(
+    //     ".zoteropdftranslate-popup-textarea.zoteropdftranslate-readerpopup",
+    //   ) as HTMLTextAreaElement | undefined;
+    //   const selectionMenu = this.doc?.querySelector(".selection-popup") as
+    //     | HTMLDivElement
+    //     | undefined;
+    //   if (textarea && selectionMenu) {
+    //     updatePopupSize(selectionMenu, textarea, true);
+    //   }
+    // }, 300);
     // const currentPage = this.getCurrentPageDiv();
 
     // setTimeout(async () => {
@@ -217,14 +215,17 @@ export class AnnotationPopup {
       { tag: "div" },
       root,
     ) as HTMLDivElement;
-    // if (isDebug()) 
+    ztoolkit.log("root和rr", root, rr);
+    // if (isDebug())
     createRoot(rr).render(
-      <PopupRoot
-        reader={this.reader!}
-        doc={this.doc!}
-        params={this.params!}
-        root={this.rootDiv!}
-      />,
+      <>
+        <PopupRoot
+          reader={this.reader!}
+          doc={this.doc!}
+          params={this.params!}
+          root={root}
+        />
+      </>,
     );
   }
 
@@ -319,27 +320,27 @@ export class AnnotationPopup {
         });
       }
       // ztoolkit.getGlobal("getComputedStyle")(colorsElement).width;
-      const maxWidth = this.getSelectTextMaxWidth();
-      const width = parseFloat(
-        ztoolkit.getGlobal("getComputedStyle")(colorsElement).width,
-      );
-      root.style.width = maxWidth + "px";
+      // const maxWidth = this.getSelectTextMaxWidth();
+      // const width = parseFloat(
+      //   ztoolkit.getGlobal("getComputedStyle")(colorsElement).width,
+      // );
+      // root.style.width = maxWidth + "px";
 
-      root.style.minWidth = Math.min(width, maxWidth) + "px";
-      // 当翻译采用固定大小的时候，跟随它
-      const keepSize = Zotero.Prefs.get(
-        `extensions.zotero.ZoteroPDFTranslate.keepPopupSize`,
-        true,
-      ) as boolean;
+      // root.style.minWidth = Math.min(width, maxWidth) + "px";
+      // // 当翻译采用固定大小的时候，跟随它
+      // const keepSize = Zotero.Prefs.get(
+      //   `extensions.zotero.ZoteroPDFTranslate.keepPopupSize`,
+      //   true,
+      // ) as boolean;
 
-      if (keepSize) {
-        if (maxWidth < width) {
-          //说明会越界
-        }
+      // if (keepSize) {
+      //   if (maxWidth < width) {
+      //     //说明会越界
+      //   }
 
-        root.style.minWidth = width + "px";
-        root.style.width = width + "px";
-      }
+      //   root.style.minWidth = width + "px";
+      //   root.style.width = width + "px";
+      // }
     }
   }
 
@@ -1375,45 +1376,47 @@ function PopupRoot({
     y?: number;
   };
   doc: Document;
-  root: HTMLElement;
+  root: HTMLDivElement;
 }) {
   const item = reader._item;
   const [isShowConfig, setShowConfig] = useState(
-    getPrefT("show-config", false),
+    getPrefAs("show-config", false),
   );
   const [isShowSelectedPopupColorsTag, setShowSelectedPopupColorsTag] =
-    useState(getPrefT("show-selected-popup-colors-tag", false));
+    useState(getPrefAs("show-selected-popup-colors-tag", false));
   const [isShowSelectedPopupMatchTag, setShowSelectedPopupMatchTag] = useState(
-    getPrefT("show-selected-popup-match-tag", false),
+    getPrefAs("show-selected-popup-match-tag", false),
   );
 
-  const [fontSize, setFontSize] = useState(getPrefT("font-size", 17));
-  const [lineHeight, setLineHeight] = useState(getPrefT("line-height", "1.45"));
+  const [fontSize, setFontSize] = useState(getPrefAs("font-size", 17));
+  const [lineHeight, setLineHeight] = useState(
+    getPrefAs("line-height", "1.45"),
+  );
 
   const [buttonMarginTopBottom, setButtonMarginTopBottom] = useState(
-    getPrefT("buttonMarginTopBottom", 0),
+    getPrefAs("buttonMarginTopBottom", 0),
   );
-  const [sortType, setSortType] = useState(getPrefT("sortType", "0"));
+  const [sortType, setSortType] = useState(getPrefAs("sortType", "0"));
   const [buttonMarginLeftRight, setButtonMarginLeftRight] = useState(
-    getPrefT("buttonMarginLeftRight", 0),
+    getPrefAs("buttonMarginLeftRight", 0),
   );
   const [buttonPaddingTopBottom, setButtonPaddingTopBottom] = useState(
-    getPrefT("buttonPaddingTopBottom", 0),
+    getPrefAs("buttonPaddingTopBottom", 0),
   );
   const [buttonPaddingLeftRight, setButtonPaddingLeftRight] = useState(
-    getPrefT("buttonPaddingLeftRight", 0),
+    getPrefAs("buttonPaddingLeftRight", 0),
   );
   const [buttonBorderRadius, setButtonBorderRadius] = useState(
-    getPrefT("buttonBorderRadius", 5),
+    getPrefAs("buttonBorderRadius", 5),
   );
   const [relateItemShowAll, setRelateItemShowAll] = useState(
-    getPrefT("relateItemShowAll", false),
+    getPrefAs("relateItemShowAll", false),
   );
   const [relateItemShowRelateTags, setRelateItemShowRelateTags] = useState(
-    getPrefT("relateItemShowRelateTags", false),
+    getPrefAs("relateItemShowRelateTags", false),
   );
   const [relateItemSort, setRelateItemSort] = useState(
-    getPrefT("relateItemSort", "2"),
+    getPrefAs("relateItemSort", "2"),
   );
 
   const [existAnnotations, updateExistAnnotations] = useImmer(
@@ -1433,7 +1436,7 @@ function PopupRoot({
   );
   const [searchResultLength, setSearchResultLength] = useState(0);
   const [showTagsLength, setShowTagsLength] = useState(
-    getPrefT("showTagsLength", 20),
+    getPrefAs("showTagsLength", 20),
   );
 
   const [relateTags, setRelateTags] = useState(
@@ -1517,7 +1520,7 @@ function PopupRoot({
   }, [searchTag, relateTags, showTagsLength, relateItemSort]);
   // ztoolkit.log("ids", params.ids)
   const [time, setTime] = useState(
-    params.ids ? getPrefT("autoCloseSeconds", 15) : -1,
+    params.ids ? getPrefAs("autoCloseSeconds", 15) : -1,
   ); //只在倒计时时间
   const timeRef = useRef<NodeJS.Timeout>(); //设置延时器
   //倒计时
@@ -1560,426 +1563,863 @@ function PopupRoot({
     setPref("relateItemSort", e.target.value);
     setRelateItemSort(e.target.value);
   }
+  const [isPopoverOpen, setIsPopoverOpen] = useState(true);
+  // const parentElement = doc.firstChild as HTMLElement;
+  ztoolkit.log(doc, reader);
+  const tabDiv = Zotero_Tabs.deck.querySelector(
+    "#" + Zotero_Tabs.selectedID,
+  ) as HTMLDivElement;
+  const [bgColor, setBgColor] = useState(getPrefAs("bgColor", "#fff"));
+  const sp = (
+    tabDiv.querySelector("browser") as HTMLIFrameElement
+  ).contentDocument?.querySelector("#reader-ui ") as HTMLDivElement;
+  // const react_popover_root = tabDiv.querySelector(".react_popover_root") as HTMLDivElement || ztoolkit.UI.appendElement({
+  //   tag: "div",
+  //   styles: { width: "calc(100% - 80px)", height: "calc(100% - 100px)", position: "fixed", left: "40px", top: "80px", zIndex: "0", background: "transparent", border: "1px solid black" },
+  //   classList: ["react_popover_root"],
+
+  // }, tabDiv)
+  const parentElement = tabDiv;
+  const boundaryElement = tabDiv;
+  useEffect(() => {});
+  // const c = ztoolkit.UI.appendElement({ tag: "div" }, root) as HTMLDivElement
+  useEffect(() => {
+    const MutationObserver = ztoolkit.getGlobal("MutationObserver");
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        ztoolkit.log("fffff", mutation);
+        for (const rn of mutation.removedNodes) {
+          if ((rn as HTMLDivElement).classList.contains("selection-popup")) {
+            setIsPopoverOpen(false);
+          }
+        }
+      }
+    });
+    observer.observe(sp, { childList: true, subtree: true });
+    // ztoolkit.log("fffff sp", sp)
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+  const [pPadding, setPPadding] = useState(getPrefAs("pPadding", 0));
+  const [pBoundaryInset, setPBoundaryInset] = useState(
+    getPrefAs("pBoundaryInset", 0),
+  );
+  const [pArrowSize, setPArrowSize] = useState(getPrefAs("pArrowSize", 0));
+  const [pPositions, updatePPositions] = useImmer(
+    getPrefAs("pPositions", "bottom,left,top,right").split(","),
+  );
+  const [pFixedContentLocation, setPFixedContentLocation] = useState(
+    getPrefAs("pFixedContentLocation", false),
+  );
+  const [pFixedContentLocationLeft, setPFixedContentLocationLeft] = useState(
+    getPrefAs("pFixedContentLocationLeft", 0),
+  );
+  const [pFixedContentLocationTop, setPFixedContentLocationTop] = useState(
+    getPrefAs("pFixedContentLocationTop", 0),
+  );
+  const selectionPopup = (
+    tabDiv.querySelector("browser") as HTMLIFrameElement
+  ).contentDocument?.querySelector(
+    "#reader-ui .selection-popup",
+  ) as HTMLDivElement;
+  // const popSize = useSize(selectionPopup)
+  const [selectionPopupSize, setSelectionPopupSize] = useState({
+    width: 0,
+    height: 0,
+  });
+  useEffect(() => {
+    const resizeChange = () => {
+      setSelectionPopupSize({
+        width: selectionPopup.clientWidth,
+        height: selectionPopup.clientHeight,
+      });
+    };
+    // 监听
+    selectionPopup.addEventListener("resize", resizeChange);
+    setSelectionPopupSize({
+      width: selectionPopup.clientWidth,
+      height: selectionPopup.clientHeight,
+    });
+    // 销毁
+    return () => selectionPopup.removeEventListener("resize", resizeChange);
+  }, []);
+  // ztoolkit.log("selectionPopup", selectionPopup, popSize, selectionPopupSize)
+
   return (
     <>
-      <div
-        style={{
-          fontSize: "18px",
-          lineHeight: "1.5",
-          background: "#fff",
-          boxShadow: params.ids ? "rgb(0, 0, 0) 0 0 3px 0px inset" : "",
-        }}
-        onClick={() => setTime(-1)}
-      >
-        {isShowConfig && (
-          <span>
-            {!params.ids && (
-              <span>
-                <span></span>
-                颜色栏：
-                <label>
-                  <input
-                    type="checkbox"
-                    defaultChecked={isShowSelectedPopupColorsTag}
-                    onInput={(e) => {
-                      setPref(
-                        "show-selected-popup-colors-tag",
-                        e.currentTarget.checked,
-                      );
-                      setShowSelectedPopupColorsTag(e.currentTarget.checked);
-                    }}
-                  />
-                  {getString("pref-show-selected-popup-colors-tag", {
-                    branch: "label",
-                  })}
-                </label>
-                <label>
-                  <input
-                    type="checkbox"
-                    defaultChecked={isShowSelectedPopupMatchTag}
-                    onInput={(e) => {
-                      setPref(
-                        "show-selected-popup-match-tag",
-                        e.currentTarget.checked,
-                      );
-                      setShowSelectedPopupMatchTag(e.currentTarget.checked);
-                    }}
-                  />
-                  {getString("pref-show-selected-popup-match-tag", {
-                    branch: "label",
-                  })}
-                </label>
-                <br />
-              </span>
-            )}
-            <span>
-              显示
-              <input
-                type="number"
-                defaultValue={showTagsLength}
-                min={0}
-                max={100}
-                style={inputWidth("zlb")}
-                onInput={(e) => {
-                  setPref("showTagsLength", e.currentTarget.value);
-                  setShowTagsLength(e.currentTarget.valueAsNumber);
-                }}
-              />
-              个。
-            </span>
-            <span style={{ whiteSpace: "nowrap", wordWrap: "normal" }}>
-              字体大小:
-              <input
-                type="number"
-                min={6}
-                max={72}
-                step={0.5}
-                defaultValue={fontSize}
-                style={inputWidth("zlb")}
-                onInput={(e) => {
-                  if (e.currentTarget.value) {
-                    setPref("font-size", e.currentTarget.valueAsNumber);
-                    setFontSize(e.currentTarget.valueAsNumber);
-                  }
-                }}
-              />
-              px。
-            </span>
-            行高:
-            <input
-              type="number"
-              defaultValue={lineHeight}
-              min={0.1}
-              max={3}
-              step={0.1}
-              style={inputWidth("zlb")}
-              onInput={(e) => {
-                setPref("line-height", e.currentTarget.value);
-                setLineHeight(e.currentTarget.value);
-              }}
-            />
-            margin:
-            <input
-              type="number"
-              min={-10}
-              max={200}
-              step={0.5}
-              defaultValue={buttonMarginTopBottom}
-              style={inputWidth("zlb")}
-              onInput={(e) => {
-                if (e.currentTarget.value) {
-                  setPref(
-                    "buttonMarginTopBottom",
-                    e.currentTarget.valueAsNumber,
-                  );
-                  setButtonMarginTopBottom(e.currentTarget.valueAsNumber);
-                }
-              }}
-            />
-            <input
-              type="number"
-              min={-10}
-              max={200}
-              step={0.5}
-              defaultValue={buttonMarginLeftRight}
-              style={inputWidth("zlb")}
-              onInput={(e) => {
-                if (e.currentTarget.value) {
-                  setPref(
-                    "buttonMarginLeftRight",
-                    e.currentTarget.valueAsNumber,
-                  );
-                  setButtonMarginLeftRight(e.currentTarget.valueAsNumber);
-                }
-              }}
-            />
-            padding:
-            <input
-              type="number"
-              min={-10}
-              max={200}
-              step={0.5}
-              defaultValue={buttonPaddingTopBottom}
-              style={inputWidth("zlb")}
-              onInput={(e) => {
-                if (e.currentTarget.value) {
-                  setPref(
-                    "buttonPaddingTopBottom",
-                    e.currentTarget.valueAsNumber,
-                  );
-                  setButtonPaddingTopBottom(e.currentTarget.valueAsNumber);
-                }
-              }}
-            />
-            <input
-              type="number"
-              min={-10}
-              max={200}
-              step={0.5}
-              defaultValue={buttonPaddingLeftRight}
-              style={inputWidth("zlb")}
-              onInput={(e) => {
-                if (e.currentTarget.value) {
-                  setPref(
-                    "buttonPaddingLeftRight",
-                    e.currentTarget.valueAsNumber,
-                  );
-                  setButtonPaddingLeftRight(e.currentTarget.valueAsNumber);
-                }
-              }}
-            />
-            圆角:
-            <input
-              type="number"
-              min={0}
-              max={30}
-              step={0.5}
-              defaultValue={buttonBorderRadius}
-              style={inputWidth("zlb")}
-              onInput={(e) => {
-                if (e.currentTarget.value) {
-                  setPref("buttonBorderRadius", e.currentTarget.valueAsNumber);
-                  setButtonBorderRadius(e.currentTarget.valueAsNumber);
-                }
-              }}
-            />
-            <div>
-              排序规则：（未完成）
-              <label>
-                <input
-                  type="radio"
-                  value="0"
-                  name="relateItemSort"
-                  checked={relateItemSort === "0"}
-                  onChange={handleRelateItemSortChange}
-                />
-                字母顺序
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  value="1"
-                  name="relateItemSort"
-                  checked={relateItemSort === "1"}
-                  onChange={handleRelateItemSortChange}
-                />
-                使用次数
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  value="2"
-                  name="relateItemSort"
-                  checked={relateItemSort === "2"}
-                  onChange={handleRelateItemSortChange}
-                />
-                使用时间
-              </label>
-            </div>
-            <div>
-              相关标签的范围：（未完成）
-              <label>
-                <input
-                  type="checkbox"
-                  value="0"
-                  defaultChecked={getPrefT("TagRangeSelfItem", false)}
-                />
-                本条目
-              </label>
-              <label>
-                <input
-                  type="checkbox"
-                  value="0"
-                  defaultChecked={getPrefT("TagRangeSelfCollection", false)}
-                />
-                本条目所在文件夹[]
-              </label>
-              <label>
-                <input
-                  type="checkbox"
-                  value="0"
-                  defaultChecked={getPrefT("TagRangeSelfCollection", false)}
-                />
-                本条目所在文件夹以及子文件夹[]
-              </label>
-              <label>
-                <input
-                  type="checkbox"
-                  value="0"
-                  defaultChecked={getPrefT("TagRangeSelfCollection", false)}
-                />
-                我的文库所有文件
-              </label>
-            </div>
-            <div>Nest标签相关：（未完成）</div>
-            <div>Tag排除规则：（未完成）</div>
-          </span>
-        )}
-
-        <span
-          style={{ display: "flex", flexWrap: "wrap", alignItems: "center" }}
-        >
-          <span
-            style={{
-              ...tagStyle,
-              background: isShowConfig ? "#00990030" : "#99000030",
-            }}
-            onClick={() => {
-              setPref("show-config", !isShowConfig);
-              setShowConfig(!isShowConfig);
-            }}
+      <Popover
+        parentElement={parentElement}
+        boundaryElement={boundaryElement}
+        isOpen={isPopoverOpen}
+        positions={pPositions as any}
+        padding={pPadding}
+        boundaryInset={pBoundaryInset}
+        transformMode={pFixedContentLocation ? "absolute" : "relative"}
+        transform={
+          pFixedContentLocation
+            ? { left: pFixedContentLocationLeft, top: pFixedContentLocationTop }
+            : (popoverState) => ({
+                top: -popoverState.nudgedTop + 65,
+                left: -popoverState.nudgedLeft,
+              })
+        }
+        // onClickOutside={() => setIsPopoverOpen(false)}
+        // ref={clickMeButtonRef} // if you'd like a ref to your popover's child, you can grab one here
+        content={({ position, childRect, popoverRect }) => (
+          <ArrowContainer // if you'd like an arrow, you can import the ArrowContainer!
+            position={position}
+            childRect={childRect}
+            popoverRect={popoverRect}
+            arrowColor={"#aaaaaa"}
+            arrowSize={pArrowSize}
+            arrowStyle={{ opacity: 0.6 }}
+            // className='popover-arrow-container'
+            // arrowClassName='popover-arrow'
           >
-            设置
-          </span>
-          {existTags.length > 0 && (
-            <span
+            <div
               style={{
+                backgroundColor: bgColor,
+                opacity: 1,
+                whiteSpace: "break-spaces",
                 display: "flex",
                 flexWrap: "wrap",
-                fontSize: fontSize + "px",
-                lineHeight: lineHeight,
-                alignItems: "center",
+                maxWidth: "600px",
               }}
+              // onClick={() => setIsPopoverOpen(!isPopoverOpen)}
             >
-              现有标签：
-              {groupBy(existTags, (a) => a)
-                .sort(sortValuesLength)
-                .map((a) => (
-                  <span
-                    key={a.key}
-                    style={{
-                      ...tagStyle,
-                      whiteSpace: "nowrap",
-                      wordWrap: "normal",
-                      backgroundColor: memFixedColor(a.key, ""),
-                      boxShadow: "#ccc 0px 0px 4px 3px",
-                    }}
-                    onClick={() => {
-                      updateDelTags((dt) => {
-                        const i = dt.findIndex((f) => f == a.key);
-                        if (i > -1) {
-                          dt.splice(i, 1);
-                        } else {
-                          dt.push(a.key);
-                        }
-                      });
-                    }}
-                  >
-                    [{a.values.length}/{existAnnotations.length}]{a.key}
-                    {delTags.includes(a.key) && (
-                      <span style={{ background: "#990000", color: "#fff" }}>
-                        [待删除]
-                      </span>
-                    )}
-                  </span>
-                ))}
-            </span>
-          )}
-          {params.ids && (
-            <>
-              <span
-                style={{
-                  ...tagStyle,
-                  background: delTags.length > 0 ? "#990000" : "#009900",
-                  color: "#fff",
-                }}
-                onClick={() => {
-                  saveAnnotationTags("", [], delTags, reader, params, doc);
-                  root.remove();
-                }}
-              >
-                {delTags.length == 0
-                  ? (time > 0 ? time + "s" : "点击") + "关闭"
-                  : "确认删除"}
-              </span>
               {isShowConfig && (
                 <>
-                  设置
+                  <div>
+                    <label>
+                      pFixedContentLocation:
+                      <input
+                        type="checkbox"
+                        defaultChecked={pFixedContentLocation}
+                        onChange={(e) => {
+                          setPFixedContentLocation(e.currentTarget.checked);
+                          setPref(
+                            "pFixedContentLocation",
+                            e.currentTarget.checked,
+                          );
+                        }}
+                      />
+                    </label>
+                    {pFixedContentLocation && (
+                      <>
+                        left:{" "}
+                        <input
+                          type="number"
+                          min={0}
+                          step={1}
+                          max={200}
+                          defaultValue={pFixedContentLocationLeft}
+                          onInput={(e) => {
+                            if (e.currentTarget.value) {
+                              setPref(
+                                "pFixedContentLocationLeft",
+                                e.currentTarget.value,
+                              );
+                              setPFixedContentLocationLeft(
+                                e.currentTarget.valueAsNumber,
+                              );
+                            }
+                          }}
+                        />
+                        top:{" "}
+                        <input
+                          type="number"
+                          min={0}
+                          step={1}
+                          max={200}
+                          defaultValue={pFixedContentLocationTop}
+                          onInput={(e) => {
+                            if (e.currentTarget.value) {
+                              setPref(
+                                "pFixedContentLocationTop",
+                                e.currentTarget.value,
+                              );
+                              setPFixedContentLocationTop(
+                                e.currentTarget.valueAsNumber,
+                              );
+                            }
+                          }}
+                        />
+                      </>
+                    )}
+                    {!pFixedContentLocation && (
+                      <>
+                        padding:{" "}
+                        <input
+                          type="number"
+                          min={0}
+                          step={1}
+                          max={200}
+                          defaultValue={pPadding}
+                          onInput={(e) => {
+                            if (e.currentTarget.value) {
+                              setPref("pPadding", e.currentTarget.value);
+                              setPPadding(e.currentTarget.valueAsNumber);
+                            }
+                          }}
+                        />
+                        BoundaryInset:{" "}
+                        <input
+                          type="number"
+                          min={0}
+                          step={1}
+                          max={200}
+                          defaultValue={pBoundaryInset}
+                          onInput={(e) => {
+                            if (e.currentTarget.value) {
+                              setPref("pBoundaryInset", e.currentTarget.value);
+                              setPBoundaryInset(e.currentTarget.valueAsNumber);
+                            }
+                          }}
+                        />
+                        ArrowSize:{" "}
+                        <input
+                          type="number"
+                          min={0}
+                          step={1}
+                          max={200}
+                          defaultValue={pArrowSize}
+                          onInput={(e) => {
+                            if (e.currentTarget.value) {
+                              setPref("pArrowSize", e.currentTarget.value);
+                              setPArrowSize(e.currentTarget.valueAsNumber);
+                            }
+                          }}
+                        />
+                        Positions:{pPositions.join(",")}=
+                        {"bottom,left,top,right"
+                          .split(",")
+                          .sort(sortFixed(pPositions))}
+                        =
+                        {"bottom,left,top,right"
+                          .split(",")
+                          .sort(sortFixed(pPositions))
+                          .map((a, i) => (
+                            <span key={a} style={{ margin: "0 20px" }}>
+                              [
+                              {i > 0 && i < pPositions.length && (
+                                <span
+                                  onClick={() => {
+                                    updatePPositions((pPositions) => {
+                                      pPositions.splice(
+                                        i - 1,
+                                        0,
+                                        ...pPositions.splice(i, 1),
+                                      );
+                                      setPref(
+                                        "pPositions",
+                                        pPositions.join(","),
+                                      );
+                                    });
+                                  }}
+                                >
+                                  前
+                                </span>
+                              )}
+                              <label style={{ margin: "0 10px" }}>
+                                <input
+                                  type="checkbox"
+                                  defaultChecked={pPositions.includes(a)}
+                                  onChange={(e) => {
+                                    updatePPositions((pPositions) => {
+                                      const index = pPositions.findIndex(
+                                        (f) => f == a,
+                                      );
+                                      if (index > -1) pPositions.splice(i, 1);
+                                      else pPositions.push(a);
+                                      setPref(
+                                        "pPositions",
+                                        pPositions.join(","),
+                                      );
+                                    });
+                                  }}
+                                />
+                                {a}
+                              </label>
+                              {i < pPositions.length - 1 && (
+                                <span
+                                  onClick={() => {
+                                    updatePPositions((pPositions) => {
+                                      pPositions.splice(
+                                        i + 1,
+                                        0,
+                                        ...pPositions.splice(i, 1),
+                                      );
+                                      setPref(
+                                        "pPositions",
+                                        pPositions.join(","),
+                                      );
+                                    });
+                                  }}
+                                >
+                                  后
+                                </span>
+                              )}
+                              ]
+                            </span>
+                          ))}
+                      </>
+                    )}
+                  </div>
+
+                  <HexColorPicker
+                    color={bgColor}
+                    onChange={(e) => {
+                      setBgColor(e);
+                      setPref("bgColor", e);
+                    }}
+                  />
+                  <span style={{ background: "$fff" }}>背景颜色</span>
+                </>
+              )}
+              <div
+                style={{
+                  fontSize: "18px",
+                  lineHeight: "1.5",
+                  // background: "#fff",
+                  boxShadow: params.ids ? "rgb(0, 0, 0) 0 0 3px 0px inset" : "",
+                }}
+                onClick={() => setTime(-1)}
+              >
+                {isShowConfig && (
+                  <span>
+                    {!params.ids && (
+                      <span>
+                        <span></span>
+                        颜色栏：
+                        <label>
+                          <input
+                            type="checkbox"
+                            defaultChecked={isShowSelectedPopupColorsTag}
+                            onInput={(e) => {
+                              setPref(
+                                "show-selected-popup-colors-tag",
+                                e.currentTarget.checked,
+                              );
+                              setShowSelectedPopupColorsTag(
+                                e.currentTarget.checked,
+                              );
+                            }}
+                          />
+                          {getString("pref-show-selected-popup-colors-tag", {
+                            branch: "label",
+                          })}
+                        </label>
+                        <label>
+                          <input
+                            type="checkbox"
+                            defaultChecked={isShowSelectedPopupMatchTag}
+                            onInput={(e) => {
+                              setPref(
+                                "show-selected-popup-match-tag",
+                                e.currentTarget.checked,
+                              );
+                              setShowSelectedPopupMatchTag(
+                                e.currentTarget.checked,
+                              );
+                            }}
+                          />
+                          {getString("pref-show-selected-popup-match-tag", {
+                            branch: "label",
+                          })}
+                        </label>
+                        <br />
+                      </span>
+                    )}
+                    <span>
+                      显示
+                      <input
+                        type="number"
+                        defaultValue={showTagsLength}
+                        min={0}
+                        max={100}
+                        style={inputWidth("zlb")}
+                        onInput={(e) => {
+                          setPref("showTagsLength", e.currentTarget.value);
+                          setShowTagsLength(e.currentTarget.valueAsNumber);
+                        }}
+                      />
+                      个。
+                    </span>
+                    <span style={{ whiteSpace: "nowrap", wordWrap: "normal" }}>
+                      字体大小:
+                      <input
+                        type="number"
+                        min={6}
+                        max={72}
+                        step={0.5}
+                        defaultValue={fontSize}
+                        style={inputWidth("zlb")}
+                        onInput={(e) => {
+                          if (e.currentTarget.value) {
+                            setPref("font-size", e.currentTarget.valueAsNumber);
+                            setFontSize(e.currentTarget.valueAsNumber);
+                          }
+                        }}
+                      />
+                      px。
+                    </span>
+                    行高:
+                    <input
+                      type="number"
+                      defaultValue={lineHeight}
+                      min={0.1}
+                      max={3}
+                      step={0.1}
+                      style={inputWidth("zlb")}
+                      onInput={(e) => {
+                        setPref("line-height", e.currentTarget.value);
+                        setLineHeight(e.currentTarget.value);
+                      }}
+                    />
+                    margin:
+                    <input
+                      type="number"
+                      min={-10}
+                      max={200}
+                      step={0.5}
+                      defaultValue={buttonMarginTopBottom}
+                      style={inputWidth("zlb")}
+                      onInput={(e) => {
+                        if (e.currentTarget.value) {
+                          setPref(
+                            "buttonMarginTopBottom",
+                            e.currentTarget.valueAsNumber,
+                          );
+                          setButtonMarginTopBottom(
+                            e.currentTarget.valueAsNumber,
+                          );
+                        }
+                      }}
+                    />
+                    <input
+                      type="number"
+                      min={-10}
+                      max={200}
+                      step={0.5}
+                      defaultValue={buttonMarginLeftRight}
+                      style={inputWidth("zlb")}
+                      onInput={(e) => {
+                        if (e.currentTarget.value) {
+                          setPref(
+                            "buttonMarginLeftRight",
+                            e.currentTarget.valueAsNumber,
+                          );
+                          setButtonMarginLeftRight(
+                            e.currentTarget.valueAsNumber,
+                          );
+                        }
+                      }}
+                    />
+                    padding:
+                    <input
+                      type="number"
+                      min={-10}
+                      max={200}
+                      step={0.5}
+                      defaultValue={buttonPaddingTopBottom}
+                      style={inputWidth("zlb")}
+                      onInput={(e) => {
+                        if (e.currentTarget.value) {
+                          setPref(
+                            "buttonPaddingTopBottom",
+                            e.currentTarget.valueAsNumber,
+                          );
+                          setButtonPaddingTopBottom(
+                            e.currentTarget.valueAsNumber,
+                          );
+                        }
+                      }}
+                    />
+                    <input
+                      type="number"
+                      min={-10}
+                      max={200}
+                      step={0.5}
+                      defaultValue={buttonPaddingLeftRight}
+                      style={inputWidth("zlb")}
+                      onInput={(e) => {
+                        if (e.currentTarget.value) {
+                          setPref(
+                            "buttonPaddingLeftRight",
+                            e.currentTarget.valueAsNumber,
+                          );
+                          setButtonPaddingLeftRight(
+                            e.currentTarget.valueAsNumber,
+                          );
+                        }
+                      }}
+                    />
+                    圆角:
+                    <input
+                      type="number"
+                      min={0}
+                      max={30}
+                      step={0.5}
+                      defaultValue={buttonBorderRadius}
+                      style={inputWidth("zlb")}
+                      onInput={(e) => {
+                        if (e.currentTarget.value) {
+                          setPref(
+                            "buttonBorderRadius",
+                            e.currentTarget.valueAsNumber,
+                          );
+                          setButtonBorderRadius(e.currentTarget.valueAsNumber);
+                        }
+                      }}
+                    />
+                    <div>
+                      排序规则：（未完成）
+                      <label>
+                        <input
+                          type="radio"
+                          value="0"
+                          name="relateItemSort"
+                          checked={relateItemSort === "0"}
+                          onChange={handleRelateItemSortChange}
+                        />
+                        字母顺序
+                      </label>
+                      <label>
+                        <input
+                          type="radio"
+                          value="1"
+                          name="relateItemSort"
+                          checked={relateItemSort === "1"}
+                          onChange={handleRelateItemSortChange}
+                        />
+                        使用次数
+                      </label>
+                      <label>
+                        <input
+                          type="radio"
+                          value="2"
+                          name="relateItemSort"
+                          checked={relateItemSort === "2"}
+                          onChange={handleRelateItemSortChange}
+                        />
+                        使用时间
+                      </label>
+                    </div>
+                    <div>
+                      相关标签的范围：（未完成）
+                      <label>
+                        <input
+                          type="checkbox"
+                          value="0"
+                          defaultChecked={getPrefAs("TagRangeSelfItem", false)}
+                        />
+                        本条目
+                      </label>
+                      <label>
+                        <input
+                          type="checkbox"
+                          value="0"
+                          defaultChecked={getPrefAs(
+                            "TagRangeSelfCollection",
+                            false,
+                          )}
+                        />
+                        本条目所在文件夹[]
+                      </label>
+                      <label>
+                        <input
+                          type="checkbox"
+                          value="0"
+                          defaultChecked={getPrefAs(
+                            "TagRangeSelfCollection",
+                            false,
+                          )}
+                        />
+                        本条目所在文件夹以及子文件夹[]
+                      </label>
+                      <label>
+                        <input
+                          type="checkbox"
+                          value="0"
+                          defaultChecked={getPrefAs(
+                            "TagRangeSelfCollection",
+                            false,
+                          )}
+                        />
+                        我的文库所有文件
+                      </label>
+                    </div>
+                    <div>Nest标签相关：（未完成）</div>
+                    <div>Tag排除规则：（未完成）</div>
+                  </span>
+                )}
+
+                <span
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    alignItems: "center",
+                  }}
+                >
+                  <span
+                    style={{
+                      ...tagStyle,
+                      background: isShowConfig ? "#00990030" : "#99000030",
+                    }}
+                    onClick={() => {
+                      setPref("show-config", !isShowConfig);
+                      setShowConfig(!isShowConfig);
+                    }}
+                  >
+                    设置
+                  </span>
+                  {existTags.length > 0 && (
+                    <span
+                      style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        fontSize: fontSize + "px",
+                        lineHeight: lineHeight,
+                        alignItems: "center",
+                      }}
+                    >
+                      现有标签：
+                      {groupBy(existTags, (a) => a)
+                        .sort(sortValuesLength)
+                        .map((a) => (
+                          <span
+                            key={a.key}
+                            style={{
+                              ...tagStyle,
+                              whiteSpace: "nowrap",
+                              wordWrap: "normal",
+                              backgroundColor: memFixedColor(a.key, ""),
+                              boxShadow: "#ccc 0px 0px 4px 3px",
+                            }}
+                            onClick={() => {
+                              updateDelTags((dt) => {
+                                const i = dt.findIndex((f) => f == a.key);
+                                if (i > -1) {
+                                  dt.splice(i, 1);
+                                } else {
+                                  dt.push(a.key);
+                                }
+                              });
+                            }}
+                          >
+                            [{a.values.length}/{existAnnotations.length}]{a.key}
+                            {delTags.includes(a.key) && (
+                              <span
+                                style={{ background: "#990000", color: "#fff" }}
+                              >
+                                [待删除]
+                              </span>
+                            )}
+                          </span>
+                        ))}
+                    </span>
+                  )}
+                  {params.ids && (
+                    <>
+                      <span
+                        style={{
+                          ...tagStyle,
+                          background:
+                            delTags.length > 0 ? "#990000" : "#009900",
+                          color: "#fff",
+                        }}
+                        onClick={() => {
+                          saveAnnotationTags(
+                            "",
+                            [],
+                            delTags,
+                            reader,
+                            params,
+                            doc,
+                          );
+                          root.remove();
+                        }}
+                      >
+                        {delTags.length == 0
+                          ? (time > 0 ? time + "s" : "点击") + "关闭"
+                          : "确认删除"}
+                      </span>
+                      {isShowConfig && (
+                        <>
+                          设置
+                          <input
+                            style={inputWidth("zlb")}
+                            type="number"
+                            min={5}
+                            max={100}
+                            defaultValue={getPrefAs("autoCloseSeconds", 15)}
+                            onInput={(e) => {
+                              if (e.currentTarget.value) {
+                                setTime(e.currentTarget.valueAsNumber);
+                                setPref(
+                                  "autoCloseSeconds",
+                                  e.currentTarget.valueAsNumber,
+                                );
+                              }
+                            }}
+                          />
+                          秒后自动关闭
+                        </>
+                      )}
+                    </>
+                  )}
                   <input
-                    style={inputWidth("zlb")}
-                    type="number"
-                    min={5}
-                    max={100}
-                    defaultValue={getPrefT("autoCloseSeconds", 15)}
-                    onInput={(e) => {
-                      if (e.currentTarget.value) {
-                        setTime(e.currentTarget.valueAsNumber);
-                        setPref(
-                          "autoCloseSeconds",
-                          e.currentTarget.valueAsNumber,
+                    type="text"
+                    autoFocus={true}
+                    defaultValue={searchTag}
+                    onInput={(e) => setSearchTag(e.currentTarget.value)}
+                    style={{ ...inputWidth(searchTag), minWidth: "15ch" }}
+                    placeholder="搜索标签，按回车添加"
+                    onKeyDown={(e) => {
+                      // ztoolkit.log(e)
+                      if (time > 0) {
+                        setTime(-1);
+                      }
+                      if (e.code == "Enter") {
+                        saveAnnotationTags(
+                          searchTag,
+                          [],
+                          [],
+                          reader,
+                          params,
+                          doc,
                         );
+                        if (params.ids) {
+                          root.remove();
+                        }
+                        return;
+                      }
+                      if (e.code == "Escape") {
+                        //@ts-ignore _onSetSelectionPopup
+                        reader?._primaryView._onSetSelectionPopup(null);
+                        root.remove();
+                        return;
                       }
                     }}
                   />
-                  秒后自动关闭
-                </>
-              )}
-            </>
-          )}
-          <input
-            type="text"
-            autoFocus={true}
-            defaultValue={searchTag}
-            onInput={(e) => setSearchTag(e.currentTarget.value)}
-            style={{ ...inputWidth(searchTag), minWidth: "15ch" }}
-            placeholder='搜索标签，按回车添加'
-            onKeyDown={(e) => {
-              // ztoolkit.log(e)
-              if (time > 0) { setTime(-1) }
-              if (e.code == "Enter") {
-                saveAnnotationTags(searchTag, [], [], reader, params, doc);
-                if (params.ids) {
-                  root.remove();
-                }
-              }
-              if (e.code == "Escape") {
-                //@ts-ignore _onSetSelectionPopup
-                reader?._primaryView._onSetSelectionPopup(null);
-                root.remove()
-              }
-            }}
-          />
-          <span style={tagStyle}>固定标签来自【{currentPosition}】 </span>{" "}
-          <span style={tagStyle}>
-            {" "}
-            相关标签来自【{currentPosition}】{displayTags.length}/
-            {searchResultLength}:
-          </span>
-          {displayTags.map((tag) => (
-            <span
-              key={tag.key}
-              style={{
-                ...tagStyle,
-                whiteSpace: "nowrap",
-                wordWrap: "normal",
-                backgroundColor: memFixedColor(tag.key, ""),
-                boxShadow: "#ccc 0px 0px 4px 3px",
-                // borderRadius: "3px",
-              }}
-              onClick={() => {
-                if (isShowConfig) return;
-                saveAnnotationTags(tag.key, [], [], reader, params, doc);
-                if (params.ids) {
-                  root.remove();
-                }
-              }}
-            >
-              <span>[{tag.values.length}]</span>
-              <span>{tag.key}</span>
+                  <span style={tagStyle}>
+                    固定标签来自【{currentPosition}】{" "}
+                  </span>{" "}
+                  <span style={tagStyle}>
+                    {" "}
+                    相关标签来自【{currentPosition}】{displayTags.length}/
+                    {searchResultLength}:
+                  </span>
+                  {displayTags.map((tag) => (
+                    <span
+                      key={tag.key}
+                      style={{
+                        ...tagStyle,
+                        whiteSpace: "nowrap",
+                        wordWrap: "normal",
+                        backgroundColor: memFixedColor(tag.key, ""),
+                        boxShadow: "#ccc 0px 0px 4px 3px",
+                        // borderRadius: "3px",
+                      }}
+                      onClick={() => {
+                        if (isShowConfig) return;
+                        saveAnnotationTags(
+                          tag.key,
+                          [],
+                          [],
+                          reader,
+                          params,
+                          doc,
+                        );
+                        if (params.ids) {
+                          root.remove();
+                        }
+                      }}
+                    >
+                      <span>[{tag.values.length}]</span>
+                      <span>{tag.key}</span>
 
-              {isShowConfig && (<>
-                <span style={{ background: "#fff", color: "#000", border: "1px solid #000" }}>选择颜色</span>
-                {memFixedTags().includes(tag.key) ? (<><span style={{ background: "#fff", color: "#000", border: "1px solid #000" }}>移除固定</span>
-                  <span style={{ background: "#fff", color: "#000", border: "1px solid #000" }}>左移</span>
-                  <span style={{ background: "#fff", color: "#000", border: "1px solid #000" }}>右移</span>
-
-                </>) :
-                  <span style={{ background: "#fff", color: "#000", border: "1px solid #000" }}>设置固定</span>}
-              </>)}
-            </span>
-          ))}
-        </span>
-      </div>
+                      {isShowConfig && (
+                        <>
+                          <span
+                            style={{
+                              background: "#fff",
+                              color: "#000",
+                              border: "1px solid #000",
+                            }}
+                          >
+                            选择颜色
+                          </span>
+                          {memFixedTags().includes(tag.key) ? (
+                            <>
+                              <span
+                                style={{
+                                  background: "#fff",
+                                  color: "#000",
+                                  border: "1px solid #000",
+                                }}
+                              >
+                                移除固定
+                              </span>
+                              <span
+                                style={{
+                                  background: "#fff",
+                                  color: "#000",
+                                  border: "1px solid #000",
+                                }}
+                              >
+                                左移
+                              </span>
+                              <span
+                                style={{
+                                  background: "#fff",
+                                  color: "#000",
+                                  border: "1px solid #000",
+                                }}
+                              >
+                                右移
+                              </span>
+                            </>
+                          ) : (
+                            <span
+                              style={{
+                                background: "#fff",
+                                color: "#000",
+                                border: "1px solid #000",
+                              }}
+                            >
+                              设置固定
+                            </span>
+                          )}
+                        </>
+                      )}
+                    </span>
+                  ))}
+                </span>
+              </div>
+            </div>
+          </ArrowContainer>
+        )}
+      >
+        <div
+          style={{
+            width: "100%",
+            position: "absolute",
+            height: (selectionPopupSize?.height || 120) + "px",
+            top: "0",
+            // background: "#f00", opacity: "0",
+            zIndex: "-1",
+          }}
+        >
+          {/* <button onClick={() => setIsPopoverOpen(!isPopoverOpen)}
+            style={{ backgroundColor: color + " !important" }}>
+            Click me! {JSON.stringify(popSize) + "1"} {JSON.stringify(selectionPopupSize) + "2"}
+          </button>
+          <span style={{ backgroundColor: color }}> {color}</span> */}
+          {/* {JSON.stringify(selectionPopupSize)} */}
+        </div>
+      </Popover>
     </>
   );
 }

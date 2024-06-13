@@ -1,4 +1,17 @@
 import { groupByResult, memFixedTags } from "./zzlb";
+export function sortFixed(fixed: string[]): (a: string, b: string) => number {
+  return (a: string, b: string) => {
+    if (fixed.includes(a) && fixed.includes(b)) {
+      return fixed.indexOf(a) - fixed.indexOf(b);
+    } else if (fixed.includes(a)) {
+      return -1;
+    } else if (fixed.includes(b)) {
+      return 1;
+    }
+    return 0;
+  };
+}
+
 export function sortTags(
   fixed: string[] | undefined,
   a: { key: string },

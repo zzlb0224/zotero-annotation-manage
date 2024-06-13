@@ -42,11 +42,13 @@ async function onStartup() {
   // UIExampleFactory.registerReaderItemPaneSection();
 
   await onMainWindowLoad(window);
+  self = window;
 }
 
 async function onMainWindowLoad(win: Window): Promise<void> {
   // Create ztoolkit for every window
   addon.data.ztoolkit = createZToolkit();
+  win.console.log("eeeeeee");
 
   // @ts-ignore This is a moz feature
   // window.MozXULElement.insertFTLIfNeeded(`${config.addonRef}-mainWindow.ftl`);

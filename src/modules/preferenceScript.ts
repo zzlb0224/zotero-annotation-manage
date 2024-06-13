@@ -671,11 +671,11 @@ async function replaceTagsPreviewDiv(doc?: Document) {
     preview.appendChild(rootDiv);
     rootDiv.innerText = `预览批注来自：${from}。条目：${ann.parentItem?.parentItem?.getDisplayTitle()}。
         包含标签: [${ann
-        .getTags()
-        .map((a) => a.tag)
-        .join(
-          ",",
-        )}]内容：${ann.annotationType} ${ann.annotationText || ""} ${ann.annotationComment || ""}
+          .getTags()
+          .map((a) => a.tag)
+          .join(
+            ",",
+          )}]内容：${ann.annotationType} ${ann.annotationText || ""} ${ann.annotationComment || ""}
         `;
     rootDiv.style.position = "";
     rootDiv.style.width = "";
