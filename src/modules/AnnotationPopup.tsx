@@ -32,7 +32,7 @@ import { getString } from "../utils/locale";
 import { useImmer } from "use-immer";
 import { ArrowContainer, Popover, usePopover } from "react-tiny-popover";
 import { HexColorPicker } from "react-colorful";
-import { ChangeColor } from '../component/ChangeColor';
+import { ChangeColor } from "../component/ChangeColor";
 
 export class AnnotationPopup {
   reader?: _ZoteroTypes.ReaderInstance;
@@ -80,8 +80,8 @@ export class AnnotationPopup {
     this.isExistAnno = !!params?.ids;
     this.existAnnotations = this.isExistAnno
       ? this.item!.getAnnotations().filter((f) =>
-        this.params?.ids.includes(f.key),
-      )
+          this.params?.ids.includes(f.key),
+        )
       : [];
     // 这里引发的 #38 ，可能是json循环输出的问题？
     // ztoolkit.log(this, this.existAnnotations);
@@ -1432,7 +1432,7 @@ export function PopupRoot({
   const [delTags, updateDelTags] = useImmer([] as string[]);
 
   const [displayTags, updateDisplayTags] = useImmer(
-    [] as { key: string; values: { tag: string; }[], color?: string }[] // groupByResult<{ tag: string; type: number, dateModified?: string, color: string }>[],
+    [] as { key: string; values: { tag: string }[]; color?: string }[], // groupByResult<{ tag: string; type: number, dateModified?: string, color: string }>[],
   );
   const [searchTag, setSearchTag] = useState("");
   const [currentPosition, setCurrentPosition] = useState(
@@ -1444,7 +1444,10 @@ export function PopupRoot({
   );
 
   const [relateTags, setRelateTags] = useState(
-    [] as { key: string, values: { tag: string; type: number; dateModified: string }[] }[],
+    [] as {
+      key: string;
+      values: { tag: string; type: number; dateModified: string }[];
+    }[],
   );
   // groupByResult<{ tag: string; type: number; dateModified: string }>[]
   useEffect(() => {
@@ -1498,8 +1501,8 @@ export function PopupRoot({
     loadData();
   }, [relateItemShowAll, relateItemShowRelateTags, relateItemSort]);
   const [, updateState] = React.useState();
-  const forceUpdate = React.useCallback(() => updateState(({})), []);
-  const [, forceRerender] = React.useReducer(x => x + 1, 0)
+  const forceUpdate = React.useCallback(() => updateState({}), []);
+  const [, forceRerender] = React.useReducer((x) => x + 1, 0);
   useEffect(() => {
     async function search() {
       let searchResult = relateTags;
@@ -1520,14 +1523,20 @@ export function PopupRoot({
         );
       }
       setSearchResultLength(searchResult.length);
-      updateDisplayTags(searchResult.slice(0, showTagsLength).map(a => Object.assign({}, a, { color: memFixedColor(a.key, "") })));
+      updateDisplayTags(
+        searchResult
+          .slice(0, showTagsLength)
+          .map((a) =>
+            Object.assign({}, a, { color: memFixedColor(a.key, "") }),
+          ),
+      );
       // setIsPopoverOpen(true)
       // forceRerender()
       //要出发弹出窗口重绘是不是有更简单的办法
-      setPPadding(pPadding + 0.1)
+      setPPadding(pPadding + 0.1);
       setTimeout(() => {
-        setPPadding(pPadding - 0.1)
-      })
+        setPPadding(pPadding - 0.1);
+      });
     }
 
     search();
@@ -1631,7 +1640,7 @@ export function PopupRoot({
   const [pFixedContentLocationTop, setPFixedContentLocationTop] = useState(
     getPrefAs("pFixedContentLocationTop", 0),
   );
-  const [isShowBgColor, setIsShowBgColor] = useState(false)
+  const [isShowBgColor, setIsShowBgColor] = useState(false);
   const selectionPopup = (
     tabDiv.querySelector("browser") as HTMLIFrameElement
   ).contentDocument?.querySelector(
@@ -1645,7 +1654,7 @@ export function PopupRoot({
   });
   useEffect(() => {
     const ResizeObserver = ztoolkit.getGlobal("ResizeObserver");
-    const resizeObserver = new ResizeObserver(entries => {
+    const resizeObserver = new ResizeObserver((entries) => {
       setSelectionPopupSize({
         width: selectionPopup.clientWidth,
         height: selectionPopup.clientHeight,
@@ -1657,9 +1666,7 @@ export function PopupRoot({
       height: selectionPopup.clientHeight,
     });
 
-
-    return () => resizeObserver.disconnect()
-
+    return () => resizeObserver.disconnect();
   }, []);
 
   const popMaxWidthRef = useRef<HTMLDivElement>(null);
@@ -1697,10 +1704,10 @@ export function PopupRoot({
 
     updatePopupSize();
   }, [selectionPopupSize]);
-  boundaryElement.style.border = "1px solid red"
+  boundaryElement.style.border = "1px solid red";
   useEffect(() => {
-    setPBoundaryInset(pBoundaryInset => pBoundaryInset)
-  }, [displayTags])
+    setPBoundaryInset((pBoundaryInset) => pBoundaryInset);
+  }, [displayTags]);
   return (
     <>
       <Popover
@@ -1715,9 +1722,9 @@ export function PopupRoot({
           pFixedContentLocation
             ? { left: pFixedContentLocationLeft, top: pFixedContentLocationTop }
             : (popoverState) => ({
-              top: -popoverState.nudgedTop + 65,
-              left: -popoverState.nudgedLeft,
-            })
+                top: -popoverState.nudgedTop + 65,
+                left: -popoverState.nudgedLeft,
+              })
         }
         // onClickOutside={() => setIsPopoverOpen(false)}
         // ref={clickMeButtonRef} // if you'd like a ref to your popover's child, you can grab one here
@@ -1729,8 +1736,8 @@ export function PopupRoot({
             arrowColor={"#aaaaaa"}
             arrowSize={pArrowSize}
             arrowStyle={{ opacity: 0.6 }}
-          // className='popover-arrow-container'
-          // arrowClassName='popover-arrow'
+            // className='popover-arrow-container'
+            // arrowClassName='popover-arrow'
           >
             <div
               ref={popMaxWidthRef}
@@ -1745,17 +1752,17 @@ export function PopupRoot({
                 width: "600px",
                 minHeight: "100px",
               }}
-            // onClick={() => setIsPopoverOpen(!isPopoverOpen)}
+              // onClick={() => setIsPopoverOpen(!isPopoverOpen)}
             >
               {isShowConfig && (
                 <>
-                  <div style={
-                    {
+                  <div
+                    style={{
                       fontSize: "18px",
                       lineHeight: "1.5",
-                    }}>
+                    }}
+                  >
                     <label>
-
                       <input
                         type="checkbox"
                         defaultChecked={pFixedContentLocation}
@@ -1766,7 +1773,8 @@ export function PopupRoot({
                             e.currentTarget.checked,
                           );
                         }}
-                      />固定弹出区域
+                      />
+                      固定弹出区域
                     </label>
                     {pFixedContentLocation && (
                       <>
@@ -1775,7 +1783,8 @@ export function PopupRoot({
                           type="number"
                           min={0}
                           step={10}
-                          max={500} style={inputWidth("zlb")}
+                          max={500}
+                          style={inputWidth("zlb")}
                           defaultValue={pFixedContentLocationLeft}
                           onInput={(e) => {
                             if (e.currentTarget.value) {
@@ -1794,7 +1803,8 @@ export function PopupRoot({
                           type="number"
                           min={0}
                           step={10}
-                          max={1000} style={inputWidth("zzlb")}
+                          max={1000}
+                          style={inputWidth("zzlb")}
                           defaultValue={pFixedContentLocationTop}
                           onInput={(e) => {
                             if (e.currentTarget.value) {
@@ -1817,7 +1827,8 @@ export function PopupRoot({
                           type="number"
                           min={0}
                           step={1}
-                          max={200} style={inputWidth("zlb")}
+                          max={200}
+                          style={inputWidth("zlb")}
                           defaultValue={pPadding}
                           onInput={(e) => {
                             if (e.currentTarget.value) {
@@ -1831,7 +1842,8 @@ export function PopupRoot({
                           type="number"
                           min={0}
                           step={1}
-                          max={200} style={inputWidth("zlb")}
+                          max={200}
+                          style={inputWidth("zlb")}
                           defaultValue={pBoundaryInset}
                           onInput={(e) => {
                             if (e.currentTarget.value) {
@@ -1845,7 +1857,8 @@ export function PopupRoot({
                           type="number"
                           min={0}
                           step={1}
-                          max={200} style={inputWidth("zlb")}
+                          max={200}
+                          style={inputWidth("zlb")}
                           defaultValue={pArrowSize}
                           onInput={(e) => {
                             if (e.currentTarget.value) {
@@ -1924,11 +1937,14 @@ export function PopupRoot({
                           ))}
                       </>
                     )}
-                    <ChangeColor text='调整背景颜色' color={bgColor} onChange={(e) => {
-                      setBgColor(e);
-                      setPref("bgColor", e);
-                    }}></ChangeColor>
-
+                    <ChangeColor
+                      text="调整背景颜色"
+                      color={bgColor}
+                      onChange={(e) => {
+                        setBgColor(e);
+                        setPref("bgColor", e);
+                      }}
+                    ></ChangeColor>
                   </div>
                 </>
               )}
@@ -2399,16 +2415,19 @@ export function PopupRoot({
                         <>
                           {memFixedTags().includes(tag.key) ? (
                             <>
-                              <ChangeColor text='颜色' color={memFixedColor(tag.key)} onChange={(e) => {
-                                updateDisplayTags(a => {
-                                  for (const b of a) {
-                                    if (b.key == tag.key) {
-                                      b.color = e
+                              <ChangeColor
+                                text="颜色"
+                                color={memFixedColor(tag.key)}
+                                onChange={(e) => {
+                                  updateDisplayTags((a) => {
+                                    for (const b of a) {
+                                      if (b.key == tag.key) {
+                                        b.color = e;
+                                      }
                                     }
-                                  }
-                                })
-
-                              }} />
+                                  });
+                                }}
+                              />
                               {/* <span
                                 style={{
                                   background: "#fff",
@@ -2455,9 +2474,8 @@ export function PopupRoot({
                 </span>
               </div>
             </div>
-          </ArrowContainer >
-        )
-        }
+          </ArrowContainer>
+        )}
       >
         <div
           style={{
@@ -2477,8 +2495,7 @@ export function PopupRoot({
           <span style={{ backgroundColor: color }}> {color}</span> */}
           {/* {JSON.stringify(selectionPopupSize)} */}
         </div>
-      </Popover >
+      </Popover>
     </>
   );
 }
-
