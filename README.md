@@ -105,6 +105,15 @@
 
 ![使用镜像](doc/添加镜像站点.png)
 
+### 建议的固定标签配置
+
+根据个人习惯配置固定在前面的标签。我为你准备了这么多，你看够不够用？
+评ps:另外颜色要用小写，不然可能会报错颜色错误。感谢 [@Geo123abc] 提的想法
+
+```
+目的, #ffd400,  假设, #ff6666,  框架, #5fb236,  数据, #2ea8e5量表, #a28ae5, 方法, #e56eee, 理论, #f19837, 结论, #aaaaaa, 贡献, #69af15, 未来, #ba898e, 背景, #ee8574, 现状, #6a99e7, 问题, #e65fa1, 对策, #62e0ef
+```
+
 ## 感谢
 
 本插件基于[@windingwind](https://github.com/windingwind)的[zotero-plugin-template](https://github.com/windingwind/zotero-plugin-template)开发，在此表示感谢。
