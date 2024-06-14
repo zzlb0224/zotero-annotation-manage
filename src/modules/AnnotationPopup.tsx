@@ -80,8 +80,8 @@ export class AnnotationPopup {
     this.isExistAnno = !!params?.ids;
     this.existAnnotations = this.isExistAnno
       ? this.item!.getAnnotations().filter((f) =>
-          this.params?.ids.includes(f.key),
-        )
+        this.params?.ids.includes(f.key),
+      )
       : [];
     // 这里引发的 #38 ，可能是json循环输出的问题？
     // ztoolkit.log(this, this.existAnnotations);
@@ -1744,9 +1744,9 @@ export function PopupRoot({
           pFixedContentLocation
             ? { left: pFixedContentLocationLeft, top: pFixedContentLocationTop }
             : (popoverState) => ({
-                top: -popoverState.nudgedTop + 65,
-                left: -popoverState.nudgedLeft,
-              })
+              top: -popoverState.nudgedTop + 65,
+              left: -popoverState.nudgedLeft,
+            })
         }
         // onClickOutside={() => setIsPopoverOpen(false)}
         // ref={clickMeButtonRef} // if you'd like a ref to your popover's child, you can grab one here
@@ -1759,8 +1759,8 @@ export function PopupRoot({
             arrowSize={pArrowSize}
             arrowStyle={{ opacity: 0.6 }}
 
-            // className='popover-arrow-container'
-            // arrowClassName='popover-arrow'
+          // className='popover-arrow-container'
+          // arrowClassName='popover-arrow'
           >
             <div
               ref={popMaxWidthRef}
@@ -1775,7 +1775,7 @@ export function PopupRoot({
                 width: "600px",
                 minHeight: "100px",
               }}
-              // onClick={() => setIsPopoverOpen(!isPopoverOpen)}
+            // onClick={() => setIsPopoverOpen(!isPopoverOpen)}
             >
               {isShowConfig && (
                 <>
@@ -2324,6 +2324,7 @@ export function PopupRoot({
                           color: "#fff",
                         }}
                         onClick={() => {
+                          setIsPopoverOpen(false);
                           saveAnnotationTags(
                             "",
                             [],
@@ -2376,6 +2377,7 @@ export function PopupRoot({
                         setTime(-1);
                       }
                       if (e.code == "Enter") {
+                        setIsPopoverOpen(false);
                         saveAnnotationTags(
                           searchTag,
                           [],
@@ -2418,6 +2420,7 @@ export function PopupRoot({
                       }}
                       onClick={() => {
                         if (isShowConfig) return;
+                        setIsPopoverOpen(false);
                         saveAnnotationTags(
                           tag.key,
                           [],
