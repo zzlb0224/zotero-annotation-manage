@@ -498,7 +498,7 @@ export class AnnotationPopup {
   }
   getAnnotationPositionLeft() {
     const page = this.getCurrentPageDiv();
-    const rotation = page.querySelector(
+    const rotation = page?.querySelector(
       '.textLayer[data-main-rotation="90"],.textLayer[data-main-rotation="270"]',
     )
       ? 1
@@ -508,7 +508,7 @@ export class AnnotationPopup {
   }
   getAnnotationPositionRight() {
     const page = this.getCurrentPageDiv();
-    const rotation = page.querySelector(
+    const rotation = page?.querySelector(
       '.textLayer[data-main-rotation="90"],.textLayer[data-main-rotation="270"]',
     )
       ? 1
