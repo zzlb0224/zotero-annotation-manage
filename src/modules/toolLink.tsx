@@ -184,6 +184,8 @@ async function changeFromText(text: string, panel: HTMLDivElement) {
               backgroundColor: "#ef4971",
               color: "#fff",
               margin: "5px",
+              borderRadius: "5px",
+              cursor: "pointer",
             },
             listeners: [
               {
@@ -295,6 +297,7 @@ async function changeFromText(text: string, panel: HTMLDivElement) {
               backgroundColor: "#e9ba36",
               margin: "5px",
               cursor: "pointer",
+              borderRadius: "5px",
             },
             listeners: [
               {
@@ -321,6 +324,7 @@ async function changeFromText(text: string, panel: HTMLDivElement) {
                 backgroundColor: "#b4f281",
                 margin: "5px",
                 cursor: "pointer",
+                borderRadius: "5px",
               },
               listeners: [
                 {
