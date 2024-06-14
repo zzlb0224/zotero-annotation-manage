@@ -52,6 +52,8 @@ function renderTextSelectionPopup(
   const div = ap.rootDiv;
   // const div = createDiv(reader, params);
   if (div) {
+    // append(div);
+    // reader?._iframeWindow?.document.body.appendChild(div)
     append(div);
   }
 }

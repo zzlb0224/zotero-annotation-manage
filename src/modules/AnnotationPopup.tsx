@@ -118,6 +118,7 @@ export class AnnotationPopup {
     Zotero.test_doc = this.doc;
     Zotero.test_params = this.params;
     this.clearDiv();
+    //
     this.rootDiv = ztoolkit.UI.createElement(this.doc, "div", {
       namespace: "html",
       id: this.idRootDiv,
@@ -1500,9 +1501,9 @@ export function PopupRoot({
     }
     loadData();
   }, [relateItemShowAll, relateItemShowRelateTags, relateItemSort]);
-  const [, updateState] = React.useState();
-  const forceUpdate = React.useCallback(() => updateState({}), []);
-  const [, forceRerender] = React.useReducer((x) => x + 1, 0);
+  // const [, updateState] = React.useState();
+  // const forceUpdate = React.useCallback(() => updateState({}), []);
+  // const [, forceRerender] = React.useReducer((x) => x + 1, 0);
   useEffect(() => {
     async function search() {
       let searchResult = relateTags;
@@ -1533,14 +1534,22 @@ export function PopupRoot({
       // setIsPopoverOpen(true)
       // forceRerender()
       //要出发弹出窗口重绘是不是有更简单的办法
-      setPPadding(pPadding + 0.1);
+      setPPadding(pPadding + 0.0001);
       setTimeout(() => {
-        setPPadding(pPadding - 0.1);
+        setPPadding(pPadding - 0.0001);
       });
-    }
+      //触发 useLayoutEffect()
 
+      ztoolkit.log(
+        "getBoundingClientRect2",
+        popRef.current?.getBoundingClientRect(),
+        popMaxWidthRef.current?.getBoundingClientRect(),
+        boundaryElement.getBoundingClientRect(),
+      );
+    }
     search();
   }, [searchTag, relateTags, showTagsLength, relateItemSort]);
+
   // ztoolkit.log("ids", params.ids)
   const [time, setTime] = useState(
     params.ids ? getPrefAs("autoCloseSeconds", 15) : -1,
@@ -1602,8 +1611,14 @@ export function PopupRoot({
   //   classList: ["react_popover_root"],
 
   // }, tabDiv)
+  //@ts-ignore aaaa
+  const a = (
+    tabDiv.querySelector(".reader") as HTMLIFrameElement
+  ).contentDocument.querySelector("#reader-ui .split-view") as HTMLDivElement;
+
   const parentElement = tabDiv;
-  const boundaryElement = tabDiv;
+  const boundaryElement = a;
+  boundaryElement.style.border = "1px solid red";
   // const c = ztoolkit.UI.appendElement({ tag: "div" }, root) as HTMLDivElement
   useEffect(() => {
     const MutationObserver = ztoolkit.getGlobal("MutationObserver");
@@ -1704,10 +1719,16 @@ export function PopupRoot({
 
     updatePopupSize();
   }, [selectionPopupSize]);
-  boundaryElement.style.border = "1px solid red";
   useEffect(() => {
     setPBoundaryInset((pBoundaryInset) => pBoundaryInset);
+    ztoolkit.log(
+      "getBoundingClientRect",
+      popRef.current?.getBoundingClientRect(),
+      popMaxWidthRef.current?.getBoundingClientRect(),
+      boundaryElement.getBoundingClientRect(),
+    );
   }, [displayTags]);
+  const popRef = useRef<HTMLDivElement>(null);
   return (
     <>
       <Popover
@@ -1716,6 +1737,7 @@ export function PopupRoot({
         isOpen={isPopoverOpen}
         positions={pPositions as any}
         padding={pPadding}
+        ref={popRef}
         boundaryInset={pBoundaryInset}
         transformMode={pFixedContentLocation ? "absolute" : "relative"}
         transform={
@@ -1736,6 +1758,7 @@ export function PopupRoot({
             arrowColor={"#aaaaaa"}
             arrowSize={pArrowSize}
             arrowStyle={{ opacity: 0.6 }}
+
             // className='popover-arrow-container'
             // arrowClassName='popover-arrow'
           >

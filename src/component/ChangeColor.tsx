@@ -1,4 +1,4 @@
-import React = require("react");
+import * as React from "react";
 import { HexColorPicker } from "react-colorful";
 import { ArrowContainer, Popover } from "react-tiny-popover";
 
