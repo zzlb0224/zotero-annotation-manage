@@ -178,7 +178,7 @@ async function changeFromText(text: string, panel: HTMLDivElement) {
           {
             tag: "span",
             properties: {
-              textContent: "在我的文库中显示...",
+              textContent: "🏛️",// "在我的文库中显示...",
             },
             styles: {
               backgroundColor: "#ef4971",
@@ -204,7 +204,7 @@ async function changeFromText(text: string, panel: HTMLDivElement) {
           {
             tag: "span",
             properties: {
-              textContent: "在我的文库中未找到",
+              textContent: "❌",//"在我的文库中未找到",
             },
             styles: {
               // backgroundColor: "#a20",
@@ -240,7 +240,7 @@ async function changeFromText(text: string, panel: HTMLDivElement) {
             {
               tag: "span",
               properties: {
-                textContent: "添加到文库",
+                textContent: "➕添加到文库",
               },
               styles: {
                 backgroundColor: "#97497120",
@@ -292,7 +292,7 @@ async function changeFromText(text: string, panel: HTMLDivElement) {
             tag: "a",
             namespace: "html",
             properties: {
-              textContent: `谷歌查询`,
+              textContent: `🔍谷歌查询`,
             },
             styles: {
               backgroundColor: "#e9ba36",
@@ -320,7 +320,7 @@ async function changeFromText(text: string, panel: HTMLDivElement) {
               tag: "a",
               namespace: "html",
               properties: {
-                textContent: gs.title,
+                textContent: "🔍" + gs.title,
               },
               styles: {
                 backgroundColor: "#b4f281",
