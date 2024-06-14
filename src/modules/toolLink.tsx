@@ -275,9 +275,10 @@ async function changeFromText(text: string, panel: HTMLDivElement) {
                   type: "click",
                   listener: () => {
                     //两种打开方式都可以
-                    Zotero.Utilities.Internal.exec(exePath, [
-                      "https://doi.org/" + groups.doi,
-                    ]);
+                    // Zotero.Utilities.Internal.exec(exePath, [
+                    //   "https://doi.org/" + groups.doi,
+                    // ]);
+                    Zotero.launchURL("https://doi.org/" + groups.doi)
                     // Zotero.launchFileWithApplication(url, exePath);
                   },
                 },
@@ -304,8 +305,9 @@ async function changeFromText(text: string, panel: HTMLDivElement) {
                 type: "click",
                 listener: () => {
                   //两种打开方式都可以
-                  Zotero.Utilities.Internal.exec(exePath, [url]);
+                  // Zotero.Utilities.Internal.exec(exePath, [url]);
                   // Zotero.launchFileWithApplication(url, exePath);
+                  Zotero.launchURL(url)
                 },
               },
             ],
@@ -330,7 +332,8 @@ async function changeFromText(text: string, panel: HTMLDivElement) {
                 {
                   type: "click",
                   listener: () => {
-                    Zotero.launchFileWithApplication(gs.url, exePath);
+                    // Zotero.launchFileWithApplication(gs.url, exePath);
+                    Zotero.launchURL(gs.url)
                   },
                 },
               ],
