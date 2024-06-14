@@ -228,7 +228,7 @@ async function changeFromText(text: string, panel: HTMLDivElement) {
           .map((a) => a.trim())
           .filter((f) => f)
           .map((a) => a.split(" "))
-          .map((a) => (a.length == 1 ? ["谷歌镜像", a[0]] : a))
+          .map((a) => (a.length == 1 ? ["搜索", a[0]] : a))
           .map((a) => ({
             title: a[0],
             url: `${a[1]}${a[1].includes("?") ? "" : "?"}q=${encodeURIComponent(groups.title)}+&hl=zh-CN&as_sdt=0%2C5&as_ylo=${groups.year}&as_yhi=${groups.year}`,
@@ -292,7 +292,7 @@ async function changeFromText(text: string, panel: HTMLDivElement) {
             tag: "a",
             namespace: "html",
             properties: {
-              textContent: `🔍谷歌查询`,
+              textContent: `🔍学术搜索`,
             },
             styles: {
               backgroundColor: "#e9ba36",
