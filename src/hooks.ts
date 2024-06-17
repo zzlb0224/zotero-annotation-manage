@@ -17,7 +17,6 @@ import AnnotationsToNote, {
 import RelationHeader from "./modules/RelationHeader";
 import highlightWords from "./modules/highlightWords";
 import toolLink from "./modules/toolLink";
-// import { registeredID_showAnnotations, unregisteredID_showAnnotations } from './action/action-g';
 
 async function onStartup() {
   await Promise.all([
