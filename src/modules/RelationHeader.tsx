@@ -72,7 +72,7 @@ function renderSidebarAnnotationHeaderCallback(
     listeners: [
       {
         type: "click",
-        listener: (e) => {
+        listener: (_e: Event) => {
           // const r = new Relations(params.annotation.id);
           // const man = Relations.allOpenPdf(addon.data.copy);
           // r.addRelations(man.map((a) => a.openPdf));
@@ -104,13 +104,13 @@ function renderSidebarAnnotationHeaderCallback(
       },
       {
         type: "mouseover",
-        listener: (e) => {
+        listener: (e: Event) => {
           (e.target as HTMLElement).style.backgroundColor = "#F0F0F0";
         },
       },
       {
         type: "mouseout",
-        listener: (e) => {
+        listener: (e: Event) => {
           (e.target as HTMLElement).style.removeProperty("background-color");
         },
       },
@@ -133,7 +133,7 @@ function renderSidebarAnnotationHeaderCallback(
       listeners: [
         {
           type: "click",
-          listener: async (e) => {
+          listener: async (e: Event) => {
             e.preventDefault();
             const anKey = params.annotation.id;
             const win = await createRelatedDialog(doc, anKey);
@@ -151,7 +151,7 @@ function renderSidebarAnnotationHeaderCallback(
         },
         {
           type: "mouseover",
-          listener: async (e) => {
+          listener: async (e: Event) => {
             (e.target as HTMLElement).style.backgroundColor = "#F0F0F0";
             // createPopupDiv(doc, params.annotation.id);
             if (addon.data.relationDialog) return;
@@ -165,7 +165,7 @@ function renderSidebarAnnotationHeaderCallback(
         },
         {
           type: "mouseout",
-          listener: (e) => {
+          listener: (e: Event) => {
             (e.target as HTMLElement).style.removeProperty("background-color");
           },
         },
@@ -383,7 +383,7 @@ async function createRelatedContent(
                 listeners: [
                   {
                     type: "click",
-                    listener: (e) => {
+                    listener: (e: { stopPropagation: () => void }) => {
                       e.stopPropagation();
                       // ztoolkit.log("remove 1", anFromRelations.getLinkRelations());
                       anFromRelations.removeRelations([toItemURI]);
@@ -406,7 +406,7 @@ async function createRelatedContent(
             listeners: [
               {
                 type: "click",
-                listener: (e) => {
+                listener: (e: { stopPropagation: () => void }) => {
                   e.stopPropagation();
                   if (anTo.parentItemKey)
                     openAnnotation(
@@ -696,7 +696,7 @@ function copyFunc(doc: Document, copyFrom: string = "") {
 
     div.addEventListener(
       "click",
-      (e) => {
+      (_e) => {
         if (query.textContent == "已复制") {
           query.textContent = "已清空";
           addon.data.copyText = "";

@@ -80,8 +80,8 @@ export class AnnotationPopup {
     this.isExistAnno = !!params?.ids;
     this.existAnnotations = this.isExistAnno
       ? this.item!.getAnnotations().filter((f) =>
-        this.params?.ids.includes(f.key),
-      )
+          this.params?.ids.includes(f.key),
+        )
       : [];
     // 这里引发的 #38 ，可能是json循环输出的问题？
     // ztoolkit.log(this, this.existAnnotations);
@@ -136,7 +136,7 @@ export class AnnotationPopup {
       listeners: [
         {
           type: "click",
-          listener: (ev) => {
+          listener: (_ev: any) => {
             // this.startCountDown(true);
             this.countDown.clear();
             if (this.btnClose) {
@@ -244,7 +244,7 @@ export class AnnotationPopup {
         //初始化
         if (colorsElement.firstElementChild?.tagName == "BUTTON") {
           ztoolkit.log("button", colorsElement);
-          colorsElement.querySelectorAll("button").forEach((btn, i) => {
+          colorsElement.querySelectorAll("button").forEach((btn, _i) => {
             const colorDiv = ztoolkit.UI.appendElement(
               {
                 tag: "div",
@@ -257,7 +257,7 @@ export class AnnotationPopup {
           });
         }
         //更新组件
-        colorsElement.querySelectorAll("div.colorDiv").forEach((d, i) => {
+        colorsElement.querySelectorAll("div.colorDiv").forEach((d, _i) => {
           const colorDiv = d as HTMLDivElement;
           const btn = colorDiv.querySelector("button") as HTMLButtonElement;
           let spanColorTag = btn.querySelector(
@@ -874,7 +874,7 @@ export class AnnotationPopup {
               listeners: [
                 {
                   type: "click",
-                  listener: (e: Event) => {
+                  listener: (_e: Event) => {
                     this.saveAnnotationTags();
                   },
                 },
@@ -897,7 +897,7 @@ export class AnnotationPopup {
               listeners: [
                 {
                   type: "click",
-                  listener: (e: Event) => {
+                  listener: (_e: Event) => {
                     this.doc?.getElementById(this.idRootDiv)?.remove();
                     this.onHidePopup?.apply(this);
                     //@ts-ignore 隐藏弹出框
@@ -1131,7 +1131,7 @@ export class AnnotationPopup {
           listeners: [
             {
               type: "click",
-              listener: (ev) => {
+              listener: (ev: Event) => {
                 const ele = ev.target as HTMLSpanElement;
                 ele.remove();
                 this.selectedTags.splice(
@@ -1457,9 +1457,9 @@ export function PopupRoot({
         const ea = item
           .getAnnotations()
           .filter((f) => params.ids.includes(f.key));
-        updateExistAnnotations((a) => ea);
+        updateExistAnnotations((_a) => ea);
         const ta = ea.flatMap((f) => f.getTags()).map((a) => a.tag);
-        updateExistTags((a) => ta);
+        updateExistTags((_a) => ta);
       }
 
       let relateTags: groupByResult<{
@@ -1622,7 +1622,7 @@ export function PopupRoot({
   // const c = ztoolkit.UI.appendElement({ tag: "div" }, root) as HTMLDivElement
   useEffect(() => {
     const MutationObserver = ztoolkit.getGlobal("MutationObserver");
-    const observer = new MutationObserver((mutations) => {
+    const observer = new MutationObserver((mutations: any) => {
       for (const mutation of mutations) {
         // ztoolkit.log("fffff", mutation);
         for (const rn of mutation.removedNodes) {
@@ -1669,7 +1669,7 @@ export function PopupRoot({
   });
   useEffect(() => {
     const ResizeObserver = ztoolkit.getGlobal("ResizeObserver");
-    const resizeObserver = new ResizeObserver((entries) => {
+    const resizeObserver = new ResizeObserver((_entries: any) => {
       setSelectionPopupSize({
         width: selectionPopup.clientWidth,
         height: selectionPopup.clientHeight,
@@ -1744,9 +1744,9 @@ export function PopupRoot({
           pFixedContentLocation
             ? { left: pFixedContentLocationLeft, top: pFixedContentLocationTop }
             : (popoverState) => ({
-              top: -popoverState.nudgedTop + 65,
-              left: -popoverState.nudgedLeft,
-            })
+                top: -popoverState.nudgedTop + 65,
+                left: -popoverState.nudgedLeft,
+              })
         }
         // onClickOutside={() => setIsPopoverOpen(false)}
         // ref={clickMeButtonRef} // if you'd like a ref to your popover's child, you can grab one here
@@ -1759,8 +1759,8 @@ export function PopupRoot({
             arrowSize={pArrowSize}
             arrowStyle={{ opacity: 0.6 }}
 
-          // className='popover-arrow-container'
-          // arrowClassName='popover-arrow'
+            // className='popover-arrow-container'
+            // arrowClassName='popover-arrow'
           >
             <div
               ref={popMaxWidthRef}
@@ -1775,7 +1775,7 @@ export function PopupRoot({
                 width: "600px",
                 minHeight: "100px",
               }}
-            // onClick={() => setIsPopoverOpen(!isPopoverOpen)}
+              // onClick={() => setIsPopoverOpen(!isPopoverOpen)}
             >
               {isShowConfig && (
                 <>
@@ -1920,7 +1920,7 @@ export function PopupRoot({
                                 <input
                                   type="checkbox"
                                   defaultChecked={pPositions.includes(a)}
-                                  onChange={(e) => {
+                                  onChange={(_e) => {
                                     updatePPositions((pPositions) => {
                                       const index = pPositions.findIndex(
                                         (f) => f == a,

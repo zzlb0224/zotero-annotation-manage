@@ -432,7 +432,7 @@ function readerToolbarCallback(
                 listeners: [
                   {
                     type: "click",
-                    listener: (ev) => {
+                    listener: (ev: any) => {
                       highlightIndex--;
                       searchText = highlightWords.get(highlightIndex);
                       textArea.value = searchText;
@@ -452,7 +452,7 @@ function readerToolbarCallback(
                 listeners: [
                   {
                     type: "click",
-                    listener: (ev) => {
+                    listener: (ev: any) => {
                       searchText = "";
                       highlightWords.set("", highlightIndex);
                       highlightWords.save();
@@ -473,7 +473,7 @@ function readerToolbarCallback(
                 listeners: [
                   {
                     type: "click",
-                    listener: (ev) => {
+                    listener: (ev: any) => {
                       highlightIndex++;
                       searchText = highlightWords.get(highlightIndex);
                       textArea.value = searchText;

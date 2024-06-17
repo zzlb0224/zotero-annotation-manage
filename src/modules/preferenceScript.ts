@@ -508,7 +508,7 @@ function bindFixedColors(doc: Document) {
           listeners: [
             {
               type: "click",
-              listener: (e) => {
+              listener: (e: any) => {
                 selectIndex = index + 1;
                 tPreview();
               },

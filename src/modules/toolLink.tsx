@@ -42,16 +42,18 @@ function readerToolbarCallback(
   const root =
     doc.querySelector("body") || (doc.querySelector("div") as HTMLElement);
 
-  const MutationObserver = ztoolkit.getGlobal("MutationObserver");
-  const observerAddRowRef = new MutationObserver((mutationsList) => {
-    // ztoolkit.log("aaaaobserverAddRowRef", mutationsList);
-    for (const mr of mutationsList) {
-      // ztoolkit.log(mr, mr.type);
-      if (mr.addedNodes.length > 0) {
-        createPanel(mr.target as HTMLDivElement);
+  // const MutationObserver = ztoolkit.getGlobal("MutationObserver");
+  const observerAddRowRef = new MutationObserver(
+    (mutationsList: MutationRecord[]) => {
+      // ztoolkit.log("aaaaobserverAddRowRef", mutationsList);
+      for (const mr of mutationsList) {
+        // ztoolkit.log(mr, mr.type);
+        if (mr.addedNodes.length > 0) {
+          createPanel(mr.target as HTMLDivElement);
+        }
       }
-    }
-  });
+    },
+  );
 
   const toolbarBtn = ztoolkit.UI.createElement(doc, "div", {
     namespace: "html",
@@ -129,7 +131,7 @@ function updateRefRow(refRow: HTMLDivElement) {
         return;
       }
       const MutationObserver = ztoolkit.getGlobal("MutationObserver");
-      const observerTextChange = new MutationObserver((mutationsList) => {
+      const observerTextChange = new MutationObserver((mutationsList: any) => {
         // ztoolkit.log("dom 变化了, ", mutationsList);
         for (const mr of mutationsList) {
           if (mr.addedNodes.length > 0) {
@@ -178,7 +180,7 @@ async function changeFromText(text: string, panel: HTMLDivElement) {
           {
             tag: "span",
             properties: {
-              textContent: "🏛️",// "在我的文库中显示...",
+              textContent: "🏛️", // "在我的文库中显示...",
             },
             styles: {
               backgroundColor: "#ef4971",
@@ -204,7 +206,7 @@ async function changeFromText(text: string, panel: HTMLDivElement) {
           {
             tag: "span",
             properties: {
-              textContent: "❌",//"在我的文库中未找到",
+              textContent: "❌", //"在我的文库中未找到",
             },
             styles: {
               // backgroundColor: "#a20",
@@ -278,7 +280,7 @@ async function changeFromText(text: string, panel: HTMLDivElement) {
                     // Zotero.Utilities.Internal.exec(exePath, [
                     //   "https://doi.org/" + groups.doi,
                     // ]);
-                    Zotero.launchURL("https://doi.org/" + groups.doi)
+                    Zotero.launchURL("https://doi.org/" + groups.doi);
                     // Zotero.launchFileWithApplication(url, exePath);
                   },
                 },
@@ -307,7 +309,7 @@ async function changeFromText(text: string, panel: HTMLDivElement) {
                   //两种打开方式都可以
                   // Zotero.Utilities.Internal.exec(exePath, [url]);
                   // Zotero.launchFileWithApplication(url, exePath);
-                  Zotero.launchURL(url)
+                  Zotero.launchURL(url);
                 },
               },
             ],
@@ -333,7 +335,7 @@ async function changeFromText(text: string, panel: HTMLDivElement) {
                   type: "click",
                   listener: () => {
                     // Zotero.launchFileWithApplication(gs.url, exePath);
-                    Zotero.launchURL(gs.url)
+                    Zotero.launchURL(gs.url);
                   },
                 },
               ],

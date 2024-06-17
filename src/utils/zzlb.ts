@@ -658,7 +658,7 @@ export function createTopDiv(
       listeners: [
         {
           type: "click",
-          listener: (e) => {
+          listener: (e: { stopPropagation: () => void }) => {
             e.stopPropagation();
             div.remove();
           },
@@ -666,7 +666,7 @@ export function createTopDiv(
         },
         {
           type: "mouseover",
-          listener: (e) => {
+          listener: (e: { stopPropagation: () => void }) => {
             e.stopPropagation();
             closeTimer.startTimer(1000);
           },
@@ -674,7 +674,7 @@ export function createTopDiv(
         },
         {
           type: "mouseout",
-          listener: (e) => {
+          listener: (e: { stopPropagation: () => void }) => {
             e.stopPropagation();
             closeTimer.clearTimer();
           },

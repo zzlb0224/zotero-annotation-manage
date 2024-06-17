@@ -1,3 +1,4 @@
+import { Prompt } from "zotero-plugin-toolkit/dist/managers/prompt";
 import { config } from "../../package.json";
 import { getString } from "../utils/locale";
 
@@ -150,7 +151,7 @@ export class UIExampleFactory {
       tag: "menuitem",
       id: "zotero-itemmenu-addontemplate-test",
       label: getString("menuitem-label"),
-      commandListener: (ev) => addon.hooks.onDialogEvents("dialogExample"),
+      commandListener: (ev: any) => addon.hooks.onDialogEvents("dialogExample"),
       icon: menuIcon,
     });
   }
@@ -233,14 +234,26 @@ export class UIExampleFactory {
     await ztoolkit.ItemBox.register(
       "itemBoxFieldEditable",
       "Editable Custom Field",
-      (field, unformatted, includeBaseMapped, item, original) => {
+      (
+        field: any,
+        unformatted: any,
+        includeBaseMapped: any,
+        item: any,
+        original: any,
+      ) => {
         return (
           ztoolkit.ExtraField.getExtraField(item, "itemBoxFieldEditable") || ""
         );
       },
       {
         editable: true,
-        setFieldHook: (field, value, loadIn, item, original) => {
+        setFieldHook: (
+          field: any,
+          value: any,
+          loadIn: any,
+          item: any,
+          original: any,
+        ) => {
           window.alert("Custom itemBox value is changed and saved to extra!");
           ztoolkit.ExtraField.setExtraField(
             item,
@@ -256,7 +269,13 @@ export class UIExampleFactory {
     await ztoolkit.ItemBox.register(
       "itemBoxFieldNonEditable",
       "Non-Editable Custom Field",
-      (field, unformatted, includeBaseMapped, item, original) => {
+      (
+        field: any,
+        unformatted: any,
+        includeBaseMapped: any,
+        item: Zotero.Item,
+        original: any,
+      ) => {
         return (
           "[CANNOT EDIT THIS]" + (item.getField("title") as string).slice(0, 10)
         );
@@ -384,7 +403,7 @@ export class PromptExampleFactory {
       {
         name: "Normal Command Test",
         label: "Plugin Template",
-        callback(prompt) {
+        callback(prompt: any) {
           ztoolkit.getGlobal("alert")("Command triggered!");
         },
       },
@@ -396,7 +415,7 @@ export class PromptExampleFactory {
     ztoolkit.Prompt.register([
       {
         id: "search",
-        callback: async (prompt) => {
+        callback: async (prompt: Prompt) => {
           // https://github.com/zotero/zotero/blob/7262465109c21919b56a7ab214f7c7a8e1e63909/chrome/content/zotero/integration/quickFormat.js#L589
           function getItemDescription(item: Zotero.Item) {
             const nodes = [];
@@ -601,7 +620,7 @@ export class PromptExampleFactory {
           const items = ZoteroPane.getSelectedItems();
           return items.length > 0;
         },
-        callback(prompt) {
+        callback(prompt: { inputNode: { placeholder: string } }) {
           prompt.inputNode.placeholder = "Hello World!";
           const items = ZoteroPane.getSelectedItems();
           ztoolkit.getGlobal("alert")(
@@ -829,7 +848,7 @@ export class HelperExampleFactory {
       .addButton("Cancel", "cancel")
       .addButton("Help", "help", {
         noClose: true,
-        callback: (e) => {
+        callback: (e: any) => {
           dialogHelper.window?.alert(
             "Help Clicked! Dialog will not be closed.",
           );

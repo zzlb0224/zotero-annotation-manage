@@ -611,12 +611,12 @@ async function DDDTagClear() {
     .map((a) => Zotero.Tags.getID(a.tag))
     .filter((f) => f) as number[];
   const header = `需要删除${removeIDs.length}标签`;
-  getPopupWin({ header }).createLine({ text: "执行中" });
+  getPopupWin({ header })?.createLine({ text: "执行中" });
   await Zotero.Tags.removeFromLibrary(
     libraryID,
     removeIDs,
     (done: number, total: number) => {
-      getPopupWin({ header }).changeLine({
+      getPopupWin({ header })?.changeLine({
         idx: 0,
         progress: (done / total) * 100,
         text: `执行中:${done}/${total}`,
@@ -625,7 +625,7 @@ async function DDDTagClear() {
     [1],
   );
   getPopupWin({ header })
-    .createLine({ text: "完成" })
+    ?.createLine({ text: "完成" })
     .startCloseTimer(5000, false);
 }
 async function DDDTagRemove(collectionOrItem: "collection" | "item") {
@@ -1852,7 +1852,7 @@ function getAllAnnotations(items: Zotero.Item[]) {
     });
   return data;
 }
-let popupWinId = 1;
+const popupWinId = 1;
 export function getPopupWin({
   closeTime = 5000,
   header = "整理笔记",
@@ -1864,13 +1864,10 @@ export function getPopupWin({
       closeTime: closeTime,
       closeOnClick: true,
     }).show();
-    //@ts-ignore 测试代码
-    popupWin.id = popupWinId++;
-    // popupWin.startCloseTimer(closeTime,false);
+
+    // popupWin?.startCloseTimer(closeTime,false);
     const oriCloseAll = Zotero.ProgressWindowSet.closeAll;
     Zotero.ProgressWindowSet.closeAll = () => {
-      //@ts-ignore 测试代码
-      ztoolkit.log("触发关闭所有", popupWin.id);
       popupWin = undefined;
       oriCloseAll();
       Zotero.ProgressWindowSet.closeAll = oriCloseAll;
@@ -1878,8 +1875,8 @@ export function getPopupWin({
   }
   popupTime = Date.now();
   if (lines && lines.length > 0)
-    for (const line of lines) popupWin.createLine({ text: line });
-  popupWin.startCloseTimer(closeTime, false);
+    for (const line of lines) popupWin?.createLine({ text: line });
+  popupWin?.startCloseTimer(closeTime, false);
   return popupWin;
 }
 
