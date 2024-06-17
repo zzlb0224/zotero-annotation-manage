@@ -17,6 +17,8 @@ import AnnotationsToNote, {
 import RelationHeader from "./modules/RelationHeader";
 import highlightWords from "./modules/highlightWords";
 import toolLink from "./modules/toolLink";
+// import { registeredID_showAnnotations, unregisteredID_showAnnotations } from './action/action-g';
+
 
 async function onStartup() {
   await Promise.all([
@@ -42,13 +44,13 @@ async function onStartup() {
   // UIExampleFactory.registerReaderItemPaneSection();
 
   await onMainWindowLoad(window);
-  self = window;
+  // self = window;
 }
 
 async function onMainWindowLoad(win: Window): Promise<void> {
   // Create ztoolkit for every window
   addon.data.ztoolkit = createZToolkit();
-  win.console.log("eeeeeee");
+  win.console.log("onMainWindowLoad");
 
   // @ts-ignore This is a moz feature
   // window.MozXULElement.insertFTLIfNeeded(`${config.addonRef}-mainWindow.ftl`);
@@ -100,20 +102,23 @@ async function onMainWindowLoad(win: Window): Promise<void> {
   RelationHeader.register();
   highlightWords.register();
   toolLink.register();
+  // registeredID_showAnnotations()
 }
 
 async function onMainWindowUnload(win: Window): Promise<void> {
+  win.console.log("onMainWindowUnload");
   Annotations.unregister();
   AnnotationsToNote.unregister();
   RelationHeader.unregister();
   highlightWords.unregister();
   toolLink.unregister();
-
+  // unregisteredID_showAnnotations()
   ztoolkit.unregisterAll();
   addon.data.dialog?.window?.close();
 }
 
 function onShutdown(): void {
+  ztoolkit.log("onShutdown");
   ztoolkit.unregisterAll();
   addon.data.dialog?.window?.close();
   // Remove addon object

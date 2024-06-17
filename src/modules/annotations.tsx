@@ -98,3 +98,5 @@ function createAnnotationContextMenu(
 }
 
 export default { register, unregister, AnnotationPopup };
+
+
