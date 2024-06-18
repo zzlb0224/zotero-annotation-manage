@@ -42,7 +42,7 @@ function readerToolbarCallback(
   const root =
     doc.querySelector("body") || (doc.querySelector("div") as HTMLElement);
 
-  // const MutationObserver = ztoolkit.getGlobal("MutationObserver");
+  const MutationObserver = ztoolkit.getGlobal("MutationObserver");
   const observerAddRowRef = new MutationObserver(
     (mutationsList: MutationRecord[]) => {
       // ztoolkit.log("aaaaobserverAddRowRef", mutationsList);
