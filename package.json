@@ -20,6 +20,7 @@
   "homepage": "https://github.com/zzlb0224/zotero-annotation-manage#readme",
   "license": "AGPL-3.0-or-later",
   "scripts": {
+    "reinstall": "rd /S /Q node_modules && npm install",
     "start": "zotero-plugin serve",
     "build": "tsc --noEmit && zotero-plugin build",
     "lint": "prettier --write . && eslint . --fix",
@@ -28,6 +29,7 @@
     "update-deps": "npm update --save"
   },
   "dependencies": {
+    "@eastdesire/jscolor": "^2.5.2",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@uidotdev/usehooks": "^2.4.1",
