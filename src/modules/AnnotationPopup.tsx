@@ -1622,7 +1622,8 @@ export function PopupRoot({
 
   const parentElement = tabDiv;
   const boundaryElement = tabDiv;
-  boundaryElement.style.border = "1px solid red";
+  if (isDebug())
+    boundaryElement.style.border = "1px solid red";
   // const c = ztoolkit.UI.appendElement({ tag: "div" }, root) as HTMLDivElement
   useEffect(() => {
     if (params.ids) return;
@@ -1759,11 +1760,11 @@ export function PopupRoot({
         align="center"
         // onClickOutside={() => setIsPopoverOpen(false)}
         // ref={clickMeButtonRef} // if you'd like a ref to your popover's child, you can grab one here
-        content={({ position, childRect, popoverRect }) => (
+        content={(popoverState) => (
           <ArrowContainer // if you'd like an arrow, you can import the ArrowContainer!
-            position={position}
-            childRect={childRect}
-            popoverRect={popoverRect}
+            position={popoverState.position}
+            childRect={popoverState.childRect}
+            popoverRect={popoverState.popoverRect}
             arrowColor={"#aaaaaa"}
             arrowSize={pArrowSize}
             arrowStyle={{ opacity: 0.6 }}
@@ -2404,12 +2405,13 @@ export function PopupRoot({
                       }
                     }}
                   />
+                  {/* <span style={tagStyle}>
+                    固定标签来自【{currentPosition}】
+                  </span>
                   <span style={tagStyle}>
-                    固定标签来自【{currentPosition}】{" "}
-                  </span>{" "}
-                  <span style={tagStyle}>
-                    {" "}
-                    相关标签来自【{currentPosition}】{displayTags.length}/
+                    相关标签来自【{currentPosition}】
+                  </span> */}
+                  <span style={tagStyle}> {displayTags.length}/
                     {searchResultLength}:
                   </span>
                   {displayTags.map((tag) => (
