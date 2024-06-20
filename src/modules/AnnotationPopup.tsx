@@ -1772,7 +1772,7 @@ export function PopupRoot({
             <div
               ref={popMaxWidthRef}
               style={{
-                marginTop: pFixedContentLocationTop + "px",
+                marginTop: pFixedContentLocation || params.ids ? pFixedContentLocationTop + "px" : "unset",
                 backgroundColor: bgColor,
                 opacity: 1,
                 whiteSpace: "break-spaces",
