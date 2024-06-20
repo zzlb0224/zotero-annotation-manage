@@ -904,6 +904,7 @@ export class AnnotationPopup {
                     this.onHidePopup?.apply(this);
                     //@ts-ignore 隐藏弹出框
                     this.reader?._primaryView._onSetSelectionPopup(null);
+
                   },
                 },
               ],
@@ -1567,6 +1568,7 @@ export function PopupRoot({
     }
     if (time == 0) {
       root.remove();
+      setIsPopoverOpen(false);
     }
     return () => {
       clearTimeout(timeRef.current);
@@ -1623,6 +1625,7 @@ export function PopupRoot({
   boundaryElement.style.border = "1px solid red";
   // const c = ztoolkit.UI.appendElement({ tag: "div" }, root) as HTMLDivElement
   useEffect(() => {
+    if (params.ids) return;
     const MutationObserver = ztoolkit.getGlobal("MutationObserver");
     const observer = new MutationObserver((mutations: any) => {
       for (const mutation of mutations) {
@@ -1642,7 +1645,7 @@ export function PopupRoot({
   }, []);
   const [pPadding, setPPadding] = useState(getPrefAs("pPadding", 0));
   const [pBoundaryInset, setPBoundaryInset] = useState(
-    getPrefAs("pBoundaryInset", 0),
+    getPrefAs("pBoundaryInset", 40),
   );
   const [pArrowSize, setPArrowSize] = useState(getPrefAs("pArrowSize", 0));
   const [pPositions, updatePPositions] = useImmer(
@@ -1670,6 +1673,7 @@ export function PopupRoot({
     height: 0,
   });
   useEffect(() => {
+    if (params.ids) return;
     const ResizeObserver = ztoolkit.getGlobal("ResizeObserver");
     const resizeObserver = new ResizeObserver((_entries: any) => {
       setSelectionPopupSize({
@@ -1722,7 +1726,7 @@ export function PopupRoot({
     updatePopupSize();
   }, [selectionPopupSize]);
   useEffect(() => {
-    setPBoundaryInset((pBoundaryInset) => pBoundaryInset);
+    // setPBoundaryInset((pBoundaryInset) => pBoundaryInset);
     ztoolkit.log(
       "getBoundingClientRect",
       popRef.current?.getBoundingClientRect(),
@@ -1731,6 +1735,7 @@ export function PopupRoot({
     );
   }, [displayTags]);
   const popRef = useRef<HTMLDivElement>(null);
+
   return (
     <>
       <Popover
@@ -1741,15 +1746,17 @@ export function PopupRoot({
         padding={pPadding}
         ref={popRef}
         boundaryInset={pBoundaryInset}
-        transformMode={pFixedContentLocation ? "absolute" : "relative"}
+        transformMode={pFixedContentLocation || params.ids ? "absolute" : "relative"}
         transform={
-          pFixedContentLocation
-            ? { left: pFixedContentLocationLeft, top: pFixedContentLocationTop }
-            : (popoverState) => ({
+          pFixedContentLocation || params.ids
+            ? ({ left: pFixedContentLocationLeft, top: 0 })
+            : (popoverState) =>
+            ({
               top: -popoverState.nudgedTop + 65,
               left: -popoverState.nudgedLeft,
             })
         }
+        align="center"
         // onClickOutside={() => setIsPopoverOpen(false)}
         // ref={clickMeButtonRef} // if you'd like a ref to your popover's child, you can grab one here
         content={({ position, childRect, popoverRect }) => (
@@ -1761,12 +1768,11 @@ export function PopupRoot({
             arrowSize={pArrowSize}
             arrowStyle={{ opacity: 0.6 }}
 
-          // className='popover-arrow-container'
-          // arrowClassName='popover-arrow'
           >
             <div
               ref={popMaxWidthRef}
               style={{
+                marginTop: pFixedContentLocationTop + "px",
                 backgroundColor: bgColor,
                 opacity: 1,
                 whiteSpace: "break-spaces",
@@ -1833,10 +1839,6 @@ export function PopupRoot({
                           defaultValue={pFixedContentLocationTop}
                           onInput={(e) => {
                             if (e.currentTarget.value) {
-                              setPref(
-                                "pFixedContentLocationTop",
-                                e.currentTarget.value,
-                              );
                               setPFixedContentLocationTop(
                                 e.currentTarget.valueAsNumber,
                               );
@@ -1862,7 +1864,7 @@ export function PopupRoot({
                             }
                           }}
                         />
-                        BoundaryInset:{" "}
+                        BoundaryInset:{" "} {pBoundaryInset}
                         <input
                           type="number"
                           min={0}
@@ -2327,6 +2329,7 @@ export function PopupRoot({
                         }}
                         onClick={() => {
                           setIsPopoverOpen(false);
+
                           saveAnnotationTags(
                             "",
                             [],
@@ -2335,7 +2338,7 @@ export function PopupRoot({
                             params,
                             doc,
                           );
-                          root.remove();
+                          root?.remove();
                         }}
                       >
                         {delTags.length == 0
@@ -2502,11 +2505,12 @@ export function PopupRoot({
                 </span>
               </div>
             </div>
-          </ArrowContainer>
+          </ArrowContainer>//ArrowContainer
         )}
       >
         <div
           style={{
+
             width: "100%",
             // width: "600px",
             position: "absolute",
