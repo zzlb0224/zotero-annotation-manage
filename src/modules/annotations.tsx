@@ -82,6 +82,8 @@ function createAnnotationContextMenu(
       ? `添加标签，已有${currentTags.length}个Tag【${currentTagsString.length > 11 ? currentTagsString.slice(0, 10) + "..." : currentTagsString}】`
       : "添加标签";
   //
+
+
   append({
     label: label,
     onCommand: () => {

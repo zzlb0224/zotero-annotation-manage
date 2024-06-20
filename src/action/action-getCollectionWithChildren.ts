@@ -1,21 +1,21 @@
 import { groupBy, uniqueBy } from "../utils/zzlb";
-interface childGroup {
+interface CollectionWithChildren {
   collectionID: number;
   parentCollectionID?: number;
   collectionName: string;
   key: string;
   itemID?: number;
   itemIDs: (number | undefined)[];
-  childGroups: childGroup[];
+  Children: CollectionWithChildren[];
 }
-export async function col(item?: Zotero.Item, items?: Zotero.Item[]) {
+export async function getCollectionWithChildren(item?: Zotero.Item, items?: Zotero.Item[]) {
   if (item) return;
   if (items) return;
-  const getData = async () => {
+  const getChildGroupData = async () => {
     const cis = await Zotero.DB.queryAsync(
       "select c.collectionID,c.parentCollectionID,c.key,ci.itemID,c.collectionName from collections c left join collectionItems ci on c.collectionID=ci.collectionID order by c.collectionID",
     );
-    const lines: childGroup[] = [];
+    const lines: CollectionWithChildren[] = [];
     for (const row of cis) {
       lines.push({
         collectionID: row.collectionID,
@@ -23,36 +23,36 @@ export async function col(item?: Zotero.Item, items?: Zotero.Item[]) {
         parentCollectionID: row.parentCollectionID,
         key: row.key,
         itemID: row.itemID,
-        childGroups: [],
+        Children: [],
         itemIDs: [],
-      } as childGroup);
+      } as CollectionWithChildren);
     }
     return lines;
   };
-  const lines = await getData();
-  const groups = groupBy(lines, (a) => a.key).map((a) => ({
+  const lines = await getChildGroupData();
+  const children = groupBy(lines, (a) => a.key).map((a) => ({
     ...a.values[0],
     itemIDs: a.values.map((b) => b.itemID),
-  })) as childGroup[];
-  const rootGroups = [];
-  for (const group of groups) {
-    if (group.parentCollectionID) {
-      const gi = groups.findIndex(
-        (f) => f.collectionID == group.parentCollectionID,
+  })) as CollectionWithChildren[];
+  const all = [];
+  for (const child of children) {
+    if (child.parentCollectionID) {
+      const gi = children.findIndex(
+        (f) => f.collectionID == child.parentCollectionID,
       );
       if (gi > -1) {
-        groups[gi].childGroups!.push(group);
+        children[gi].Children!.push(child);
       }
     } else {
-      rootGroups.push(group);
+      all.push(child);
     }
   }
-  for (const group of groups) {
-    const items = group.childGroups?.flatMap((a) => a.itemIDs || []) || [];
+  for (const group of children) {
+    const items = group.Children?.flatMap((a) => a.itemIDs || []) || [];
     group.itemIDs = uniqueBy(
       [...group.itemIDs, ...items].filter((f) => f),
       (item) => item + "",
     );
   }
-  return groups;
+  return children;
 }

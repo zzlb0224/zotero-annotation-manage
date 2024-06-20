@@ -1619,7 +1619,7 @@ export function PopupRoot({
   ).contentDocument.querySelector("#split-view #primary-view") as HTMLDivElement;
 
   const parentElement = tabDiv;
-  const boundaryElement = a;
+  const boundaryElement = tabDiv;
   boundaryElement.style.border = "1px solid red";
   // const c = ztoolkit.UI.appendElement({ tag: "div" }, root) as HTMLDivElement
   useEffect(() => {
