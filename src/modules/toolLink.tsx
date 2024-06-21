@@ -1,29 +1,16 @@
 import { config } from "../../package.json";
-import {
-  refSearch,
-  createItemByZotero,
-  searchItem,
-  ruleSearch,
-  ruleTestSingle,
-  showInLibrary,
-} from "../utils/cite";
+import { refSearch, createItemByZotero, searchItem, ruleSearch, ruleTestSingle, showInLibrary } from "../utils/cite";
 import { getPrefAs, setPref } from "../utils/prefs";
 import { isDebug, openAnnotation } from "../utils/zzlb";
 function register() {
-  Zotero.Reader.registerEventListener(
-    "renderToolbar",
-    readerToolbarCallback,
-    config.addonID,
-  );
+  Zotero.Reader.registerEventListener("renderToolbar", readerToolbarCallback, config.addonID);
 }
 function unregister() {
   Zotero.Reader.unregisterEventListener("renderToolbar", readerToolbarCallback);
 }
 export default { register, unregister };
 
-function readerToolbarCallback(
-  event: Parameters<_ZoteroTypes.Reader.EventHandler<"renderToolbar">>[0],
-) {
+function readerToolbarCallback(event: Parameters<_ZoteroTypes.Reader.EventHandler<"renderToolbar">>[0]) {
   const { append, doc, reader, params } = event;
   if (doc.getElementById(`${config.addonRef}-space-button`)) return;
   // setTimeout(() => {
@@ -39,21 +26,18 @@ function readerToolbarCallback(
   //   ztoolkit.log("cccc", tabDiv, root)
   // }, 1000)
   let enable = getPrefAs("show-query-href", false);
-  const root =
-    doc.querySelector("body") || (doc.querySelector("div") as HTMLElement);
+  const root = doc.querySelector("body") || (doc.querySelector("div") as HTMLElement);
 
   const MutationObserver = ztoolkit.getGlobal("MutationObserver");
-  const observerAddRowRef = new MutationObserver(
-    (mutationsList: MutationRecord[]) => {
-      // ztoolkit.log("aaaaobserverAddRowRef", mutationsList);
-      for (const mr of mutationsList) {
-        // ztoolkit.log(mr, mr.type);
-        if (mr.addedNodes.length > 0) {
-          createPanel(mr.target as HTMLDivElement);
-        }
+  const observerAddRowRef = new MutationObserver((mutationsList: MutationRecord[]) => {
+    // ztoolkit.log("aaaaobserverAddRowRef", mutationsList);
+    for (const mr of mutationsList) {
+      // ztoolkit.log(mr, mr.type);
+      if (mr.addedNodes.length > 0) {
+        createPanel(mr.target as HTMLDivElement);
       }
-    },
-  );
+    }
+  });
 
   const toolbarBtn = ztoolkit.UI.createElement(doc, "div", {
     namespace: "html",
@@ -150,8 +134,7 @@ function updateRefRow(refRow: HTMLDivElement) {
       return;
     }
     const panel =
-      (refRow.querySelector("group") as HTMLDivElement) ||
-      (ztoolkit.UI.appendElement({ tag: "group" }, refRow) as HTMLDivElement);
+      (refRow.querySelector("group") as HTMLDivElement) || (ztoolkit.UI.appendElement({ tag: "group" }, refRow) as HTMLDivElement);
     changeFromText(text, panel);
   }
 }
@@ -221,8 +204,7 @@ async function changeFromText(text: string, panel: HTMLDivElement) {
       // if (refRow.querySelector("a")) return; //跳过已有链接的
       const { groups } = m;
       if (groups) {
-        const exePath =
-          "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe";
+        const exePath = "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe";
         const url = `https://scholar.google.com/scholar_lookup?title=${encodeURIComponent(groups.title)}&author=${encodeURIComponent(groups.author)}&publication_year=${groups.year}`;
         const url2 = `https://sc.panda985.com/scholar?q=${encodeURIComponent(groups.title)}+&hl=zh-CN&as_sdt=0%2C5&as_ylo=${groups.year}&as_yhi=${groups.year}`;
         const gss = getPrefAs("google-scholar-mirroring", "")

@@ -11,37 +11,21 @@ function register() {
 
   // if (!getPref("hide-in-selection-popup"))
   {
-    Zotero.Reader.registerEventListener(
-      "renderTextSelectionPopup",
-      renderTextSelectionPopup,
-      config.addonID,
-    );
+    Zotero.Reader.registerEventListener("renderTextSelectionPopup", renderTextSelectionPopup, config.addonID);
   }
 
   // if (!getPref("hide-in-annotation-context-menu"))
   {
-    Zotero.Reader.registerEventListener(
-      "createAnnotationContextMenu",
-      createAnnotationContextMenu,
-      config.addonID,
-    );
+    Zotero.Reader.registerEventListener("createAnnotationContextMenu", createAnnotationContextMenu, config.addonID);
   }
 }
 function unregister() {
   ztoolkit.log("Annotations unregister");
-  Zotero.Reader.unregisterEventListener(
-    "renderTextSelectionPopup",
-    renderTextSelectionPopup,
-  );
-  Zotero.Reader.unregisterEventListener(
-    "createAnnotationContextMenu",
-    createAnnotationContextMenu,
-  );
+  Zotero.Reader.unregisterEventListener("renderTextSelectionPopup", renderTextSelectionPopup);
+  Zotero.Reader.unregisterEventListener("createAnnotationContextMenu", createAnnotationContextMenu);
 }
 
-function renderTextSelectionPopup(
-  event: _ZoteroTypes.Reader.EventParams<"renderTextSelectionPopup">,
-) {
+function renderTextSelectionPopup(event: _ZoteroTypes.Reader.EventParams<"renderTextSelectionPopup">) {
   const { append, reader, doc, params } = event;
   if (getPref("hide-in-selection-popup")) {
     return;
@@ -57,9 +41,7 @@ function renderTextSelectionPopup(
     append(div);
   }
 }
-function createAnnotationContextMenu(
-  event: _ZoteroTypes.Reader.EventParams<"createAnnotationContextMenu">,
-) {
+function createAnnotationContextMenu(event: _ZoteroTypes.Reader.EventParams<"createAnnotationContextMenu">) {
   const { reader, params, append } = event;
   if (getPref("hide-in-annotation-context-menu")) {
     return;
@@ -67,16 +49,12 @@ function createAnnotationContextMenu(
   const doc = reader?._iframeWindow?.document;
   if (!doc) return;
   //这里不能用异步
-  const currentAnnotations = reader._item
-    .getAnnotations()
-    .filter((f) => params.ids.includes(f.key));
+  const currentAnnotations = reader._item.getAnnotations().filter((f) => params.ids.includes(f.key));
   const currentTags = groupBy(
     currentAnnotations.flatMap((f) => f.getTags()),
     (t7) => t7.tag,
   ).sort(sortValuesLength);
-  const currentTagsString = currentTags
-    .map((f) => `${f.key}[${f.values.length}]`)
-    .join(",");
+  const currentTagsString = currentTags.map((f) => `${f.key}[${f.values.length}]`).join(",");
   const label =
     currentTags.length > 0
       ? `添加标签，已有${currentTags.length}个Tag【${currentTagsString.length > 11 ? currentTagsString.slice(0, 10) + "..." : currentTagsString}】`

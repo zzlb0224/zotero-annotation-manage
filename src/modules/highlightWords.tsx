@@ -1,10 +1,5 @@
 import { config } from "../../package.json";
-import {
-  getFileContent,
-  injectCSS,
-  memFixedTagColors,
-  uniqueBy,
-} from "../utils/zzlb";
+import { getFileContent, injectCSS, memFixedTagColors, uniqueBy } from "../utils/zzlb";
 import { getPref, setPref } from "../utils/prefs";
 // import * as PdfJs from 'pdfjs-dist/legacy/build/pdf.mjs' // 'pdfjs-dist/legacy/build/pdf.js'
 // PdfJs.getDocument
@@ -26,11 +21,7 @@ import { getPref, setPref } from "../utils/prefs";
 // ztoolkit.log("getDocument", PdfJs.getDocument)
 
 function register() {
-  Zotero.Reader.registerEventListener(
-    "renderToolbar",
-    readerToolbarCallback,
-    config.addonID,
-  );
+  Zotero.Reader.registerEventListener("renderToolbar", readerToolbarCallback, config.addonID);
 
   // const { pdfjsLib } = ztoolkit.getGlobal("globalThis")
   // if (pdfjsLib && pdfjsLib.GlobalWorkerOptions) {
@@ -110,20 +101,15 @@ class HighlightWords {
 }
 const highlightWords = new HighlightWords();
 async function addCss(doc: Document) {
-  const fileCss = await getFileContent(
-    `chrome://${config.addonRef}/content/highlightWords.css`,
-  );
+  const fileCss = await getFileContent(`chrome://${config.addonRef}/content/highlightWords.css`);
   ztoolkit.log("ooo", [readerButtonCSS, fileCss]);
   injectCSS(doc, "highlightWords.css");
 }
-function readerToolbarCallback(
-  event: Parameters<_ZoteroTypes.Reader.EventHandler<"renderToolbar">>[0],
-) {
+function readerToolbarCallback(event: Parameters<_ZoteroTypes.Reader.EventHandler<"renderToolbar">>[0]) {
   const { append, doc, reader, params } = event;
   if (doc.getElementById(`${config.addonRef}-search-button`)) return;
 
-  const root =
-    doc.querySelector("body") || (doc.querySelector("div") as HTMLElement);
+  const root = doc.querySelector("body") || (doc.querySelector("div") as HTMLElement);
   ztoolkit.UI.appendElement(
     {
       tag: "style",
@@ -146,8 +132,7 @@ function readerToolbarCallback(
     search();
   }, 500);
   // const debounceSearch = search, throttleSearch = debounceSearch;
-  let pdfDoc = reader?._iframe?.contentDocument?.querySelector("iframe")
-    ?.contentDocument as Document;
+  let pdfDoc = reader?._iframe?.contentDocument?.querySelector("iframe")?.contentDocument as Document;
   let running = false;
   let onceMore = false;
   let height = 1000;
@@ -179,10 +164,7 @@ function readerToolbarCallback(
         txt = txt.replace(ssr, getSpan);
         if (!span.getAttribute("data-transform")) {
           //The text offset problem is improved after removing the transform for each line.
-          span.setAttribute(
-            "data-transform",
-            (span as HTMLSpanElement).style.transform,
-          );
+          span.setAttribute("data-transform", (span as HTMLSpanElement).style.transform);
           (span as HTMLSpanElement).style.transform = "";
         }
       } else {
@@ -213,10 +195,7 @@ function readerToolbarCallback(
         .filter((f) => f != " "),
       (a) => a,
     );
-    const ssr = new RegExp(
-      `(?:${ss.map((a) => a.replace(/[|]/g, ".")).join("|")})`,
-      "ig",
-    );
+    const ssr = new RegExp(`(?:${ss.map((a) => a.replace(/[|]/g, ".")).join("|")})`, "ig");
     //RegExp类中test()方法结果不固定 不带g就好了，或者改r.lastIndex=0
     const rs = ss.map((s) => new RegExp(s, "i"));
     const getColor = (str: string) => {
@@ -250,8 +229,7 @@ function readerToolbarCallback(
       }
       const transform = span.getAttribute("data-transform") || "";
       if (transform) {
-        (span as HTMLSpanElement).style.transform =
-          span.getAttribute("data-transform") || "";
+        (span as HTMLSpanElement).style.transform = span.getAttribute("data-transform") || "";
         span.setAttribute("data-transform", "");
       }
     }
@@ -260,11 +238,7 @@ function readerToolbarCallback(
   const btn = ztoolkit.UI.createElement(doc, "div", {
     namespace: "html",
     id: `${config.addonRef}-search-button`,
-    classList: [
-      "toolbarButton",
-      "toolbar-button",
-      `${config.addonRef}-search-button`,
-    ],
+    classList: ["toolbarButton", "toolbar-button", `${config.addonRef}-search-button`],
     properties: {
       tabIndex: -1,
       title: "高亮",
@@ -275,11 +249,9 @@ function readerToolbarCallback(
         listener: (ev: Event) => {
           ztoolkit.log(ev);
 
-          pdfDoc = reader?._iframe?.contentDocument?.querySelector("iframe")
-            ?.contentDocument as Document;
+          pdfDoc = reader?._iframe?.contentDocument?.querySelector("iframe")?.contentDocument as Document;
           if (!pdfDoc || !pdfDoc.querySelector("#viewerContainer")) return;
-          height = (pdfDoc.querySelector("#viewerContainer")! as HTMLElement)
-            .offsetHeight;
+          height = (pdfDoc.querySelector("#viewerContainer")! as HTMLElement).offsetHeight;
 
           const evm = ev as MouseEvent;
           const div = evm.target as HTMLElement;
@@ -287,14 +259,10 @@ function readerToolbarCallback(
             div.style.background = "";
             popDiv.remove();
             popDiv = undefined;
-            pdfDoc
-              .querySelector("#viewerContainer")
-              ?.removeEventListener("scroll", () => throttleSearch());
+            pdfDoc.querySelector("#viewerContainer")?.removeEventListener("scroll", () => throttleSearch());
             clearSearch();
           } else {
-            pdfDoc
-              .querySelector("#viewerContainer")
-              ?.addEventListener("scroll", () => throttleSearch());
+            pdfDoc.querySelector("#viewerContainer")?.addEventListener("scroll", () => throttleSearch());
             div.style.background = "#ddd";
             debounceSearch();
             createPopDiv(div);
@@ -311,11 +279,7 @@ function readerToolbarCallback(
   const btn2 = ztoolkit.UI.createElement(doc, "div", {
     namespace: "html",
     id: `${config.addonRef}-search-button`,
-    classList: [
-      "toolbarButton",
-      "toolbar-button",
-      `${config.addonRef}-search-button`,
-    ],
+    classList: ["toolbarButton", "toolbar-button", `${config.addonRef}-search-button`],
     properties: {
       tabIndex: -1,
       title: "高亮",
@@ -483,9 +447,7 @@ function readerToolbarCallback(
                         searchText = highlightWords.get(highlightIndex);
                         textArea.value = searchText;
                         highlightWords.index = 0;
-                      } else if (
-                        highlightIndex == highlightWords.words.length
-                      ) {
+                      } else if (highlightIndex == highlightWords.words.length) {
                         highlightWords.index = 0;
                       } else {
                         highlightWords.index = highlightIndex;
@@ -523,9 +485,7 @@ function readerToolbarCallback(
                 listener: (ev: Event) => {
                   ev.stopPropagation();
                   const ta = ev.target as HTMLTextAreaElement;
-                  const index = highlightWords.words.findIndex(
-                    (f) => f == searchText,
-                  );
+                  const index = highlightWords.words.findIndex((f) => f == searchText);
                   if (index == -1) {
                     //已删除，增加到最后
                     highlightIndex = highlightWords.words.length;
@@ -554,8 +514,7 @@ function readerToolbarCallback(
             type: "mouseover",
             listener: (ev: Event) => {
               ev.stopPropagation();
-              if (!popDiv?.classList.contains("enter"))
-                popDiv?.classList.add("enter");
+              if (!popDiv?.classList.contains("enter")) popDiv?.classList.add("enter");
               if (timeout) {
                 clearTimeout(timeout);
                 timeout = undefined;
@@ -568,8 +527,7 @@ function readerToolbarCallback(
             listener: (ev: Event) => {
               ev.stopPropagation();
               timeout = setTimeout(() => {
-                if (popDiv?.classList.contains("enter"))
-                  popDiv?.classList.remove("enter");
+                if (popDiv?.classList.contains("enter")) popDiv?.classList.remove("enter");
               }, 1000);
             },
             options: { capture: true },
@@ -585,9 +543,8 @@ function readerToolbarCallback(
   }
   function showHighlightIndex() {
     highlightWords.save();
-    popDiv!.querySelector(
-      `#${config.addonRef}-search-button-highlightIndex`,
-    )!.textContent = `${highlightIndex + 1}/${highlightWords.words.length}`;
+    popDiv!.querySelector(`#${config.addonRef}-search-button-highlightIndex`)!.textContent =
+      `${highlightIndex + 1}/${highlightWords.words.length}`;
     const st = uniqueBy(
       searchText.split("\n").filter((s) => s),
       (s) => s,

@@ -1,13 +1,12 @@
 import { TagElementProps } from "zotero-plugin-toolkit/dist/tools/ui";
 import { config } from "../../package.json";
-import { getPref, getPrefAs, setPref } from "../utils/prefs";
+import { getPref } from "../utils/prefs";
 import {
   mapDateModified,
   sortAsc,
-  sortFixed,
+  sortFixedTags1000Ann100Modified10Asc,
   sortFixedTags100Modified10Asc,
   sortFixedTags10ValuesLength,
-  sortTags1000Ann100Modified10Asc,
   sortValuesLength,
 } from "../utils/sort";
 import {
@@ -27,12 +26,9 @@ import {
 import { Relations } from "../utils/Relations";
 import { createRoot } from "react-dom/client";
 import * as React from "react";
-import { useEffect, useRef, useState } from "react";
-import { getString } from "../utils/locale";
-import { useImmer } from "use-immer";
-import { ArrowContainer, Popover, usePopover } from "react-tiny-popover";
+import { usePopover } from "react-tiny-popover";
 import { HexColorPicker } from "react-colorful";
-import { ChangeColor } from "../component/ChangeColor";
+import { PopupRoot } from "../component/PopupRoot";
 
 export class AnnotationPopup {
   reader?: _ZoteroTypes.ReaderInstance;
@@ -78,29 +74,19 @@ export class AnnotationPopup {
     this.item = item || this.reader?._item || undefined;
     this.doc = doc || this.reader?._iframeWindow?.document;
     this.isExistAnno = !!params?.ids;
-    this.existAnnotations = this.isExistAnno
-      ? this.item!.getAnnotations().filter((f) =>
-        this.params?.ids.includes(f.key),
-      )
-      : [];
+    this.existAnnotations = this.isExistAnno ? this.item!.getAnnotations().filter((f) => this.params?.ids.includes(f.key)) : [];
     // 这里引发的 #38 ，可能是json循环输出的问题？
     // ztoolkit.log(this, this.existAnnotations);
     ztoolkit.log("bbbb", params);
 
-    this.fontSize =
-      (Zotero.Prefs.get(
-        `extensions.zotero.ZoteroPDFTranslate.fontSize`,
-        true,
-      ) || 18) + "px";
+    this.fontSize = (Zotero.Prefs.get(`extensions.zotero.ZoteroPDFTranslate.fontSize`, true) || 18) + "px";
     ztoolkit.log("初始化");
     this.createDiv();
   }
 
   private clearDiv() {
     if (!this.doc) return;
-    if (
-      this.doc.getElementById(this.idRootDiv)?.parentElement?.nodeName == "BODY"
-    ) {
+    if (this.doc.getElementById(this.idRootDiv)?.parentElement?.nodeName == "BODY") {
       this.doc.getElementById(this.idRootDiv)?.remove();
     } else {
       this.doc.getElementById(this.idRootDiv)?.parentElement?.remove();
@@ -213,22 +199,13 @@ export class AnnotationPopup {
     // }, 50);
 
     // this.updateDiv();
-    const rr = ztoolkit.UI.appendElement(
-      { tag: "div" },
-      root,
-    ) as HTMLDivElement;
+    const rr = ztoolkit.UI.appendElement({ tag: "div" }, root) as HTMLDivElement;
     ztoolkit.log("root和rr", root, rr);
     // if (isDebug())
     setTimeout(() => {
       createRoot(rr).render(
         <>
-          <PopupRoot
-            reader={this.reader!}
-            doc={this.doc!}
-            params={this.params!}
-            root={root}
-            maxWidth={this.getSelectTextMaxWidth()}
-          />
+          <PopupRoot reader={this.reader!} doc={this.doc!} params={this.params!} root={root} maxWidth={this.getSelectTextMaxWidth()} />
         </>,
       );
     });
@@ -262,15 +239,10 @@ export class AnnotationPopup {
         colorsElement.querySelectorAll("div.colorDiv").forEach((d, _i) => {
           const colorDiv = d as HTMLDivElement;
           const btn = colorDiv.querySelector("button") as HTMLButtonElement;
-          let spanColorTag = btn.querySelector(
-            "span.color-tag",
-          ) as HTMLSpanElement | null;
+          let spanColorTag = btn.querySelector("span.color-tag") as HTMLSpanElement | null;
           if (showColorTag) {
             if (!spanColorTag) {
-              spanColorTag = ztoolkit.UI.appendElement(
-                { tag: "span", classList: ["color-tag"] },
-                btn,
-              ) as HTMLSpanElement;
+              spanColorTag = ztoolkit.UI.appendElement({ tag: "span", classList: ["color-tag"] }, btn) as HTMLSpanElement;
               spanColorTag.textContent = btn.title;
               btn.querySelector("svg")!.style.minHeight = "20px";
               btn.style.width = "unset";
@@ -284,9 +256,7 @@ export class AnnotationPopup {
           }
           const color = btn.querySelector("path")!.getAttribute("fill") || "";
           if (color) {
-            let fixTagSpan = colorDiv.querySelector(
-              "span.match-tag",
-            ) as HTMLSpanElement | null;
+            let fixTagSpan = colorDiv.querySelector("span.match-tag") as HTMLSpanElement | null;
             if (showMatchTag) {
               if (!fixTagSpan) {
                 fixTagSpan = ztoolkit.UI.appendElement(
@@ -300,8 +270,7 @@ export class AnnotationPopup {
                         type: "click",
                         listener: () => {
                           const tag = fixTagSpan?.textContent;
-                          const color =
-                            fixTagSpan?.getAttribute("data-color") || "";
+                          const color = fixTagSpan?.getAttribute("data-color") || "";
                           if (tag && color) {
                             this.selectedTags.push({
                               tag,
@@ -351,8 +320,7 @@ export class AnnotationPopup {
 
   private getCurrentPageDiv() {
     const pageIndex = this.params?.annotation?.position?.pageIndex || 0;
-    const currentPage =
-      this.getPrimaryViewDoc1()?.querySelectorAll(".page")?.[pageIndex];
+    const currentPage = this.getPrimaryViewDoc1()?.querySelectorAll(".page")?.[pageIndex];
     return currentPage as HTMLDivElement;
   }
 
@@ -376,9 +344,7 @@ export class AnnotationPopup {
     if (getPref("show-relate-tags")) groupByResultIncludeFixedTags(relateTags);
     if (getPref("sort") == "2") {
       //2 固定标签 + 修改时间
-      relateTags = relateTags
-        .map(mapDateModified)
-        .sort(sortFixedTags100Modified10Asc);
+      relateTags = relateTags.map(mapDateModified).sort(sortFixedTags100Modified10Asc);
     } else if (getPref("sort") == "3") {
       //3 固定标签 + 本条目 + 修改时间
       const itemAnnTags = this.item
@@ -386,14 +352,10 @@ export class AnnotationPopup {
         .flatMap((f) => f.getTags())
         .map((a) => a.tag)
         .sort(sortAsc);
-      relateTags = relateTags
-        .map(mapDateModified)
-        .sort(sortTags1000Ann100Modified10Asc(itemAnnTags));
+      relateTags = relateTags.map(mapDateModified).sort(sortFixedTags1000Ann100Modified10Asc(itemAnnTags));
     } else {
       //1 固定标签 + 出现次数
-      relateTags = relateTags
-        .map(mapDateModified)
-        .sort(sortFixedTags10ValuesLength);
+      relateTags = relateTags.map(mapDateModified).sort(sortFixedTags10ValuesLength);
     }
 
     this.relateTags = relateTags;
@@ -409,13 +371,8 @@ export class AnnotationPopup {
     // ztoolkit.log("append", this.rootDiv, closeTimeout, this.btnClose);
   }
 
-  public startCountDown(
-    stop = false,
-    closeTimeout?: number,
-    callback?: ((remainingTime: number) => void) | undefined,
-  ) {
-    let remainingTime =
-      closeTimeout || (getPref("count-down-close") as number) || 15;
+  public startCountDown(stop = false, closeTimeout?: number, callback?: ((remainingTime: number) => void) | undefined) {
+    let remainingTime = closeTimeout || (getPref("count-down-close") as number) || 15;
     if (callback == undefined)
       callback = (remainingTime: number) => {
         if (remainingTime > 0) {
@@ -444,10 +401,7 @@ export class AnnotationPopup {
       }
     }, 1000);
   }
-  private countDownDec = Math.max(
-    Math.min((getPref("count-down-close-dec") as number | undefined) || 0, 3),
-    -1,
-  );
+  private countDownDec = Math.max(Math.min((getPref("count-down-close-dec") as number | undefined) || 0, 3), -1);
   public countDown = new CountDown(
     (remainingTime) => {
       if (remainingTime > 0) {
@@ -500,21 +454,13 @@ export class AnnotationPopup {
   }
   getAnnotationPositionLeft() {
     const page = this.getCurrentPageDiv();
-    const rotation = page?.querySelector(
-      '.textLayer[data-main-rotation="90"],.textLayer[data-main-rotation="270"]',
-    )
-      ? 1
-      : 0;
+    const rotation = page?.querySelector('.textLayer[data-main-rotation="90"],.textLayer[data-main-rotation="270"]') ? 1 : 0;
     const rects = this.params?.annotation?.position?.rects || [];
     return Math.min(...rects.map((a) => a[0 + rotation]));
   }
   getAnnotationPositionRight() {
     const page = this.getCurrentPageDiv();
-    const rotation = page?.querySelector(
-      '.textLayer[data-main-rotation="90"],.textLayer[data-main-rotation="270"]',
-    )
-      ? 1
-      : 0;
+    const rotation = page?.querySelector('.textLayer[data-main-rotation="90"],.textLayer[data-main-rotation="270"]') ? 1 : 0;
     const rects = this.params?.annotation?.position?.rects || [];
     return Math.max(...rects.map((a) => a[2 + rotation]));
   }
@@ -535,12 +481,7 @@ export class AnnotationPopup {
       centerRight,
       centerX,
     });
-    const maxWidth =
-      Math.min(
-        centerX * 2,
-        (clientWidthWithoutSlider - centerX) * 2,
-        clientWidthWithoutSlider,
-      ) - 50;
+    const maxWidth = Math.min(centerX * 2, (clientWidthWithoutSlider - centerX) * 2, clientWidthWithoutSlider) - 50;
 
     return maxWidth;
   }
@@ -549,10 +490,7 @@ export class AnnotationPopup {
     const tags = this.existAnnotations.flatMap((a) => a.getTags());
     if (tags.length == 0) return { tag: "span" };
     const ts = groupBy(tags, (t9) => t9.tag).sort(sortValuesLength);
-    const annLen =
-      this.existAnnotations.length > 1
-        ? `选中${this.existAnnotations.length} 批注，`
-        : "";
+    const annLen = this.existAnnotations.length > 1 ? `选中${this.existAnnotations.length} 批注，` : "";
     return {
       tag: "div",
       styles: {
@@ -758,8 +696,7 @@ export class AnnotationPopup {
                     if (event.key === "Shift") {
                       // 按下Shift键时，记录起始位置
                       shiftStart = true;
-                      selectionStart =
-                        input.selectionStart || input.value.length;
+                      selectionStart = input.selectionStart || input.value.length;
                       selectionCount = 0;
                     }
                   },
@@ -788,38 +725,25 @@ export class AnnotationPopup {
                     if (event.key === "ArrowLeft") {
                       if (shiftStart) {
                         selectionCount--;
-                        const arg = [
-                          selectionStart,
-                          selectionStart + selectionCount,
-                        ].sort((a, b) => a - b);
+                        const arg = [selectionStart, selectionStart + selectionCount].sort((a, b) => a - b);
                         const d = selectionCount > 0 ? "forward" : "backward";
                         input.setSelectionRange(arg[0], arg[1], d);
                       } else {
                         const arr =
-                          Math.max(
-                            input.selectionDirection == "backward"
-                              ? input.selectionStart || 0
-                              : input.selectionEnd || 0,
-                            1,
-                          ) - 1;
+                          Math.max(input.selectionDirection == "backward" ? input.selectionStart || 0 : input.selectionEnd || 0, 1) - 1;
                         input.selectionStart = input.selectionEnd = arr;
                       }
                       return;
                     } else if (event.key === "ArrowRight") {
                       if (shiftStart) {
                         selectionCount++;
-                        const arg = [
-                          selectionStart,
-                          selectionStart + selectionCount,
-                        ].sort((a, b) => a - b);
+                        const arg = [selectionStart, selectionStart + selectionCount].sort((a, b) => a - b);
                         const d = selectionCount > 0 ? "forward" : "backward";
                         input.setSelectionRange(arg[0], arg[1], d);
                       } else {
                         const arr =
                           Math.min(
-                            input.selectionDirection == "backward"
-                              ? input.selectionStart || 0
-                              : input.selectionEnd || 0 || 0,
+                            input.selectionDirection == "backward" ? input.selectionStart || 0 : input.selectionEnd || 0 || 0,
                             input.value.length - 1,
                           ) + 1;
                         input.selectionStart = input.selectionEnd = arr;
@@ -831,16 +755,8 @@ export class AnnotationPopup {
                       this.onTagClick(this.searchTag);
                       return;
                     }
-                    ztoolkit.log(
-                      event,
-                      input.value.trim(),
-                      input.selectionStart,
-                      input.selectionEnd,
-                      input.selectionDirection,
-                    );
-                    const tagDiv = this.rootDiv?.querySelector(
-                      "#" + this.idTagsDiv,
-                    );
+                    ztoolkit.log(event, input.value.trim(), input.selectionStart, input.selectionEnd, input.selectionDirection);
+                    const tagDiv = this.rootDiv?.querySelector("#" + this.idTagsDiv);
                     if (tagDiv) {
                       this.tagsDisplay = await this.searchTagResult();
                       ztoolkit.UI.replaceElement(this.createTagsDiv(), tagDiv);
@@ -860,11 +776,7 @@ export class AnnotationPopup {
               tag: "button",
               namespace: "html",
               properties: {
-                textContent: getPref("multipleTags")
-                  ? this.isExistAnno
-                    ? "修改标签"
-                    : "添加多个标签"
-                  : "单标签",
+                textContent: getPref("multipleTags") ? (this.isExistAnno ? "修改标签" : "添加多个标签") : "单标签",
               },
               styles: {
                 margin: "2px",
@@ -937,9 +849,7 @@ export class AnnotationPopup {
       //  getPref("show-all-tags")
       //   ? this.relateTags
       //   : await getAllTagsDB();
-      const searchResult = searchIn.filter((f) =>
-        new RegExp(this.searchTag, "i").test(f.key),
-      );
+      const searchResult = searchIn.filter((f) => new RegExp(this.searchTag, "i").test(f.key));
       return searchResult;
     } else {
       return this.relateTags;
@@ -965,78 +875,22 @@ export class AnnotationPopup {
     //     }
     //   }
     // }
-    const children = this.tagsDisplay
-      .slice(0, (getPref("max-show") as number) || 200)
-      .map((label) => {
-        const tag = label.key;
-        const allHave = this.isAllHave(tag);
-        const noneHave = this.isNoneHave(tag);
-        const someHave = this.strSomeHave(tag);
-        const bgColor = memFixedColor(tag, "");
-        if (fixedTagsStyle && memFixedTags().includes(tag)) {
-          return {
-            tag: "span",
-            namespace: "html",
-            classList: ["toolbarButton1"],
-            styles: {
-              margin: "2px",
-              padding: "2px",
-              fontSize: this.fontSize,
-              // boxShadow: "#999999 0px 0px 4px 3px",
-              borderRadius: "6px",
-            },
-            listeners: [
-              {
-                type: "click",
-                listener: (e: Event) => {
-                  ztoolkit.log("增加标签", label, this.params, e);
-                  const target = e.target as HTMLElement;
-                  target.style.boxShadow = "#ff0000 0px 0px 4px 3px";
-                  this.onTagClick(tag, bgColor);
-                },
-              },
-            ],
-            children: [
-              {
-                tag: "span",
-                namespace: "html",
-                properties: {
-                  textContent: `[${label.values.length}]`,
-                },
-                styles: {
-                  margin: "2px",
-                  padding: "2px",
-                  background: bgColor,
-                  fontSize: this.fontSize,
-                  boxShadow: "#999999 0px 0px 4px 3px",
-                  borderRadius: "6px",
-                },
-              },
-              {
-                tag: "span",
-                namespace: "html",
-                styles: { textDecorationLine: allHave ? "line-through" : "" },
-                properties: {
-                  textContent: `${allHave || noneHave ? "" : `[${someHave}]`}${tag} `,
-                },
-              },
-            ],
-          };
-        }
+    const children = this.tagsDisplay.slice(0, (getPref("max-show") as number) || 200).map((label) => {
+      const tag = label.key;
+      const allHave = this.isAllHave(tag);
+      const noneHave = this.isNoneHave(tag);
+      const someHave = this.strSomeHave(tag);
+      const bgColor = memFixedColor(tag, "");
+      if (fixedTagsStyle && memFixedTags().includes(tag)) {
         return {
           tag: "span",
           namespace: "html",
           classList: ["toolbarButton1"],
-          properties: {
-            textContent: `${allHave || noneHave ? "" : `[${someHave}]`} [${label.values.length}]${tag} `,
-          },
           styles: {
             margin: "2px",
             padding: "2px",
-            background: bgColor,
             fontSize: this.fontSize,
-            textDecorationLine: allHave ? "line-through" : "",
-            boxShadow: "#999999 0px 0px 4px 3px",
+            // boxShadow: "#999999 0px 0px 4px 3px",
             borderRadius: "6px",
           },
           listeners: [
@@ -1049,23 +903,75 @@ export class AnnotationPopup {
                 this.onTagClick(tag, bgColor);
               },
             },
+          ],
+          children: [
             {
-              type: "contextmenu",
-              listener: (e: Event) => {
-                e.preventDefault(); // 阻止默认的右键菜单显示
-                const searchTag_input = this.doc?.getElementById(
-                  config.addonRef + "_annotation_searchTag_input",
-                ) as HTMLInputElement;
-                ztoolkit.log("右键菜单被触发", searchTag_input.value);
-                if (searchTag_input) {
-                  if (searchTag_input.value == "") searchTag_input.value = tag;
-                  if (searchTag_input.value == tag) searchTag_input.value = "";
-                }
+              tag: "span",
+              namespace: "html",
+              properties: {
+                textContent: `[${label.values.length}]`,
+              },
+              styles: {
+                margin: "2px",
+                padding: "2px",
+                background: bgColor,
+                fontSize: this.fontSize,
+                boxShadow: "#999999 0px 0px 4px 3px",
+                borderRadius: "6px",
+              },
+            },
+            {
+              tag: "span",
+              namespace: "html",
+              styles: { textDecorationLine: allHave ? "line-through" : "" },
+              properties: {
+                textContent: `${allHave || noneHave ? "" : `[${someHave}]`}${tag} `,
               },
             },
           ],
         };
-      });
+      }
+      return {
+        tag: "span",
+        namespace: "html",
+        classList: ["toolbarButton1"],
+        properties: {
+          textContent: `${allHave || noneHave ? "" : `[${someHave}]`} [${label.values.length}]${tag} `,
+        },
+        styles: {
+          margin: "2px",
+          padding: "2px",
+          background: bgColor,
+          fontSize: this.fontSize,
+          textDecorationLine: allHave ? "line-through" : "",
+          boxShadow: "#999999 0px 0px 4px 3px",
+          borderRadius: "6px",
+        },
+        listeners: [
+          {
+            type: "click",
+            listener: (e: Event) => {
+              ztoolkit.log("增加标签", label, this.params, e);
+              const target = e.target as HTMLElement;
+              target.style.boxShadow = "#ff0000 0px 0px 4px 3px";
+              this.onTagClick(tag, bgColor);
+            },
+          },
+          {
+            type: "contextmenu",
+            listener: (e: Event) => {
+              e.preventDefault(); // 阻止默认的右键菜单显示
+              const searchTag_input = this.doc?.getElementById(config.addonRef + "_annotation_searchTag_input") as HTMLInputElement;
+              ztoolkit.log("右键菜单被触发", searchTag_input.value);
+              if (searchTag_input) {
+                if (searchTag_input.value == "") searchTag_input.value = tag;
+                if (searchTag_input.value == tag) searchTag_input.value = "";
+              }
+            },
+          },
+        ],
+      };
+    });
     return {
       tag: "div",
       namespace: "html",
@@ -1078,41 +984,25 @@ export class AnnotationPopup {
         fontSize: this.fontSize,
       },
       properties: {
-        textContent: this.searchTag
-          ? "搜索中"
-          : `${ZoteroPane.getSelectedCollection()?.name || ""}`,
+        textContent: this.searchTag ? "搜索中" : `${ZoteroPane.getSelectedCollection()?.name || ""}`,
       },
       children,
     };
   }
 
   strSomeHave(tag: string) {
-    return (
-      this.existAnnotations.filter((a) => a.hasTag(tag)).length +
-      "/" +
-      this.existAnnotations.length
-    );
+    return this.existAnnotations.filter((a) => a.hasTag(tag)).length + "/" + this.existAnnotations.length;
   }
 
   isNoneHave(tag: string) {
-    return (
-      this.existAnnotations.length == 0 ||
-      this.existAnnotations.every((a) => !a.hasTag(tag))
-    );
+    return this.existAnnotations.length == 0 || this.existAnnotations.every((a) => !a.hasTag(tag));
   }
 
   isAllHave(tag: string) {
-    return (
-      this.existAnnotations.length > 0 &&
-      this.existAnnotations.every((a) => a.hasTag(tag))
-    );
+    return this.existAnnotations.length > 0 && this.existAnnotations.every((a) => a.hasTag(tag));
   }
   onTagClick(tag: string, color: string = "") {
-    if (
-      this.doc &&
-      this.rootDiv &&
-      this.selectedTags.every((s) => s.tag != tag)
-    ) {
+    if (this.doc && this.rootDiv && this.selectedTags.every((s) => s.tag != tag)) {
       this.selectedTags.push({
         tag,
         color: color || memFixedColor(tag, undefined),
@@ -1162,46 +1052,27 @@ export class AnnotationPopup {
     const existAnnotations = this.existAnnotations;
     const root = this.rootDiv;
 
-    await saveAnnotationTags(
-      searchTag,
-      selectedTags,
-      delTags,
-      reader,
-      params,
-      doc,
-    );
+    await saveAnnotationTags(searchTag, selectedTags, delTags, reader, params, doc);
     if (params.ids) {
       root?.remove();
     }
   }
 
   getPrimaryViewDoc1() {
-    return (
-      this.doc?.querySelector("#primary-view iframe") as HTMLIFrameElement
-    )?.contentDocument;
+    return (this.doc?.querySelector("#primary-view iframe") as HTMLIFrameElement)?.contentDocument;
   }
   getViewerScaleFactor() {
     const pvDoc = this.getPrimaryViewDoc1();
-    const scaleFactor =
-      parseFloat(
-        (
-          pvDoc?.querySelector("#viewer") as HTMLElement
-        )?.style.getPropertyValue("--scale-factor") || "1",
-      ) || 1;
+    const scaleFactor = parseFloat((pvDoc?.querySelector("#viewer") as HTMLElement)?.style.getPropertyValue("--scale-factor") || "1") || 1;
     return scaleFactor;
   }
   getViewerPadding() {
     const pvDoc = this.getPrimaryViewDoc1();
     const viewer = pvDoc?.querySelector("#viewer") as HTMLElement;
-    return (
-      parseFloat(ztoolkit.getGlobal("getComputedStyle")(viewer).paddingLeft) ||
-      0
-    );
+    return parseFloat(ztoolkit.getGlobal("getComputedStyle")(viewer).paddingLeft) || 0;
   }
   getClientWidthWithoutSlider() {
-    const clientWidthWithoutSlider =
-      this.getPrimaryViewDoc1()?.querySelector("#viewerContainer")
-        ?.clientWidth || 0;
+    const clientWidthWithoutSlider = this.getPrimaryViewDoc1()?.querySelector("#viewerContainer")?.clientWidth || 0;
     return clientWidthWithoutSlider;
   }
   getClientWidthWithSlider() {
@@ -1214,15 +1085,13 @@ export class AnnotationPopup {
     const page = this.getCurrentPageDiv();
     if (!page) return 0;
     let pageLeft = page.offsetLeft || 0;
-    pageLeft -= (this.getPrimaryViewDoc1()?.querySelector(
-      "#viewerContainer",
-    ) as HTMLElement)!.scrollLeft;
+    pageLeft -= (this.getPrimaryViewDoc1()?.querySelector("#viewerContainer") as HTMLElement)!.scrollLeft;
 
     return pageLeft - this.getViewerPadding();
   }
 }
 
-async function saveAnnotationTags(
+export async function saveAnnotationTags(
   searchTag: string,
   selectedTags: { tag: string; color: string }[],
   delTags: string[],
@@ -1244,18 +1113,14 @@ async function saveAnnotationTags(
     });
   }
   if (delTags.length > 0 || selectedTags.length > 0) {
-    const tagsRequire = await getTagsRequire(
-      selectedTags.map((tag) => tag.tag),
-    );
+    const tagsRequire = await getTagsRequire(selectedTags.map((tag) => tag.tag));
 
     const tagsRemove = delTags.filter((f) => !tagsRequire.includes(f));
     ztoolkit.log("需要添加的tags", tagsRequire, "需要删除的", tagsRemove);
     if (reader) {
       const item = reader._item;
       if (params.ids) {
-        const existAnnotations = item
-          .getAnnotations()
-          .filter((f) => params.ids.includes(f.key));
+        const existAnnotations = item.getAnnotations().filter((f) => params.ids.includes(f.key));
         for (const annotation of existAnnotations) {
           for (const tag of tagsRequire) {
             if (!annotation.hasTag(tag)) {
@@ -1271,19 +1136,12 @@ async function saveAnnotationTags(
         }
         // root?.remove();
       } else {
-        const color =
-          selectedTags.map((a) => a.color).filter((f) => f)[0] ||
-          memFixedColor(tagsRequire[0], undefined);
+        const color = selectedTags.map((a) => a.color).filter((f) => f)[0] || memFixedColor(tagsRequire[0], undefined);
         const tags = tagsRequire.map((a) => ({ name: a }));
 
         // 因为线程不一样，不能采用直接修改params.annotation的方式，所以直接采用新建的方式保存笔记
         // 特意采用 Components.utils.cloneInto 方法
-        const newAnn = reader?._annotationManager.addAnnotation(
-          Components.utils.cloneInto(
-            { ...params?.annotation, color, tags },
-            doc,
-          ),
-        );
+        const newAnn = reader?._annotationManager.addAnnotation(Components.utils.cloneInto({ ...params?.annotation, color, tags }, doc));
         //@ts-ignore 隐藏弹出框
         reader?._primaryView._onSetSelectionPopup(null);
       }
@@ -1301,9 +1159,7 @@ async function getTagsRequire(selectedTags: string[]) {
   const splitTags = sTags
     .filter((f) => f && f.startsWith("#") && f.includes("/"))
     .map((a) => a.replace("#", "").split("/"))
-    .flatMap((a) =>
-      bKeepAll ? a : [bKeepFirst ? a[0] : "", bKeepSecond ? a[1] : ""],
-    );
+    .flatMap((a) => (bKeepAll ? a : [bKeepFirst ? a[0] : "", bKeepSecond ? a[1] : ""]));
   const nestedTags: string[] = bCombine ? await getNestedTags(sTags) : [];
 
   const tagsRequire = uniqueBy(
@@ -1313,9 +1169,7 @@ async function getTagsRequire(selectedTags: string[]) {
   return tagsRequire;
 }
 async function getNestedTags(tags: string[]) {
-  const filterArr = tags.filter(
-    (f) => f && !f.startsWith("#") && !f.includes("/"),
-  );
+  const filterArr = tags.filter((f) => f && !f.startsWith("#") && !f.includes("/"));
   const list: string[] = [];
   const allTags = await memAllTagsDB();
   for (const t1 of filterArr) {
@@ -1333,11 +1187,7 @@ async function getNestedTags(tags: string[]) {
 
 //因为我的窗口行为改变了翻译的窗口大小，使用他的代码修复一下
 //方法来自pdf-translate\src\modules\popup.ts 338行 [windingwind/zotero-pdf-translate](https://github.com/windingwind/zotero-pdf-translate)
-function updatePopupSize(
-  selectionMenu: HTMLDivElement,
-  textarea: HTMLElement,
-  resetSize: boolean = true,
-): void {
+function updatePopupSize(selectionMenu: HTMLDivElement, textarea: HTMLElement, resetSize: boolean = true): void {
   // const keepSize = getPref("keepPopupSize") as boolean;
   // if (keepSize) {
   //   return;
@@ -1353,10 +1203,7 @@ function updatePopupSize(
   const textWidth = textarea.scrollWidth;
   const newWidth = textWidth + 20;
   // Check until H/W<0.75 and don't overflow viewer border
-  if (
-    textHeight / textWidth > 0.75 &&
-    selectionMenu.offsetLeft + newWidth < viewer.offsetWidth
-  ) {
+  if (textHeight / textWidth > 0.75 && selectionMenu.offsetLeft + newWidth < viewer.offsetWidth) {
     // Update width
     textarea.style.width = `${newWidth}px`;
     updatePopupSize(selectionMenu, textarea, false);
@@ -1364,1345 +1211,4 @@ function updatePopupSize(
   }
   // Update height
   textarea.style.height = `${textHeight + 3}px`;
-}
-
-export function PopupRoot({
-  reader,
-  params,
-  doc,
-  root,
-  maxWidth,
-}: {
-  reader: _ZoteroTypes.ReaderInstance;
-  params: {
-    annotation?: _ZoteroTypes.Annotations.AnnotationJson;
-    ids?: any;
-    currentID?: string;
-    x?: number;
-    y?: number;
-  };
-  doc: Document;
-  root: HTMLDivElement;
-  maxWidth: number;
-}) {
-  const item = reader._item;
-  const [isShowConfig, setShowConfig] = useState(
-    getPrefAs("show-config", false),
-  );
-  const [configTab, setConfigTab] = useState<string>(
-    getPrefAs("configTab", ""),
-  );
-  const [isShowSelectedPopupColorsTag, setShowSelectedPopupColorsTag] =
-    useState(getPrefAs("show-selected-popup-colors-tag", false));
-  const [isShowSelectedPopupMatchTag, setShowSelectedPopupMatchTag] = useState(
-    getPrefAs("show-selected-popup-match-tag", false),
-  );
-  const [divMaxWidth, setDivMaxWidth] = useState(getPrefAs("divMaxWidth", 600));
-  const [divMaxHeight, setDivMaxHeight] = useState(
-    getPrefAs("divMaxHeight", 600),
-  );
-
-  const [fontSize, setFontSize] = useState(getPrefAs("font-size", 17));
-  const [lineHeight, setLineHeight] = useState(
-    getPrefAs("line-height", "1.45"),
-  );
-
-  const [buttonMarginTopBottom, setButtonMarginTopBottom] = useState(
-    getPrefAs("buttonMarginTopBottom", 0),
-  );
-  const [sortType, setSortType] = useState(getPrefAs("sortType", "0"));
-  const [buttonMarginLeftRight, setButtonMarginLeftRight] = useState(
-    getPrefAs("buttonMarginLeftRight", 0),
-  );
-  const [buttonPaddingTopBottom, setButtonPaddingTopBottom] = useState(
-    getPrefAs("buttonPaddingTopBottom", 0),
-  );
-  const [buttonPaddingLeftRight, setButtonPaddingLeftRight] = useState(
-    getPrefAs("buttonPaddingLeftRight", 0),
-  );
-  const [buttonBorderRadius, setButtonBorderRadius] = useState(
-    getPrefAs("buttonBorderRadius", 5),
-  );
-  const [relateItemShowAll, setRelateItemShowAll] = useState(
-    getPrefAs("relateItemShowAll", false),
-  );
-  const [relateItemShowRelateTags, setRelateItemShowRelateTags] = useState(
-    getPrefAs("relateItemShowRelateTags", false),
-  );
-  const [relateItemSort, setRelateItemSort] = useState(
-    getPrefAs("relateItemSort", "2"),
-  );
-
-  const [existAnnotations, updateExistAnnotations] = useImmer(
-    [] as Zotero.Item[],
-  );
-
-  const [existTags, updateExistTags] = useImmer([] as string[]);
-
-  const [delTags, updateDelTags] = useImmer([] as string[]);
-
-  const [displayTags, updateDisplayTags] = useImmer(
-    [] as { key: string; values: { tag: string }[]; color?: string }[], // groupByResult<{ tag: string; type: number, dateModified?: string, color: string }>[],
-  );
-  const [searchTag, setSearchTag] = useState("");
-  const [currentPosition, setCurrentPosition] = useState(
-    ZoteroPane.getSelectedCollection()?.name || "我的文库",
-  );
-  const [searchResultLength, setSearchResultLength] = useState(0);
-  const [showTagsLength, setShowTagsLength] = useState(
-    getPrefAs("showTagsLength", 20),
-  );
-
-  const [relateTags, setRelateTags] = useState(
-    [] as {
-      key: string;
-      values: { tag: string; type: number; dateModified: string }[];
-    }[],
-  );
-  // groupByResult<{ tag: string; type: number; dateModified: string }>[]
-  useEffect(() => {
-    async function loadData() {
-      if (params.ids) {
-        const ea = item
-          .getAnnotations()
-          .filter((f) => params.ids.includes(f.key));
-        updateExistAnnotations((_a) => ea);
-        const ta = ea.flatMap((f) => f.getTags()).map((a) => a.tag);
-        updateExistTags((_a) => ta);
-      }
-
-      let relateTags: groupByResult<{
-        tag: string;
-        type: number;
-        dateModified: string;
-      }>[] = [];
-      // root.style.width=this.getSelectTextWidth()+"px"
-      if (relateItemShowAll) {
-        relateTags = await memAllTagsDB();
-      } else {
-        relateTags = groupBy(memRelateTags(item), (t10) => t10.tag);
-      }
-
-      // if (relateItemShowRelateTags)
-      groupByResultIncludeFixedTags(relateTags);
-      if (relateItemSort == "2") {
-        //2 固定标签 + 修改时间
-        relateTags = relateTags
-          .map(mapDateModified)
-          .sort(sortFixedTags100Modified10Asc);
-      } else if (relateItemSort == "3") {
-        //3 固定标签 + 本条目 + 修改时间
-        const itemAnnTags = item
-          ?.getAnnotations()
-          .flatMap((f) => f.getTags())
-          .map((a) => a.tag)
-          .sort(sortAsc);
-        relateTags = relateTags
-          .map(mapDateModified)
-          .sort(sortTags1000Ann100Modified10Asc(itemAnnTags));
-      } else {
-        //1 固定标签 + 出现次数
-        relateTags = relateTags
-          .map(mapDateModified)
-          .sort(sortFixedTags10ValuesLength);
-      }
-      setRelateTags(relateTags);
-    }
-    loadData();
-  }, [relateItemShowAll, relateItemShowRelateTags, relateItemSort]);
-  // const [, updateState] = React.useState();
-  // const forceUpdate = React.useCallback(() => updateState({}), []);
-  // const [, forceRerender] = React.useReducer((x) => x + 1, 0);
-  useEffect(() => {
-    async function search() {
-      let searchResult = relateTags;
-      if (searchTag) {
-        const searchIn = await memAllTagsDB();
-        if (searchTag.match(/^\s*$/g)) {
-          searchResult = searchIn;
-          setCurrentPosition("我的文库");
-        } else {
-          searchResult = searchIn.filter((f) =>
-            new RegExp(searchTag, "i").test(f.key),
-          );
-          setCurrentPosition("搜索中");
-        }
-      } else {
-        setCurrentPosition(
-          ZoteroPane.getSelectedCollection()?.name || "我的文库",
-        );
-      }
-      setSearchResultLength(searchResult.length);
-      updateDisplayTags(
-        searchResult
-          .slice(0, showTagsLength)
-          .map((a) =>
-            Object.assign({}, a, { color: memFixedColor(a.key, "") }),
-          ),
-      );
-      // setIsPopoverOpen(true)
-      // forceRerender()
-      //要出发弹出窗口重绘是不是有更简单的办法
-      setPPadding((setPPadding) => pPadding + 0.0001);
-      setTimeout(() => {
-        setPPadding((setPPadding) => pPadding - 0.0001);
-      });
-      //触发 useLayoutEffect()
-
-      ztoolkit.log(
-        "getBoundingClientRect2",
-        popRef.current?.getBoundingClientRect(),
-        popMaxWidthRef.current?.getBoundingClientRect(),
-        boundaryElement.getBoundingClientRect(),
-      );
-    }
-    search();
-  }, [searchTag, relateTags, showTagsLength, relateItemSort]);
-
-  // ztoolkit.log("ids", params.ids)
-  const [time, setTime] = useState(
-    params.ids ? getPrefAs("autoCloseSeconds", 15) : -1,
-  ); //只在倒计时时间
-  const timeRef = useRef<NodeJS.Timeout>(); //设置延时器
-  //倒计时
-  useEffect(() => {
-    //如果设置倒计时且倒计时不为0
-    if (time > 0) {
-      timeRef.current = setTimeout(() => {
-        setTime((time) => time - 1);
-      }, 1000);
-    }
-    if (time == 0) {
-      root.remove();
-      setIsPopoverOpen(false);
-    }
-    return () => {
-      clearTimeout(timeRef.current);
-    };
-  }, [time]);
-
-  const tagStyle = {
-    marginLeft: buttonMarginLeftRight + "px",
-    marginRight: buttonMarginLeftRight + "px",
-    marginTop: buttonMarginTopBottom + "px",
-    marginBottom: buttonMarginTopBottom + "px",
-    paddingLeft: buttonPaddingLeftRight + "px",
-    paddingRight: buttonPaddingLeftRight + "px",
-    paddingTop: buttonPaddingTopBottom + "px",
-    paddingBottom: buttonPaddingTopBottom + "px",
-    borderRadius: buttonBorderRadius + "px",
-    fontSize: fontSize + "px",
-    lineHeight: lineHeight,
-  };
-  function inputWidth(searchTag: string) {
-    return {
-      width: `${Math.min(searchTag.length + (searchTag.match(/[\u4E00-\u9FA5]/g) || "").length + 4)}ch`,
-      minWidth: "3ch",
-      maxWidth: "100%",
-    };
-  }
-  function handleRelateItemSortChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setPref("relateItemSort", e.target.value);
-    setRelateItemSort(e.target.value);
-  }
-  const [isPopoverOpen, setIsPopoverOpen] = useState(true);
-  // const parentElement = doc.firstChild as HTMLElement;
-  ztoolkit.log(doc, reader);
-  const tabDiv = Zotero_Tabs.deck.querySelector(
-    "#" + Zotero_Tabs.selectedID,
-  ) as HTMLDivElement;
-  const [bgColor, setBgColor] = useState(getPrefAs("bgColor", "#fff"));
-  const sp = (
-    tabDiv.querySelector("browser") as HTMLIFrameElement
-  ).contentDocument?.querySelector("#reader-ui ") as HTMLDivElement;
-  // const react_popover_root = tabDiv.querySelector(".react_popover_root") as HTMLDivElement || ztoolkit.UI.appendElement({
-  //   tag: "div",
-  //   styles: { width: "calc(100% - 80px)", height: "calc(100% - 100px)", position: "fixed", left: "40px", top: "80px", zIndex: "0", background: "transparent", border: "1px solid black" },
-  //   classList: ["react_popover_root"],
-
-  // }, tabDiv)
-  //@ts-ignore aaaa
-  const a = (
-    tabDiv.querySelector(".reader") as HTMLIFrameElement
-  ).contentDocument.querySelector(
-    "#split-view #primary-view",
-  ) as HTMLDivElement;
-
-  const parentElement = tabDiv;
-  const boundaryElement = tabDiv;
-  if (isDebug()) boundaryElement.style.border = "1px solid red";
-  // const c = ztoolkit.UI.appendElement({ tag: "div" }, root) as HTMLDivElement
-  useEffect(() => {
-    if (params.ids) return;
-    const MutationObserver = ztoolkit.getGlobal("MutationObserver");
-    const observer = new MutationObserver((mutations: any) => {
-      for (const mutation of mutations) {
-        // ztoolkit.log("fffff", mutation);
-        for (const rn of mutation.removedNodes) {
-          if ((rn as HTMLDivElement).classList.contains("selection-popup")) {
-            setIsPopoverOpen(false);
-          }
-        }
-      }
-    });
-    observer.observe(sp, { childList: true, subtree: true });
-    // ztoolkit.log("fffff sp", sp)
-    return () => {
-      observer.disconnect();
-    };
-  }, []);
-  const [pPadding, setPPadding] = useState(getPrefAs("pPadding", 0));
-  const [pBoundaryInset, setPBoundaryInset] = useState(
-    getPrefAs("pBoundaryInset", 40),
-  );
-  const [pArrowSize, setPArrowSize] = useState(getPrefAs("pArrowSize", 0));
-  const [pPositions, updatePPositions] = useImmer(
-    getPrefAs("pPositions", "bottom,left,top,right").split(","),
-  );
-  const [pFixedContentLocation, setPFixedContentLocation] = useState(
-    getPrefAs("pFixedContentLocation", false),
-  );
-  const [pFixedContentLocationLeft, setPFixedContentLocationLeft] = useState(
-    getPrefAs("pFixedContentLocationLeft", 0),
-  );
-  const [pFixedContentLocationTop, setPFixedContentLocationTop] = useState(
-    getPrefAs("pFixedContentLocationTop", 0),
-  );
-  const [isShowBgColor, setIsShowBgColor] = useState(false);
-  const selectionPopup = (
-    tabDiv.querySelector("browser") as HTMLIFrameElement
-  ).contentDocument?.querySelector(
-    "#reader-ui .selection-popup",
-  ) as HTMLDivElement;
-  const selectionPopupRef = useRef(selectionPopup);
-  // const popSize = useSize(selectionPopup)
-  const [selectionPopupSize, setSelectionPopupSize] = useState({
-    width: 0,
-    height: 0,
-  });
-  useEffect(() => {
-    if (params.ids) return;
-    const ResizeObserver = ztoolkit.getGlobal("ResizeObserver");
-    const resizeObserver = new ResizeObserver((_entries: any) => {
-      setSelectionPopupSize({
-        width: selectionPopup.clientWidth,
-        height: selectionPopup.clientHeight,
-      });
-    });
-    resizeObserver.observe(selectionPopup);
-    setSelectionPopupSize({
-      width: selectionPopup.clientWidth,
-      height: selectionPopup.clientHeight,
-    });
-
-    return () => resizeObserver.disconnect();
-  }, []);
-
-  const popMaxWidthRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const c = popMaxWidthRef.current;
-    if (!c) return;
-    // c.style.maxWidth = "unset"
-    // c.style.width = "600px";
-
-    function updatePopupSize(): void {
-      if (!c) return;
-      const viewer = tabDiv;
-      const rootHeight = c.scrollHeight;
-      const rootWidth = c.scrollWidth;
-      if (rootHeight / rootWidth > 2) {
-        //
-      } else if (rootHeight / rootWidth < 0.5) {
-        //
-      } else {
-        //
-      }
-      // const newWidth = rootWidth + 20;
-      // Check until H/W<0.75 and don't overflow viewer border
-      // if (
-      //   // textHeight / rootWidth > 0.75 &&
-      //   // selectionMenu.offsetLeft + newWidth < viewer.offsetWidth
-      // ) {
-      //   // Update width
-      //   // textarea.style.width = `${newWidth}px`;
-      //   // updatePopupSize(selectionMenu, textarea, false);
-      //   return;
-      // }
-      // root.style.height = `${rootHeight + 3}px`;
-    }
-
-    updatePopupSize();
-  }, [selectionPopupSize]);
-  useEffect(() => {
-    // setPBoundaryInset((pBoundaryInset) => pBoundaryInset);
-    ztoolkit.log(
-      "getBoundingClientRect",
-      popRef.current?.getBoundingClientRect(),
-      popMaxWidthRef.current?.getBoundingClientRect(),
-      boundaryElement.getBoundingClientRect(),
-    );
-  }, [displayTags]);
-  const popRef = useRef<HTMLDivElement>(null);
-
-  return (
-    <>
-      <Popover
-        parentElement={parentElement}
-        boundaryElement={boundaryElement}
-        isOpen={isPopoverOpen}
-        positions={pPositions as any}
-        padding={pPadding}
-        ref={popRef}
-        boundaryInset={pBoundaryInset}
-        transformMode={
-          pFixedContentLocation || params.ids ? "absolute" : "relative"
-        }
-        transform={
-          pFixedContentLocation || params.ids
-            ? { left: pFixedContentLocationLeft, top: 0 }
-            : (popoverState) => ({
-              top: -popoverState.nudgedTop + 65,
-              left: -popoverState.nudgedLeft,
-            })
-        }
-        // style={{
-        //   maxWidth: divMaxWidth + "px",
-        //   // width: "600px",
-        //   minHeight: divMaxHeight + "px",
-        //   overflowY: "scroll",
-        // }}
-        align="start"
-        // onClickOutside={() => setIsPopoverOpen(false)}
-        // ref={clickMeButtonRef} // if you'd like a ref to your popover's child, you can grab one here
-        content={(popoverState) => (
-          <ArrowContainer // if you'd like an arrow, you can import the ArrowContainer!
-            {...popoverState}
-            // position={popoverState.position}
-            // childRect={popoverState.childRect}
-            // popoverRect={popoverState.popoverRect}
-            arrowColor={"#aaaaaa"}
-            arrowSize={pArrowSize}
-            arrowStyle={{ opacity: 0.6 }}
-          >
-            <div
-              ref={popMaxWidthRef}
-              style={{
-                marginTop:
-                  pFixedContentLocation || params.ids
-                    ? pFixedContentLocationTop + "px"
-                    : "unset",
-                backgroundColor: bgColor,
-                opacity: 1,
-                whiteSpace: "break-spaces",
-                display: "flex",
-                flexWrap: "wrap",
-                // maxWidth: Math.max(600, maxWidth) + "px",
-                // width: "600px",
-                maxWidth: divMaxWidth + "px",
-                // width: divMaxWidth + "px",
-                // minHeight: divMaxHeight + "px",
-                // overflowY: "scroll",
-              }}
-              // onClick={() => setIsPopoverOpen(!isPopoverOpen)}
-
-              onClick={() => setTime(-1)}
-            >
-              {isShowConfig && (
-                <div
-                  style={{
-                    margin: "5px",
-                    fontSize: "18px",
-                    lineHeight: "1.5",
-                    background: "#ddd",
-                    width: "100%",
-                  }}
-                >
-                  {isShowConfig && (
-                    <>
-                      <div style={{ display: "flex", flexWrap: "wrap" }}>
-                        {[
-                          "面板基础配置",
-                          "固定位置",
-                          "弹出框",
-                          "颜色栏",
-                          "标签样式",
-                          "标签设置",
-                        ].map((a) => (
-                          <span
-                            style={{
-                              margin: "0px",
-                              padding: "0 5px",
-                              borderRadius: "8px 8px 3px 3px",
-                              borderBottom: "1px solid black",
-                              borderLeft:
-                                a !== configTab ? "1px solid black" : "",
-                              borderRight:
-                                a !== configTab ? "1px solid black" : "",
-                              borderTop:
-                                a == configTab ? "1px solid black" : "",
-                              background: a == configTab ? "#faa" : "",
-                            }}
-                            onClick={() => {
-                              setPref("configTab", a);
-                              setConfigTab(a);
-                            }}
-                          >
-                            {a}
-                          </span>
-                        ))}
-                      </div>
-                    </>
-                  )}
-
-                  {isShowConfig && "面板基础配置" == configTab && (
-                    <div
-                      style={{
-                        fontSize: "18px",
-                        lineHeight: "1.5",
-                      }}
-                    >
-                      <ChangeColor
-                        color={bgColor}
-                        onChange={(e) => {
-                          setBgColor(e);
-                          setPref("bgColor", e);
-                        }}
-                      >
-                        <span>调整背景颜色: </span>
-                        <span
-                          style={{
-                            background: bgColor,
-                            minWidth: "30px",
-                            display: "inline-block"
-
-                          }}
-                        >
-                          {" "}
-                        </span>
-
-                      </ChangeColor>
-                      <span
-                        style={{ whiteSpace: "nowrap", wordWrap: "normal" }}
-                      >
-                        面板最大宽度:
-                        <input
-                          type="number"
-                          min={100}
-                          max={1200}
-                          step={10}
-                          defaultValue={divMaxWidth}
-                          style={inputWidth("zlb")}
-                          onInput={(e) => {
-                            if (e.currentTarget.value) {
-                              setPref(
-                                "divMaxWidth",
-                                e.currentTarget.valueAsNumber,
-                              );
-                              setDivMaxWidth(e.currentTarget.valueAsNumber);
-                            }
-                          }}
-                        />
-                        px。
-                      </span>
-                      {/* <span style={{ whiteSpace: "nowrap", wordWrap: "normal" }}>
-                      面板最大高度:
-                      <input
-                        type="number"
-                        min={30}
-                        max={600}
-                        step={10}
-                        defaultValue={divMaxHeight}
-                        style={inputWidth("zlb")}
-                        onInput={(e) => {
-                          if (e.currentTarget.value) {
-                            setPref("divMaxHeight", e.currentTarget.valueAsNumber);
-                            setDivMaxHeight(e.currentTarget.valueAsNumber);
-                          }
-                        }}
-                      />
-                      px。
-                    </span> */}
-
-                      <>
-                        设置
-                        <input
-                          style={inputWidth("zlb")}
-                          type="number"
-                          min={5}
-                          max={100}
-                          defaultValue={getPrefAs("autoCloseSeconds", 15)}
-                          onInput={(e) => {
-                            if (e.currentTarget.value) {
-                              setTime(e.currentTarget.valueAsNumber);
-                              setPref(
-                                "autoCloseSeconds",
-                                e.currentTarget.valueAsNumber,
-                              );
-                            }
-                          }}
-                        />
-                        秒后自动关闭
-                      </>
-                    </div>
-                  )}
-                  {isShowConfig && "固定位置" == configTab && (
-                    <>
-                      <div
-                        style={{
-                          fontSize: "18px",
-                          lineHeight: "1.5",
-                        }}
-                      >
-                        <label>
-                          <input
-                            type="checkbox"
-                            defaultChecked={pFixedContentLocation}
-                            onChange={(e) => {
-                              setPFixedContentLocation(e.currentTarget.checked);
-                              setPref(
-                                "pFixedContentLocation",
-                                e.currentTarget.checked,
-                              );
-                            }}
-                          />
-                          固定弹出区域
-                        </label>
-                        <>
-                          固定left:
-                          <input
-                            type="number"
-                            min={0}
-                            step={10}
-                            max={500}
-                            style={inputWidth("zlb")}
-                            defaultValue={pFixedContentLocationLeft}
-                            onInput={(e) => {
-                              if (e.currentTarget.value) {
-                                setPref(
-                                  "pFixedContentLocationLeft",
-                                  e.currentTarget.value,
-                                );
-                                setPFixedContentLocationLeft(
-                                  e.currentTarget.valueAsNumber,
-                                );
-                              }
-                            }}
-                          />
-                          固定top:
-                          <input
-                            type="number"
-                            min={0}
-                            step={10}
-                            max={1000}
-                            style={inputWidth("zzlb")}
-                            defaultValue={pFixedContentLocationTop}
-                            onInput={(e) => {
-                              if (e.currentTarget.value) {
-                                setPFixedContentLocationTop(
-                                  e.currentTarget.valueAsNumber,
-                                );
-                              }
-                            }}
-                          />
-                        </>
-                      </div>
-                    </>
-                  )}
-                  {isShowConfig && "弹出框" == configTab && (
-                    <>
-                      <div
-                        style={{
-                          fontSize: "18px",
-                          lineHeight: "1.5",
-                        }}
-                      >
-                        <>
-                          <label>
-                            <input
-                              type="checkbox"
-                              defaultChecked={!pFixedContentLocation}
-                              onChange={(e) => {
-                                setPFixedContentLocation(
-                                  !e.currentTarget.checked,
-                                );
-                                setPref(
-                                  "pFixedContentLocation",
-                                  !e.currentTarget.checked,
-                                );
-                              }}
-                            />
-                            浮动弹出区域
-                          </label>
-                          弹出框边距:{" "}
-                          <input
-                            type="number"
-                            min={0}
-                            step={1}
-                            max={200}
-                            style={inputWidth("zlb")}
-                            defaultValue={pPadding}
-                            onInput={(e) => {
-                              if (e.currentTarget.value) {
-                                setPref("pPadding", e.currentTarget.value);
-                                setPPadding(e.currentTarget.valueAsNumber);
-                              }
-                            }}
-                          />
-                          弹出框边缘检测距离:
-                          {pBoundaryInset}
-                          <input
-                            type="number"
-                            min={0}
-                            step={1}
-                            max={200}
-                            style={inputWidth("zlb")}
-                            defaultValue={pBoundaryInset}
-                            onInput={(e) => {
-                              if (e.currentTarget.value) {
-                                setPref(
-                                  "pBoundaryInset",
-                                  e.currentTarget.value,
-                                );
-                                setPBoundaryInset(
-                                  e.currentTarget.valueAsNumber,
-                                );
-                              }
-                            }}
-                          />
-                          弹出框三角大小:
-                          <input
-                            type="number"
-                            min={0}
-                            step={1}
-                            max={200}
-                            style={inputWidth("zlb")}
-                            defaultValue={pArrowSize}
-                            onInput={(e) => {
-                              if (e.currentTarget.value) {
-                                setPref("pArrowSize", e.currentTarget.value);
-                                setPArrowSize(e.currentTarget.valueAsNumber);
-                              }
-                            }}
-                          />
-                          弹出框默认位置:
-                          {"bottom,left,top,right"
-                            .split(",")
-                            .sort(sortFixed(pPositions))
-                            .map((a, i) => (
-                              <span key={a} style={{ margin: "0 20px" }}>
-                                [
-                                {i > 0 && i < pPositions.length && (
-                                  <span
-                                    onClick={() => {
-                                      updatePPositions((pPositions) => {
-                                        pPositions.splice(
-                                          i - 1,
-                                          0,
-                                          ...pPositions.splice(i, 1),
-                                        );
-                                        setPref(
-                                          "pPositions",
-                                          pPositions.join(","),
-                                        );
-                                      });
-                                    }}
-                                  >
-                                    ⬅️
-                                  </span>
-                                )}
-                                <label style={{ margin: "0 10px" }}>
-                                  <input
-                                    type="checkbox"
-                                    defaultChecked={pPositions.includes(a)}
-                                    onChange={(_e) => {
-                                      updatePPositions((pPositions) => {
-                                        const index = pPositions.findIndex(
-                                          (f) => f == a,
-                                        );
-                                        if (index > -1) pPositions.splice(i, 1);
-                                        else pPositions.push(a);
-                                        setPref(
-                                          "pPositions",
-                                          pPositions.join(","),
-                                        );
-                                      });
-                                    }}
-                                  />
-                                  {a}
-                                </label>
-                                {i < pPositions.length - 1 && (
-                                  <span
-                                    onClick={() => {
-                                      updatePPositions((pPositions) => {
-                                        pPositions.splice(
-                                          i + 1,
-                                          0,
-                                          ...pPositions.splice(i, 1),
-                                        );
-                                        setPref(
-                                          "pPositions",
-                                          pPositions.join(","),
-                                        );
-                                      });
-                                    }}
-                                  >
-                                    ➡️
-                                  </span>
-                                )}
-                                ]
-                              </span>
-                            ))}
-                        </>
-                      </div>
-                    </>
-                  )}
-
-                  {isShowConfig && "颜色栏" == configTab && (
-                    <span>
-                      <span></span>
-                      颜色栏：
-                      <label>
-                        <input
-                          type="checkbox"
-                          defaultChecked={isShowSelectedPopupColorsTag}
-                          onInput={(e) => {
-                            setPref(
-                              "show-selected-popup-colors-tag",
-                              e.currentTarget.checked,
-                            );
-                            setShowSelectedPopupColorsTag(
-                              e.currentTarget.checked,
-                            );
-                          }}
-                        />
-                        {getString("pref-show-selected-popup-colors-tag", {
-                          branch: "label",
-                        })}
-                      </label>
-                      <label>
-                        <input
-                          type="checkbox"
-                          defaultChecked={isShowSelectedPopupMatchTag}
-                          onInput={(e) => {
-                            setPref(
-                              "show-selected-popup-match-tag",
-                              e.currentTarget.checked,
-                            );
-                            setShowSelectedPopupMatchTag(
-                              e.currentTarget.checked,
-                            );
-                          }}
-                        />
-                        {getString("pref-show-selected-popup-match-tag", {
-                          branch: "label",
-                        })}
-                      </label>
-                      <br />
-                    </span>
-                  )}
-                  {isShowConfig && "标签样式" == configTab && (
-                    <>
-                      <span>
-                        显示
-                        <input
-                          type="number"
-                          defaultValue={showTagsLength}
-                          min={0}
-                          max={100}
-                          style={inputWidth("zlb")}
-                          onInput={(e) => {
-                            setPref("showTagsLength", e.currentTarget.value);
-                            setShowTagsLength(e.currentTarget.valueAsNumber);
-                          }}
-                        />
-                        个。
-                      </span>
-                      <span
-                        style={{ whiteSpace: "nowrap", wordWrap: "normal" }}
-                      >
-                        字体大小:
-                        <input
-                          type="number"
-                          min={6}
-                          max={72}
-                          step={0.5}
-                          defaultValue={fontSize}
-                          style={inputWidth("zlb")}
-                          onInput={(e) => {
-                            if (e.currentTarget.value) {
-                              setPref(
-                                "font-size",
-                                e.currentTarget.valueAsNumber,
-                              );
-                              setFontSize(e.currentTarget.valueAsNumber);
-                            }
-                          }}
-                        />
-                        px。
-                      </span>
-                      行高:
-                      <input
-                        type="number"
-                        defaultValue={lineHeight}
-                        min={0.1}
-                        max={3}
-                        step={0.1}
-                        style={inputWidth("zlb")}
-                        onInput={(e) => {
-                          setPref("line-height", e.currentTarget.value);
-                          setLineHeight(e.currentTarget.value);
-                        }}
-                      />
-                      margin:
-                      <input
-                        type="number"
-                        min={-10}
-                        max={200}
-                        step={0.5}
-                        defaultValue={buttonMarginTopBottom}
-                        style={inputWidth("zlb")}
-                        onInput={(e) => {
-                          if (e.currentTarget.value) {
-                            setPref(
-                              "buttonMarginTopBottom",
-                              e.currentTarget.valueAsNumber,
-                            );
-                            setButtonMarginTopBottom(
-                              e.currentTarget.valueAsNumber,
-                            );
-                          }
-                        }}
-                      />
-                      <input
-                        type="number"
-                        min={-10}
-                        max={200}
-                        step={0.5}
-                        defaultValue={buttonMarginLeftRight}
-                        style={inputWidth("zlb")}
-                        onInput={(e) => {
-                          if (e.currentTarget.value) {
-                            setPref(
-                              "buttonMarginLeftRight",
-                              e.currentTarget.valueAsNumber,
-                            );
-                            setButtonMarginLeftRight(
-                              e.currentTarget.valueAsNumber,
-                            );
-                          }
-                        }}
-                      />
-                      padding:
-                      <input
-                        type="number"
-                        min={-10}
-                        max={200}
-                        step={0.5}
-                        defaultValue={buttonPaddingTopBottom}
-                        style={inputWidth("zlb")}
-                        onInput={(e) => {
-                          if (e.currentTarget.value) {
-                            setPref(
-                              "buttonPaddingTopBottom",
-                              e.currentTarget.valueAsNumber,
-                            );
-                            setButtonPaddingTopBottom(
-                              e.currentTarget.valueAsNumber,
-                            );
-                          }
-                        }}
-                      />
-                      <input
-                        type="number"
-                        min={-10}
-                        max={200}
-                        step={0.5}
-                        defaultValue={buttonPaddingLeftRight}
-                        style={inputWidth("zlb")}
-                        onInput={(e) => {
-                          if (e.currentTarget.value) {
-                            setPref(
-                              "buttonPaddingLeftRight",
-                              e.currentTarget.valueAsNumber,
-                            );
-                            setButtonPaddingLeftRight(
-                              e.currentTarget.valueAsNumber,
-                            );
-                          }
-                        }}
-                      />
-                      圆角:
-                      <input
-                        type="number"
-                        min={0}
-                        max={30}
-                        step={0.5}
-                        defaultValue={buttonBorderRadius}
-                        style={inputWidth("zlb")}
-                        onInput={(e) => {
-                          if (e.currentTarget.value) {
-                            setPref(
-                              "buttonBorderRadius",
-                              e.currentTarget.valueAsNumber,
-                            );
-                            setButtonBorderRadius(
-                              e.currentTarget.valueAsNumber,
-                            );
-                          }
-                        }}
-                      />
-                    </>
-                  )}
-                  {isShowConfig && "标签设置" == configTab && (
-                    <>
-                      <div>
-                        排序规则：（未完成）
-                        <label>
-                          <input
-                            type="radio"
-                            value="0"
-                            name="relateItemSort"
-                            checked={relateItemSort === "0"}
-                            onChange={handleRelateItemSortChange}
-                          />
-                          字母顺序
-                        </label>
-                        <label>
-                          <input
-                            type="radio"
-                            value="1"
-                            name="relateItemSort"
-                            checked={relateItemSort === "1"}
-                            onChange={handleRelateItemSortChange}
-                          />
-                          使用次数
-                        </label>
-                        <label>
-                          <input
-                            type="radio"
-                            value="2"
-                            name="relateItemSort"
-                            checked={relateItemSort === "2"}
-                            onChange={handleRelateItemSortChange}
-                          />
-                          使用时间
-                        </label>
-                      </div>
-                      <div>
-                        相关标签的范围：（未完成）
-                        <label>
-                          <input
-                            type="checkbox"
-                            value="0"
-                            defaultChecked={getPrefAs(
-                              "TagRangeSelfItem",
-                              false,
-                            )}
-                          />
-                          本条目
-                        </label>
-                        <label>
-                          <input
-                            type="checkbox"
-                            value="0"
-                            defaultChecked={getPrefAs(
-                              "TagRangeSelfCollection",
-                              false,
-                            )}
-                          />
-                          本条目所在文件夹[]
-                        </label>
-                        <label>
-                          <input
-                            type="checkbox"
-                            value="0"
-                            defaultChecked={getPrefAs(
-                              "TagRangeSelfCollection",
-                              false,
-                            )}
-                          />
-                          本条目所在文件夹以及子文件夹[]
-                        </label>
-                        <label>
-                          <input
-                            type="checkbox"
-                            value="0"
-                            defaultChecked={getPrefAs(
-                              "TagRangeSelfCollection",
-                              false,
-                            )}
-                          />
-                          我的文库所有文件
-                        </label>
-                      </div>
-                      <div>Nest标签相关：（未完成）</div>
-                      <div>Tag排除规则：（未完成）</div>
-                    </>
-                  )}
-                </div>
-              )}
-              <div
-                style={{
-                  fontSize: "18px",
-                  lineHeight: "1.5",
-                  // background: "#fff",
-                  boxShadow: params.ids ? "rgb(0, 0, 0) 0 0 3px 0px inset" : "",
-                  borderTop: "1px solid #000",
-                }}
-              >
-                <span
-                  style={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    alignItems: "center",
-                  }}
-                >
-                  <span
-                    style={{
-                      ...tagStyle,
-                      background: isShowConfig ? "#00990030" : "#99000030",
-                    }}
-                    onClick={() => {
-                      setPref("show-config", !isShowConfig);
-                      setShowConfig(!isShowConfig);
-                    }}
-                  >
-                    设置
-                  </span>
-                  {existTags.length > 0 && (
-                    <span
-                      style={{
-                        display: "flex",
-                        flexWrap: "wrap",
-                        fontSize: fontSize + "px",
-                        lineHeight: lineHeight,
-                        alignItems: "center",
-                      }}
-                    >
-                      现有标签：
-                      {groupBy(existTags, (a) => a)
-                        .sort(sortValuesLength)
-                        .map((a) => (
-                          <span
-                            key={a.key}
-                            style={{
-                              ...tagStyle,
-                              whiteSpace: "nowrap",
-                              wordWrap: "normal",
-                              backgroundColor: memFixedColor(a.key, ""),
-                              boxShadow: "#ccc 0px 0px 4px 3px",
-                            }}
-                            onClick={() => {
-                              updateDelTags((dt) => {
-                                const i = dt.findIndex((f) => f == a.key);
-                                if (i > -1) {
-                                  dt.splice(i, 1);
-                                } else {
-                                  dt.push(a.key);
-                                }
-                              });
-                            }}
-                          >
-                            [{a.values.length}/{existAnnotations.length}]{a.key}
-                            {delTags.includes(a.key) && (
-                              <span
-                                style={{ background: "#990000", color: "#fff" }}
-                              >
-                                [待删除]
-                              </span>
-                            )}
-                          </span>
-                        ))}
-                    </span>
-                  )}
-                  {params.ids && (
-                    <>
-                      <span
-                        style={{
-                          ...tagStyle,
-                          background:
-                            delTags.length > 0 ? "#990000" : "#009900",
-                          color: "#fff",
-                        }}
-                        onClick={() => {
-                          setIsPopoverOpen(false);
-
-                          saveAnnotationTags(
-                            "",
-                            [],
-                            delTags,
-                            reader,
-                            params,
-                            doc,
-                          );
-                          root?.remove();
-                        }}
-                      >
-                        {delTags.length == 0
-                          ? (time > 0 ? time + "s" : "点击") + "关闭"
-                          : "确认删除"}
-                      </span>
-                    </>
-                  )}
-                  <input
-                    type="text"
-                    autoFocus={true}
-                    defaultValue={searchTag}
-                    onInput={(e) => setSearchTag(e.currentTarget.value)}
-                    style={{ ...inputWidth(searchTag), minWidth: "15ch" }}
-                    placeholder="搜索标签，按回车添加"
-                    onKeyDown={(e) => {
-                      // ztoolkit.log(e)
-                      if (time > 0) {
-                        setTime(-1);
-                      }
-                      if (e.code == "Enter") {
-                        setIsPopoverOpen(false);
-                        saveAnnotationTags(
-                          searchTag,
-                          [],
-                          [],
-                          reader,
-                          params,
-                          doc,
-                        );
-                        if (params.ids) {
-                          root.remove();
-                        }
-                        return;
-                      }
-                      if (e.code == "Escape") {
-                        //@ts-ignore _onSetSelectionPopup
-                        reader?._primaryView._onSetSelectionPopup(null);
-                        root.remove();
-                        return;
-                      }
-                    }}
-                  />
-                  {/* <span style={tagStyle}>
-                    固定标签来自【{currentPosition}】
-                  </span>
-                  <span style={tagStyle}>
-                    相关标签来自【{currentPosition}】
-                  </span> */}
-                  <span style={tagStyle}>
-                    {" "}
-                    {displayTags.length}/{searchResultLength}:
-                  </span>
-                  {displayTags.map((tag) => (
-                    <span
-                      key={tag.key}
-                      style={{
-                        ...tagStyle,
-                        whiteSpace: "nowrap",
-                        wordWrap: "normal",
-                        backgroundColor: tag.color,
-                        boxShadow: "#ccc 0px 0px 4px 3px",
-                        // borderRadius: "3px",
-                      }}
-                      onClick={() => {
-                        if (isShowConfig) return;
-                        setIsPopoverOpen(false);
-                        saveAnnotationTags(
-                          tag.key,
-                          [],
-                          [],
-                          reader,
-                          params,
-                          doc,
-                        );
-                        if (params.ids) {
-                          root.remove();
-                        }
-                      }}
-                    >
-                      <span>[{tag.values.length}]</span>
-                      <span>{tag.key}</span>
-
-                      {isShowConfig && (
-                        <>
-                          {memFixedTags().includes(tag.key) ? (
-                            <>
-                              <ChangeColor
-                                color={memFixedColor(tag.key)}
-                                onChange={(e) => {
-                                  updateDisplayTags((a) => {
-                                    for (const b of a) {
-                                      if (b.key == tag.key) {
-                                        b.color = e;
-                                      }
-                                    }
-                                  });
-                                }}
-                              ><span style={{ background: "#fff" }}>颜色</span></ChangeColor>
-                              {/* <span
-                                style={{
-                                  background: "#fff",
-                                  color: "#000",
-                                  border: "1px solid #000",
-                                }}
-                              >
-                                移除固定
-                              </span>
-                              <span
-                                style={{
-                                  background: "#fff",
-                                  color: "#000",
-                                  border: "1px solid #000",
-                                }}
-                              >
-                                左移
-                              </span>
-                              <span
-                                style={{
-                                  background: "#fff",
-                                  color: "#000",
-                                  border: "1px solid #000",
-                                }}
-                              >
-                                右移
-                              </span> */}
-                            </>
-                          ) : (
-                            <span
-                              style={{
-                                background: "#fff",
-                                color: "#000",
-                                border: "1px solid #000",
-                              }}
-                            >
-                              {/* 设置固定 */}
-                            </span>
-                          )}
-                        </>
-                      )}
-                    </span>
-                  ))}
-                </span>
-              </div>
-            </div>
-          </ArrowContainer> //ArrowContainer
-        )}
-      >
-        <div
-          style={{
-            width: "100%",
-            // width: "600px",
-            position: "absolute",
-            height: (selectionPopupSize?.height || 120) + "px",
-            top: "0",
-            // background: "#f00", opacity: "0",
-            zIndex: "-1",
-          }}
-        >
-          {/* <button onClick={() => setIsPopoverOpen(!isPopoverOpen)}
-            style={{ backgroundColor: color + " !important" }}>
-            Click me! {JSON.stringify(popSize) + "1"} {JSON.stringify(selectionPopupSize) + "2"}
-          </button>
-          <span style={{ backgroundColor: color }}> {color}</span> */}
-          {/* {JSON.stringify(selectionPopupSize)} */}
-        </div>
-      </Popover>
-    </>
-  );
 }

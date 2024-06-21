@@ -2,11 +2,7 @@ import { Prompt } from "zotero-plugin-toolkit/dist/managers/prompt";
 import { config } from "../../package.json";
 import { getString } from "../utils/locale";
 
-function example(
-  target: any,
-  propertyKey: string | symbol,
-  descriptor: PropertyDescriptor,
-) {
+function example(target: any, propertyKey: string | symbol, descriptor: PropertyDescriptor) {
   const original = descriptor.value;
   descriptor.value = function (...args: any) {
     try {
@@ -24,12 +20,7 @@ export class BasicExampleFactory {
   @example
   static registerNotifier() {
     const callback = {
-      notify: async (
-        event: string,
-        type: string,
-        ids: number[] | string[],
-        extraData: { [key: string]: any },
-      ) => {
+      notify: async (event: string, type: string, ids: number[] | string[], extraData: { [key: string]: any }) => {
         if (!addon?.data.alive) {
           this.unregisterNotifier(notifierID);
           return;
@@ -39,11 +30,7 @@ export class BasicExampleFactory {
     };
 
     // Register the callback in Zotero as an item observer
-    const notifierID = Zotero.Notifier.registerObserver(callback, [
-      "tab",
-      "item",
-      "file",
-    ]);
+    const notifierID = Zotero.Notifier.registerObserver(callback, ["tab", "item", "file"]);
 
     // Unregister callback when the window closes (important to avoid a memory leak)
     window.addEventListener(
@@ -138,9 +125,7 @@ export class UIExampleFactory {
       },
     });
     document.documentElement.appendChild(styles);
-    document
-      .getElementById("zotero-item-pane-content")
-      ?.classList.add("makeItRed");
+    document.getElementById("zotero-item-pane-content")?.classList.add("makeItRed");
   }
 
   @example
@@ -172,9 +157,7 @@ export class UIExampleFactory {
         ],
       },
       "before",
-      document.querySelector(
-        "#zotero-itemmenu-addontemplate-test",
-      ) as XUL.MenuItem,
+      document.querySelector("#zotero-itemmenu-addontemplate-test") as XUL.MenuItem,
     );
   }
 
@@ -217,10 +200,7 @@ export class UIExampleFactory {
       },
       renderCell(index, data, column) {
         ztoolkit.log("Custom column cell is rendered!");
-        const span = document.createElementNS(
-          "http://www.w3.org/1999/xhtml",
-          "span",
-        );
+        const span = document.createElementNS("http://www.w3.org/1999/xhtml", "span");
         span.className = `cell ${column.className}`;
         span.style.background = "#0dd068";
         span.innerText = "⭐" + data;
@@ -234,32 +214,14 @@ export class UIExampleFactory {
     await ztoolkit.ItemBox.register(
       "itemBoxFieldEditable",
       "Editable Custom Field",
-      (
-        field: any,
-        unformatted: any,
-        includeBaseMapped: any,
-        item: any,
-        original: any,
-      ) => {
-        return (
-          ztoolkit.ExtraField.getExtraField(item, "itemBoxFieldEditable") || ""
-        );
+      (field: any, unformatted: any, includeBaseMapped: any, item: any, original: any) => {
+        return ztoolkit.ExtraField.getExtraField(item, "itemBoxFieldEditable") || "";
       },
       {
         editable: true,
-        setFieldHook: (
-          field: any,
-          value: any,
-          loadIn: any,
-          item: any,
-          original: any,
-        ) => {
+        setFieldHook: (field: any, value: any, loadIn: any, item: any, original: any) => {
           window.alert("Custom itemBox value is changed and saved to extra!");
-          ztoolkit.ExtraField.setExtraField(
-            item,
-            "itemBoxFieldEditable",
-            value,
-          );
+          ztoolkit.ExtraField.setExtraField(item, "itemBoxFieldEditable", value);
           return true;
         },
         index: 1,
@@ -269,16 +231,8 @@ export class UIExampleFactory {
     await ztoolkit.ItemBox.register(
       "itemBoxFieldNonEditable",
       "Non-Editable Custom Field",
-      (
-        field: any,
-        unformatted: any,
-        includeBaseMapped: any,
-        item: Zotero.Item,
-        original: any,
-      ) => {
-        return (
-          "[CANNOT EDIT THIS]" + (item.getField("title") as string).slice(0, 10)
-        );
+      (field: any, unformatted: any, includeBaseMapped: any, item: Zotero.Item, original: any) => {
+        return "[CANNOT EDIT THIS]" + (item.getField("title") as string).slice(0, 10);
       },
       {
         editable: false,
@@ -343,13 +297,7 @@ export class UIExampleFactory {
         return true;
       },
       // Called when the section is asked to render, must be synchronous.
-      onRender: ({
-        body,
-        item,
-        setL10nArgs,
-        setSectionSummary,
-        setSectionButtonStatus,
-      }) => {
+      onRender: ({ body, item, setL10nArgs, setSectionSummary, setSectionButtonStatus }) => {
         ztoolkit.log("Section rendered!", item?.id);
         const title = body.querySelector("#test") as HTMLElement;
         title.style.color = "red";
@@ -359,13 +307,7 @@ export class UIExampleFactory {
         setSectionButtonStatus("test", { hidden: true });
       },
       // Optional, can be asynchronous.
-      onAsyncRender: async ({
-        body,
-        item,
-        setL10nArgs,
-        setSectionSummary,
-        setSectionButtonStatus,
-      }) => {
+      onAsyncRender: async ({ body, item, setL10nArgs, setSectionSummary, setSectionButtonStatus }) => {
         ztoolkit.log("Section secondary render start!", item?.id);
         await Zotero.Promise.delay(1000);
         ztoolkit.log("Section secondary render finish!", item?.id);
@@ -432,11 +374,7 @@ export class PromptExampleFactory {
             authorDate = authorDate.trim();
             if (authorDate) nodes.push(authorDate);
 
-            const publicationTitle = item.getField(
-              "publicationTitle",
-              false,
-              true,
-            );
+            const publicationTitle = item.getField("publicationTitle", false, true);
             if (publicationTitle) {
               nodes.push(`<i>${publicationTitle}</i>`);
             }
@@ -447,8 +385,7 @@ export class PromptExampleFactory {
 
             const publisherPlace = [];
             let field;
-            if ((field = item.getField("publisher")))
-              publisherPlace.push(field);
+            if ((field = item.getField("publisher"))) publisherPlace.push(field);
             if ((field = item.getField("place"))) publisherPlace.push(field);
             if (publisherPlace.length) nodes.push(publisherPlace.join(": "));
 
@@ -519,21 +456,10 @@ export class PromptExampleFactory {
             }
             text.split(/\s*(&&|\|\|)\s*/g).forEach((conditinString: string) => {
               const conditions = conditinString.split(/\s+/g);
-              if (
-                conditions.length == 3 &&
-                operators.indexOf(conditions[1]) != -1
-              ) {
+              if (conditions.length == 3 && operators.indexOf(conditions[1]) != -1) {
                 hasValidCondition = true;
-                s.addCondition(
-                  "joinMode",
-                  joinMode as Zotero.Search.Operator,
-                  "",
-                );
-                s.addCondition(
-                  conditions[0] as string,
-                  conditions[1] as Zotero.Search.Operator,
-                  conditions[2] as string,
-                );
+                s.addCondition("joinMode", joinMode as Zotero.Search.Operator, "");
+                s.addCondition(conditions[0] as string, conditions[1] as Zotero.Search.Operator, conditions[2] as string);
               }
             });
             if (hasValidCondition) {
@@ -625,10 +551,7 @@ export class PromptExampleFactory {
           const items = ZoteroPane.getSelectedItems();
           ztoolkit.getGlobal("alert")(
             `You select ${items.length} items!\n\n${items
-              .map(
-                (item, index) =>
-                  String(index + 1) + ". " + item.getDisplayTitle(),
-              )
+              .map((item, index) => String(index + 1) + ". " + item.getDisplayTitle())
               .join("\n")}`,
           );
         },
@@ -662,8 +585,7 @@ export class HelperExampleFactory {
       .addCell(2, 0, {
         tag: "p",
         properties: {
-          innerHTML:
-            "Elements with attribute 'data-bind' are binded to the prop under 'dialogData' with the same name.",
+          innerHTML: "Elements with attribute 'data-bind' are binded to the prop under 'dialogData' with the same name.",
         },
         styles: {
           width: "200px",
@@ -849,9 +771,7 @@ export class HelperExampleFactory {
       .addButton("Help", "help", {
         noClose: true,
         callback: (e: any) => {
-          dialogHelper.window?.alert(
-            "Help Clicked! Dialog will not be closed.",
-          );
+          dialogHelper.window?.alert("Help Clicked! Dialog will not be closed.");
         },
       })
       .setDialogData(dialogData)
@@ -869,14 +789,8 @@ export class HelperExampleFactory {
   @example
   static clipboardExample() {
     new ztoolkit.Clipboard()
-      .addText(
-        "![Plugin Template](https://github.com/windingwind/zotero-plugin-template)",
-        "text/unicode",
-      )
-      .addText(
-        '<a href="https://github.com/windingwind/zotero-plugin-template">Plugin Template</a>',
-        "text/html",
-      )
+      .addText("![Plugin Template](https://github.com/windingwind/zotero-plugin-template)", "text/unicode")
+      .addText('<a href="https://github.com/windingwind/zotero-plugin-template">Plugin Template</a>', "text/html")
       .copy();
     ztoolkit.getGlobal("alert")("Copied!");
   }

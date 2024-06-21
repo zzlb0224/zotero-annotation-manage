@@ -6,12 +6,7 @@
  * @param interval
  * @param timeout
  */
-export function waitUntil(
-  condition: () => boolean,
-  callback: () => void,
-  interval = 100,
-  timeout = 10000,
-) {
+export function waitUntil(condition: () => boolean, callback: () => void, interval = 100, timeout = 10000) {
   const start = Date.now();
   const intervalId = ztoolkit.getGlobal("setInterval")(() => {
     if (condition()) {
@@ -29,11 +24,7 @@ export function waitUntil(
  * @param interval
  * @param timeout
  */
-export function waitUtilAsync(
-  condition: () => boolean,
-  interval = 100,
-  timeout = 10000,
-) {
+export function waitUtilAsync(condition: () => boolean, interval = 100, timeout = 10000) {
   return new Promise<void>((resolve, reject) => {
     const start = Date.now();
     const intervalId = ztoolkit.getGlobal("setInterval")(() => {
@@ -47,11 +38,7 @@ export function waitUtilAsync(
     }, interval);
   });
 }
-export function waitFor<T>(
-  checkAndReturn: () => T,
-  timeout = 100000,
-  interval = 100,
-): Promise<T | false> {
+export function waitFor<T>(checkAndReturn: () => T, timeout = 100000, interval = 100): Promise<T | false> {
   return new Promise((resolve, reject) => {
     const startTime = Date.now();
     const intervalId = setInterval(() => {

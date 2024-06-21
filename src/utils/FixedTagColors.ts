@@ -3,11 +3,7 @@ class FixedTagColors {
   onSave: EventListener;
   onGet: EventListener;
 
-  constructor(
-    div: HTMLDivElement,
-    onGet: EventListener,
-    onSave: EventListener,
-  ) {
+  constructor(div: HTMLDivElement, onGet: EventListener, onSave: EventListener) {
     this.div = div;
     this.onGet = onGet;
     this.onSave = onSave;

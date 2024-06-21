@@ -6,16 +6,8 @@ export { initLocale, getString };
  * Initialize locale data
  */
 function initLocale() {
-  const l10n = new (
-    typeof Localization === "undefined"
-      ? ztoolkit.getGlobal("Localization")
-      : Localization
-  )(
-    [
-      `${config.addonRef}-addon.ftl`,
-      `${config.addonRef}-mainWindow.ftl`,
-      `${config.addonRef}-preferences.ftl`,
-    ],
+  const l10n = new (typeof Localization === "undefined" ? ztoolkit.getGlobal("Localization") : Localization)(
+    [`${config.addonRef}-addon.ftl`, `${config.addonRef}-mainWindow.ftl`, `${config.addonRef}-preferences.ftl`],
     true,
   );
   addon.data.locale = {
@@ -48,10 +40,7 @@ function initLocale() {
  */
 function getString(localString: string): string;
 function getString(localString: string, branch: string): string;
-function getString(
-  localeString: string,
-  options: { branch?: string | undefined; args?: Record<string, unknown> },
-): string;
+function getString(localeString: string, options: { branch?: string | undefined; args?: Record<string, unknown> }): string;
 function getString(...inputs: any[]) {
   if (inputs.length === 1) {
     return _getString(inputs[0]);
@@ -66,15 +55,10 @@ function getString(...inputs: any[]) {
   }
 }
 
-function _getString(
-  localeString: string,
-  options: { branch?: string | undefined; args?: Record<string, unknown> } = {},
-): string {
+function _getString(localeString: string, options: { branch?: string | undefined; args?: Record<string, unknown> } = {}): string {
   const localStringWithPrefix = `${config.addonRef}-${localeString}`;
   const { branch, args } = options;
-  const pattern = addon.data.locale?.current.formatMessagesSync([
-    { id: localStringWithPrefix, args },
-  ])[0];
+  const pattern = addon.data.locale?.current.formatMessagesSync([{ id: localStringWithPrefix, args }])[0];
   if (!pattern) {
     return localStringWithPrefix;
   }

@@ -5,13 +5,7 @@ import "./PopoverPicker.css";
 
 import { HexColorPicker } from "react-colorful";
 
-export const PopoverPicker = ({
-  color,
-  onChange,
-}: {
-  color: string;
-  onChange: (newColor: string) => void;
-}) => {
+export const PopoverPicker = ({ color, onChange }: { color: string; onChange: (newColor: string) => void }) => {
   const popover = useRef<HTMLDivElement | null>(null);
   const [isOpen, toggleIsOpen] = useState(false);
 
@@ -19,11 +13,7 @@ export const PopoverPicker = ({
   useClickOutside(popover, close);
   return (
     <div className="picker">
-      <span
-        className="swatch"
-        style={{ backgroundColor: color }}
-        onClick={() => toggleIsOpen(!isOpen)}
-      >
+      <span className="swatch" style={{ backgroundColor: color }} onClick={() => toggleIsOpen(!isOpen)}>
         ooo
       </span>
 

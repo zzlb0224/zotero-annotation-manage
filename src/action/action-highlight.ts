@@ -104,39 +104,29 @@ export function init() {
       clonedButton.addEventListener("click", function () {
         console.log("左键被点击" + clonedButton.fill);
         // 点击左键，只添加颜色，依赖插件zotero-annotation-manage
-        const newAnn = _annotationManager.addAnnotation(
-          Components.utils.cloneInto({ ...params?.annotation, color }, doc),
-        );
+        const newAnn = _annotationManager.addAnnotation(Components.utils.cloneInto({ ...params?.annotation, color }, doc));
       });
       clonedButton.addEventListener("contextmenu", function () {
         console.log("右键被点击");
         //点击右键，添加颜色+tag，tag来自description
         if (info.colortag) {
           const tags = [{ name: info.colortag }];
-          const newAnn = _annotationManager.addAnnotation(
-            Components.utils.cloneInto(
-              { ...params?.annotation, color, tags },
-              doc,
-            ),
-          );
+          const newAnn = _annotationManager.addAnnotation(Components.utils.cloneInto({ ...params?.annotation, color, tags }, doc));
         } else {
-          const newAnn = _annotationManager.addAnnotation(
-            Components.utils.cloneInto({ ...params?.annotation, color }, doc),
-          );
+          const newAnn = _annotationManager.addAnnotation(Components.utils.cloneInto({ ...params?.annotation, color }, doc));
         }
       });
       // 为有description的，显示description
       if (info.description !== "") {
         console.log("333----------" + new Date().toLocaleTimeString());
-        const colorDiv =
-          Zotero.zoteroAnnotationManage.data.ztoolkit.UI.appendElement(
-            {
-              tag: "div",
-              styles: { display: "flex", flexDirection: "column" },
-              classList: ["colorDiv"],
-            },
-            colorsElement,
-          );
+        const colorDiv = Zotero.zoteroAnnotationManage.data.ztoolkit.UI.appendElement(
+          {
+            tag: "div",
+            styles: { display: "flex", flexDirection: "column" },
+            classList: ["colorDiv"],
+          },
+          colorsElement,
+        );
         colorDiv.appendChild(clonedButton);
       } else colorsElement.appendChild(clonedButton); // 将克隆出来的button添加到容器中
       //append(colorsElement);
@@ -194,20 +184,13 @@ export function init() {
 
       let spanColorTag =
         btn.querySelector("span.color-tag") ||
-        Zotero.zoteroAnnotationManage.data.ztoolkit.UI.appendElement(
-          { tag: "span", classList: ["color-tag"] },
-          colorDiv,
-        );
+        Zotero.zoteroAnnotationManage.data.ztoolkit.UI.appendElement({ tag: "span", classList: ["color-tag"] }, colorDiv);
       spanColorTag.textContent = "哈哈哈++";
 
       console.log(btn);
 
       if (!spanColorTag) {
-        spanColorTag =
-          Zotero.zoteroAnnotationManage.data.ztoolkit.UI.appendElement(
-            { tag: "span", classList: ["color-tag"] },
-            btn,
-          );
+        spanColorTag = Zotero.zoteroAnnotationManage.data.ztoolkit.UI.appendElement({ tag: "span", classList: ["color-tag"] }, btn);
         spanColorTag.textContent = "哈哈哈++";
 
         const svgElement = btn.querySelector("svg");

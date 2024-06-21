@@ -27,9 +27,9 @@ export function init() {
             // zotero调整了样式 这段换成了div，原本svg同样有效
 
             e.innerHTML =
-              e.querySelector("div")?.outerHTML
+              e.querySelector("div")?.outerHTML +
               // @ts-ignore 111
-              + replaceLabelMap[color];
+              replaceLabelMap[color];
           }
         });
     }, 10);
@@ -39,16 +39,8 @@ export function init() {
   // Zotero.Reader.unregisterEventListener("createAnnotationContextMenu", hackContextMenuLabel)
   // Zotero.Reader.registerEventListener("createColorContextMenu", hackContextMenuLabel)
 
-  Zotero.Reader.registerEventListener(
-    "createAnnotationContextMenu",
-    hackContextMenuLabel,
-    "zoterotag@euclpts.com",
-  );
+  Zotero.Reader.registerEventListener("createAnnotationContextMenu", hackContextMenuLabel, "zoterotag@euclpts.com");
 
-  Zotero.Reader.registerEventListener(
-    "createColorContextMenu",
-    hackContextMenuLabel,
-    "zoterotag@euclpts.com",
-  );
+  Zotero.Reader.registerEventListener("createColorContextMenu", hackContextMenuLabel, "zoterotag@euclpts.com");
   // "重新加载" + new Date().toLocaleTimeString()
 }

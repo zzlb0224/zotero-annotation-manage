@@ -13,11 +13,7 @@
   "labels": ["dependencies"],
   "packageRules": [
     {
-      "matchPackageNames": [
-        "zotero-plugin-toolkit",
-        "zotero-types",
-        "zotero-plugin-scaffold"
-      ],
+      "matchPackageNames": ["zotero-plugin-toolkit", "zotero-types", "zotero-plugin-scaffold"],
       "schedule": ["at any time"],
       "automerge": true
     }

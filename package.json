@@ -51,7 +51,7 @@
     "zotero-types": "^2.0.1"
   },
   "prettier": {
-    "printWidth": 80,
+    "printWidth": 140,
     "tabWidth": 2,
     "endOfLine": "lf",
     "overrides": [

@@ -1,18 +1,11 @@
 import * as React from "react";
 import { HexColorPicker } from "react-colorful";
 import { ArrowContainer, Popover } from "react-tiny-popover";
-import { ReactNode } from 'react';
+import { ReactNode } from "react";
 export function getCurrentTabDiv() {
-  return Zotero_Tabs.deck.querySelector(
-    "#" + Zotero_Tabs.selectedID,
-  ) as HTMLDivElement;
+  return Zotero_Tabs.deck.querySelector("#" + Zotero_Tabs.selectedID) as HTMLDivElement;
 }
-export function ChangeColor(props: {
-  children?: ReactNode;
-  text?: string;
-  color: string;
-  onChange: (color: string) => void;
-}) {
+export function ChangeColor(props: { children?: ReactNode; text?: string; color: string; onChange: (color: string) => void }) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [newColor, setCewColor] = React.useState(props.color);
   return (
@@ -39,10 +32,7 @@ export function ChangeColor(props: {
           </ArrowContainer>
         )}
       >
-        <span onClick={() => setIsOpen(!isOpen)}>
-
-          {props.children}
-        </span>
+        <span onClick={() => setIsOpen(!isOpen)}>{props.children}</span>
       </Popover>
 
       {/* {isOpen && <HexColorPicker

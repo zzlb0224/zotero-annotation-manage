@@ -10,10 +10,7 @@ export function getPref(key: string) {
 }
 
 export function getPrefAs<T>(key: string, defaultValue: T) {
-  return (
-    (Zotero.Prefs.get(`${config.prefsPrefix}.${key}`, true) as T | undefined) ||
-    defaultValue
-  );
+  return (Zotero.Prefs.get(`${config.prefsPrefix}.${key}`, true) as T | undefined) || defaultValue;
 }
 
 /**

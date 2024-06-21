@@ -8,10 +8,7 @@ interface CollectionWithChildren {
   itemIDs: (number | undefined)[];
   Children: CollectionWithChildren[];
 }
-export async function getCollectionWithChildren(
-  item?: Zotero.Item,
-  items?: Zotero.Item[],
-) {
+export async function getCollectionWithChildren(item?: Zotero.Item, items?: Zotero.Item[]) {
   if (item) return;
   if (items) return;
   const getChildGroupData = async () => {
@@ -40,9 +37,7 @@ export async function getCollectionWithChildren(
   const all = [];
   for (const child of children) {
     if (child.parentCollectionID) {
-      const gi = children.findIndex(
-        (f) => f.collectionID == child.parentCollectionID,
-      );
+      const gi = children.findIndex((f) => f.collectionID == child.parentCollectionID);
       if (gi > -1) {
         children[gi].Children!.push(child);
       }

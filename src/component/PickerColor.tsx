@@ -88,10 +88,7 @@ export function PickerColor({
         )}
       >
         <div style={{ width: "250px" }}>
-          <button
-            onClick={() => setIsPopoverOpen(!isPopoverOpen)}
-            style={{ backgroundColor: color + " !important" }}
-          >
+          <button onClick={() => setIsPopoverOpen(!isPopoverOpen)} style={{ backgroundColor: color + " !important" }}>
             Click me!
           </button>
           <span style={{ backgroundColor: color }}> {color}</span>

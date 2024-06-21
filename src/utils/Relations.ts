@@ -18,14 +18,8 @@ export class Relations {
 
   static checkLinkAnnotation() {
     setTimeout(async () => {
-      const d = await Zotero.RelationPredicates.add(
-        Relations.RelationsPredicate,
-      );
-      ztoolkit.log(
-        "check RelationPredicates " + Relations.RelationsPredicate,
-        Zotero.RelationPredicates._allowAdd,
-        d,
-      );
+      const d = await Zotero.RelationPredicates.add(Relations.RelationsPredicate);
+      ztoolkit.log("check RelationPredicates " + Relations.RelationsPredicate, Zotero.RelationPredicates._allowAdd, d);
     });
   }
   static getItemURIs(str: string) {
@@ -36,18 +30,14 @@ export class Relations {
   static getOpenPdfs(str: string) {
     return (
       str
-        .match(
-          /.*(zotero:\/\/open-pdf\/library\/items\/(.*?)[?]page=(.*?)&annotation=([^)]*)).*/g,
-        )
+        .match(/.*(zotero:\/\/open-pdf\/library\/items\/(.*?)[?]page=(.*?)&annotation=([^)]*)).*/g)
         ?.map((a) => a.toString())
         .map((a) => this.getOpenPdf(a))
         .filter((f) => f.openPdf) || []
     );
   }
   static getOpenPdf(str: string) {
-    const a = str.match(
-      /.*(zotero:\/\/open-pdf\/library\/items\/(.*?)[?]page=(.*?)&annotation=([^)]*)).*/,
-    );
+    const a = str.match(/.*(zotero:\/\/open-pdf\/library\/items\/(.*?)[?]page=(.*?)&annotation=([^)]*)).*/);
     return {
       text: a?.[0] || "",
       openPdf: a?.[1] || "",
@@ -61,10 +51,7 @@ export class Relations {
       const rs = this.item.getRelations() as any;
       return (rs[Relations.RelationsPredicate] as string[]) || [];
     } catch (error) {
-      ztoolkit.log(
-        "新创建的item会触发getRelations错误，重新获取，再尝试一遍",
-        error,
-      );
+      ztoolkit.log("新创建的item会触发getRelations错误，重新获取，再尝试一遍", error);
       try {
         this.item = getItem(this.item.key);
         const rs = this.item.getRelations() as any;
@@ -87,11 +74,9 @@ export class Relations {
   // }
   setRelationsTag() {
     if (this.getLinkRelations().length > 0) {
-      if (!this.item.hasTag(Relations.RelationsTag))
-        this.item.addTag(Relations.RelationsTag, 1);
+      if (!this.item.hasTag(Relations.RelationsTag)) this.item.addTag(Relations.RelationsTag, 1);
     } else {
-      if (this.item.hasTag(Relations.RelationsTag))
-        this.item.removeTag(Relations.RelationsTag);
+      if (this.item.hasTag(Relations.RelationsTag)) this.item.removeTag(Relations.RelationsTag);
     }
     // this.item.saveTx();
   }
@@ -107,9 +92,7 @@ export class Relations {
     const annotation = this.item;
     const linkRelations = this.getLinkRelations();
     ztoolkit.log("removeRelations", linkRelations, itemURIs, clearAll);
-    const needRemove = clearAll
-      ? linkRelations
-      : itemURIs.filter((f) => linkRelations.includes(f));
+    const needRemove = clearAll ? linkRelations : itemURIs.filter((f) => linkRelations.includes(f));
     needRemove.forEach((f) => {
       annotation.removeRelation(Relations.RelationsPredicate, f);
     });
@@ -133,9 +116,7 @@ export class Relations {
     const annotation = this.item;
     const linkRelations = this.getLinkRelations();
     const thisItemURI = Zotero.URI.getItemURI(this.item);
-    const needConnect = itemURIs
-      .filter((f) => !linkRelations.includes(f))
-      .filter((f) => f != thisItemURI);
+    const needConnect = itemURIs.filter((f) => !linkRelations.includes(f)).filter((f) => f != thisItemURI);
     needConnect.forEach((f) => {
       annotation.addRelation(Relations.RelationsPredicate, f);
     });

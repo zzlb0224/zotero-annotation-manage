@@ -61,9 +61,7 @@ export async function registerPrefsScripts(_window: Window) {
 
 function replaceColorTagsElement(doc: Document) {
   const id = `zotero-prefpane-${config.addonRef}-coloredTags`;
-  const btnRemove = doc.querySelector(
-    `#zotero-prefpane-${config.addonRef}-remove-color`,
-  ) as HTMLButtonElement;
+  const btnRemove = doc.querySelector(`#zotero-prefpane-${config.addonRef}-remove-color`) as HTMLButtonElement;
   if (!btnRemove) return;
   const ele = doc.getElementById(id);
   if (!ele) return;
@@ -106,11 +104,8 @@ function replaceColorTagsElement(doc: Document) {
                     btnRemove.style.background = "";
                     btnRemove.dataset.color = "";
                   } else {
-                    const tags = memFixedTags().filter(
-                      (tag) => memFixedColor(tag, undefined) == color,
-                    );
-                    btnRemove.textContent =
-                      "删除[" + tags.join(",") + "]的颜色";
+                    const tags = memFixedTags().filter((tag) => memFixedColor(tag, undefined) == color);
+                    btnRemove.textContent = "删除[" + tags.join(",") + "]的颜色";
                     btnRemove.style.background = memFixedColor(tag, undefined);
                     btnRemove.dataset.color = color;
                   }
@@ -126,9 +121,7 @@ function replaceColorTagsElement(doc: Document) {
 }
 
 function initOptionalColorLabel(doc: Document) {
-  const label = doc.getElementById(
-    `zotero-prefpane-${config.addonRef}-optional-color`,
-  ) as HTMLElement;
+  const label = doc.getElementById(`zotero-prefpane-${config.addonRef}-optional-color`) as HTMLElement;
   if (label) {
     label.style.background = memOptionalColor();
   }
@@ -162,159 +155,123 @@ function bindPrefEvents() {
 
   bindFixedColors(doc);
 
-  doc
-    .querySelector(`#zotero-prefpane-${config.addonRef}-debug`)
-    ?.addEventListener("command", (e) => {
-      // ztoolkit.log(e, getPref("tags"));
-      const checked = (e.target as HTMLInputElement).checked;
-      const df = doc.querySelector(
-        `#zotero-prefpane-${config.addonRef}-debug-func`,
-      ) as HTMLDivElement;
-      df.style.display = checked ? "" : "none";
-    });
-  doc
-    .querySelector(`#zotero-prefpane-${config.addonRef}-enable`)
-    ?.addEventListener("command", (e) => {
-      // ztoolkit.log(e, getPref("tags"));
-    });
+  doc.querySelector(`#zotero-prefpane-${config.addonRef}-debug`)?.addEventListener("command", (e) => {
+    // ztoolkit.log(e, getPref("tags"));
+    const checked = (e.target as HTMLInputElement).checked;
+    const df = doc.querySelector(`#zotero-prefpane-${config.addonRef}-debug-func`) as HTMLDivElement;
+    df.style.display = checked ? "" : "none";
+  });
+  doc.querySelector(`#zotero-prefpane-${config.addonRef}-enable`)?.addEventListener("command", (e) => {
+    // ztoolkit.log(e, getPref("tags"));
+  });
 
-  doc
-    .querySelector(
-      `#zotero-prefpane-${config.addonRef}-hide-in-selection-popup`,
-    )
-    ?.addEventListener("command", (e) => {
-      const checked = (e.target as HTMLInputElement).checked;
-      // ztoolkit.log(e, getPref("tags"));
-      if (!checked) {
-        // Annotations.unregister()
-      } else {
-        // Annotations.register()
-      }
-    });
+  doc.querySelector(`#zotero-prefpane-${config.addonRef}-hide-in-selection-popup`)?.addEventListener("command", (e) => {
+    const checked = (e.target as HTMLInputElement).checked;
+    // ztoolkit.log(e, getPref("tags"));
+    if (!checked) {
+      // Annotations.unregister()
+    } else {
+      // Annotations.register()
+    }
+  });
 
-  doc
-    .querySelector(`#zotero-prefpane-${config.addonRef}-remove-color`)
-    ?.addEventListener("command", (e) => {
-      const btn = e.target as HTMLButtonElement;
-      if (btn.dataset.color) {
-        const colorStr = (getPref("fixed-colors") as string) || "";
-        const colors = colorStr
-          .split(",")
-          .map((f) => f.trim())
-          .filter((f) => f);
-        const color = btn.dataset.color;
-        const index = colors.indexOf(color);
-        if (index > -1) {
-          colors.splice(index, 1);
-        }
-        setPref("fixed-colors", colors.join(", ") || FixedColorDefault);
-        memFixedColor.remove();
-        replaceColorTagsElement(doc);
-        btn.textContent = "选中颜色删除";
-        btn.style.background = "";
-        btn.dataset.color = "";
-      }
-      // ztoolkit.log(e, getPref("tags"));
-    });
-
-  doc
-    .querySelector(`#zotero-prefpane-${config.addonRef}-tags`)
-    ?.addEventListener("keyup", (e) => {
-      const target = e.target as HTMLTextAreaElement;
-      if (target.value.includes("\n")) {
-        target.value = target.value.replace(/\n/g, "");
-      }
-      memFixedTags.remove();
-      memFixedColor.remove();
-      replaceColorTagsElement(doc);
-      replaceTagsPreviewDiv(doc);
-    });
-
-  doc
-    .querySelector(`#zotero-prefpane-${config.addonRef}-fixed-colors`)
-    ?.addEventListener("keyup", (e) => {
-      const target = e.target as HTMLTextAreaElement;
-      if (target.value.includes("\n")) {
-        target.value = target.value.replace(/\n/g, "");
-      }
-      memFixedColor.remove();
-      replaceColorTagsElement(doc);
-      replaceTagsPreviewDiv(doc);
-    });
-  doc
-    .querySelector(`#zotero-prefpane-${config.addonRef}-add-color`)
-    ?.addEventListener("command", (e) => {
+  doc.querySelector(`#zotero-prefpane-${config.addonRef}-remove-color`)?.addEventListener("command", (e) => {
+    const btn = e.target as HTMLButtonElement;
+    if (btn.dataset.color) {
       const colorStr = (getPref("fixed-colors") as string) || "";
-      ztoolkit.log(colorStr);
       const colors = colorStr
         .split(",")
-        .map((a) => a.trim())
-        .filter((c) => c !== "");
-      const color = getNewColor(colorStr);
-      if (color) {
-        colors.push(color);
+        .map((f) => f.trim())
+        .filter((f) => f);
+      const color = btn.dataset.color;
+      const index = colors.indexOf(color);
+      if (index > -1) {
+        colors.splice(index, 1);
       }
       setPref("fixed-colors", colors.join(", ") || FixedColorDefault);
       memFixedColor.remove();
       replaceColorTagsElement(doc);
-      replaceTagsPreviewDiv(doc);
-    });
+      btn.textContent = "选中颜色删除";
+      btn.style.background = "";
+      btn.dataset.color = "";
+    }
+    // ztoolkit.log(e, getPref("tags"));
+  });
 
-  doc
-    .querySelector(`#zotero-prefpane-${config.addonRef}-sort`)
-    ?.addEventListener("command", (e) => {
-      replaceTagsPreviewDiv(doc);
-    });
-  doc
-    .querySelector(`#zotero-prefpane-${config.addonRef}-optional-color`)
-    ?.addEventListener("keyup", (e) => {
-      initOptionalColorLabel(doc);
-      memFixedColor.remove();
-      memOptionalColor.remove();
-      replaceTagsPreviewDiv(doc);
-    });
+  doc.querySelector(`#zotero-prefpane-${config.addonRef}-tags`)?.addEventListener("keyup", (e) => {
+    const target = e.target as HTMLTextAreaElement;
+    if (target.value.includes("\n")) {
+      target.value = target.value.replace(/\n/g, "");
+    }
+    memFixedTags.remove();
+    memFixedColor.remove();
+    replaceColorTagsElement(doc);
+    replaceTagsPreviewDiv(doc);
+  });
 
-  doc
-    .querySelector(`#zotero-prefpane-${config.addonRef}-tags-exclude`)
-    ?.addEventListener("keyup", (e) => {
-      replaceTagsPreviewDiv(doc);
-    });
-  doc
-    .querySelector(`#zotero-prefpane-${config.addonRef}-max-show`)
-    ?.addEventListener("keyup", (e) => {
-      memOptionalColor.remove();
-      replaceTagsPreviewDiv(doc);
-    });
-  doc
-    .querySelector(`#zotero-prefpane-${config.addonRef}-show-all-tags`)
-    ?.addEventListener("command", (e) => {
-      memOptionalColor.remove();
-      replaceTagsPreviewDiv(doc);
-    });
-  doc
-    .querySelector(`#zotero-prefpane-${config.addonRef}-children-collection`)
-    ?.addEventListener("command", (e) => {
-      memOptionalColor.remove();
-      replaceTagsPreviewDiv(doc);
-    });
-  doc
-    .querySelector(`#zotero-prefpane-${config.addonRef}-preview-button`)
-    ?.addEventListener("command", (e) => {
-      replaceTagsPreviewDiv(doc);
-    });
-  doc
-    .querySelector(`#zotero-prefpane-${config.addonRef}-current-collection`)
-    ?.addEventListener("command", (e) => {
-      memOptionalColor.remove();
-      replaceTagsPreviewDiv(doc);
-    });
-  doc
-    .querySelector(`#zotero-prefpane-${config.addonRef}-show-relate-tags`)
-    ?.addEventListener("command", (e) => {
-      memOptionalColor.remove();
-      replaceTagsPreviewDiv(doc);
-      memRelateTags.remove();
-    });
+  doc.querySelector(`#zotero-prefpane-${config.addonRef}-fixed-colors`)?.addEventListener("keyup", (e) => {
+    const target = e.target as HTMLTextAreaElement;
+    if (target.value.includes("\n")) {
+      target.value = target.value.replace(/\n/g, "");
+    }
+    memFixedColor.remove();
+    replaceColorTagsElement(doc);
+    replaceTagsPreviewDiv(doc);
+  });
+  doc.querySelector(`#zotero-prefpane-${config.addonRef}-add-color`)?.addEventListener("command", (e) => {
+    const colorStr = (getPref("fixed-colors") as string) || "";
+    ztoolkit.log(colorStr);
+    const colors = colorStr
+      .split(",")
+      .map((a) => a.trim())
+      .filter((c) => c !== "");
+    const color = getNewColor(colorStr);
+    if (color) {
+      colors.push(color);
+    }
+    setPref("fixed-colors", colors.join(", ") || FixedColorDefault);
+    memFixedColor.remove();
+    replaceColorTagsElement(doc);
+    replaceTagsPreviewDiv(doc);
+  });
+
+  doc.querySelector(`#zotero-prefpane-${config.addonRef}-sort`)?.addEventListener("command", (e) => {
+    replaceTagsPreviewDiv(doc);
+  });
+  doc.querySelector(`#zotero-prefpane-${config.addonRef}-optional-color`)?.addEventListener("keyup", (e) => {
+    initOptionalColorLabel(doc);
+    memFixedColor.remove();
+    memOptionalColor.remove();
+    replaceTagsPreviewDiv(doc);
+  });
+
+  doc.querySelector(`#zotero-prefpane-${config.addonRef}-tags-exclude`)?.addEventListener("keyup", (e) => {
+    replaceTagsPreviewDiv(doc);
+  });
+  doc.querySelector(`#zotero-prefpane-${config.addonRef}-max-show`)?.addEventListener("keyup", (e) => {
+    memOptionalColor.remove();
+    replaceTagsPreviewDiv(doc);
+  });
+  doc.querySelector(`#zotero-prefpane-${config.addonRef}-show-all-tags`)?.addEventListener("command", (e) => {
+    memOptionalColor.remove();
+    replaceTagsPreviewDiv(doc);
+  });
+  doc.querySelector(`#zotero-prefpane-${config.addonRef}-children-collection`)?.addEventListener("command", (e) => {
+    memOptionalColor.remove();
+    replaceTagsPreviewDiv(doc);
+  });
+  doc.querySelector(`#zotero-prefpane-${config.addonRef}-preview-button`)?.addEventListener("command", (e) => {
+    replaceTagsPreviewDiv(doc);
+  });
+  doc.querySelector(`#zotero-prefpane-${config.addonRef}-current-collection`)?.addEventListener("command", (e) => {
+    memOptionalColor.remove();
+    replaceTagsPreviewDiv(doc);
+  });
+  doc.querySelector(`#zotero-prefpane-${config.addonRef}-show-relate-tags`)?.addEventListener("command", (e) => {
+    memOptionalColor.remove();
+    replaceTagsPreviewDiv(doc);
+    memRelateTags.remove();
+  });
 }
 
 function bindFixedColors(doc: Document) {
@@ -327,32 +284,16 @@ function bindFixedColors(doc: Document) {
 
   const PrefPre = "fixed-tags-colors";
 
-  const eFixedTagsColorsTextArea = doc.querySelector(
-    `#zotero-prefpane-${config.addonRef}-fixed-tags-colors`,
-  ) as HTMLTextAreaElement;
-  const eFixedTagsColor = doc.querySelector(
-    `#zotero-prefpane-${config.addonRef}-fixed-tags-color`,
-  ) as HTMLSpanElement;
-  const eFixedTagsColorPreview = doc.querySelector(
-    `#zotero-prefpane-${config.addonRef}-fixed-tags-color-preview`,
-  ) as HTMLSpanElement;
+  const eFixedTagsColorsTextArea = doc.querySelector(`#zotero-prefpane-${config.addonRef}-fixed-tags-colors`) as HTMLTextAreaElement;
+  const eFixedTagsColor = doc.querySelector(`#zotero-prefpane-${config.addonRef}-fixed-tags-color`) as HTMLSpanElement;
+  const eFixedTagsColorPreview = doc.querySelector(`#zotero-prefpane-${config.addonRef}-fixed-tags-color-preview`) as HTMLSpanElement;
 
-  const eColorLeft = doc.querySelector(
-    `#zotero-prefpane-${config.addonRef}-fixed-tags-color-left`,
-  ) as HTMLButtonElement;
-  const eColorRight = doc.querySelector(
-    `#zotero-prefpane-${config.addonRef}-fixed-tags-color-right`,
-  ) as HTMLButtonElement;
-  const eColorRemove = doc.querySelector(
-    `#zotero-prefpane-${config.addonRef}-fixed-tags-color-remove`,
-  ) as HTMLButtonElement;
-  const eRandomColor = doc.querySelector(
-    `#zotero-prefpane-${config.addonRef}-fixed-tags-random-color`,
-  ) as HTMLButtonElement;
+  const eColorLeft = doc.querySelector(`#zotero-prefpane-${config.addonRef}-fixed-tags-color-left`) as HTMLButtonElement;
+  const eColorRight = doc.querySelector(`#zotero-prefpane-${config.addonRef}-fixed-tags-color-right`) as HTMLButtonElement;
+  const eColorRemove = doc.querySelector(`#zotero-prefpane-${config.addonRef}-fixed-tags-color-remove`) as HTMLButtonElement;
+  const eRandomColor = doc.querySelector(`#zotero-prefpane-${config.addonRef}-fixed-tags-random-color`) as HTMLButtonElement;
 
-  const currentCollection = doc.querySelector(
-    `#zotero-prefpane-${config.addonRef}-current-collection`,
-  ) as HTMLDivElement;
+  const currentCollection = doc.querySelector(`#zotero-prefpane-${config.addonRef}-current-collection`) as HTMLDivElement;
 
   ztoolkit.log("bindPrefEvents", eFixedTagsColorsTextArea, memFixedTagColors());
 
@@ -447,9 +388,7 @@ function bindFixedColors(doc: Document) {
       let currColl = selectedCollection || false;
       const arr = [{ key: currColl.key, name: currColl.name }];
       while (currColl.parentID) {
-        currColl = Zotero.Collections.get(
-          currColl.parentID,
-        ) as Zotero.Collection;
+        currColl = Zotero.Collections.get(currColl.parentID) as Zotero.Collection;
         arr.push({ key: currColl.key, name: currColl.name });
       }
       arr.push({ key: "", name: "我的文库" });
@@ -472,8 +411,7 @@ function bindFixedColors(doc: Document) {
               {
                 type: "click",
                 listener: () => {
-                  for (const e of cs)
-                    e.style.color = ele != e ? "#000" : "#f00";
+                  for (const e of cs) e.style.color = ele != e ? "#000" : "#f00";
                   collectionKey = a.key;
                   loadStr();
                   // tPreview()
@@ -584,9 +522,7 @@ function bindFixedColors(doc: Document) {
 
 async function replaceTagsPreviewDiv(doc?: Document) {
   if (!doc) return;
-  const preview = doc.querySelector(
-    `#zotero-prefpane-${config.addonRef}-search-preview`,
-  );
+  const preview = doc.querySelector(`#zotero-prefpane-${config.addonRef}-search-preview`);
   if (!preview) return;
   preview.children[0]?.remove();
   const getAnn = async () => {
@@ -608,9 +544,7 @@ async function replaceTagsPreviewDiv(doc?: Document) {
     if (!ann) {
       const sc = ZoteroPane.getSelectedCollection();
       if (sc) {
-        const pdfs = sc
-          .getChildItems(false, false)
-          .flatMap((f) => f.getAttachments());
+        const pdfs = sc.getChildItems(false, false).flatMap((f) => f.getAttachments());
         if (pdfs) {
           ann = Zotero.Items.get(pdfs)
             .filter((f) => f.isPDFAttachment())
@@ -658,12 +592,7 @@ async function replaceTagsPreviewDiv(doc?: Document) {
     child.remove();
   }
   if (ann) {
-    const popup = new annotations.AnnotationPopup(
-      undefined,
-      { ids: [ann.key] },
-      ann.parentItem,
-      doc,
-    );
+    const popup = new annotations.AnnotationPopup(undefined, { ids: [ann.key] }, ann.parentItem, doc);
     const rootDiv = popup.rootDiv;
     popup.tagsDisplay = await popup.searchTagResult();
     if (!rootDiv) return;
@@ -673,9 +602,7 @@ async function replaceTagsPreviewDiv(doc?: Document) {
         包含标签: [${ann
           .getTags()
           .map((a) => a.tag)
-          .join(
-            ",",
-          )}]内容：${ann.annotationType} ${ann.annotationText || ""} ${ann.annotationComment || ""}
+          .join(",")}]内容：${ann.annotationType} ${ann.annotationText || ""} ${ann.annotationComment || ""}
         `;
     rootDiv.style.position = "";
     rootDiv.style.width = "";

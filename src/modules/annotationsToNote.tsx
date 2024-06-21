@@ -9,7 +9,7 @@ import {
   sortBy,
   sortFixedTags10ValuesLength,
   sortKey,
-  sortTags10AscByKey,
+  sortFixedTags10AscByKey,
   sortValuesLength,
   sortValuesLengthKeyAsc,
 } from "../utils/sort";
@@ -39,10 +39,8 @@ let popupTime = -1;
 
 const iconBaseUrl = `chrome://${config.addonRef}/content/icons/`;
 function register() {
-  if (!getPref("hide-in-item-menu"))
-    ztoolkit.Menu.register("item", buildMenu("item"));
-  if (!getPref("hide-in-collection-menu"))
-    ztoolkit.Menu.register("collection", buildMenu("collection"));
+  if (!getPref("hide-in-item-menu")) ztoolkit.Menu.register("item", buildMenu("item"));
+  if (!getPref("hide-in-collection-menu")) ztoolkit.Menu.register("collection", buildMenu("collection"));
 }
 
 function unregister() {
@@ -85,13 +83,9 @@ function buildMenu(collectionOrItem: "collection" | "item") {
             icon: iconBaseUrl + "favicon.png",
             id: "react_popover_root",
             commandListener: async (ev: Event) => {
-              const tabDiv = Zotero_Tabs.deck.querySelector(
-                "#" + Zotero_Tabs.selectedID,
-              ) as HTMLDivElement;
+              const tabDiv = Zotero_Tabs.deck.querySelector("#" + Zotero_Tabs.selectedID) as HTMLDivElement;
               const react_popover_root =
-                (tabDiv.querySelector(
-                  ".react_popover_root",
-                ) as HTMLDivElement) ||
+                (tabDiv.querySelector(".react_popover_root") as HTMLDivElement) ||
                 ztoolkit.UI.appendElement(
                   {
                     tag: "div",
@@ -137,9 +131,7 @@ function buildMenu(collectionOrItem: "collection" | "item") {
                   },
                   tabDiv,
                 );
-              react_popover_root
-                .querySelector(".react_popover_root_popover")
-                ?.remove();
+              react_popover_root.querySelector(".react_popover_root_popover")?.remove();
               const popover = ztoolkit.UI.appendElement(
                 {
                   tag: "div",
@@ -329,14 +321,9 @@ function buildMenu(collectionOrItem: "collection" | "item") {
   };
   return menu;
 }
-export async function annotationToNoteType(
-  win: Window,
-  collectionOrItem: "collection" | "item" = "collection",
-) {
+export async function annotationToNoteType(win: Window, collectionOrItem: "collection" | "item" = "collection") {
   const doc = win.document;
-  const popup = doc.querySelector(
-    `#${config.addonRef}-create-note-type-popup-${collectionOrItem}`,
-  ) as XUL.MenuPopup;
+  const popup = doc.querySelector(`#${config.addonRef}-create-note-type-popup-${collectionOrItem}`) as XUL.MenuPopup;
   // Remove all children in popup
   while (popup?.firstChild) {
     popup.removeChild(popup.firstChild);
@@ -370,10 +357,7 @@ export async function annotationToNoteType(
       children: tags.map((tag) => {
         const color = memFixedColor(tag.key);
         //取对数可以保留差异比较大的值
-        const pre = (
-          100 -
-          (Math.log(tag.values.length) / Math.log(maxLen)) * 100
-        ).toFixed();
+        const pre = (100 - (Math.log(tag.values.length) / Math.log(maxLen)) * 100).toFixed();
         return {
           tag: "menuitem",
           icon: iconBaseUrl + "favicon.png",
@@ -389,10 +373,7 @@ export async function annotationToNoteType(
               type: "command",
               listener: (event: any) => {
                 stopPropagation(event);
-                exportNoteByType(
-                  tag.key as _ZoteroTypes.Annotations.AnnotationType,
-                  collectionOrItem,
-                );
+                exportNoteByType(tag.key as _ZoteroTypes.Annotations.AnnotationType, collectionOrItem);
               },
             },
           ],
@@ -403,14 +384,9 @@ export async function annotationToNoteType(
   ztoolkit.UI.appendElement(elemProp, popup);
 }
 
-export async function annotationToNoteTags(
-  win: Window,
-  collectionOrItem: "collection" | "item" = "collection",
-) {
+export async function annotationToNoteTags(win: Window, collectionOrItem: "collection" | "item" = "collection") {
   const doc = win.document;
-  const popup = doc.querySelector(
-    `#${config.addonRef}-create-note-tag-popup-${collectionOrItem}`,
-  ) as XUL.MenuPopup;
+  const popup = doc.querySelector(`#${config.addonRef}-create-note-tag-popup-${collectionOrItem}`) as XUL.MenuPopup;
   // Remove all children in popup
   while (popup?.firstChild) {
     popup.removeChild(popup.firstChild);
@@ -419,9 +395,9 @@ export async function annotationToNoteTags(
   // const isc = id?.includes("collection");
   // ztoolkit.log("id", id);
 
-  const ans = getAllAnnotations(
-    await getSelectedItems(collectionOrItem),
-  ).flatMap((a) => a.tags.map((t2) => Object.assign({}, a, { tag: t2 })));
+  const ans = getAllAnnotations(await getSelectedItems(collectionOrItem)).flatMap((a) =>
+    a.tags.map((t2) => Object.assign({}, a, { tag: t2 })),
+  );
   const tags = groupBy(ans, (an) => an.tag.tag)
     .sort(sortFixedTags10ValuesLength)
     .slice(0, 20);
@@ -446,10 +422,7 @@ export async function annotationToNoteTags(
       children: tags.map((tag) => {
         const color = memFixedColor(tag.key);
         //取对数可以保留差异比较大的值
-        const pre = (
-          100 -
-          (Math.log(tag.values.length) / Math.log(maxLen)) * 100
-        ).toFixed();
+        const pre = (100 - (Math.log(tag.values.length) / Math.log(maxLen)) * 100).toFixed();
         return {
           tag: "menuitem",
           icon: iconBaseUrl + "favicon.png",
@@ -597,9 +570,7 @@ async function DDDTagClear() {
     d1210 = getPref("date-1-2-10-pre"),
     d1230 = getPref("date-1-2-30-pre");
 
-  const starts = [d1p, d2p, d121, d1210, d1230].filter(
-    (tag) => tag,
-  ) as string[];
+  const starts = [d1p, d2p, d121, d1210, d1230].filter((tag) => tag) as string[];
   if (starts.length == 0) {
     return;
   }
@@ -624,9 +595,7 @@ async function DDDTagClear() {
     },
     [1],
   );
-  getPopupWin({ header })
-    ?.createLine({ text: "完成" })
-    .startCloseTimer(5000, false);
+  getPopupWin({ header })?.createLine({ text: "完成" }).startCloseTimer(5000, false);
 }
 async function DDDTagRemove(collectionOrItem: "collection" | "item") {
   const items = await getSelectedItems(collectionOrItem);
@@ -637,9 +606,7 @@ async function DDDTagRemove(collectionOrItem: "collection" | "item") {
     d1210 = getPref("date-1-2-10-pre"),
     d1230 = getPref("date-1-2-30-pre");
 
-  const starts = [d1p, d2p, d121, d1210, d1230].filter(
-    (tag) => tag,
-  ) as string[];
+  const starts = [d1p, d2p, d121, d1210, d1230].filter((tag) => tag) as string[];
   if (starts.length == 0) {
     return;
   }
@@ -667,9 +634,7 @@ async function DDDTagRemove(collectionOrItem: "collection" | "item") {
     }
   });
 
-  getPopupWin({ header })
-    .createLine({ text: "完成" })
-    .startCloseTimer(5000, false);
+  getPopupWin({ header }).createLine({ text: "完成" }).startCloseTimer(5000, false);
 }
 async function DDDTagSet(collectionOrItem: "collection" | "item") {
   const items = await getSelectedItems(collectionOrItem);
@@ -684,8 +649,7 @@ async function DDDTagSet(collectionOrItem: "collection" | "item") {
     d1230 = getPref("date-1-2-30-pre");
   //  const ProgressWindow = Zotero.ZoteroStyle.data.ztoolkit.ProgressWindow,d1s="Received[:\\s]*",d2s="Accepted[:\\s]*",d1p="",d2p="",d121="#Z1d/",d1210="",d1230="";
   if (!items) return "未选中Items";
-  if (!d1s && !d2s && !d1p && !d2p && !d121 && !d1210 && !d1230)
-    return "未配置";
+  if (!d1s && !d2s && !d1p && !d2p && !d121 && !d1210 && !d1230) return "未配置";
   const regExpDate =
     /\d{1,2}[\s-]+(?:Jan|January|Feb|February|Mar|March|Apr|April|May|Jul|July|Jun|June|Aug|August|Sep|September|Oct|October|Nov|November|Dec|December)[\s-]+\d{2,4}/;
   const ids = items
@@ -724,45 +688,31 @@ async function DDDTagSet(collectionOrItem: "collection" | "item") {
     }
     let changed = false;
     if (d1 && d1p) {
-      pdf.parentItem?.addTag(
-        `${d1p}${d1.toLocaleDateString().replace(/\//g, "-")}`,
-      );
+      pdf.parentItem?.addTag(`${d1p}${d1.toLocaleDateString().replace(/\//g, "-")}`);
       changed = true;
     }
     if (d2 && d2p) {
-      pdf.parentItem?.addTag(
-        `${d2p}${d2.toLocaleDateString().replace(/\//g, "-")}`,
-      );
+      pdf.parentItem?.addTag(`${d2p}${d2.toLocaleDateString().replace(/\//g, "-")}`);
       changed = true;
     }
     if (d1 && d2) {
       if (d121) {
-        const dd1 = Math.floor(
-          (d2.getTime() - d1.getTime()) / (24 * 3600 * 1000),
-        );
+        const dd1 = Math.floor((d2.getTime() - d1.getTime()) / (24 * 3600 * 1000));
 
         const d12dps = `${d121}${dd1}`;
         pdf.parentItem?.addTag(d12dps);
         changed = true;
       }
       if (d1210) {
-        const dd101 =
-          Math.floor((d2.getTime() - d1.getTime()) / (24 * 3600 * 1000 * 10)) *
-          10;
-        const dd102 =
-          Math.ceil((d2.getTime() - d1.getTime()) / (24 * 3600 * 1000 * 10)) *
-          10;
+        const dd101 = Math.floor((d2.getTime() - d1.getTime()) / (24 * 3600 * 1000 * 10)) * 10;
+        const dd102 = Math.ceil((d2.getTime() - d1.getTime()) / (24 * 3600 * 1000 * 10)) * 10;
         const d12dps = `${d1210}${dd101}-${dd102}`;
         pdf.parentItem?.addTag(d12dps);
         changed = true;
       }
       if (d1230) {
-        const dm1 =
-          Math.floor((d2.getTime() - d1.getTime()) / (24 * 3600 * 1000 * 30)) *
-          30;
-        const dm2 =
-          Math.ceil((d2.getTime() - d1.getTime()) / (24 * 3600 * 1000 * 30)) *
-          30;
+        const dm1 = Math.floor((d2.getTime() - d1.getTime()) / (24 * 3600 * 1000 * 30)) * 30;
+        const dm2 = Math.ceil((d2.getTime() - d1.getTime()) / (24 * 3600 * 1000 * 30)) * 30;
         const d12mps = `${d1230}${dm1}-${dm2}`;
         pdf.parentItem?.addTag(d12mps);
 
@@ -778,9 +728,7 @@ async function DDDTagSet(collectionOrItem: "collection" | "item") {
   }
   getPopupWin({ header }).createLine({ text: `已完成` });
 }
-async function funcTranslateAnnotations(
-  isCollectionOrItem: boolean | "collection" | "item",
-) {
+async function funcTranslateAnnotations(isCollectionOrItem: boolean | "collection" | "item") {
   const items = await getSelectedItems(isCollectionOrItem);
   const ans = getAllAnnotations(items)
     .filter((an) => an.ann.annotationText)
@@ -811,9 +759,7 @@ async function funcTranslateAnnotations(
       an.ann.annotationComment = r;
     } else {
       const end = an.ann.annotationComment.indexOf("🔤", 1);
-      if (end > -1)
-        an.ann.annotationComment = an.ann.annotationComment =
-          r + "" + an.ann.annotationComment.substring(end, 999);
+      if (end > -1) an.ann.annotationComment = an.ann.annotationComment = r + "" + an.ann.annotationComment.substring(end, 999);
     }
     // an.ann.annotationComment = !an.ann.annotationComment
     //   ? r
@@ -842,14 +788,8 @@ async function funcCreateTab(items: Zotero.Item[]) {
   // );
   const tab = await createTabDoc();
   const body = tab.document?.body as HTMLBodyElement;
-  const query = ztoolkit.UI.appendElement(
-    { tag: "div" },
-    body,
-  ) as HTMLDivElement;
-  const content = ztoolkit.UI.appendElement(
-    { tag: "div" },
-    body,
-  ) as HTMLDivElement;
+  const query = ztoolkit.UI.appendElement({ tag: "div" }, body) as HTMLDivElement;
+  const content = ztoolkit.UI.appendElement({ tag: "div" }, body) as HTMLDivElement;
   let searchTag = "";
   ztoolkit.UI.appendElement(
     {
@@ -864,9 +804,7 @@ async function funcCreateTab(items: Zotero.Item[]) {
               listener: (ev) => {
                 searchTag = (ev.target as HTMLInputElement).value;
                 const filterFunc = ReTest(searchTag);
-                const items2 = items.filter(
-                  (f) => f.getTags().findIndex((t) => filterFunc(t.tag)) != -1,
-                );
+                const items2 = items.filter((f) => f.getTags().findIndex((t) => filterFunc(t.tag)) != -1);
                 createChild(content, items2);
               },
             },
@@ -907,63 +845,51 @@ async function funcCreateTab(items: Zotero.Item[]) {
                   [...div.children].forEach((f, i) => f.remove());
                   return;
                 }
-                f.values
-                  .sort(sortBy((a) => a.item.getField("year")))
-                  .forEach((a) => {
-                    ztoolkit.UI.appendElement(
-                      {
-                        tag: "div",
-                        properties: {
-                          textContent: `${a.item.firstCreator} ${a.item.getField("year")}  ${a.item.getField("publicationTitle")}  ${a.item.getDisplayTitle()}`,
-                        },
-                        children: [
-                          {
-                            tag: "div",
-                            properties: {
-                              innerHTML: getCiteItemHtml(
-                                a.item,
-                                undefined,
-                                "打开",
-                              ),
-                            },
-                            listeners: [
-                              {
-                                type: "click",
-                                listener(ev) {
-                                  ev.stopPropagation();
-                                  //为什么不起作用？
-                                  const z = Zotero.Items.get(
-                                    a.item.getAttachments(),
-                                  ).filter((f) => f.isPDFAttachment())[0];
-                                  if (z) {
-                                    ztoolkit.log(
-                                      "打开",
-                                      z.getDisplayTitle(),
-                                      z,
-                                    );
-                                    Zotero.FileHandlers.open(z);
-                                  }
-                                  return true;
-                                },
-                                options: { capture: true },
-                              },
-                            ],
-                          },
-                        ],
-                        listeners: [
-                          {
-                            type: "click",
-                            listener(ev) {
-                              ev.stopPropagation();
-                              return true;
-                            },
-                            options: { capture: true },
-                          },
-                        ],
+                f.values.sort(sortBy((a) => a.item.getField("year"))).forEach((a) => {
+                  ztoolkit.UI.appendElement(
+                    {
+                      tag: "div",
+                      properties: {
+                        textContent: `${a.item.firstCreator} ${a.item.getField("year")}  ${a.item.getField("publicationTitle")}  ${a.item.getDisplayTitle()}`,
                       },
-                      div,
-                    );
-                  });
+                      children: [
+                        {
+                          tag: "div",
+                          properties: {
+                            innerHTML: getCiteItemHtml(a.item, undefined, "打开"),
+                          },
+                          listeners: [
+                            {
+                              type: "click",
+                              listener(ev) {
+                                ev.stopPropagation();
+                                //为什么不起作用？
+                                const z = Zotero.Items.get(a.item.getAttachments()).filter((f) => f.isPDFAttachment())[0];
+                                if (z) {
+                                  ztoolkit.log("打开", z.getDisplayTitle(), z);
+                                  Zotero.FileHandlers.open(z);
+                                }
+                                return true;
+                              },
+                              options: { capture: true },
+                            },
+                          ],
+                        },
+                      ],
+                      listeners: [
+                        {
+                          type: "click",
+                          listener(ev) {
+                            ev.stopPropagation();
+                            return true;
+                          },
+                          options: { capture: true },
+                        },
+                      ],
+                    },
+                    div,
+                  );
+                });
                 return true;
               },
               options: { capture: false },
@@ -977,13 +903,9 @@ async function funcCreateTab(items: Zotero.Item[]) {
 }
 function createTabDoc(): Promise<Tab> {
   return new Promise((resolve, reject) => {
-    const tab = new Tab(
-      `chrome://${config.addonRef}/content/tab.xhtml`,
-      "一个新查询",
-      (doc) => {
-        resolve(tab);
-      },
-    );
+    const tab = new Tab(`chrome://${config.addonRef}/content/tab.xhtml`, "一个新查询", (doc) => {
+      resolve(tab);
+    });
   });
 }
 function funcSplitTag(items: Zotero.Item[], ans: AnnotationRes[]) {
@@ -1001,9 +923,7 @@ function funcSplitTag(items: Zotero.Item[], ans: AnnotationRes[]) {
       .map((tag) => tag.tag.match(/#([^/]*)\/([^/]*)[/]?/))
       .filter((f) => f != null && f.length >= 3)
       .flatMap((a) => (a != null ? [a[1], a[2]] : []));
-    const tas = uniqueBy(ts, (a) => a).filter((f) =>
-      ann.tags.every((e) => e.tag != f),
-    );
+    const tas = uniqueBy(ts, (a) => a).filter((f) => ann.tags.every((e) => e.tag != f));
     //ztoolkit.log(ann.tags,tas)
     if (tas.length > 0) {
       const tas2 = tas.map(async (a) => ann.ann.addTag(a, 0));
@@ -1017,11 +937,7 @@ function funcSplitTag(items: Zotero.Item[], ans: AnnotationRes[]) {
   getPopupWin({ header }).startCloseTimer(3000);
 }
 
-function createSearchAnnContent(
-  dialogWindow: Window | undefined,
-  popupDiv: HTMLElement | undefined,
-  annotations: AnnotationRes[],
-) {
+function createSearchAnnContent(dialogWindow: Window | undefined, popupDiv: HTMLElement | undefined, annotations: AnnotationRes[]) {
   const isWin = dialogWindow != undefined;
   const doc = dialogWindow?.document || popupDiv;
   if (!doc) return;
@@ -1090,14 +1006,7 @@ function createSearchAnnContent(
       {
         tag: "div",
         properties: { textContent: "类型：" },
-        children: [
-          "highlight",
-          "image",
-          "underline",
-          "note",
-          "ink",
-          "text",
-        ].flatMap((a) => [
+        children: ["highlight", "image", "underline", "note", "ink", "text"].flatMap((a) => [
           {
             tag: "label",
             namespace: "html",
@@ -1119,10 +1028,7 @@ function createSearchAnnContent(
                       ev.stopPropagation();
                       const ck = ev.target as HTMLInputElement;
                       if (selectedAnnotationType.includes(a)) {
-                        selectedAnnotationType.splice(
-                          selectedAnnotationType.indexOf(a),
-                          1,
-                        );
+                        selectedAnnotationType.splice(selectedAnnotationType.indexOf(a), 1);
                         ck.checked = false;
                       } else {
                         selectedAnnotationType.push(a);
@@ -1156,9 +1062,7 @@ function createSearchAnnContent(
                 type: "change",
                 listener: (ev: Event) => {
                   stopPropagation(ev);
-                  pageSize = parseInt(
-                    (ev.target as HTMLInputElement).value.trim(),
-                  );
+                  pageSize = parseInt((ev.target as HTMLInputElement).value.trim());
                   if (pageSize <= 0) pageSize = 1;
                   (ev.target as HTMLInputElement).value = pageSize + "";
                   setPref("SearchAnnPageSize", pageSize);
@@ -1188,9 +1092,7 @@ function createSearchAnnContent(
                 type: "change",
                 listener: (ev: Event) => {
                   stopPropagation(ev);
-                  pageIndex = parseInt(
-                    (ev.target as HTMLInputElement).value.trim(),
-                  );
+                  pageIndex = parseInt((ev.target as HTMLInputElement).value.trim());
                   // if (pageIndex <= 0) pageIndex = 1;
                   if (pageIndex <= 0) {
                     pageIndex = Math.floor(ans.length / pageSize + 1);
@@ -1292,28 +1194,24 @@ function createSearchAnnContent(
   ztoolkit.UI.appendElement(inputTag!, query);
   // content.addEventListener("wheel",(e)=>{ztoolkit.log("wheel",e)})
   // content.addEventListener("onmousewheel",(e)=>{ztoolkit.log("onmousewheel",e)})
-  content.addEventListener(
-    "DOMMouseScroll_只要底层捕捉，上面的div不要处理这个事件",
-    (e) => {
-      // e.preventDefault()
-      const DMS = e as any;
-      // ztoolkit.log("DOMMouseScroll",e)
-      pageIndex += DMS.detail ? 1 : -1;
-      if (pageIndex <= 0) {
-        pageIndex = Math.floor(ans.length / pageSize + 1);
-      } else if (pageIndex > ans.length / pageSize + 1) {
-        pageIndex = 1;
-      }
-      const pIE = query.querySelector(".pageIndex") as HTMLInputElement;
-      if (pIE) {
-        pIE.value = pageIndex + "";
-      }
-      updatePageContentDebounce();
-    },
-  );
+  content.addEventListener("DOMMouseScroll_只要底层捕捉，上面的div不要处理这个事件", (e) => {
+    // e.preventDefault()
+    const DMS = e as any;
+    // ztoolkit.log("DOMMouseScroll",e)
+    pageIndex += DMS.detail ? 1 : -1;
+    if (pageIndex <= 0) {
+      pageIndex = Math.floor(ans.length / pageSize + 1);
+    } else if (pageIndex > ans.length / pageSize + 1) {
+      pageIndex = 1;
+    }
+    const pIE = query.querySelector(".pageIndex") as HTMLInputElement;
+    if (pIE) {
+      pIE.value = pageIndex + "";
+    }
+    updatePageContentDebounce();
+  });
 
-  const updatePageContentDebounce =
-    Zotero.Utilities.debounce(updatePageContent);
+  const updatePageContentDebounce = Zotero.Utilities.debounce(updatePageContent);
   const updateFilterDebounce = Zotero.Utilities.debounce(updateFilter);
   updateFilterDebounce();
   // return { text, tag, showN: pageSize, ans };
@@ -1321,21 +1219,9 @@ function createSearchAnnContent(
     const txtRegExp = str2RegExps(text);
     const tagRegExp = str2RegExps(tag);
     ans = annotations
-      .filter(
-        (f) =>
-          txtRegExp.length == 0 ||
-          txtRegExp.some((a) => a.test(f.comment) || a.test(f.text)),
-      )
-      .filter(
-        (f) =>
-          tagRegExp.length == 0 ||
-          tagRegExp.some((a) => a.test(f.annotationTags)),
-      )
-      .filter(
-        (f) =>
-          selectedAnnotationType.length == 0 ||
-          selectedAnnotationType.includes(f.type),
-      )
+      .filter((f) => txtRegExp.length == 0 || txtRegExp.some((a) => a.test(f.comment) || a.test(f.text)))
+      .filter((f) => tagRegExp.length == 0 || tagRegExp.some((a) => a.test(f.annotationTags)))
+      .filter((f) => selectedAnnotationType.length == 0 || selectedAnnotationType.includes(f.type))
       .sort((a, b) => {
         return (
           sortAsc(b.year, a.year) * 1000 +
@@ -1361,8 +1247,7 @@ function createSearchAnnContent(
   async function updatePageContent() {
     if ((pageIndex - 1) * pageSize > ans.length) {
       pageIndex = 1;
-      (query.querySelector(".pageIndex") as HTMLInputElement).value =
-        pageIndex + "";
+      (query.querySelector(".pageIndex") as HTMLInputElement).value = pageIndex + "";
     }
     status.innerHTML = `总${annotations.length}条笔记，筛选出了${ans.length}条。预览${(pageIndex - 1) * pageSize + 1}-${Math.min(pageIndex * pageSize, ans.length)}条。`;
     const showAn = ans.slice((pageIndex - 1) * pageSize, pageIndex * pageSize);
@@ -1400,9 +1285,7 @@ function createSearchAnnContent(
                 properties: {
                   textContent: anTo.annotationType,
                   innerHTML:
-                    (await memSVG(
-                      `chrome://${config.addonRef}/content/16/annotate-${anTo.annotationType}.svg`,
-                    )) || anTo.annotationType,
+                    (await memSVG(`chrome://${config.addonRef}/content/16/annotate-${anTo.annotationType}.svg`)) || anTo.annotationType,
                 },
               },
               {
@@ -1445,12 +1328,7 @@ function createSearchAnnContent(
                 type: "click",
                 listener: (e: Event) => {
                   e.stopPropagation();
-                  if (anTo.parentItemKey)
-                    openAnnotation(
-                      anTo.parentItemKey,
-                      anTo.annotationPageLabel,
-                      anTo.key,
-                    );
+                  if (anTo.parentItemKey) openAnnotation(anTo.parentItemKey, anTo.annotationPageLabel, anTo.key);
                 },
                 options: { capture: true },
               },
@@ -1507,9 +1385,7 @@ function createSearchAnnContent(
 }
 
 function createChild(doc: Document, items: Zotero.Item[]) {
-  const annotations = getAllAnnotations(items).flatMap((f) =>
-    f.tags.map((t3) => Object.assign(f, { tag: t3 })),
-  );
+  const annotations = getAllAnnotations(items).flatMap((f) => f.tags.map((t3) => Object.assign(f, { tag: t3 })));
   const tags = groupBy(annotations, (a) => a.tag.tag);
   tags.sort(sortFixedTags10ValuesLength);
   ztoolkit.UI.appendElement(
@@ -1525,9 +1401,7 @@ function createChild(doc: Document, items: Zotero.Item[]) {
   ztoolkit.UI.appendElement(
     {
       tag: "div",
-      children: annotations
-        .slice(0, 300)
-        .map((t5) => ({ tag: "div", properties: { textContent: t5.text } })),
+      children: annotations.slice(0, 300).map((t5) => ({ tag: "div", properties: { textContent: t5.text } })),
     },
     doc.querySelector("body")!,
   );
@@ -1541,16 +1415,11 @@ export function stopPropagation(e: Event) {
     e.cancelBubble = true; //IE阻止冒泡方法
   }
 }
-async function createChooseTagsDiv(
-  doc: Document,
-  collectionOrItem: "collection" | "item",
-) {
+async function createChooseTagsDiv(doc: Document, collectionOrItem: "collection" | "item") {
   const selectedTags: string[] = [];
   const idTags = ID.result;
   const items = await getSelectedItems(collectionOrItem);
-  const annotations = getAllAnnotations(items).flatMap((f) =>
-    f.tags.map((t6) => Object.assign(f, { tag: t6 })),
-  );
+  const annotations = getAllAnnotations(items).flatMap((f) => f.tags.map((t6) => Object.assign(f, { tag: t6 })));
   const tags = groupBy(annotations, (a) => a.tag.tag);
   tags.sort(sortFixedTags10ValuesLength);
 
@@ -1596,17 +1465,8 @@ async function createChooseTagsDiv(
             type: "click",
             listener: (ev: Event) => {
               stopPropagation(ev);
-              const tp = toggleProperty(
-                (document.getElementById(idTags) as HTMLElement | undefined)
-                  ?.style,
-                "display",
-                ["none", "flex"],
-              );
-              setProperty(
-                ev.target as HTMLButtonElement,
-                "textContent",
-                tp == "none" ? "+点击展开可选标签" : "-点击隐藏可选标签",
-              );
+              const tp = toggleProperty((document.getElementById(idTags) as HTMLElement | undefined)?.style, "display", ["none", "flex"]);
+              setProperty(ev.target as HTMLButtonElement, "textContent", tp == "none" ? "+点击展开可选标签" : "-点击隐藏可选标签");
             },
           },
         ],
@@ -1633,8 +1493,7 @@ async function createChooseTagsDiv(
       ],
     };
 
-    for (const action of actionTag)
-      ztoolkit.UI.appendElement(action, div!.querySelector(".action")!);
+    for (const action of actionTag) ztoolkit.UI.appendElement(action, div!.querySelector(".action")!);
     ztoolkit.UI.appendElement(tagsTag!, div!.querySelector(".content")!);
     ztoolkit.UI.appendElement(queryTag, div!.querySelector(".query")!);
 
@@ -1693,11 +1552,7 @@ function clearChild(ele: Element | null) {
   }
 }
 
-function createActionTag(
-  div: HTMLElement | undefined,
-  action: () => void | undefined,
-  others: TagElementProps[] = [],
-): TagElementProps[] {
+function createActionTag(div: HTMLElement | undefined, action: () => void | undefined, others: TagElementProps[] = []): TagElementProps[] {
   if (!div) return [];
   return [
     {
@@ -1734,24 +1589,24 @@ function createActionTag(
     // },
     action
       ? {
-          tag: "button",
-          namespace: "html",
-          properties: { textContent: "确定生成" },
-          // styles: {
-          //   padding: "6px",
-          //   background: "#f99",
-          //   margin: "1px",
-          // },
-          listeners: [
-            {
-              type: "click",
-              listener: (ev: any) => {
-                stopPropagation(ev);
-                action();
-              },
+        tag: "button",
+        namespace: "html",
+        properties: { textContent: "确定生成" },
+        // styles: {
+        //   padding: "6px",
+        //   background: "#f99",
+        //   margin: "1px",
+        // },
+        listeners: [
+          {
+            type: "click",
+            listener: (ev: any) => {
+              stopPropagation(ev);
+              action();
             },
-          ],
-        }
+          },
+        ],
+      }
       : { tag: "span" },
     ...others,
   ];
@@ -1793,9 +1648,7 @@ async function createNote(txt = "") {
   return targetNoteItem;
 }
 function getAllAnnotations(items: Zotero.Item[]) {
-  const items1 = items.map((a) =>
-    a.isAttachment() && a.isPDFAttachment() && a.parentItem ? a.parentItem : a,
-  );
+  const items1 = items.map((a) => (a.isAttachment() && a.isPDFAttachment() && a.parentItem ? a.parentItem : a));
   // ztoolkit.log(4444, items1);
   const data = uniqueBy(items1, (a) => a.key)
     .filter((f) => !f.isAttachment())
@@ -1874,8 +1727,7 @@ export function getPopupWin({
     };
   }
   popupTime = Date.now();
-  if (lines && lines.length > 0)
-    for (const line of lines) popupWin?.createLine({ text: line });
+  if (lines && lines.length > 0) for (const line of lines) popupWin?.createLine({ text: line });
   popupWin?.startCloseTimer(closeTime, false);
   return popupWin;
 }
@@ -1896,13 +1748,9 @@ async function exportNote({
   items = undefined,
   tags = undefined,
 }: {
-  toText:
-    | ((arg0: AnnotationRes[]) => string)
-    | ((arg0: AnnotationRes[]) => Promise<string>);
+  toText: ((arg0: AnnotationRes[]) => string) | ((arg0: AnnotationRes[]) => Promise<string>);
 
-  filter?:
-    | ((arg0: AnnotationRes[]) => AnnotationRes[])
-    | ((arg0: AnnotationRes[]) => Promise<AnnotationRes[]>);
+  filter?: ((arg0: AnnotationRes[]) => AnnotationRes[]) | ((arg0: AnnotationRes[]) => Promise<AnnotationRes[]>);
   items?: Zotero.Item[];
   tags?: string[];
 }) {
@@ -1950,18 +1798,13 @@ async function exportNote({
 
   await saveNote(note, `${title}${txt}`);
 }
-async function getSelectedItems(
-  isCollectionOrItem: boolean | "collection" | "item",
-) {
+async function getSelectedItems(isCollectionOrItem: boolean | "collection" | "item") {
   let items: Zotero.Item[] = [];
   if (isCollectionOrItem === true || isCollectionOrItem === "collection") {
     const selected = ZoteroPane.getSelectedCollection();
     ztoolkit.log(isCollectionOrItem, selected);
     if (selected) {
-      const cs = uniqueBy(
-        [selected, ...getChildCollections([selected])],
-        (u) => u.key,
-      );
+      const cs = uniqueBy([selected, ...getChildCollections([selected])], (u) => u.key);
       items = cs.flatMap((f) => f.getChildItems(false, false));
       // ztoolkit.log("getSelectedItems",items,cs)
     } else {
@@ -1986,16 +1829,12 @@ async function getSelectedItems(
 
 async function exportNoteByTag(isCollection: boolean = false) {
   exportNote({
-    filter: (ans) =>
-      ans.flatMap((an) => an.tags.map((tag) => Object.assign({}, an, { tag }))),
+    filter: (ans) => ans.flatMap((an) => an.tags.map((tag) => Object.assign({}, an, { tag }))),
     toText: (annotations) =>
       groupBy(annotations, (a) => a.tag.tag)
-        .sort(sortTags10AscByKey)
+        .sort(sortFixedTags10AscByKey)
         .flatMap((tag, index) => {
-          return [
-            `<h1>(${index + 1}) ${tag.key} (${tag.values.length})</h1>`,
-            ...tag.values.map((b) => `${b.html}`),
-          ];
+          return [`<h1>(${index + 1}) ${tag.key} (${tag.values.length})</h1>`, ...tag.values.map((b) => `${b.html}`)];
         })
         .join("\n"),
     items: await getSelectedItems(isCollection),
@@ -2003,21 +1842,18 @@ async function exportNoteByTag(isCollection: boolean = false) {
 }
 async function exportNoteByTagPdf(isCollection: boolean = false) {
   exportNote({
-    filter: (ans) =>
-      ans.flatMap((an) => an.tags.map((tag) => Object.assign({}, an, { tag }))),
+    filter: (ans) => ans.flatMap((an) => an.tags.map((tag) => Object.assign({}, an, { tag }))),
     toText: (annotations) =>
       groupBy(annotations, (a) => a.tag.tag)
         .sort(sortFixedTags10ValuesLength)
         .flatMap((tag, index) => {
           return [
             `<h1> (${index + 1}) 标签：${tag.key}  (${tag.values.length})</h1>`,
-            ...groupBy(tag.values, (a) => a.pdfTitle).flatMap(
-              (pdfTitle, index2) => [
-                `<h2> (${index + 1}.${index2 + 1}) ${tag.key} ${pdfTitle.key} (${pdfTitle.values.length}) </h2>`,
-                `${getPublicationTags(pdfTitle.values[0].item)}`,
-                ...pdfTitle.values.map((b) => `${b.html}`),
-              ],
-            ),
+            ...groupBy(tag.values, (a) => a.pdfTitle).flatMap((pdfTitle, index2) => [
+              `<h2> (${index + 1}.${index2 + 1}) ${tag.key} ${pdfTitle.key} (${pdfTitle.values.length}) </h2>`,
+              `${getPublicationTags(pdfTitle.values[0].item)}`,
+              ...pdfTitle.values.map((b) => `${b.html}`),
+            ]),
           ];
         })
         .join("\n"),
@@ -2025,10 +1861,7 @@ async function exportNoteByTagPdf(isCollection: boolean = false) {
   });
 }
 
-async function exportNoteByType(
-  type: _ZoteroTypes.Annotations.AnnotationType,
-  collectionOrItem: "collection" | "item",
-) {
+async function exportNoteByType(type: _ZoteroTypes.Annotations.AnnotationType, collectionOrItem: "collection" | "item") {
   exportNote({
     toText: (annotations) =>
       groupBy(annotations, (a) => a.pdfTitle)
@@ -2036,9 +1869,7 @@ async function exportNoteByType(
           // `<h1> (${index + 1}/${aa.length}) ${pdfTitle.key} ${getCiteItemHtml(pdfTitle.values[0]?.item)}  (${pdfTitle.values.length})</h1>`,
           `<h1>(${index + 1}/${aa.length}) ${getCiteItemHtmlWithPage(pdfTitle.values[0].ann)} ${getPublicationTags(pdfTitle.values[0]?.item)}</h1>`,
           `${pdfTitle.key}`,
-          ...pdfTitle.values.flatMap((b) => [
-            b.html ? b.html : getCiteAnnotationHtml(b.ann),
-          ]),
+          ...pdfTitle.values.flatMap((b) => [b.html ? b.html : getCiteAnnotationHtml(b.ann)]),
         ])
         .join("\n"),
     items: await getSelectedItems(collectionOrItem),
@@ -2050,14 +1881,10 @@ async function exportNoteByType(
   });
 }
 
-async function exportSingleNote(
-  tag: string,
-  collectionOrItem: "collection" | "item",
-) {
+async function exportSingleNote(tag: string, collectionOrItem: "collection" | "item") {
   if (tag)
     exportNote({
-      filter: async (ans) =>
-        ans.filter((f) => f.tags.some((a) => tag == a.tag)),
+      filter: async (ans) => ans.filter((f) => f.tags.some((a) => tag == a.tag)),
       items: await getSelectedItems(collectionOrItem),
       toText: (ans) =>
         groupBy(ans, (a) => a.pdfTitle)
@@ -2069,11 +1896,7 @@ async function exportSingleNote(
             `<h1>(${index + 1}/${aa.length}) ${getCiteItemHtmlWithPage(a.values[0].ann)} ${getPublicationTags(a.values[0]?.item)}</h1>`,
             `${a.key}`,
             a.values
-              .map(
-                (b) =>
-                  b.html ??
-                  `<h2>${getCiteAnnotationHtml(b.ann, b.ann.annotationText + b.ann.annotationComment)}</h2>`,
-              )
+              .map((b) => b.html ?? `<h2>${getCiteAnnotationHtml(b.ann, b.ann.annotationText + b.ann.annotationComment)}</h2>`)
               .join(" "),
           ])
           .join(""),
@@ -2082,10 +1905,7 @@ async function exportSingleNote(
 function exportTagsNote(tags: string[], items: Zotero.Item[]) {
   if (tags.length > 0) {
     exportNote({
-      filter: async (ans) =>
-        ans
-          .filter((f) => f.tags.some((a) => tags.includes(a.tag)))
-          .map((a) => Object.assign(a, { tag: a.tag })),
+      filter: async (ans) => ans.filter((f) => f.tags.some((a) => tags.includes(a.tag))).map((a) => Object.assign(a, { tag: a.tag })),
       items,
       toText: toText1,
     });
@@ -2137,15 +1957,9 @@ export function getCiteAnnotationHtml(annotation: Zotero.Item, text = "") {
     position,
     citationItem,
   };
-  const formatted =
-    text ||
-    annotation.annotationComment ||
-    annotation.annotationText ||
-    "没有文本，没有内容。。。";
+  const formatted = text || annotation.annotationComment || annotation.annotationText || "没有文本，没有内容。。。";
   //class="highlight" 对应的内容必须有双引号 估计是Zotero.EditorInstanceUtilities._transformTextToHTML方法处理了这个
-  return `<span class="highlight" data-annotation="${encodeURIComponent(
-    JSON.stringify(storedAnnotation),
-  )}">"${formatted}"</span>
+  return `<span class="highlight" data-annotation="${encodeURIComponent(JSON.stringify(storedAnnotation))}">"${formatted}"</span>
   `;
 }
 function getCitationItem(parentItem?: Zotero.Item, pageLabel: string = "") {
@@ -2163,28 +1977,16 @@ function getCitationItem(parentItem?: Zotero.Item, pageLabel: string = "") {
   return citationItem;
 }
 function getCiteItemHtmlWithPage(annotation: Zotero.Item, text: string = "") {
-  return getCiteItemHtml(
-    annotation.parentItem?.parentItem,
-    annotation.annotationPageLabel,
-    text,
-  );
+  return getCiteItemHtml(annotation.parentItem?.parentItem, annotation.annotationPageLabel, text);
 }
-function getCiteItemHtml(
-  parentItem?: Zotero.Item,
-  locator: string = "",
-  text: string = "",
-) {
+function getCiteItemHtml(parentItem?: Zotero.Item, locator: string = "", text: string = "") {
   if (!parentItem) return "";
   const citationData = {
     citationItems: [getCitationItem(parentItem, locator)],
     properties: {},
   };
-  const formatted = text
-    ? text
-    : Zotero.EditorInstanceUtilities.formatCitation(citationData);
-  return `<span class="citation" data-citation="${encodeURIComponent(
-    JSON.stringify(citationData),
-  )}">${formatted}</span>`;
+  const formatted = text ? text : Zotero.EditorInstanceUtilities.formatCitation(citationData);
+  return `<span class="citation" data-citation="${encodeURIComponent(JSON.stringify(citationData))}">${formatted}</span>`;
 }
 
 export default { register, unregister };

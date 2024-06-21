@@ -1,11 +1,7 @@
 import { config } from "../../package.json";
 
 function register() {
-  Zotero.Reader.registerEventListener(
-    "renderToolbar",
-    readerToolbarCallback,
-    config.addonID,
-  );
+  Zotero.Reader.registerEventListener("renderToolbar", readerToolbarCallback, config.addonID);
 
   // const { pdfjsLib } = ztoolkit.getGlobal("globalThis")
   // if (pdfjsLib && pdfjsLib.GlobalWorkerOptions) {
@@ -50,14 +46,11 @@ const readerButtonCSS = `
   } 
   `;
 
-function readerToolbarCallback(
-  event: Parameters<_ZoteroTypes.Reader.EventHandler<"renderToolbar">>[0],
-) {
+function readerToolbarCallback(event: Parameters<_ZoteroTypes.Reader.EventHandler<"renderToolbar">>[0]) {
   const { append, doc, reader, params } = event;
   if (doc.getElementById(`${config.addonRef}-space-button`)) return;
 
-  const root =
-    doc.querySelector("body") || (doc.querySelector("div") as HTMLElement);
+  const root = doc.querySelector("body") || (doc.querySelector("div") as HTMLElement);
   ztoolkit.UI.appendElement(
     {
       tag: "style",
@@ -69,17 +62,12 @@ function readerToolbarCallback(
     root,
   );
   // const debounceSearch = search, throttleSearch = debounceSearch;
-  let pdfDoc = reader?._iframe?.contentDocument?.querySelector("iframe")
-    ?.contentDocument as Document;
+  let pdfDoc = reader?._iframe?.contentDocument?.querySelector("iframe")?.contentDocument as Document;
 
   const btn = ztoolkit.UI.createElement(doc, "div", {
     namespace: "html",
     id: `${config.addonRef}-space-button`,
-    classList: [
-      "toolbarButton",
-      "toolbar-button",
-      `${config.addonRef}-space-button`,
-    ],
+    classList: ["toolbarButton", "toolbar-button", `${config.addonRef}-space-button`],
     properties: {
       tabIndex: -1,
       title: "清理空白",
@@ -91,15 +79,12 @@ function readerToolbarCallback(
         listener: (ev: Event) => {
           ztoolkit.log(ev);
 
-          pdfDoc = reader?._iframe?.contentDocument?.querySelector("iframe")
-            ?.contentDocument as Document;
+          pdfDoc = reader?._iframe?.contentDocument?.querySelector("iframe")?.contentDocument as Document;
           if (!pdfDoc || !pdfDoc.querySelector("#viewerContainer")) return;
 
-          pdfDoc = reader?._iframe?.contentDocument?.querySelector("iframe")
-            ?.contentDocument as Document;
+          pdfDoc = reader?._iframe?.contentDocument?.querySelector("iframe")?.contentDocument as Document;
           if (!pdfDoc || !pdfDoc.querySelector("#viewerContainer")) return;
-          height = (pdfDoc.querySelector("#viewerContainer")! as HTMLElement)
-            .offsetHeight;
+          height = (pdfDoc.querySelector("#viewerContainer")! as HTMLElement).offsetHeight;
 
           const evm = ev as MouseEvent;
           const div = evm.target as HTMLElement;
@@ -107,13 +92,9 @@ function readerToolbarCallback(
             div.style.background = "";
             popDiv.remove();
             popDiv = undefined;
-            pdfDoc
-              .querySelector("#viewerContainer")
-              ?.removeEventListener("scroll", () => throttleSearch());
+            pdfDoc.querySelector("#viewerContainer")?.removeEventListener("scroll", () => throttleSearch());
           } else {
-            pdfDoc
-              .querySelector("#viewerContainer")
-              ?.addEventListener("scroll", () => throttleSearch());
+            pdfDoc.querySelector("#viewerContainer")?.addEventListener("scroll", () => throttleSearch());
             div.style.background = "#ddd";
             debounceSearch();
             createPopDiv(div);
@@ -146,9 +127,7 @@ function readerToolbarCallback(
     popDiv.textContent = "正在清理";
     let firstSpan: HTMLSpanElement | undefined = undefined;
     let str = "";
-    for (const span of pdfDoc.querySelectorAll(
-      "span[role=presentation]",
-    ) as NodeListOf<HTMLSpanElement>) {
+    for (const span of pdfDoc.querySelectorAll("span[role=presentation]") as NodeListOf<HTMLSpanElement>) {
       if (span.screenY < -height || span.screenY > height * 2) continue;
       if (span.dataset["text"]) continue;
       if (!span.textContent || span.textContent == " ") {
@@ -164,9 +143,7 @@ function readerToolbarCallback(
           //end
           const index = t.indexOf("\ue5e5");
           str += t.substring(0, index - 1);
-          firstSpan.dataset["text"] = firstSpan.textContent = ToCDB(
-            str.replace(/\s/g, "").replaceAll("\ue5d2\ue5cf", " "),
-          );
+          firstSpan.dataset["text"] = firstSpan.textContent = ToCDB(str.replace(/\s/g, "").replaceAll("\ue5d2\ue5cf", " "));
           firstSpan = undefined;
           str = t.substring(index + 1, t.length);
         } else {

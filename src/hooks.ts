@@ -1,29 +1,16 @@
-import {
-  BasicExampleFactory,
-  HelperExampleFactory,
-  KeyExampleFactory,
-  PromptExampleFactory,
-  UIExampleFactory,
-} from "./modules/examples";
+import { BasicExampleFactory, HelperExampleFactory, KeyExampleFactory, PromptExampleFactory, UIExampleFactory } from "./modules/examples";
 import { config } from "../package.json";
 import { getString, initLocale } from "./utils/locale";
 import { registerPrefsScripts } from "./modules/preferenceScript";
 import { createZToolkit } from "./utils/ztoolkit";
 import Annotations from "./modules/annotations";
-import AnnotationsToNote, {
-  annotationToNoteTags as annotationToNoteTags,
-  annotationToNoteType,
-} from "./modules/annotationsToNote";
+import AnnotationsToNote, { annotationToNoteTags as annotationToNoteTags, annotationToNoteType } from "./modules/annotationsToNote";
 import RelationHeader from "./modules/RelationHeader";
 import highlightWords from "./modules/highlightWords";
 import toolLink from "./modules/toolLink";
 
 async function onStartup() {
-  await Promise.all([
-    Zotero.initializationPromise,
-    Zotero.unlockPromise,
-    Zotero.uiReadyPromise,
-  ]);
+  await Promise.all([Zotero.initializationPromise, Zotero.unlockPromise, Zotero.uiReadyPromise]);
 
   initLocale();
 
@@ -128,19 +115,10 @@ function onShutdown(): void {
  * This function is just an example of dispatcher for Notify events.
  * Any operations should be placed in a function to keep this funcion clear.
  */
-async function onNotify(
-  event: string,
-  type: string,
-  ids: Array<string | number>,
-  extraData: { [key: string]: any },
-) {
+async function onNotify(event: string, type: string, ids: Array<string | number>, extraData: { [key: string]: any }) {
   // You can add your code to the corresponding notify type
   ztoolkit.log("notify", event, type, ids, extraData);
-  if (
-    event == "select" &&
-    type == "tab" &&
-    extraData[ids[0]].type == "reader"
-  ) {
+  if (event == "select" && type == "tab" && extraData[ids[0]].type == "reader") {
     BasicExampleFactory.exampleNotifierCallback();
   } else {
     return;
@@ -176,10 +154,7 @@ function onShortcuts(type: string) {
   }
 }
 
-async function onMenuEvent(
-  type: "annotationToNoteTags" | "annotationToNoteType",
-  data: { [key: string]: any },
-) {
+async function onMenuEvent(type: "annotationToNoteTags" | "annotationToNoteType", data: { [key: string]: any }) {
   switch (type) {
     case "annotationToNoteTags":
       annotationToNoteTags(data.window, data.type);

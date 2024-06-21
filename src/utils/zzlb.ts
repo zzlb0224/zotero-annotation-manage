@@ -3,12 +3,7 @@ import { getPref, setPref } from "./prefs";
 import memoize from "./memoize2";
 import { config } from "../../package.json";
 import { stopPropagation } from "../modules/annotationsToNote";
-import {
-  getColorTags,
-  getCiteAnnotationHtml,
-  getPopupWin,
-  popupWin,
-} from "../modules/annotationsToNote";
+import { getColorTags, getCiteAnnotationHtml, getPopupWin, popupWin } from "../modules/annotationsToNote";
 import { TagElementProps } from "zotero-plugin-toolkit/dist/tools/ui";
 import { waitFor } from "./wait";
 /* unique 采用set的比较方式*/
@@ -36,11 +31,7 @@ export class TagColor {
   public color: string;
   public tag: string;
   constructor(tagColor: string, removeSpace = false) {
-    const ma = tagColor.match(
-      removeSpace
-        ? /(.*)(#[0-9a-fA-F]{6})/
-        : /^[\s,;]*(.*?)[\s,;]*(#[0-9a-fA-F]{6})/,
-    );
+    const ma = tagColor.match(removeSpace ? /(.*)(#[0-9a-fA-F]{6})/ : /^[\s,;]*(.*?)[\s,;]*(#[0-9a-fA-F]{6})/);
     this.tag = ma?.[1] || tagColor;
     this.color = ma?.[2] || "";
   }
@@ -53,9 +44,7 @@ export class TagColor {
       str.match(/(.*?)(#[0-9a-fA-F]{6})/g),
       str.match(/(.*)(#[0-9a-fA-F])/g)?.map((ma) => new TagColor(ma)),
     );
-    return (
-      str.match(/(.*?)(#[0-9a-fA-F]{6})/g)?.map((ma) => new TagColor(ma)) || []
-    );
+    return str.match(/(.*?)(#[0-9a-fA-F]{6})/g)?.map((ma) => new TagColor(ma)) || [];
   }
 }
 
@@ -78,10 +67,7 @@ export function groupBy<T>(arr: T[], fn: (item: T) => string) {
       }) as groupByResult<T>,
   );
 }
-export function promiseAllWithProgress<T>(
-  arr: Promise<T>[],
-  callback?: { (progress: number, index: number): void },
-): Promise<T[]> {
+export function promiseAllWithProgress<T>(arr: Promise<T>[], callback?: { (progress: number, index: number): void }): Promise<T[]> {
   let index = 0; //不能用forEach的index，因为执行顺序不一样
   arr.forEach((item: Promise<T>) => {
     item.then(() => {
@@ -92,22 +78,15 @@ export function promiseAllWithProgress<T>(
   });
   return Promise.all(arr);
 }
-export function getChildCollections(
-  collections: Zotero.Collection[],
-): Zotero.Collection[] {
-  const childCollections = uniqueBy(collections, (a) => a.key).flatMap((a) =>
-    a.getChildCollections(false),
-  );
+export function getChildCollections(collections: Zotero.Collection[]): Zotero.Collection[] {
+  const childCollections = uniqueBy(collections, (a) => a.key).flatMap((a) => a.getChildCollections(false));
   if (childCollections.length == 0) return [];
   return [...childCollections, ...getChildCollections(childCollections)];
 }
-export const FixedTagsDefault =
-  "目的,假设,框架,数据,量表,方法,理论,结论,贡献,未来,背景,现状,问题,对策";
+export const FixedTagsDefault = "目的,假设,框架,数据,量表,方法,理论,结论,贡献,未来,背景,现状,问题,对策";
 export const FixedColorDefault =
   "#ffd400, #ff6666, #5fb236, #2ea8e5, #a28ae5, #e56eee, #f19837, #aaaaaa, #69af15, #ba898e, #ee8574, #6a99e7, #e65fa1, #62e0ef, #f7e8b2";
-const FixedColorDefaultArray = FixedColorDefault.split(",").map((f) =>
-  f.trim(),
-);
+const FixedColorDefaultArray = FixedColorDefault.split(",").map((f) => f.trim());
 export const FixedTagsColorsDefault = FixedTagsDefault.split(",")
   .flatMap((f, i) => [f.trim(), FixedColorDefaultArray[i]])
   .join(", ");
@@ -127,44 +106,28 @@ export const COLOR = {
   white: "#ffffff",
 };
 
-export const memOptionalColor = memoize(
-  () =>
-    (getPref("optional-color") as string)?.match(/#[0-9A-Fa-f]{6}/g)?.[0] ||
-    "#ffc0cb",
-);
-export const memFixedTags = memoize(
-  (collectionKey: string | undefined = undefined): string[] => {
-    return memFixedTagColors(collectionKey)
-      .filter((f) => f.tag)
-      .map((f) => f.tag);
-  },
-  getCollectionKey,
-);
-const memFixedColors = memoize(
-  (collectionKey: string | undefined = undefined): string[] => {
-    return memFixedTagColors(collectionKey)
-      .filter((f) => f.tag)
-      .map((f) => f.color);
-  },
-  getCollectionKey,
-);
+export const memOptionalColor = memoize(() => (getPref("optional-color") as string)?.match(/#[0-9A-Fa-f]{6}/g)?.[0] || "#ffc0cb");
+export const memFixedTags = memoize((collectionKey: string | undefined = undefined): string[] => {
+  return memFixedTagColors(collectionKey)
+    .filter((f) => f.tag)
+    .map((f) => f.tag);
+}, getCollectionKey);
+const memFixedColors = memoize((collectionKey: string | undefined = undefined): string[] => {
+  return memFixedTagColors(collectionKey)
+    .filter((f) => f.tag)
+    .map((f) => f.color);
+}, getCollectionKey);
 
-export const memFixedTagFromColor = memoize(
-  (color: string, collectionKey: string | undefined = undefined): string => {
-    const tcs = getFixedTagColors(collectionKey);
-    for (const tc of tcs) {
-      if (tc.color === color) return tc.tag;
-    }
-    return "";
-  },
-);
+export const memFixedTagFromColor = memoize((color: string, collectionKey: string | undefined = undefined): string => {
+  const tcs = getFixedTagColors(collectionKey);
+  for (const tc of tcs) {
+    if (tc.color === color) return tc.tag;
+  }
+  return "";
+});
 
 export const memFixedColor = memoize(
-  (
-    tag: string,
-    optional: string | undefined = undefined,
-    collectionKey: string | undefined = undefined,
-  ): string => {
+  (tag: string, optional: string | undefined = undefined, collectionKey: string | undefined = undefined): string => {
     const color = memFixedTagColors(collectionKey)
       .filter((f) => f.tag == tag)
       .map((f) => f.color)[0];
@@ -174,30 +137,20 @@ export const memFixedColor = memoize(
     if (optional == undefined) return memOptionalColor() as string;
     return optional;
   },
-  (
-    tag: string,
-    optional: string | undefined = undefined,
-    collectionKey: string | undefined = undefined,
-  ) => tag + "_" + optional + "_" + getCollectionKey(collectionKey),
+  (tag: string, optional: string | undefined = undefined, collectionKey: string | undefined = undefined) =>
+    tag + "_" + optional + "_" + getCollectionKey(collectionKey),
 );
 
 export const memFixedTagColors = memoize(getFixedTagColors, getCollectionKey);
 function getCollectionKey(collectionKey: string | undefined = undefined) {
-  return collectionKey === undefined
-    ? ZoteroPane.getSelectedCollection()?.key || ""
-    : collectionKey;
+  return collectionKey === undefined ? ZoteroPane.getSelectedCollection()?.key || "" : collectionKey;
 }
 
 function getFixedTagColors(collectionKey: string | undefined = undefined) {
   let ck = getCollectionKey(collectionKey);
-  let fixedTagColorStr =
-    (getPref("fixed-tags-colors" + ck) as string | undefined) || "";
+  let fixedTagColorStr = (getPref("fixed-tags-colors" + ck) as string | undefined) || "";
   while (!fixedTagColorStr) {
-    const collection =
-      (Zotero.Collections.getByLibraryAndKey(
-        Zotero.Libraries.userLibraryID,
-        ck,
-      ) as Zotero.Collection) || false;
+    const collection = (Zotero.Collections.getByLibraryAndKey(Zotero.Libraries.userLibraryID, ck) as Zotero.Collection) || false;
 
     ck = collection?.parentKey || "";
     fixedTagColorStr = (getPref("fixed-tags-colors" + ck) as string) || "";
@@ -242,8 +195,7 @@ const memFixedColor2 = memoize(
     if (optional == undefined) return memOptionalColor() as string;
     return optional;
   },
-  (tag: string, optional: string | undefined = undefined) =>
-    tag + "_" + optional,
+  (tag: string, optional: string | undefined = undefined) => tag + "_" + optional,
 );
 
 const memFixedTags2 = memoize((): string[] => {
@@ -255,10 +207,7 @@ const memFixedTags2 = memoize((): string[] => {
   return FixedTagsDefault.split(",");
 });
 const memFixedColors2 = memoize((): string[] => {
-  let fixedColor =
-    (getPref("fixed-colors") as string)
-      ?.match(/#[0-9A-Fa-f]{6}/g)
-      ?.map((a) => a) || [];
+  let fixedColor = (getPref("fixed-colors") as string)?.match(/#[0-9A-Fa-f]{6}/g)?.map((a) => a) || [];
   if (!fixedColor || fixedColor.length == 0)
     fixedColor = FixedColorDefault.split(",")
       .map((f) => f.trim())
@@ -269,20 +218,12 @@ const memFixedColors2 = memoize((): string[] => {
   }).flatMap(() => fixedColor);
 });
 
-export function toggleProperty<T, K extends keyof NonNullable<T>>(
-  obj: NonNullable<T> | undefined,
-  key: K,
-  values: NonNullable<T>[K][],
-) {
+export function toggleProperty<T, K extends keyof NonNullable<T>>(obj: NonNullable<T> | undefined, key: K, values: NonNullable<T>[K][]) {
   if (obj) {
     return (obj[key] = values[(values.indexOf(obj[key]) + 1) % values.length]);
   }
 }
-export function setProperty<T, K extends keyof NonNullable<T>>(
-  obj: NonNullable<T> | undefined,
-  key: K,
-  value: NonNullable<T>[K],
-) {
+export function setProperty<T, K extends keyof NonNullable<T>>(obj: NonNullable<T> | undefined, key: K, value: NonNullable<T>[K]) {
   if (obj) {
     return (obj[key] = value);
   }
@@ -306,9 +247,7 @@ export function getCssTranslate(t1: HTMLElement) {
     const v = t1.style[k];
     if (k == "transform" && v) {
       //没有附加到Dom无法调用 new WebKitCSSMatrix，只能这样使用      ("translate(26.0842px, 108.715px)");
-      const translateLeftTop = v.match(
-        /translate[(]([\d.]*)px,\s?([\d.]*)px[)]/,
-      );
+      const translateLeftTop = v.match(/translate[(]([\d.]*)px,\s?([\d.]*)px[)]/);
       //['translate(26.0842px, 108.715px)', '26.0842', '108.715', index: 0, input: 'translate(26.0842px, 108.715px)', groups: undefined]
       if (translateLeftTop && translateLeftTop.length > 2) {
         return {
@@ -323,12 +262,7 @@ export function getCssTranslate(t1: HTMLElement) {
 //使用条目、pdf、annotation、tag的关系进行读取
 const memAllTagsInLibraryAsync = memoize(async () => {
   const userLibraryID = Zotero.Libraries.userLibraryID;
-  const allItems = await Zotero.Items.getAll(
-    userLibraryID,
-    false,
-    false,
-    false,
-  );
+  const allItems = await Zotero.Items.getAll(userLibraryID, false, false, false);
   const items = allItems.filter((f) => !f.parentID && !f.isAttachment());
   const pdfIds = items.flatMap((f) => f.getAttachments(false));
   const pdfs = Zotero.Items.get(pdfIds);
@@ -387,18 +321,12 @@ function getItemRelateCollections(item?: Zotero.Item): Zotero.Collection[] {
     if (selectedCollectionId) allCollectionIds.push(selectedCollectionId);
   }
   if (prefCurrentCollection) {
-    const currentCollectionIds = item.parentItem
-      ? item.parentItem.getCollections()
-      : item.getCollections();
+    const currentCollectionIds = item.parentItem ? item.parentItem.getCollections() : item.getCollections();
     allCollectionIds.push(...currentCollectionIds);
   }
   if (allCollectionIds.length > 0) {
-    const allCollections = Zotero.Collections.get(
-      allCollectionIds,
-    ) as Zotero.Collection[];
-    const collections = childrenCollections
-      ? [...allCollections, ...getChildCollections(allCollections)]
-      : allCollections;
+    const allCollections = Zotero.Collections.get(allCollectionIds) as Zotero.Collection[];
+    const collections = childrenCollections ? [...allCollections, ...getChildCollections(allCollections)] : allCollections;
     const collections2 = uniqueBy(collections, (u) => u.key);
     return collections2;
   }
@@ -410,21 +338,14 @@ function getTagsInCollections(collections: Zotero.Collection[]) {
     .flatMap((c) => c.getChildItems())
     .filter((f) => !f.isAttachment())
     .flatMap((a) => a.getAttachments(false)); //为啥会出现
-  const pdfItems = Zotero.Items.get(pdfIds).filter(
-    (f) => f.isFileAttachment() && f.isAttachment(),
-  );
+  const pdfItems = Zotero.Items.get(pdfIds).filter((f) => f.isFileAttachment() && f.isAttachment());
   const annotations = pdfItems.flatMap((f) => f.getAnnotations(false));
-  return annotations.flatMap((f) =>
-    f
-      .getTags()
-      .map((a) => ({ tag: a.tag, type: a.type, dateModified: f.dateModified })),
-  );
+  return annotations.flatMap((f) => f.getTags().map((a) => ({ tag: a.tag, type: a.type, dateModified: f.dateModified })));
 }
 export function ReTest(reStr: string) {
   const txtRegExp = str2RegExps(reStr);
   ztoolkit.log("ReTest", txtRegExp);
-  return (str: string) =>
-    txtRegExp.length == 0 || txtRegExp.some((a) => a.test(str));
+  return (str: string) => txtRegExp.length == 0 || txtRegExp.some((a) => a.test(str));
 }
 export function str2RegExps(value: string) {
   const res: RegExp[] = [];
@@ -449,17 +370,10 @@ export function getItem(itemOrKeyOrId: Zotero.Item | string | number) {
   return typeof itemOrKeyOrId == "number"
     ? Zotero.Items.get(itemOrKeyOrId)
     : typeof itemOrKeyOrId == "string"
-      ? (Zotero.Items.getByLibraryAndKey(
-          Zotero.Libraries.userLibraryID,
-          itemOrKeyOrId,
-        ) as Zotero.Item)
+      ? (Zotero.Items.getByLibraryAndKey(Zotero.Libraries.userLibraryID, itemOrKeyOrId) as Zotero.Item)
       : itemOrKeyOrId;
 }
-export async function openAnnotation(
-  itemOrKeyOrId: Zotero.Item | string | number,
-  page: string,
-  annotationKey: string,
-) {
+export async function openAnnotation(itemOrKeyOrId: Zotero.Item | string | number, page: string, annotationKey: string) {
   let doc: Document | undefined = undefined;
   let pdfDoc: Document | undefined = undefined;
   const item = getItem(itemOrKeyOrId);
@@ -476,9 +390,7 @@ export async function openAnnotation(
   getDoc();
   function getDoc() {
     if (times-- < 0) return;
-    const b = Zotero_Tabs.deck.querySelector(
-      `[id^=${tabId}].deck-selected browser`,
-    ) as any;
+    const b = Zotero_Tabs.deck.querySelector(`[id^=${tabId}].deck-selected browser`) as any;
     doc = b?.contentDocument || undefined;
     if (doc && doc.querySelector("div,span")) getPdfDoc();
     else setTimeout(getDoc, 50);
@@ -491,9 +403,7 @@ export async function openAnnotation(
   }
   function sidebarItemFocus() {
     if (times-- < 0) return;
-    const sidebarItem = doc!.querySelector(
-      `[data-sidebar-annotation-id="${annotationKey}"]`,
-    ) as HTMLElement;
+    const sidebarItem = doc!.querySelector(`[data-sidebar-annotation-id="${annotationKey}"]`) as HTMLElement;
     if (sidebarItem) setTimeout(() => sidebarItem.focus(), 1);
     else setTimeout(sidebarItemFocus, 50);
   }
@@ -504,10 +414,7 @@ export const memSVG = memoize(
   // .then(r=>r.replace(/xmlns="http:\/\/www.w3.org\/2000\/svg"/g,""))
 );
 
-export async function loadSVG(
-  doc: Document,
-  href: string = `chrome://${config.addonRef}/content/16/annotate-highlight.svg`,
-) {
+export async function loadSVG(doc: Document, href: string = `chrome://${config.addonRef}/content/16/annotate-highlight.svg`) {
   // const href =svg.includes("chrome") `chrome://${config.addonRef}/content/${svg}`;
 
   const d = ztoolkit.UI.createElement(doc, "div", {
@@ -520,10 +427,7 @@ export async function loadSVG(
   return d;
 }
 
-export async function injectCSS(
-  doc: Document | HTMLDivElement,
-  filename: string = "annotation.css",
-) {
+export async function injectCSS(doc: Document | HTMLDivElement, filename: string = "annotation.css") {
   // if (Zotero) return;
   //chrome
   const href = `resource://${config.addonRef}/content/${filename}`;
@@ -552,24 +456,19 @@ export async function getFileContent(path: string): Promise<string> {
     headers: { "Content-Type": "text/plain" },
     responseType: "text",
   });
-  const content =
-    typeof contentOrXHR === "string"
-      ? contentOrXHR
-      : (contentOrXHR as any as XMLHttpRequest).response;
+  const content = typeof contentOrXHR === "string" ? contentOrXHR : (contentOrXHR as any as XMLHttpRequest).response;
   ztoolkit.log(path, content);
   return content;
 }
 export function createTopDiv(
   doc?: Document,
   id = config.addonRef + `-TopDiv`,
-  sections: TagElementProps[] = ["action", "status", "query", "content"].map(
-    (a) => ({
-      tag: "div",
-      properties: { textContent: "" },
-      classList: [a],
-      styles: { display: "flex" },
-    }),
-  ),
+  sections: TagElementProps[] = ["action", "status", "query", "content"].map((a) => ({
+    tag: "div",
+    properties: { textContent: "" },
+    classList: [a],
+    styles: { display: "flex" },
+  })),
 ) {
   if (!doc) return;
   doc.getElementById(id)?.remove();
@@ -616,10 +515,7 @@ export function createTopDiv(
         },
       ],
     },
-    doc.querySelector("#browser") ||
-      doc.querySelector("body") ||
-      doc.children[0] ||
-      doc,
+    doc.querySelector("#browser") || doc.querySelector("body") || doc.children[0] || doc,
   ) as HTMLDivElement;
 
   const modal = ztoolkit.UI.appendElement(
@@ -695,11 +591,7 @@ export class CountDown {
   _start = 0;
   callback: (remainingTime: number) => void;
   interval: number;
-  constructor(
-    callback: (remainingTime: number) => void,
-    ms = 15000,
-    interval = 1000,
-  ) {
+  constructor(callback: (remainingTime: number) => void, ms = 15000, interval = 1000) {
     this._total = ms;
     this.callback = callback;
     this.interval = interval;
@@ -726,18 +618,12 @@ export class CountDown {
     return this._total - Date.now() + this._start;
   }
 }
-export async function convertHtml(
-  arr: AnnotationRes[],
-  targetNoteItem: Zotero.Item | undefined = undefined,
-) {
+export async function convertHtml(arr: AnnotationRes[], targetNoteItem: Zotero.Item | undefined = undefined) {
   try {
     // const annotations = arr.map((a) => a.ann);
     for (const a of arr) {
       const annotation = a.ann;
-      if (
-        annotation.annotationType === "image" &&
-        !(await Zotero.Annotations.hasCacheImage(annotation))
-      ) {
+      if (annotation.annotationType === "image" && !(await Zotero.Annotations.hasCacheImage(annotation))) {
         try {
           //呈现缓存图片
           // await Zotero.PDFRenderer.renderAttachmentAnnotations(
@@ -758,28 +644,19 @@ export async function convertHtml(
 
   const data = arr.map(async (ann) => {
     //TODO 感觉这个方法读取图片是从缓存里面读取的，有些图片没有加载成功
-    let html = (await Zotero.BetterNotes.api.convert.annotations2html(
-      [ann.ann],
-      {
-        noteItem: targetNoteItem,
-      },
-    )) as string;
+    let html = (await Zotero.BetterNotes.api.convert.annotations2html([ann.ann], {
+      noteItem: targetNoteItem,
+    })) as string;
     if (html) {
       //
-    } else if (
-      ann.ann.annotationType == ("underline" as string) ||
-      ann.ann.annotationType == ("text" as string)
-    ) {
+    } else if (ann.ann.annotationType == ("underline" as string) || ann.ann.annotationType == ("text" as string)) {
       html = getCiteAnnotationHtml(
         ann.ann,
         `  ${ann.ann.annotationText || ""}
      ( ${ann.ann.parentItem?.parentItem?.firstCreator}, ${ann.ann.parentItem?.parentItem?.getField("year")}, p.${ann.ann.annotationPageLabel} ) ${ann.ann.annotationComment || ""}`,
       );
     } else {
-      html = getCiteAnnotationHtml(
-        ann.ann,
-        "无法预览，请点击此处，选择“在页面显示”查看。",
-      );
+      html = getCiteAnnotationHtml(ann.ann, "无法预览，请点击此处，选择“在页面显示”查看。");
       ztoolkit.log(html);
       // if(["ink","image"].includes(ann.type)&&getImageCount<5){
       //   getImageCount++
@@ -814,11 +691,7 @@ async function getImageFromReader(an: AnnotationRes) {
   await openAnnotation(an.pdf, an.page, an.ann.key);
   const tabId = Zotero_Tabs.getTabIDByItemID(an.pdf.id);
   const reader = Zotero.Reader.getByTabID(tabId);
-  const image = await waitFor(() =>
-    reader?._internalReader?._annotationManager?._annotations?.find(
-      (f) => f.id == an.ann.key,
-    ),
-  );
+  const image = await waitFor(() => reader?._internalReader?._annotationManager?._annotations?.find((f) => f.id == an.ann.key));
   Zotero_Tabs.select("zotero-pane");
   // Zotero_Tabs.close(tabId)
   // getImageCount--
@@ -932,10 +805,7 @@ export async function getAnnotationContent(ann: Zotero.Item) {
       .replace(/<\/br>/g, "") // br 导致无法显示
       .replace(/<p>/g, `<p style="margin:0px">`);
   // 缩减头尾的空白
-  else if (
-    ann.annotationType == ("underline" as string) ||
-    ann.annotationType == ("text" as string)
-  )
+  else if (ann.annotationType == ("underline" as string) || ann.annotationType == ("text" as string))
     html = getCiteAnnotationHtml(
       ann,
 
@@ -954,12 +824,9 @@ export function getPublicationTags(topItem: Zotero.Item | undefined) {
   }
   const space = " ㅤㅤ ㅤㅤ";
   return Array.prototype.map
-    .call(
-      Zotero.ZoteroStyle.api.renderCell(topItem, "publicationTags").childNodes,
-      (e) => {
-        e.innerText = space + e.innerText + space;
-        return e.outerHTML;
-      },
-    )
+    .call(Zotero.ZoteroStyle.api.renderCell(topItem, "publicationTags").childNodes, (e) => {
+      e.innerText = space + e.innerText + space;
+      return e.outerHTML;
+    })
     .join(space);
 }

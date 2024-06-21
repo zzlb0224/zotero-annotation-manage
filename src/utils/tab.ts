@@ -27,8 +27,7 @@ export class Tab {
       Zotero_Tabs._tabs[index]["title"] = "new Tab - " + title;
 
       this.browser.loadURI(url, {
-        triggeringPrincipal:
-          Services.scriptSecurityManager.getSystemPrincipal(),
+        triggeringPrincipal: Services.scriptSecurityManager.getSystemPrincipal(),
       });
     } else {
       this.tab = Zotero_Tabs.add({
@@ -53,8 +52,7 @@ export class Tab {
 
       try {
         iframe.loadURI(url, {
-          triggeringPrincipal:
-            Services.scriptSecurityManager.getSystemPrincipal(),
+          triggeringPrincipal: Services.scriptSecurityManager.getSystemPrincipal(),
         });
       } catch (e) {
         ztoolkit.log("loadURI 错误修复了吗？");
@@ -68,10 +66,7 @@ export class Tab {
   private loaded(n = 100) {
     // ztoolkit.log("tab加载检测");
     setTimeout(() => {
-      if (
-        this.browser.contentDocument &&
-        this.browser.contentDocument.querySelector("#tab-page-body")
-      ) {
+      if (this.browser.contentDocument && this.browser.contentDocument.querySelector("#tab-page-body")) {
         this.document = this.browser.contentDocument;
         ztoolkit.log("tab加载完成");
         if (this.onLoad) this.onLoad(this.browser.contentDocument);

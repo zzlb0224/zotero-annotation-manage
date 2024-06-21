@@ -1,14 +1,6 @@
 import { config } from "../../package.json";
 import * as React from "react";
-import {
-  Timer,
-  createTopDiv,
-  getAnnotationContent,
-  getItem,
-  getPublicationTags,
-  memSVG,
-  openAnnotation,
-} from "../utils/zzlb";
+import { Timer, createTopDiv, getAnnotationContent, getItem, getPublicationTags, memSVG, openAnnotation } from "../utils/zzlb";
 import { Relations } from "../utils/Relations";
 import { waitUtilAsync } from "../utils/wait";
 import { getPref } from "../utils/prefs";
@@ -16,39 +8,22 @@ import { compare, sortAsc } from "../utils/sort";
 import { DialogHelper } from "zotero-plugin-toolkit/dist/helpers/dialog";
 
 function register() {
-  Zotero.Reader.registerEventListener(
-    "renderToolbar",
-    readerToolbarCallback,
-    config.addonID,
-  );
-  Zotero.Reader.registerEventListener(
-    "renderSidebarAnnotationHeader",
-    renderSidebarAnnotationHeaderCallback,
-    config.addonID,
-  );
+  Zotero.Reader.registerEventListener("renderToolbar", readerToolbarCallback, config.addonID);
+  Zotero.Reader.registerEventListener("renderSidebarAnnotationHeader", renderSidebarAnnotationHeaderCallback, config.addonID);
 }
 function unregister() {
   Zotero.Reader.unregisterEventListener("renderToolbar", readerToolbarCallback);
-  Zotero.Reader.unregisterEventListener(
-    "renderSidebarAnnotationHeader",
-    renderSidebarAnnotationHeaderCallback,
-  );
+  Zotero.Reader.unregisterEventListener("renderSidebarAnnotationHeader", renderSidebarAnnotationHeaderCallback);
 }
 export default { register, unregister };
-function readerToolbarCallback(
-  event: Parameters<_ZoteroTypes.Reader.EventHandler<"renderToolbar">>[0],
-) {
+function readerToolbarCallback(event: Parameters<_ZoteroTypes.Reader.EventHandler<"renderToolbar">>[0]) {
   const { append, doc, reader, params } = event;
   // ztoolkit.log("readerToolbarCallback reader.css");
   copyFunc(doc, "readerToolbarCallback");
   // injectCSS(doc, "reader1.css");
 }
 
-function renderSidebarAnnotationHeaderCallback(
-  event: Parameters<
-    _ZoteroTypes.Reader.EventHandler<"renderSidebarAnnotationHeader">
-  >[0],
-) {
+function renderSidebarAnnotationHeaderCallback(event: Parameters<_ZoteroTypes.Reader.EventHandler<"renderSidebarAnnotationHeader">>[0]) {
   const { append, doc, reader, params } = event;
   // copyFunc(doc, "renderSidebarAnnotationHeaderCallback");
   if (getPref("hide-annotation-link")) return;
@@ -123,9 +98,7 @@ function renderSidebarAnnotationHeaderCallback(
   if (linkAnnotations && linkAnnotations.length > 0) {
     const u = ztoolkit.UI.createElement(doc, "span", {
       namespace: "html",
-      id:
-        config.addonRef +
-        `renderSidebarAnnotationHeader-link-${params.annotation.id}`,
+      id: config.addonRef + `renderSidebarAnnotationHeader-link-${params.annotation.id}`,
       properties: {
         textContent: "🍡",
         title: "双链" + linkAnnotations.length + "项",
@@ -143,9 +116,7 @@ function renderSidebarAnnotationHeaderCallback(
             await waitUtilAsync(() => !!win.document.querySelector(".loaded"));
             await relatedDialogResize(win, top, left);
             Zotero.getMainWindow()
-              .document.getElementById(
-                config.addonRef + `-renderSidebarAnnotationHeader-TopDiv`,
-              )
+              .document.getElementById(config.addonRef + `-renderSidebarAnnotationHeader-TopDiv`)
               ?.remove();
           },
         },
@@ -180,23 +151,19 @@ function renderSidebarAnnotationHeaderCallback(
 }
 async function createRelatedPopupDiv(readerDoc: Document, anKey: string) {
   const rootDoc = Zotero.getMainWindow().document;
-  const div = createTopDiv(
-    rootDoc,
-    config.addonRef + `-renderSidebarAnnotationHeader-TopDiv`,
-    [
-      {
-        tag: "div",
-        properties: { textContent: "" },
-        classList: ["content"],
-        styles: {
-          display: "flex",
-          flexWrap: "wrap",
-          justifyContent: "flex-start",
-          background: "#eeeeee",
-        },
+  const div = createTopDiv(rootDoc, config.addonRef + `-renderSidebarAnnotationHeader-TopDiv`, [
+    {
+      tag: "div",
+      properties: { textContent: "" },
+      classList: ["content"],
+      styles: {
+        display: "flex",
+        flexWrap: "wrap",
+        justifyContent: "flex-start",
+        background: "#eeeeee",
       },
-    ],
-  )!;
+    },
+  ])!;
   const content = div.querySelector(".content")! as HTMLDivElement;
   const { fromEle, left, top } = getFromEleLeftTop(readerDoc, anKey);
   const fromMouseTimer = new Timer(() => div.remove());
@@ -217,29 +184,16 @@ async function createRelatedPopupDiv(readerDoc: Document, anKey: string) {
   return div;
 }
 function getFromEleLeftTop(readerDoc: Document, anKey: string) {
-  const fromEle = readerDoc.getElementById(
-    config.addonRef + `renderSidebarAnnotationHeader-link-${anKey}`,
-  ) as HTMLElement;
+  const fromEle = readerDoc.getElementById(config.addonRef + `renderSidebarAnnotationHeader-link-${anKey}`) as HTMLElement;
   const left = fromEle.offsetLeft + 25;
   const sliderAnnotations = readerDoc.getElementById("annotations");
   const scrollTop = sliderAnnotations?.scrollTop || 0;
   const top = fromEle.offsetTop - scrollTop;
-  ztoolkit.log(
-    "定位 top",
-    sliderAnnotations,
-    fromEle.offsetTop,
-    fromEle.clientTop,
-    scrollTop,
-  );
+  ztoolkit.log("定位 top", sliderAnnotations, fromEle.offsetTop, fromEle.clientTop, scrollTop);
   return { fromEle, left, top };
 }
 
-async function createRelatedContent(
-  anKey: string,
-  win: Window | undefined,
-  div: HTMLDivElement | undefined,
-  fromEle: HTMLElement,
-) {
+async function createRelatedContent(anKey: string, win: Window | undefined, div: HTMLDivElement | undefined, fromEle: HTMLElement) {
   const content = win
     ? (win.document.querySelector(".content") as HTMLDivElement)
     : div
@@ -273,24 +227,13 @@ async function createRelatedContent(
     // );
     .sort(
       (a, b) =>
-        sortAsc(
-          b.ann.parentItem?.parentItem?.getField("year"),
-          b.ann.parentItem?.parentItem?.getField("year"),
-        ) *
-          1000 +
-        sortAsc(
-          a.ann.parentItemKey || undefined,
-          b.ann.parentItemKey || undefined,
-        ) *
-          10 +
+        sortAsc(b.ann.parentItem?.parentItem?.getField("year"), b.ann.parentItem?.parentItem?.getField("year")) * 1000 +
+        sortAsc(a.ann.parentItemKey || undefined, b.ann.parentItemKey || undefined) * 10 +
         sortAsc(a.ann.annotationSortIndex, b.ann.annotationSortIndex),
     );
   content.innerHTML = "";
   const fromURI = Zotero.URI.getItemURI(anFrom);
-  for (const to of [
-    { ann: anFrom, type: "来源", toItemURI: fromURI },
-    ...toAns,
-  ]) {
+  for (const to of [{ ann: anFrom, type: "来源", toItemURI: fromURI }, ...toAns]) {
     const anTo = to.ann;
     const toItemURI = to.toItemURI;
     const type = to.type;
@@ -325,9 +268,7 @@ async function createRelatedContent(
                 properties: {
                   textContent: anTo.annotationType,
                   innerHTML:
-                    (await memSVG(
-                      `chrome://${config.addonRef}/content/16/annotate-${anTo.annotationType}.svg`,
-                    )) || anTo.annotationType,
+                    (await memSVG(`chrome://${config.addonRef}/content/16/annotate-${anTo.annotationType}.svg`)) || anTo.annotationType,
                 },
               },
               {
@@ -408,12 +349,7 @@ async function createRelatedContent(
                 type: "click",
                 listener: (e: { stopPropagation: () => void }) => {
                   e.stopPropagation();
-                  if (anTo.parentItemKey)
-                    openAnnotation(
-                      anTo.parentItemKey,
-                      anTo.annotationPageLabel,
-                      anTo.key,
-                    );
+                  if (anTo.parentItemKey) openAnnotation(anTo.parentItemKey, anTo.annotationPageLabel, anTo.key);
                 },
                 options: { capture: true },
               },
@@ -463,13 +399,7 @@ async function createRelatedContent(
   );
 }
 
-export function showTitle(
-  anTo: Zotero.Item,
-  x: number,
-  y: number,
-  parent: HTMLElement,
-  ms: number = 500,
-) {
+export function showTitle(anTo: Zotero.Item, x: number, y: number, parent: HTMLElement, ms: number = 500) {
   const d = ztoolkit.UI.appendElement(
     {
       tag: "span",
@@ -506,10 +436,7 @@ export function showTitle(
   return d;
 }
 async function createRelatedDialog(readerDoc: Document, anKey: string) {
-  ztoolkit.log(
-    " Zotero.getMainWindow().screenLeft",
-    Zotero.getMainWindow().screenLeft,
-  );
+  ztoolkit.log(" Zotero.getMainWindow().screenLeft", Zotero.getMainWindow().screenLeft);
   const mainWindow = Zotero.getMainWindow();
   const { fromEle, left, top } = getFromEleLeftTop(readerDoc, anKey);
   let dialogHelper: DialogHelper | undefined = addon.data.relationDialog;
@@ -571,13 +498,9 @@ async function createRelatedDialog(readerDoc: Document, anKey: string) {
   });
 
   // await waitFor(() => dialogHelper.window.document.querySelector(".content"));
-  await waitUtilAsync(
-    () => !!dialogHelper?.window?.document.querySelector(".content"),
-  );
+  await waitUtilAsync(() => !!dialogHelper?.window?.document.querySelector(".content"));
   // ztoolkit.log("窗口2",dialogHelper.window)
-  const content = dialogHelper.window.document.querySelector(
-    ".content",
-  )! as HTMLDivElement;
+  const content = dialogHelper.window.document.querySelector(".content")! as HTMLDivElement;
   content.addEventListener("mouseover", () => {
     fromMouseTimer.clearTimer();
   });
@@ -588,10 +511,7 @@ async function relatedDialogResize(win: Window, top: number, left: number) {
   const mainWindow = Zotero.getMainWindow();
   (win as any).sizeToContent();
   if (win.outerHeight + top - mainWindow.outerHeight > 0) {
-    win.moveTo(
-      left,
-      Math.max(0, mainWindow.outerHeight - win.outerHeight - 20),
-    );
+    win.moveTo(left, Math.max(0, mainWindow.outerHeight - win.outerHeight - 20));
   }
 }
 
@@ -667,8 +587,7 @@ function copyFunc(doc: Document, copyFrom: string = "") {
     man
       .map((m, i) => {
         const an = getItem(m.annotationKey);
-        const content =
-          (an.annotationComment || "") + (an.annotationText || "") + m.text;
+        const content = (an.annotationComment || "") + (an.annotationText || "") + m.text;
         popupWin.createLine({ text: content.substring(0, 10) });
         popupWin.createLine({ text: Zotero.URI.getItemURI(an) });
         return {
@@ -704,9 +623,7 @@ function copyFunc(doc: Document, copyFrom: string = "") {
         } else {
           query.textContent = "已复制:" + man.length;
           addon.data.copyText = text;
-          popupWin
-            .createLine({ text: "已复制:" + man.length })
-            .startCloseTimer(5000, false);
+          popupWin.createLine({ text: "已复制:" + man.length }).startCloseTimer(5000, false);
         }
       },
       { capture: true },
@@ -765,8 +682,7 @@ export function text2Ma(text: string) {
 
   // “知识价值性” ([⁨刘立⁩和⁨党兴华⁩, 2014, p. 5](zotero://select/library/items/MBYKPZRC)) ([pdf](zotero://open-pdf/library/items/ALUKNMR8?page=5&annotation=IL3PXPUF))`
 
-  const reStr =
-    ".*[[]pdf][(](zotero://open-pdf/library/items/(.*?)[?]page=(.*?)&annotation=(.*?))[)][)]";
+  const reStr = ".*[[]pdf][(](zotero://open-pdf/library/items/(.*?)[?]page=(.*?)&annotation=(.*?))[)][)]";
   const reG = new RegExp(reStr, "g");
   const reN = new RegExp(reStr, "");
   // const reG = /.*[[]pdf][(](zotero:\/\/open-pdf\/library\/items\/(.*?)[?]page=(.*?)&annotation=(.*?))[)][)].*/g;

@@ -3,7 +3,7 @@ import * as React from "react";
 import { useEffect, useRef, useState } from "react";
 import { useImmer } from "use-immer";
 import { ArrowContainer, Popover } from "react-tiny-popover";
-import { PopupRoot } from "../modules/AnnotationPopup";
+import { PopupRoot } from "./PopupRoot";
 
 export function popDiv({
   reader,
@@ -29,13 +29,9 @@ export function popDiv({
   const [isPopoverOpen, setIsPopoverOpen] = useState(true);
   // const parentElement = doc.firstChild as HTMLElement;
   ztoolkit.log(doc, reader);
-  const tabDiv = Zotero_Tabs.deck.querySelector(
-    "#" + Zotero_Tabs.selectedID,
-  ) as HTMLDivElement;
+  const tabDiv = Zotero_Tabs.deck.querySelector("#" + Zotero_Tabs.selectedID) as HTMLDivElement;
   const [bgColor, setBgColor] = useState(getPrefAs("bgColor", "#fff"));
-  const sp = (
-    tabDiv.querySelector("browser") as HTMLIFrameElement
-  ).contentDocument?.querySelector("#reader-ui ") as HTMLDivElement;
+  const sp = (tabDiv.querySelector("browser") as HTMLIFrameElement).contentDocument?.querySelector("#reader-ui ") as HTMLDivElement;
   // const react_popover_root = tabDiv.querySelector(".react_popover_root") as HTMLDivElement || ztoolkit.UI.appendElement({
   //   tag: "div",
   //   styles: { width: "calc(100% - 80px)", height: "calc(100% - 100px)", position: "fixed", left: "40px", top: "80px", zIndex: "0", background: "transparent", border: "1px solid black" },
@@ -44,25 +40,13 @@ export function popDiv({
   const parentElement = tabDiv;
   const boundaryElement = tabDiv;
   const [pPadding, setPPadding] = useState(getPrefAs("pPadding", 0));
-  const [pBoundaryInset, setPBoundaryInset] = useState(
-    getPrefAs("pBoundaryInset", 0),
-  );
+  const [pBoundaryInset, setPBoundaryInset] = useState(getPrefAs("pBoundaryInset", 0));
   const [pArrowSize, setPArrowSize] = useState(getPrefAs("pArrowSize", 0));
-  const [pPositions, updatePPositions] = useImmer(
-    getPrefAs("pPositions", "bottom,left,top,right").split(","),
-  );
-  const [pFixedContentLocation, setPFixedContentLocation] = useState(
-    getPrefAs("pFixedContentLocation", false),
-  );
-  const [pFixedContentLocationLeft, setPFixedContentLocationLeft] = useState(
-    getPrefAs("pFixedContentLocationLeft", 0),
-  );
-  const [pFixedContentLocationTop, setPFixedContentLocationTop] = useState(
-    getPrefAs("pFixedContentLocationTop", 0),
-  );
-  const selectionPopup = (
-    tabDiv.querySelector("browser") as HTMLIFrameElement
-  ).contentDocument?.querySelector(
+  const [pPositions, updatePPositions] = useImmer(getPrefAs("pPositions", "bottom,left,top,right").split(","));
+  const [pFixedContentLocation, setPFixedContentLocation] = useState(getPrefAs("pFixedContentLocation", false));
+  const [pFixedContentLocationLeft, setPFixedContentLocationLeft] = useState(getPrefAs("pFixedContentLocationLeft", 0));
+  const [pFixedContentLocationTop, setPFixedContentLocationTop] = useState(getPrefAs("pFixedContentLocationTop", 0));
+  const selectionPopup = (tabDiv.querySelector("browser") as HTMLIFrameElement).contentDocument?.querySelector(
     "#reader-ui .selection-popup",
   ) as HTMLDivElement;
   const selectionPopupRef = useRef(selectionPopup);
@@ -73,11 +57,7 @@ export function popDiv({
   });
   useEffect(() => {
     const resizeChange = () => {
-      ztoolkit.log(
-        "selectionPopupRef.current.clientHeight",
-        selectionPopupRef.current,
-        selectionPopupRef.current.clientHeight,
-      );
+      ztoolkit.log("selectionPopupRef.current.clientHeight", selectionPopupRef.current, selectionPopupRef.current.clientHeight);
       setSelectionPopupSize({
         width: selectionPopupRef.current.clientWidth,
         height: selectionPopupRef.current.clientHeight,
@@ -91,11 +71,7 @@ export function popDiv({
     });
     // 销毁
     return () => {
-      ztoolkit.log(
-        "selectionPopupRef.current.clientHeight  remove",
-        selectionPopupRef.current,
-        selectionPopupRef.current.clientHeight,
-      );
+      ztoolkit.log("selectionPopupRef.current.clientHeight  remove", selectionPopupRef.current, selectionPopupRef.current.clientHeight);
       selectionPopupRef.current.removeEventListener("resize", resizeChange);
     };
   }, []);
@@ -142,13 +118,7 @@ export function popDiv({
                   maxWidth: Math.max(600, maxWidth) + "px",
                 }}
               >
-                <PopupRoot
-                  reader={reader}
-                  doc={doc}
-                  params={params}
-                  root={root}
-                  maxWidth={maxWidth}
-                />
+                <PopupRoot reader={reader} doc={doc} params={params} root={root} maxWidth={maxWidth} />
               </div>
             </ArrowContainer>
           )}
