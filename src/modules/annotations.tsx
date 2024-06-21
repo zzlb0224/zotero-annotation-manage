@@ -83,7 +83,6 @@ function createAnnotationContextMenu(
       : "添加标签";
   //
 
-
   append({
     label: label,
     onCommand: () => {

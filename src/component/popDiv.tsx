@@ -113,13 +113,13 @@ export function popDiv({
           transform={
             pFixedContentLocation
               ? {
-                left: pFixedContentLocationLeft,
-                top: pFixedContentLocationTop,
-              }
+                  left: pFixedContentLocationLeft,
+                  top: pFixedContentLocationTop,
+                }
               : (popoverState) => ({
-                top: -popoverState.nudgedTop + 65,
-                left: -popoverState.nudgedLeft,
-              })
+                  top: -popoverState.nudgedTop + 65,
+                  left: -popoverState.nudgedLeft,
+                })
           }
           // onClickOutside={() => setIsPopoverOpen(false)}
           // ref={clickMeButtonRef} // if you'd like a ref to your popover's child, you can grab one here

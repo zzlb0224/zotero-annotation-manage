@@ -8,7 +8,10 @@ interface CollectionWithChildren {
   itemIDs: (number | undefined)[];
   Children: CollectionWithChildren[];
 }
-export async function getCollectionWithChildren(item?: Zotero.Item, items?: Zotero.Item[]) {
+export async function getCollectionWithChildren(
+  item?: Zotero.Item,
+  items?: Zotero.Item[],
+) {
   if (item) return;
   if (items) return;
   const getChildGroupData = async () => {
