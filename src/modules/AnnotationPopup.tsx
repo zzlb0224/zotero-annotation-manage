@@ -1395,6 +1395,8 @@ export function PopupRoot({
   const [isShowSelectedPopupMatchTag, setShowSelectedPopupMatchTag] = useState(
     getPrefAs("show-selected-popup-match-tag", false),
   );
+  const [divMaxWidth, setDivMaxWidth] = useState(getPrefAs("divMaxWidth", 600));
+  const [divMaxHeight, setDivMaxHeight] = useState(getPrefAs("divMaxHeight", 600));
 
   const [fontSize, setFontSize] = useState(getPrefAs("font-size", 17));
   const [lineHeight, setLineHeight] = useState(
@@ -1537,9 +1539,9 @@ export function PopupRoot({
       // setIsPopoverOpen(true)
       // forceRerender()
       //要出发弹出窗口重绘是不是有更简单的办法
-      setPPadding(pPadding + 0.0001);
+      setPPadding(setPPadding => pPadding + 0.0001);
       setTimeout(() => {
-        setPPadding(pPadding - 0.0001);
+        setPPadding(setPPadding => pPadding - 0.0001);
       });
       //触发 useLayoutEffect()
 
@@ -1757,14 +1759,22 @@ export function PopupRoot({
               left: -popoverState.nudgedLeft,
             })
         }
+
+        // style={{
+        //   maxWidth: divMaxWidth + "px",
+        //   // width: "600px",
+        //   minHeight: divMaxHeight + "px",
+        //   overflowY: "scroll",
+        // }}
         align="center"
         // onClickOutside={() => setIsPopoverOpen(false)}
         // ref={clickMeButtonRef} // if you'd like a ref to your popover's child, you can grab one here
         content={(popoverState) => (
           <ArrowContainer // if you'd like an arrow, you can import the ArrowContainer!
-            position={popoverState.position}
-            childRect={popoverState.childRect}
-            popoverRect={popoverState.popoverRect}
+            {...popoverState}
+            // position={popoverState.position}
+            // childRect={popoverState.childRect}
+            // popoverRect={popoverState.popoverRect}
             arrowColor={"#aaaaaa"}
             arrowSize={pArrowSize}
             arrowStyle={{ opacity: 0.6 }}
@@ -1780,9 +1790,11 @@ export function PopupRoot({
                 display: "flex",
                 flexWrap: "wrap",
                 // maxWidth: Math.max(600, maxWidth) + "px",
-                maxWidth: "600px",
-                width: "600px",
-                minHeight: "100px",
+                // width: "600px",
+                maxWidth: divMaxWidth + "px",
+                // width: divMaxWidth + "px",
+                // minHeight: divMaxHeight + "px",
+                // overflowY: "scroll",
               }}
             // onClick={() => setIsPopoverOpen(!isPopoverOpen)}
             >
@@ -2030,6 +2042,42 @@ export function PopupRoot({
                         <br />
                       </span>
                     )}
+                    <span style={{ whiteSpace: "nowrap", wordWrap: "normal" }}>
+                      面板最大宽度:
+                      <input
+                        type="number"
+                        min={100}
+                        max={1200}
+                        step={10}
+                        defaultValue={divMaxWidth}
+                        style={inputWidth("zlb")}
+                        onInput={(e) => {
+                          if (e.currentTarget.value) {
+                            setPref("divMaxWidth", e.currentTarget.valueAsNumber);
+                            setDivMaxWidth(e.currentTarget.valueAsNumber);
+                          }
+                        }}
+                      />
+                      px。
+                    </span>
+                    {/* <span style={{ whiteSpace: "nowrap", wordWrap: "normal" }}>
+                      面板最大高度:
+                      <input
+                        type="number"
+                        min={30}
+                        max={600}
+                        step={10}
+                        defaultValue={divMaxHeight}
+                        style={inputWidth("zlb")}
+                        onInput={(e) => {
+                          if (e.currentTarget.value) {
+                            setPref("divMaxHeight", e.currentTarget.valueAsNumber);
+                            setDivMaxHeight(e.currentTarget.valueAsNumber);
+                          }
+                        }}
+                      />
+                      px。
+                    </span> */}
                     <span>
                       显示
                       <input
