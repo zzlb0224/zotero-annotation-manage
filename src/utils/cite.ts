@@ -102,6 +102,13 @@ const rules: Rule[] = [
       "Wood, R.and Zaichkowsky, J.L. (2004), “Attitudes and trading behavior of stock market investors: a segmentation approach”, Journal of Behavioral Finance, Vol. 5 No. 3, pp. 170 - 179.",
     ],
   },
+  {
+    title: "a",
+    re: new RegExp(`${author0}${year1}\\.${title1}\\.${journal0}\\.${space}\\d+\\,${space}pp\\.${page1}\\.`),
+    examples: [
+      "Lindman, J., Rossi, M. and Tuunainen, V.K. (2017). Opportunities and Risks of Blockchain Technologies in Payments: A Research Agenda. The 50th Hawaii International Conference on System Sciences. 2017, pp. 1533-1542.",
+    ],
+  },
 ].map((a) =>
   Object.assign(a, {
     re: a.re ?? new RegExp(a.rStr),
@@ -201,7 +208,10 @@ function refTest() {
     }
   }
 }
-Zotero.ref_test = { refTest, ruleTestInner, ruleTestCross, ruleTestSingle };
+function ruleTestLast() {
+  return ruleTestInner(rules.length - 1);
+}
+Zotero.ref_test = { refTest, ruleTestInner, ruleTestCross, ruleTestSingle, ruleTestLast };
 
 export function refSearch(str: string, log = false) {
   for (let index = 0; index < regexps.length; index++) {
