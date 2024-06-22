@@ -593,7 +593,7 @@ export function PopupRoot({
                                                 step={1}
                                                 max={200}
                                                 style={inputWidth("zlb")}
-                                                defaultValue={pPadding}
+                                                defaultValue={Math.round(pPadding)}
                                                 onInput={(e) => {
                                                     if (e.currentTarget.value) {
                                                         setPref("pPadding", e.currentTarget.value);
