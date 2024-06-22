@@ -17,6 +17,7 @@ const title1 = `${space}(?<title>[^\\.]+?)${space}`;
 const title2 = `${space}["“]+${space}(?<title>.+?)${space}["”]+${space}`;
 const journal0 = `${space}(?<journal>.+?)${space}`;
 const journal1 = `${space}(?<journal>[^?]+?)${space}`;
+const journal2 = `${space}(?<journal>In Proceedings of.+?)${space}`;
 const year0 = `${space}(?<year>[\\d]+)[a-z]?${space}`;
 const year1 = `${space}\\(${space}(?<year>[\\d]+)[a-z]?${space}\\)${space}`;
 const page0 = `${space}(?<page>[\\d–-]+)${space}`;
@@ -28,9 +29,6 @@ const doi0 = `${space}(?:doi:|DOI:|https://doi.org/|https://${space}doi.org/)${s
 const doi1 = `${space}(?:doi:|DOI:|https://doi.org/|https://${space}doi.org/)${space}(?<doi>.*)?[\\.]?${space}`;
 const nn = new RegExp(`${author2},${year0}\\.${title1}\\.${journal0}${issue},${page0}\\.`);
 
-`Yu, C., Moslehpour, M., Tran, T.K., et al., 2023. Impact of non-renewable energy and natural resources on economic recovery: empirical evidence from selected developing economies. Resour. Policy 80, 103221. Yue, P., Korkmaz, A.G., Yin, Z., et al., 2022. The rise of digital finance: financial inclusion or debt trap? Financ. Res. Lett. 47, 102604. Zhang, J., Mishra, A.K., Zhu, P., et al., 2020. Land rental market and agricultural labor productivity in rural China: a mediation analysis. World Dev. 135, 105089.`.match(
-  nn,
-);
 
 const apa_doi0 =
   /\s*(?<author>[^(]+)\(\s*(?<year>[\d]+)[a-f]?\s*\)\.\s*(?<title>.+?)\s*\.\s*(?<journal>.+?)\s*(?<volume>[\d]*)\s*(?:\((?<series>[\s\d]+)\))?,\s*(?<page>[\s\d–-]+)\.\s*doi:\s*(?<doi>.*)/;
@@ -107,6 +105,18 @@ const rules: Rule[] = [
     re: new RegExp(`${author0}${year1}\\.${title1}\\.${journal0}\\.${space}\\d+\\,${space}pp\\.${page1}\\.`),
     examples: [
       "Lindman, J., Rossi, M. and Tuunainen, V.K. (2017). Opportunities and Risks of Blockchain Technologies in Payments: A Research Agenda. The 50th Hawaii International Conference on System Sciences. 2017, pp. 1533-1542.",
+    ],
+  },
+  {
+    re: new RegExp(`${author0}${year1},${title2},${journal0},${space}Vol\\.${volume}No\\.${issue},${space}pp\\.${page1}\\.`),
+    examples: [
+      "Hauser, D.J.and Schwartz, N. (2016), “Attentive Turkers: MTurk participants perform better on online attention checks than do subject pool participants”, Behavior Research Methods, Vol. 48 No. 1, pp. 400 - 407.",
+    ],
+  },
+  {
+    re: new RegExp(`${author0}${year1}\\.${title1}\\.${journal2},`),
+    examples: [
+      "Huotari, K., & Hamari, J. (2012). Deﬁning gamiﬁcation – A service marketing perspective. In Proceedings of the 16th international academic MindTrek conference Tampere, Finland, 3–5 October, 2012, (pp. 17–22).",
     ],
   },
 ].map((a) =>
