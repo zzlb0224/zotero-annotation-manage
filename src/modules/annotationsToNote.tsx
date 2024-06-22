@@ -1589,24 +1589,24 @@ function createActionTag(div: HTMLElement | undefined, action: () => void | unde
     // },
     action
       ? {
-        tag: "button",
-        namespace: "html",
-        properties: { textContent: "确定生成" },
-        // styles: {
-        //   padding: "6px",
-        //   background: "#f99",
-        //   margin: "1px",
-        // },
-        listeners: [
-          {
-            type: "click",
-            listener: (ev: any) => {
-              stopPropagation(ev);
-              action();
+          tag: "button",
+          namespace: "html",
+          properties: { textContent: "确定生成" },
+          // styles: {
+          //   padding: "6px",
+          //   background: "#f99",
+          //   margin: "1px",
+          // },
+          listeners: [
+            {
+              type: "click",
+              listener: (ev: any) => {
+                stopPropagation(ev);
+                action();
+              },
             },
-          },
-        ],
-      }
+          ],
+        }
       : { tag: "span" },
     ...others,
   ];
