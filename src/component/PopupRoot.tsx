@@ -176,25 +176,25 @@ export function PopupRoot({
   }, [searchTag, relateTags, showTagsLength, sortType]);
 
   // ztoolkit.log("ids", params.ids)
-  const [time, setTime] = useState(params.ids ? getPrefAs("autoCloseSeconds", 15) : -1); //只在倒计时时间
+  const [autoCloseSeconds, setAutoCloseSeconds] = useState(params.ids ? getPrefAs("autoCloseSeconds", 15) : -1); //只在倒计时时间
   const timeRef = useRef<NodeJS.Timeout>(); //设置延时器
 
   //倒计时
   useEffect(() => {
     //如果设置倒计时且倒计时不为0
-    if (time > 0) {
+    if (autoCloseSeconds > 0) {
       timeRef.current = setTimeout(() => {
-        setTime((time) => time - 1);
+        setAutoCloseSeconds((time) => time - 1);
       }, 1000);
     }
-    if (time == 0) {
+    if (autoCloseSeconds == 0) {
       root.remove();
       setIsPopoverOpen(false);
     }
     return () => {
       clearTimeout(timeRef.current);
     };
-  }, [time]);
+  }, [autoCloseSeconds]);
 
   const tagStyle = {
     marginLeft: buttonMarginLeftRight + "px",
@@ -374,37 +374,83 @@ export function PopupRoot({
   const popRef = useRef<HTMLDivElement>(null);
 
   function loadDefault(configType: ConfigType) {
+    let config: Config
     if (configType == "草绿") {
-      return {
+      return config = {
         configName: configType,
         bgColor: "#5ad354",
         divMaxWidth: 550,
-        time: 15,
+        autoCloseSeconds: 15,
         pFixedContentLocation: false,
         pFixedContentLocationLeft: 100,
         pFixedContentLocationTop: 100,
+        pPadding: 5,
+        pBoundaryInset: 8,
+        pArrowSize: 4,
+        pPositions: "left,right,top,bottom",
+        isShowSelectedPopupColorsTag: false,
+        isShowSelectedPopupMatchTag: true,
+        showTagsLength: 25,
+        fontSize: 18,
+        lineHeight: "0.8",
+        buttonMarginTopBottom: 4,
+        buttonMarginLeftRight: 2,
+        buttonPaddingTopBottom: 3,
+        buttonPaddingLeftRight: 3,
+        buttonBorderRadius: 5,
+        sortType: "最近使用",
       };
     }
     if (configType == "菊黄") {
-      return {
+      return config = {
         configName: configType,
         bgColor: "#cfb50a",
         divMaxWidth: 600,
-        time: 16,
+        autoCloseSeconds: 16,
         pFixedContentLocation: false,
         pFixedContentLocationLeft: 150,
         pFixedContentLocationTop: 150,
+        pPadding: 5,
+        pBoundaryInset: 8,
+        pArrowSize: 4,
+        pPositions: "left,right,top,bottom",
+        isShowSelectedPopupColorsTag: false,
+        isShowSelectedPopupMatchTag: true,
+        showTagsLength: 25,
+        fontSize: 18,
+        lineHeight: "0.8",
+        buttonMarginTopBottom: 4,
+        buttonMarginLeftRight: 2,
+        buttonPaddingTopBottom: 3,
+        buttonPaddingLeftRight: 3,
+        buttonBorderRadius: 5,
+        sortType: "最近使用",
       };
     }
     if (configType == "虾红") {
-      return {
+      return config = {
         configName: configType,
         bgColor: "#c66087",
-        divMaxWidth: 650,
-        time: 17,
+        divMaxWidth: 450,
+        autoCloseSeconds: 17,
         pFixedContentLocation: false,
         pFixedContentLocationLeft: 150,
         pFixedContentLocationTop: 150,
+        pPadding: 5,
+        pBoundaryInset: 8,
+        pArrowSize: 4,
+        pPositions: "left,right,bottom,top",
+        isShowSelectedPopupColorsTag: false,
+        isShowSelectedPopupMatchTag: true,
+        showTagsLength: 10,
+        fontSize: 18,
+        lineHeight: "0.8",
+        buttonMarginTopBottom: 4,
+        buttonMarginLeftRight: 2,
+        buttonPaddingTopBottom: 3,
+        buttonPaddingLeftRight: 3,
+        buttonBorderRadius: 10.5,
+        sortType: "最近使用",
       };
     }
   }
@@ -412,10 +458,24 @@ export function PopupRoot({
     configName: string;
     bgColor: string;
     divMaxWidth: number;
-    time: number;
+    autoCloseSeconds: number;
     pFixedContentLocation: boolean;
     pFixedContentLocationLeft: number;
-    pFixedContentLocationTop: number;
+    pFixedContentLocationTop: number; pPadding: number,
+    pBoundaryInset: number,
+    pArrowSize: number,
+    pPositions: string,
+    isShowSelectedPopupColorsTag: boolean,
+    isShowSelectedPopupMatchTag: boolean,
+    showTagsLength: number,
+    fontSize: number,
+    lineHeight: string,
+    buttonMarginTopBottom: number,
+    buttonMarginLeftRight: number,
+    buttonPaddingTopBottom: number,
+    buttonPaddingLeftRight: number,
+    buttonBorderRadius: number,
+    sortType: SortType,
   }
   const [configName, setConfigName] = useState(getPref("configName"));
   function setConfig(config: Config) {
@@ -426,17 +486,59 @@ export function PopupRoot({
     setPref("bgColor", config.bgColor);
     setDivMaxWidth(config.divMaxWidth);
     setPref("divMaxWidth", config.divMaxWidth);
-    setTime(config.time);
-    setPref("time", config.time);
+    setAutoCloseSeconds(config.autoCloseSeconds);
+    setPref("autoCloseSeconds", config.autoCloseSeconds);
     setPFixedContentLocation(config.pFixedContentLocation);
     setPref("pFixedContentLocation", config.pFixedContentLocation);
     setPFixedContentLocationLeft(config.pFixedContentLocationLeft);
     setPref("pFixedContentLocationLeft", config.pFixedContentLocationLeft);
     setPFixedContentLocationTop(config.pFixedContentLocationTop);
     setPref("pFixedContentLocationTop", config.pFixedContentLocationTop);
-    setTimeout(function () {
-      setShowConfig(true);
-    });
+
+
+    setPBoundaryInset(config.pBoundaryInset);
+    setPref("pBoundaryInset", config.pBoundaryInset);
+
+    setPArrowSize(config.pArrowSize);
+    setPref("pArrowSize", config.pArrowSize);
+
+    updatePPositions((pPositions) => config.pPositions);
+    setPref("pPositions", config.pPositions);
+
+    setShowSelectedPopupColorsTag(config.isShowSelectedPopupColorsTag);
+    setPref("isShowSelectedPopupColorsTag", config.isShowSelectedPopupColorsTag);
+
+    setShowSelectedPopupMatchTag(config.isShowSelectedPopupMatchTag);
+    setPref("isShowSelectedPopupMatchTag", config.isShowSelectedPopupMatchTag);
+
+    setShowTagsLength(config.showTagsLength);
+    setPref("showTagsLength", config.showTagsLength);
+
+    setFontSize(config.fontSize);
+    setPref("fontSize", config.fontSize);
+
+    setLineHeight(config.lineHeight);
+    setPref("lineHeight", config.lineHeight);
+
+    setButtonMarginTopBottom(config.buttonMarginTopBottom);
+    setPref("buttonMarginTopBottom", config.buttonMarginTopBottom);
+
+    setButtonMarginLeftRight(config.buttonMarginLeftRight);
+    setPref("buttonMarginLeftRight", config.buttonMarginLeftRight);
+
+    setButtonPaddingTopBottom(config.buttonPaddingTopBottom);
+    setPref("buttonPaddingTopBottom", config.buttonPaddingTopBottom);
+
+    setButtonPaddingLeftRight(config.buttonPaddingLeftRight);
+    setPref("buttonPaddingLeftRight", config.buttonPaddingLeftRight);
+
+    setButtonBorderRadius(config.buttonBorderRadius);
+    setPref("buttonBorderRadius", config.buttonBorderRadius);
+
+    setSortType(config.sortType);
+    setPref("sortType", config.sortType);
+
+    setTimeout(() => setShowConfig(true));
   }
 
   return (
@@ -453,9 +555,9 @@ export function PopupRoot({
         pFixedContentLocation || params.ids
           ? { left: pFixedContentLocationLeft, top: 0 }
           : (popoverState) => ({
-              top: -popoverState.nudgedTop + 65,
-              left: -popoverState.nudgedLeft,
-            })
+            top: -popoverState.nudgedTop + 65,
+            left: -popoverState.nudgedLeft,
+          })
       }
       // style={{
       //   maxWidth: divMaxWidth + "px",
@@ -493,7 +595,7 @@ export function PopupRoot({
               // overflowY: "scroll",
             }}
             // onClick={() => setIsPopoverOpen(!isPopoverOpen)}
-            onClick={() => setTime(-1)}
+            onClick={() => setAutoCloseSeconds(-1)}
           >
             {isShowConfig && (
               <div
@@ -595,7 +697,7 @@ export function PopupRoot({
                         defaultValue={getPrefAs("autoCloseSeconds", 15)}
                         onInput={(e) => {
                           if (e.currentTarget.value) {
-                            setTime(e.currentTarget.valueAsNumber);
+                            setAutoCloseSeconds(e.currentTarget.valueAsNumber);
                             setPref("autoCloseSeconds", e.currentTarget.valueAsNumber);
                           }
                         }}
@@ -1080,7 +1182,7 @@ export function PopupRoot({
                         root?.remove();
                       }}
                     >
-                      {delTags.length == 0 ? (time > 0 ? time + "s" : "点击") + "关闭" : "确认删除"}
+                      {delTags.length == 0 ? (autoCloseSeconds > 0 ? autoCloseSeconds + "s" : "点击") + "关闭" : "确认删除"}
                     </span>
                   </>
                 )}
@@ -1093,8 +1195,8 @@ export function PopupRoot({
                   placeholder="搜索标签，按回车添加"
                   onKeyDown={(e) => {
                     // ztoolkit.log(e)
-                    if (time > 0) {
-                      setTime(-1);
+                    if (autoCloseSeconds > 0) {
+                      setAutoCloseSeconds(-1);
                     }
                     if (e.code == "Enter") {
                       setIsPopoverOpen(false);
