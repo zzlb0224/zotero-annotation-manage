@@ -7,7 +7,7 @@ import Annotations from "./modules/annotations";
 import AnnotationsToNote, { annotationToNoteTags as annotationToNoteTags, annotationToNoteType } from "./modules/annotationsToNote";
 import RelationHeader from "./modules/RelationHeader";
 import highlightWords from "./modules/highlightWords";
-import toolLink from "./modules/toolLink";
+import toolLink from "./modules/referenceMark";
 
 async function onStartup() {
   await Promise.all([Zotero.initializationPromise, Zotero.unlockPromise, Zotero.uiReadyPromise]);

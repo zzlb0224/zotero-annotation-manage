@@ -27,17 +27,18 @@ function readerToolbarCallback(event: Parameters<_ZoteroTypes.Reader.EventHandle
   // }, 1000)
   let enable = getPrefAs("show-query-href", false);
   const root = doc.querySelector("body") || (doc.querySelector("div") as HTMLElement);
-
+  const item = reader._item
   const MutationObserver = ztoolkit.getGlobal("MutationObserver");
   const observerAddRowRef = new MutationObserver((mutationsList: MutationRecord[]) => {
     // ztoolkit.log("aaaaobserverAddRowRef", mutationsList);
     for (const mr of mutationsList) {
       // ztoolkit.log(mr, mr.type);
       if (mr.addedNodes.length > 0) {
-        createPanel(mr.target as HTMLDivElement);
+        createPanel(mr.target as HTMLDivElement, item);
       }
     }
   });
+
 
   const toolbarBtn = ztoolkit.UI.createElement(doc, "div", {
     namespace: "html",
@@ -97,49 +98,47 @@ function readerToolbarCallback(event: Parameters<_ZoteroTypes.Reader.EventHandle
   }
 }
 
-async function createPanel(p: HTMLDivElement) {
+async function createPanel(p: HTMLDivElement, item: Zotero.Item) {
   const refRows = p.querySelectorAll(".reference-row");
   for (const refRow of refRows as NodeListOf<HTMLDivElement>) {
-    updateRefRow(refRow);
+    updateRefRow(refRow, item);
   }
 }
-function updateRefRow(refRow: HTMLDivElement) {
-  {
-    let text = "";
-    const d = refRow.querySelector("div");
-    if (d) {
-      text = d.textContent || "";
-      ztoolkit.log("aaaa获取最新text", text);
-      if (refRow.dataset.text == text) {
-        ztoolkit.log("aaaa缓存", text);
-        return;
-      }
-      const MutationObserver = ztoolkit.getGlobal("MutationObserver");
-      const observerTextChange = new MutationObserver((mutationsList: any) => {
-        // ztoolkit.log("dom 变化了, ", mutationsList);
-        for (const mr of mutationsList) {
-          if (mr.addedNodes.length > 0) {
-            changeFromText(mr.target.textContent || "", panel);
-          }
-        }
-      });
-      observerTextChange.observe(d, {
-        attributes: true,
-        childList: true,
-        subtree: true,
-      });
-      refRow.dataset.text = text;
-    } else {
-      ztoolkit.log("aaaa下面的div还没建立");
+function updateRefRow(refRow: HTMLDivElement, item: Zotero.Item) {
+  let text = "";
+  const d = refRow.querySelector("div");
+  if (d) {
+    text = d.textContent || "";
+    ztoolkit.log("aaaa获取最新text", text);
+    if (refRow.dataset.text == text) {
+      ztoolkit.log("aaaa缓存", text);
       return;
     }
-    const panel =
-      (refRow.querySelector("group") as HTMLDivElement) || (ztoolkit.UI.appendElement({ tag: "group" }, refRow) as HTMLDivElement);
-    changeFromText(text, panel);
+    const MutationObserver = ztoolkit.getGlobal("MutationObserver");
+    const observerTextChange = new MutationObserver((mutationsList: any) => {
+      // ztoolkit.log("dom 变化了, ", mutationsList);
+      for (const mr of mutationsList) {
+        if (mr.addedNodes.length > 0) {
+          changeFromText(mr.target.textContent || "", panel, item);
+        }
+      }
+    });
+    observerTextChange.observe(d, {
+      attributes: true,
+      childList: true,
+      subtree: true,
+    });
+    refRow.dataset.text = text;
+  } else {
+    ztoolkit.log("aaaa下面的div还没建立");
+    return;
   }
+  const panel =
+    (refRow.querySelector("group") as HTMLDivElement) || (ztoolkit.UI.appendElement({ tag: "group" }, refRow) as HTMLDivElement);
+  changeFromText(text, panel, item);
 }
 
-async function changeFromText(text: string, panel: HTMLDivElement) {
+async function changeFromText(text: string, panel: HTMLDivElement, item: Zotero.Item) {
   panel.innerHTML = ""; //清空panel
   for (const c of panel.childNodes) c.remove();
 
@@ -153,21 +152,21 @@ async function changeFromText(text: string, panel: HTMLDivElement) {
     );
     if (m) {
       //检测本地是否存在
-      const item = await searchItem({
+      const searchedItem = await searchItem({
         doi: m.groups.doi,
         title: m.groups.title,
         year: m.groups.year,
       });
-      if (item?.key) {
+      if (searchedItem?.key) {
         ztoolkit.UI.appendElement(
           {
             tag: "span",
             properties: {
-              textContent: "🏛️", // "在我的文库中显示...",
+              textContent: "🏛️我的文库", // "",
             },
             styles: {
-              backgroundColor: "#ef4971",
-              color: "#fff",
+              backgroundColor: "#ef497150",
+              // color: "#ef4971",
               margin: "5px",
               borderRadius: "5px",
               cursor: "pointer",
@@ -177,19 +176,64 @@ async function changeFromText(text: string, panel: HTMLDivElement) {
                 type: "click",
                 listener() {
                   // openAnnotation(item, "", "");
-                  showInLibrary(item);
+                  showInLibrary(searchedItem);
                 },
               },
             ],
           },
           panel,
         );
+        if (item.parentItem)
+          //添加两篇文章的关联
+          ztoolkit.UI.appendElement(
+            {
+              tag: "span",
+              properties: {
+                textContent: item.parentItem.relatedItems.includes(searchedItem.key) ? "🖇️取消关联" : "🔗关联文章",
+              },
+              styles: {
+                backgroundColor: "#99ff99",
+                // color: "#ef4971",
+                margin: "5px",
+                borderRadius: "5px",
+                cursor: "pointer",
+              },
+              listeners: [
+                {
+                  type: "click",
+                  listener(e) {
+                    const d = e.target as HTMLDivElement
+                    if (!item.parentItem) return;
+                    if (item.parentItem.relatedItems.includes(searchedItem.key)) {
+                      item.parentItem.removeRelatedItem(searchedItem)
+                      searchedItem.removeRelatedItem(item.parentItem)
+                      item.saveTx()
+                      searchedItem.saveTx()
+                      new ztoolkit.ProgressWindow("取消关联这篇文章").createLine({ text: "取消关联成功" })
+                        .show(3000)
+                    } else {
+                      item.parentItem?.addRelatedItem(searchedItem)
+                      searchedItem.addRelatedItem(item.parentItem)
+                      item.saveTx()
+                      searchedItem.saveTx()
+                      new ztoolkit.ProgressWindow("关联两篇文章").createLine({ text: "关联成功" })
+                        // .createLine({ text: item.relatedItems.join(",")  })
+                        .show(3000)
+                    }
+                    d.textContent = item.parentItem.relatedItems.includes(searchedItem.key) ? "🖇️取消关联" : "🔗关联文章"
+                  },
+                },
+              ],
+            },
+            panel,
+          );
+        // 
       } else {
         ztoolkit.UI.appendElement(
           {
             tag: "span",
             properties: {
-              textContent: "❌", //"在我的文库中未找到",
+              textContent: "❌未找到", //"在我的文库中未找到",
             },
             styles: {
               // backgroundColor: "#a20",
