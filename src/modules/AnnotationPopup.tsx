@@ -1146,6 +1146,7 @@ export async function saveAnnotationTags(
         reader?._primaryView._onSetSelectionPopup(null);
       }
       memAllTagsDB.remove();
+      memRelateTags.remove()
     }
   }
 }
