@@ -160,10 +160,7 @@ export function PopupRoot({
             // setIsPopoverOpen(true)
             // forceRerender()
             //要出发弹出窗口重绘是不是有更简单的办法
-            setPPadding((setPPadding) => pPadding + 0.0001);
-            setTimeout(() => {
-                setPPadding((setPPadding) => pPadding - 0.0001);
-            });
+            setPPading2()
             //触发 useLayoutEffect()
             ztoolkit.log(
                 "getBoundingClientRect2",
@@ -238,6 +235,24 @@ export function PopupRoot({
     const tabDiv = Zotero_Tabs.deck.querySelector("#" + Zotero_Tabs.selectedID) as HTMLDivElement;
     const [bgColor, setBgColor] = useState(getPrefAs("bgColor", "#fff"));
     const sp = (tabDiv.querySelector("browser") as HTMLIFrameElement).contentDocument?.querySelector("#reader-ui ") as HTMLDivElement;
+    useEffect(() => {
+        const q = ((tabDiv.querySelector("browser") as HTMLIFrameElement)?.contentDocument?.querySelector("#primary-view iframe") as HTMLIFrameElement)?.contentDocument?.querySelector("#viewerContainer") as HTMLDivElement
+        if (q) {
+            q.addEventListener("scroll", (e) => {
+                // ztoolkit.log("scroll", e)
+                // setPPading2()
+            })
+        }
+
+        ztoolkit.log("scroll ???", q)
+
+    }, [])
+
+    function setPPading2() {
+        setPPadding((pPadding) => pPadding - 0.0001);
+        setTimeout(() => { setPPadding((pPadding) => pPadding + 0.0001); }, 100)
+        // setPPadding((pPadding) => pPadding == Math.round(pPadding) ? pPadding + 0.0001 : Math.round(pPadding));
+    }
     // const react_popover_root = tabDiv.querySelector(".react_popover_root") as HTMLDivElement || ztoolkit.UI.appendElement({
     //   tag: "div",
     //   styles: { width: "calc(100% - 80px)", height: "calc(100% - 100px)", position: "fixed", left: "40px", top: "80px", zIndex: "0", background: "transparent", border: "1px solid black" },
@@ -350,6 +365,12 @@ export function PopupRoot({
         );
     }, [displayTags]);
     const popRef = useRef<HTMLDivElement>(null);
+
+    function loadDefault1() {
+        const bgColor = "#ff0"
+        setBgColor(bgColor);
+        setPref("bgColor", bgColor)
+    }
 
     return (
         <Popover
@@ -514,6 +535,7 @@ export function PopupRoot({
                                             />
                                             秒后自动关闭
                                         </>
+                                        <span style={{ ...tagStyle, background: "#fff" }} onClick={() => { loadDefault1() }}>加载默认设置1</span>
                                     </>
                                 )}
                                 {"固定位置" == configTab && (
@@ -584,9 +606,9 @@ export function PopupRoot({
                                                         setPref("pFixedContentLocation", !e.currentTarget.checked);
                                                     }}
                                                 />
-                                                浮动弹出区域
+                                                浮动弹出区域。
                                             </label>
-                                            弹出框边距:{" "}
+                                            和颜色框的距离:
                                             <input
                                                 type="number"
                                                 min={0}
@@ -601,8 +623,7 @@ export function PopupRoot({
                                                     }
                                                 }}
                                             />
-                                            弹出框边缘检测距离:
-                                            {pBoundaryInset}
+                                            边缘检测距离:
                                             <input
                                                 type="number"
                                                 min={0}
@@ -617,7 +638,7 @@ export function PopupRoot({
                                                     }
                                                 }}
                                             />
-                                            弹出框三角大小:
+                                            三角大小:
                                             <input
                                                 type="number"
                                                 min={0}
@@ -632,7 +653,7 @@ export function PopupRoot({
                                                     }
                                                 }}
                                             />
-                                            弹出框默认位置:
+                                            优先默认位置:
                                             {"bottom,left,top,right"
                                                 .split(",")
                                                 .sort(sortFixed(pPositions))
@@ -687,8 +708,6 @@ export function PopupRoot({
 
                                 {"颜色栏" == configTab && (
                                     <span>
-                                        <span></span>
-                                        颜色栏：
                                         <label>
                                             <input
                                                 type="checkbox"

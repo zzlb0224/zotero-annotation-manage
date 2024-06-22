@@ -28,6 +28,11 @@ export function ChangeColor(props: { children?: ReactNode; text?: string; color:
           >
             <>
               <HexColorPicker color={props.color} onChange={props.onChange} />
+              <div style={{ background: "#fff", color: "#000", textAlign: "center", fontSize: "18px" }} onClick={() => {
+                new ztoolkit.Clipboard().addText(props.text || "", "text/plain").copy();
+
+              }}>{props.color}</div>
+
             </>
           </ArrowContainer>
         )}
