@@ -368,31 +368,32 @@ async function changeFromText(text: string, panel: HTMLDivElement, item: Zotero.
             panel,
           );
       }
-      if (isDebug())
-        ztoolkit.UI.appendElement(
-          {
-            tag: "div",
-            properties: {
-              textContent: "识别结果:" + JSON.stringify(m),
-            },
-            styles: {
-              backgroundColor: "#97497120",
-              margin: "5px",
-            },
-          },
-          panel,
-        );
+      if (isDebug()) {
+        // ztoolkit.UI.appendElement(
+        //   {
+        //     tag: "div",
+        //     properties: {
+        //       textContent: "识别结果:" + JSON.stringify(m),
+        //     },
+        //     styles: {
+        //       backgroundColor: "#97497120",
+        //       margin: "5px",
+        //     },
+        //   },
+        //   panel,
+        // );
+      }
     } else {
-      ruleTestSingle(text);
+      // ruleTestSingle(text);
       // ztoolkit.UI.appendElement(
       //   {
       //     tag: "span",
       //     properties: {
-      //       // textContent: "请等待插件作者更新识别链接的代码",
+      // textContent: "请等待插件作者更新识别链接的代码",
       //     },
       //     styles: {
-      //       // backgroundColor: "#66aa6620",
-      //       // margin: "5px",
+      // backgroundColor: "#66aa6620",
+      // margin: "5px",
       //     },
       //   },
       //   panel,
