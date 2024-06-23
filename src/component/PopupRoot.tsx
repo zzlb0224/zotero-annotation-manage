@@ -25,7 +25,7 @@ import * as React from "react";
 import { useEffect, useRef, useState } from "react";
 import { getString } from "../utils/locale";
 import { useImmer } from "use-immer";
-import { ArrowContainer, Popover } from "react-tiny-popover";
+import { ArrowContainer, Popover, PopoverPosition, PopoverState, usePopover } from "react-tiny-popover";
 import { ChangeColor } from "./ChangeColor";
 import { saveAnnotationTags } from "../modules/AnnotationPopup";
 import { type } from "os";
@@ -163,7 +163,7 @@ export function PopupRoot({
       // setIsPopoverOpen(true)
       // forceRerender()
       //要出发弹出窗口重绘是不是有更简单的办法
-      setPPading2();
+
       //触发 useLayoutEffect()
       ztoolkit.log(
         "getBoundingClientRect2",
@@ -296,7 +296,7 @@ export function PopupRoot({
   const [pPadding, setPPadding] = useState(getPrefAs("pPadding", 0));
   const [pBoundaryInset, setPBoundaryInset] = useState(getPrefAs("pBoundaryInset", 40));
   const [pArrowSize, setPArrowSize] = useState(getPrefAs("pArrowSize", 0));
-  const [pPositions, updatePPositions] = useImmer(getPrefAs("pPositions", "bottom,left,top,right").split(","));
+  const [pPositions, updatePPositions] = useImmer(getPrefAs("pPositions", "bottom,left,top,right").split(",") as PopoverPosition[]);
   const [pFixedContentLocation, setPFixedContentLocation] = useState(getPrefAs("pFixedContentLocation", false));
   const [pFixedContentLocationLeft, setPFixedContentLocationLeft] = useState(getPrefAs("pFixedContentLocationLeft", 0));
   const [pFixedContentLocationTop, setPFixedContentLocationTop] = useState(getPrefAs("pFixedContentLocationTop", 0));
@@ -374,9 +374,9 @@ export function PopupRoot({
   const popRef = useRef<HTMLDivElement>(null);
 
   function loadDefault(configType: ConfigType) {
-    let config: Config
+    let config: Config;
     if (configType == "草绿") {
-      return config = {
+      return (config = {
         configName: configType,
         bgColor: "#5ad354",
         divMaxWidth: 550,
@@ -385,7 +385,7 @@ export function PopupRoot({
         pFixedContentLocationLeft: 100,
         pFixedContentLocationTop: 100,
         pPadding: 5,
-        pBoundaryInset: 8,
+        pBoundaryInset: 40,
         pArrowSize: 4,
         pPositions: "left,right,top,bottom",
         isShowSelectedPopupColorsTag: false,
@@ -399,10 +399,10 @@ export function PopupRoot({
         buttonPaddingLeftRight: 3,
         buttonBorderRadius: 5,
         sortType: "最近使用",
-      };
+      });
     }
     if (configType == "菊黄") {
-      return config = {
+      return (config = {
         configName: configType,
         bgColor: "#cfb50a",
         divMaxWidth: 600,
@@ -411,7 +411,7 @@ export function PopupRoot({
         pFixedContentLocationLeft: 150,
         pFixedContentLocationTop: 150,
         pPadding: 5,
-        pBoundaryInset: 8,
+        pBoundaryInset: 40,
         pArrowSize: 4,
         pPositions: "left,right,top,bottom",
         isShowSelectedPopupColorsTag: false,
@@ -425,10 +425,10 @@ export function PopupRoot({
         buttonPaddingLeftRight: 3,
         buttonBorderRadius: 5,
         sortType: "最近使用",
-      };
+      });
     }
     if (configType == "虾红") {
-      return config = {
+      return (config = {
         configName: configType,
         bgColor: "#c66087",
         divMaxWidth: 450,
@@ -437,7 +437,7 @@ export function PopupRoot({
         pFixedContentLocationLeft: 150,
         pFixedContentLocationTop: 150,
         pPadding: 5,
-        pBoundaryInset: 8,
+        pBoundaryInset: 40,
         pArrowSize: 4,
         pPositions: "left,right,bottom,top",
         isShowSelectedPopupColorsTag: false,
@@ -451,7 +451,7 @@ export function PopupRoot({
         buttonPaddingLeftRight: 3,
         buttonBorderRadius: 10.5,
         sortType: "最近使用",
-      };
+      });
     }
   }
   interface Config {
@@ -461,24 +461,25 @@ export function PopupRoot({
     autoCloseSeconds: number;
     pFixedContentLocation: boolean;
     pFixedContentLocationLeft: number;
-    pFixedContentLocationTop: number; pPadding: number,
-    pBoundaryInset: number,
-    pArrowSize: number,
-    pPositions: string,
-    isShowSelectedPopupColorsTag: boolean,
-    isShowSelectedPopupMatchTag: boolean,
-    showTagsLength: number,
-    fontSize: number,
-    lineHeight: string,
-    buttonMarginTopBottom: number,
-    buttonMarginLeftRight: number,
-    buttonPaddingTopBottom: number,
-    buttonPaddingLeftRight: number,
-    buttonBorderRadius: number,
-    sortType: SortType,
+    pFixedContentLocationTop: number;
+    pPadding: number;
+    pBoundaryInset: number;
+    pArrowSize: number;
+    pPositions: string;
+    isShowSelectedPopupColorsTag: boolean;
+    isShowSelectedPopupMatchTag: boolean;
+    showTagsLength: number;
+    fontSize: number;
+    lineHeight: string;
+    buttonMarginTopBottom: number;
+    buttonMarginLeftRight: number;
+    buttonPaddingTopBottom: number;
+    buttonPaddingLeftRight: number;
+    buttonBorderRadius: number;
+    sortType: SortType;
   }
   const [configName, setConfigName] = useState(getPref("configName"));
-  function setConfig(config: Config) {
+  function selectConfig(config: Config) {
     setShowConfig(false);
     setConfigName(config.configName);
     setPref("configName", config.configName);
@@ -494,7 +495,6 @@ export function PopupRoot({
     setPref("pFixedContentLocationLeft", config.pFixedContentLocationLeft);
     setPFixedContentLocationTop(config.pFixedContentLocationTop);
     setPref("pFixedContentLocationTop", config.pFixedContentLocationTop);
-
 
     setPBoundaryInset(config.pBoundaryInset);
     setPref("pBoundaryInset", config.pBoundaryInset);
@@ -541,47 +541,29 @@ export function PopupRoot({
     setTimeout(() => setShowConfig(true));
   }
 
-  return (
-    <Popover
-      parentElement={parentElement}
-      boundaryElement={boundaryElement}
-      isOpen={isPopoverOpen}
-      positions={pPositions as any}
-      padding={pPadding}
-      ref={popRef}
-      boundaryInset={pBoundaryInset}
-      transformMode={pFixedContentLocation || params.ids ? "absolute" : "relative"}
-      transform={
-        pFixedContentLocation || params.ids
-          ? { left: pFixedContentLocationLeft, top: 0 }
-          : (popoverState) => ({
-            top: -popoverState.nudgedTop + 65,
-            left: -popoverState.nudgedLeft,
-          })
-      }
-      // style={{
-      //   maxWidth: divMaxWidth + "px",
-      //   // width: "600px",
-      //   minHeight: divMaxHeight + "px",
-      //   overflowY: "scroll",
-      // }}
-      align="start"
-      // onClickOutside={() => setIsPopoverOpen(false)}
-      // ref={clickMeButtonRef} // if you'd like a ref to your popover's child, you can grab one here
-      content={(popoverState) => (
-        <ArrowContainer // if you'd like an arrow, you can import the ArrowContainer!
-          {...popoverState}
-          // position={popoverState.position}
-          // childRect={popoverState.childRect}
-          // popoverRect={popoverState.popoverRect}
-          arrowColor={"#aaaaaa"}
-          arrowSize={pArrowSize}
-          arrowStyle={{ opacity: 0.6 }}
+  const handleContent = React.useCallback(
+    (popoverState: PopoverState) => (
+      <ArrowContainer // if you'd like an arrow, you can import the ArrowContainer!
+        {...popoverState}
+        // position={popoverState.position}
+        // childRect={popoverState.childRect}
+        // popoverRect={popoverState.popoverRect}
+        arrowColor={"#aaaaaa"}
+        arrowSize={pArrowSize}
+        arrowStyle={{ opacity: 0.9 }}
+      >
+        <div
+          ref={popMaxWidthRef}
+          style={{
+            maxWidth: divMaxWidth + "px",
+            maxHeight: divMaxHeight + "px",
+            overflowY: "scroll",
+            background: "#f00",
+          }}
         >
           <div
-            ref={popMaxWidthRef}
             style={{
-              marginTop: pFixedContentLocation || params.ids ? pFixedContentLocationTop + "px" : "unset",
+              // marginTop: pFixedContentLocation || params.ids ? pFixedContentLocationTop + "px" : "unset",
               backgroundColor: bgColor,
               opacity: 1,
               whiteSpace: "break-spaces",
@@ -589,7 +571,7 @@ export function PopupRoot({
               flexWrap: "wrap",
               // maxWidth: Math.max(600, maxWidth) + "px",
               // width: "600px",
-              maxWidth: divMaxWidth + "px",
+
               // width: divMaxWidth + "px",
               // minHeight: divMaxHeight + "px",
               // overflowY: "scroll",
@@ -669,7 +651,7 @@ export function PopupRoot({
                         }}
                       />
                       px。
-                      {/* <span style={{ whiteSpace: "nowrap", wordWrap: "normal" }}>
+                      <span style={configItemStyle}>
                         面板最大高度:
                         <input
                           type="number"
@@ -686,7 +668,7 @@ export function PopupRoot({
                           }}
                         />
                         px。
-                      </span> */}
+                      </span>
                     </span>
                     <span style={configItemStyle}>
                       <input
@@ -718,7 +700,7 @@ export function PopupRoot({
                                 border: configName == config.configName ? "1px solid #000" : "",
                               }}
                               onClick={() => {
-                                setConfig(config);
+                                selectConfig(config);
                               }}
                             >
                               {config.configName}
@@ -817,7 +799,7 @@ export function PopupRoot({
                         边缘检测距离:
                         <input
                           type="number"
-                          min={0}
+                          min={40}
                           step={1}
                           max={200}
                           style={inputWidth("zlb")}
@@ -849,54 +831,51 @@ export function PopupRoot({
                       </span>
                       <span style={configItemStyle}>
                         优先默认位置:
-                        {"bottom,left,top,right"
-                          .split(",")
-                          .sort(sortFixed(pPositions))
-                          .map((a, i) => (
-                            <span key={a} style={configItemStyle}>
-                              [
-                              {i > 0 && i < pPositions.length && (
-                                <span
-                                  onClick={() => {
-                                    updatePPositions((pPositions) => {
-                                      pPositions.splice(i - 1, 0, ...pPositions.splice(i, 1));
-                                      setPref("pPositions", pPositions.join(","));
-                                    });
-                                  }}
-                                >
-                                  ⬅️
-                                </span>
-                              )}
-                              <label style={{ margin: "0 2px" }}>
-                                <input
-                                  type="checkbox"
-                                  defaultChecked={pPositions.includes(a)}
-                                  onChange={(_e) => {
-                                    updatePPositions((pPositions) => {
-                                      const index = pPositions.findIndex((f) => f == a);
-                                      if (index > -1) pPositions.splice(i, 1);
-                                      else pPositions.push(a);
-                                      setPref("pPositions", pPositions.join(","));
-                                    });
-                                  }}
-                                />
-                                {a}
-                              </label>
-                              {i < pPositions.length - 1 && (
-                                <span
-                                  onClick={() => {
-                                    updatePPositions((pPositions) => {
-                                      pPositions.splice(i + 1, 0, ...pPositions.splice(i, 1));
-                                      setPref("pPositions", pPositions.join(","));
-                                    });
-                                  }}
-                                >
-                                  ➡️
-                                </span>
-                              )}
-                              ]
-                            </span>
-                          ))}
+                        {("bottom,left,top,right".split(",") as PopoverPosition[]).sort(sortFixed(pPositions)).map((a, i) => (
+                          <span key={a} style={configItemStyle}>
+                            [
+                            {i > 0 && i < pPositions.length && (
+                              <span
+                                onClick={() => {
+                                  updatePPositions((pPositions) => {
+                                    pPositions.splice(i - 1, 0, ...pPositions.splice(i, 1));
+                                    setPref("pPositions", pPositions.join(","));
+                                  });
+                                }}
+                              >
+                                ⬅️
+                              </span>
+                            )}
+                            <label style={{ margin: "0 2px" }}>
+                              <input
+                                type="checkbox"
+                                defaultChecked={pPositions.includes(a)}
+                                onChange={(_e) => {
+                                  updatePPositions((pPositions) => {
+                                    const index = pPositions.findIndex((f) => f == a);
+                                    if (index > -1) pPositions.splice(i, 1);
+                                    else pPositions.push(a);
+                                    setPref("pPositions", pPositions.join(","));
+                                  });
+                                }}
+                              />
+                              {a}
+                            </label>
+                            {i < pPositions.length - 1 && (
+                              <span
+                                onClick={() => {
+                                  updatePPositions((pPositions) => {
+                                    pPositions.splice(i + 1, 0, ...pPositions.splice(i, 1));
+                                    setPref("pPositions", pPositions.join(","));
+                                  });
+                                }}
+                              >
+                                ➡️
+                              </span>
+                            )}
+                            ]
+                          </span>
+                        ))}
                       </span>
                     </>
                   </div>
@@ -1311,11 +1290,63 @@ export function PopupRoot({
               </span>
             </div>
           </div>
-        </ArrowContainer> //ArrowContainer
-      )}
+        </div>
+      </ArrowContainer> //ArrowContainer
+    ),
+    [
+      isPopoverOpen,
+      pPositions,
+      pPadding,
+      pFixedContentLocation,
+      displayTags,
+      isShowConfig,
+      configTab,
+      pFixedContentLocationLeft,
+      pFixedContentLocationTop,
+      divMaxWidth,
+      pBoundaryInset,
+      pArrowSize,
+      showTagsLength,
+      fontSize,
+      lineHeight,
+      buttonMarginTopBottom,
+      buttonPaddingTopBottom,
+      buttonPaddingLeftRight,
+      sortType,
+      divMaxHeight,
+    ],
+  );
+  return (
+    <Popover
+      parentElement={parentElement}
+      boundaryElement={boundaryElement}
+      isOpen={isPopoverOpen}
+      positions={pPositions as any}
+      reposition={true}
+      padding={pPadding}
+      ref={popRef}
+      boundaryInset={pBoundaryInset}
+      transformMode={pFixedContentLocation || params.ids ? "absolute" : "relative"}
+      // transform={
+      //   pFixedContentLocation || params.ids
+      //     ? { left: pFixedContentLocationLeft, top: pFixedContentLocationTop }
+      //     : (popoverState) => ({
+      //       top: -popoverState.nudgedTop,
+      //       left: -popoverState.nudgedLeft,
+      //     })
+      // }
+
+      transform={
+        pFixedContentLocation || params.ids ? { left: pFixedContentLocationLeft ?? 0, top: pFixedContentLocationTop ?? 0 } : undefined
+      }
+      align="start"
+      // onClickOutside={() => setIsPopoverOpen(false)}
+      // ref={clickMeButtonRef} // if you'd like a ref to your popover's child, you can grab one here
+      content={handleContent}
     >
       <div
         style={{
+          marginTop: "42px",
           width: "100%",
           // width: "600px",
           position: "absolute",

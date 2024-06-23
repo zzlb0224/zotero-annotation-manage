@@ -29,7 +29,6 @@ const doi0 = `${space}(?:doi:|DOI:|https://doi.org/|https://${space}doi.org/)${s
 const doi1 = `${space}(?:doi:|DOI:|https://doi.org/|https://${space}doi.org/)${space}(?<doi>.*)?[\\.]?${space}`;
 const nn = new RegExp(`${author2},${year0}\\.${title1}\\.${journal0}${issue},${page0}\\.`);
 
-
 const apa_doi0 =
   /\s*(?<author>[^(]+)\(\s*(?<year>[\d]+)[a-f]?\s*\)\.\s*(?<title>.+?)\s*\.\s*(?<journal>.+?)\s*(?<volume>[\d]*)\s*(?:\((?<series>[\s\d]+)\))?,\s*(?<page>[\s\d–-]+)\.\s*doi:\s*(?<doi>.*)/;
 const apa1 =

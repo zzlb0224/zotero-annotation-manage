@@ -27,7 +27,7 @@ function readerToolbarCallback(event: Parameters<_ZoteroTypes.Reader.EventHandle
   // }, 1000)
   let enable = getPrefAs("show-query-href", false);
   const root = doc.querySelector("body") || (doc.querySelector("div") as HTMLElement);
-  const item = reader._item
+  const item = reader._item;
   const MutationObserver = ztoolkit.getGlobal("MutationObserver");
   const observerAddRowRef = new MutationObserver((mutationsList: MutationRecord[]) => {
     // ztoolkit.log("aaaaobserverAddRowRef", mutationsList);
@@ -38,7 +38,6 @@ function readerToolbarCallback(event: Parameters<_ZoteroTypes.Reader.EventHandle
       }
     }
   });
-
 
   const toolbarBtn = ztoolkit.UI.createElement(doc, "div", {
     namespace: "html",
@@ -202,32 +201,32 @@ async function changeFromText(text: string, panel: HTMLDivElement, item: Zotero.
                 {
                   type: "click",
                   listener(e) {
-                    const d = e.target as HTMLDivElement
+                    const d = e.target as HTMLDivElement;
                     if (!item.parentItem) return;
                     if (item.parentItem.relatedItems.includes(searchedItem.key)) {
-                      item.parentItem.removeRelatedItem(searchedItem)
-                      searchedItem.removeRelatedItem(item.parentItem)
-                      item.saveTx()
-                      searchedItem.saveTx()
-                      new ztoolkit.ProgressWindow("取消关联这篇文章").createLine({ text: "取消关联成功" })
-                        .show(3000)
+                      item.parentItem.removeRelatedItem(searchedItem);
+                      searchedItem.removeRelatedItem(item.parentItem);
+                      item.saveTx();
+                      searchedItem.saveTx();
+                      new ztoolkit.ProgressWindow("取消关联这篇文章").createLine({ text: "取消关联成功" }).show(3000);
                     } else {
-                      item.parentItem?.addRelatedItem(searchedItem)
-                      searchedItem.addRelatedItem(item.parentItem)
-                      item.saveTx()
-                      searchedItem.saveTx()
-                      new ztoolkit.ProgressWindow("关联两篇文章").createLine({ text: "关联成功" })
+                      item.parentItem?.addRelatedItem(searchedItem);
+                      searchedItem.addRelatedItem(item.parentItem);
+                      item.saveTx();
+                      searchedItem.saveTx();
+                      new ztoolkit.ProgressWindow("关联两篇文章")
+                        .createLine({ text: "关联成功" })
                         // .createLine({ text: item.relatedItems.join(",")  })
-                        .show(3000)
+                        .show(3000);
                     }
-                    d.textContent = item.parentItem.relatedItems.includes(searchedItem.key) ? "🖇️取消关联" : "🔗关联文章"
+                    d.textContent = item.parentItem.relatedItems.includes(searchedItem.key) ? "🖇️取消关联" : "🔗关联文章";
                   },
                 },
               ],
             },
             panel,
           );
-        // 
+        //
       } else {
         ztoolkit.UI.appendElement(
           {
