@@ -1,3 +1,5 @@
+//@ts-nocheck
+
 export function init() {
   // 脚本在主界面、单独reader windows窗口（shift + enter在一个独立窗口中打开PDF）都有效，在PDF、epub、html文件中都有效
 

@@ -1,3 +1,4 @@
+//@ts-nocheck
 export function init() {
   const replaceLabelMap = {
     "#ffd400": "Custom Yellow",

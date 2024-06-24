@@ -1,3 +1,4 @@
+//@ts-nocheck
 import { groupBy, uniqueBy } from "../utils/zzlb";
 interface CollectionWithChildren {
   collectionID: number;

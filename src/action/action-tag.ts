@@ -1,3 +1,4 @@
+//@ts-nocheck
 export async function addTagsFromTA(item?: Zotero.Item, items?: Zotero.Item[]) {
   if (!item) return;
   const getAllTags = async () => {

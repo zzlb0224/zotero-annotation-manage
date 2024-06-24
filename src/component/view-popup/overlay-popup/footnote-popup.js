@@ -1,6 +1,7 @@
-import React from 'react';
-import ViewPopup from '../common/view-popup';
-import cx from 'classnames';
+//@ts-nocheck nocheck
+import React from "react";
+import ViewPopup from "../common/view-popup";
+import cx from "classnames";
 
 function LinkPopup(props) {
 	let iframeRef = React.useRef(null);
@@ -16,19 +17,19 @@ function LinkPopup(props) {
 
 			let contentStyleSheet = new iframe.contentWindow.CSSStyleSheet();
 			contentStyleSheet.replaceSync(props.params.css);
-			iframe.contentDocument.body.classList.add('footnote-popup-content');
+			iframe.contentDocument.body.classList.add("footnote-popup-content");
 			iframe.contentDocument.adoptedStyleSheets.push(contentStyleSheet);
 
-			iframe.style.height = '0';
-			iframe.style.height = iframe.contentWindow.document.documentElement.scrollHeight + 'px';
+			iframe.style.height = "0";
+			iframe.style.height = iframe.contentWindow.document.documentElement.scrollHeight + "px";
 
 			let resizeObserver = new ResizeObserver(() => {
 				if (!iframe.contentWindow) {
 					resizeObserver.disconnect();
 					return;
 				}
-				iframe.style.height = '0';
-				iframe.style.height = iframe.contentWindow.document.documentElement.scrollHeight + 'px';
+				iframe.style.height = "0";
+				iframe.style.height = iframe.contentWindow.document.documentElement.scrollHeight + "px";
 			});
 			resizeObserver.observe(iframe.contentDocument.body);
 		}
@@ -37,17 +38,12 @@ function LinkPopup(props) {
 
 	return (
 		<ViewPopup
-			className={cx('footnote-popup', { loading })}
+			className={cx("footnote-popup", { loading })}
 			rect={props.params.rect}
 			uniqueRef={loading ? {} : props.params.ref}
 			padding={loading ? 0 : 10}
 		>
-			<iframe
-				ref={iframeRef}
-				sandbox="allow-same-origin"
-				srcDoc={props.params.content}
-				onLoad={handleLoad}
-			/>
+			<iframe ref={iframeRef} sandbox="allow-same-origin" srcDoc={props.params.content} onLoad={handleLoad} />
 		</ViewPopup>
 	);
 }

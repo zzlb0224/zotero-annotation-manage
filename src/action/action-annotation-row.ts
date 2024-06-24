@@ -1,3 +1,5 @@
+//@ts-nocheck
+
 // author geo123abc
 
 //chrome/skin/default/zotero/itempane/20/attachment-annotations.svg

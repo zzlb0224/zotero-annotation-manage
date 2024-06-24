@@ -30,6 +30,7 @@ import { ChangeColor } from "./ChangeColor";
 import { saveAnnotationTags } from "../modules/AnnotationPopup";
 import { type } from "os";
 import { config } from "process";
+import TagPopup from './TagPopup';
 const ConfigTabArray = ["面板配置", "固定位置", "弹出框", "颜色栏", "标签样式", "标签设置", "待开发"] as const;
 export type ConfigTab = (typeof ConfigTabArray)[number];
 
@@ -372,6 +373,7 @@ export function PopupRoot({
     );
   }, [displayTags]);
   const popRef = useRef<HTMLDivElement>(null);
+  const divRef = useRef<HTMLDivElement>(null);
 
   function loadDefault(configType: ConfigType) {
     let config: Config;
@@ -550,7 +552,10 @@ export function PopupRoot({
         // popoverRect={popoverState.popoverRect}
         arrowColor={"#aaaaaa"}
         arrowSize={pArrowSize}
-        arrowStyle={{ opacity: 0.9 }}
+        arrowStyle={{
+          opacity: 0.9,
+          marginTop: "42px",
+        }}
       >
         <div
           ref={popMaxWidthRef}
@@ -1310,59 +1315,68 @@ export function PopupRoot({
       fontSize,
       lineHeight,
       buttonMarginTopBottom,
+      buttonMarginLeftRight,
       buttonPaddingTopBottom,
       buttonPaddingLeftRight,
       sortType,
       divMaxHeight,
+      buttonBorderRadius
     ],
   );
   return (
-    <Popover
-      parentElement={parentElement}
-      boundaryElement={boundaryElement}
-      isOpen={isPopoverOpen}
-      positions={pPositions as any}
-      reposition={true}
-      padding={pPadding}
-      ref={popRef}
-      boundaryInset={pBoundaryInset}
-      transformMode={pFixedContentLocation || params.ids ? "absolute" : "relative"}
-      // transform={
-      //   pFixedContentLocation || params.ids
-      //     ? { left: pFixedContentLocationLeft, top: pFixedContentLocationTop }
-      //     : (popoverState) => ({
-      //       top: -popoverState.nudgedTop,
-      //       left: -popoverState.nudgedLeft,
-      //     })
-      // }
+    <>
+      {/*  
+      {divRef.current && <TagPopup rect={divRef.current.getBoundingClientRect()}></TagPopup>} */}
+      <Popover
+        parentElement={parentElement}
+        boundaryElement={boundaryElement}
+        isOpen={isPopoverOpen}
+        positions={pPositions as any}
+        reposition={true}
+        padding={pPadding}
+        ref={popRef}
+        boundaryInset={pBoundaryInset}
+        transformMode={pFixedContentLocation || params.ids ? "absolute" : "relative"}
+        // transform={
+        //   pFixedContentLocation || params.ids
+        //     ? { left: pFixedContentLocationLeft, top: pFixedContentLocationTop }
+        //     : (popoverState) => ({
+        //       top: -popoverState.nudgedTop,
+        //       left: -popoverState.nudgedLeft,
+        //     })
+        // }
 
-      transform={
-        pFixedContentLocation || params.ids ? { left: pFixedContentLocationLeft ?? 0, top: pFixedContentLocationTop ?? 0 } : undefined
-      }
-      align="start"
-      // onClickOutside={() => setIsPopoverOpen(false)}
-      // ref={clickMeButtonRef} // if you'd like a ref to your popover's child, you can grab one here
-      content={handleContent}
-    >
-      <div
-        style={{
+        transform={
+          pFixedContentLocation || params.ids ? { left: pFixedContentLocationLeft ?? 0, top: pFixedContentLocationTop ?? 0 } : undefined
+        }
+        align="start"
+        // onClickOutside={() => setIsPopoverOpen(false)}
+        // ref={clickMeButtonRef} // if you'd like a ref to your popover's child, you can grab one here
+        content={handleContent}
+        containerStyle={{
           marginTop: "42px",
-          width: "100%",
-          // width: "600px",
-          position: "absolute",
-          height: (selectionPopupSize?.height || 120) + "px",
-          top: "0",
-          // background: "#f00", opacity: "0",
-          zIndex: "-1",
         }}
       >
-        {/* <button onClick={() => setIsPopoverOpen(!isPopoverOpen)}
+        <div
+          ref={divRef}
+          style={{
+            width: "100%",
+            // width: "600px",
+            position: "absolute",
+            height: (selectionPopupSize?.height || 120) + "px",
+            top: "0",
+            // background: "#f00", opacity: "0",
+            zIndex: "-1",
+          }}
+        >
+          {/* <button onClick={() => setIsPopoverOpen(!isPopoverOpen)}
               style={{ backgroundColor: color + " !important" }}>
               Click me! {JSON.stringify(popSize) + "1"} {JSON.stringify(selectionPopupSize) + "2"}
             </button>
             <span style={{ backgroundColor: color }}> {color}</span> */}
-        {/* {JSON.stringify(selectionPopupSize)} */}
-      </div>
-    </Popover>
+          {/* {JSON.stringify(selectionPopupSize)} */}
+        </div>
+      </Popover>
+    </>
   );
 }
