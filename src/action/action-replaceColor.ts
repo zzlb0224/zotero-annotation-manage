@@ -1,4 +1,4 @@
-//@ts-nocheck
+//@ts-nocheck  用于脚本测试
 export function init() {
   const replaceLabelMap = {
     "#ffd400": "Custom Yellow",

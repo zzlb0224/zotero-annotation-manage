@@ -5,10 +5,9 @@ import { FormattedMessage } from "react-intl";
 import ViewPopup from "./common/view-popup";
 import { PopupPreview } from "../common/preview";
 
-
 function AnnotationPopup(props) {
   let { annotation } = props;
-  const popupAnnotation = annotation
+  const popupAnnotation = annotation;
   return (
     <ViewPopup className="annotation-popup" rect={props.params.rect} uniqueRef={props.params.annotation.id} padding={20}>
       <PopupPreview

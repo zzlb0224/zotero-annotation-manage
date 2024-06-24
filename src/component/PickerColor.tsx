@@ -20,6 +20,7 @@ export function PickerColor({
 }) {
   const [isPopoverOpen, setIsPopoverOpen] = useState(true);
   const [color, setColor] = useState(defaultColor);
+
   return (
     <div>
       <div>{new Date().toLocaleTimeString()}</div>

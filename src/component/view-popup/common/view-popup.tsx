@@ -1,15 +1,15 @@
-//@ts-nocheck nocheck
+//@ts-nocheck no check
 import React, { useState, useEffect, useLayoutEffect, useRef } from "react";
 import ReactDOM from "react-dom";
 import cx from "classnames";
 
 // TODO: Resizing window doesn't properly reposition annotation popup on x axis, in EPUB view
 /**
- * 
- * @param {{ id:number, rect:number[], className:string, uniqueRef:object, padding:number, children:[], onRender:()=>void }} param0 
- * @returns 
+ *
+ * @param {{ id:number, rect:number[], className:string, uniqueRef:object, padding:number, children:[], onRender:()=>void }} param0
+ * @returns
  */
-function ViewPopup(props: { id?, rect, className, uniqueRef, padding, children, onRender?}) {
+function ViewPopup(props: { id?; rect; className; uniqueRef; padding; children; onRender? }) {
   const [popupPosition, setPopupPosition] = useState(null);
   const containerRef = useRef();
   const xrect = useRef();
@@ -20,8 +20,8 @@ function ViewPopup(props: { id?, rect, className, uniqueRef, padding, children, 
   // Update the popup position when the `rect` changes
   useEffect(() => {
     if (xrect.current) {
-      let dx = rect[0] - xrect.current[0];
-      let dy = rect[1] - xrect.current[1];
+      const dx = rect[0] - xrect.current[0];
+      const dy = rect[1] - xrect.current[1];
       xrect.current = rect;
 
       pos.current.left += dx;
@@ -35,7 +35,7 @@ function ViewPopup(props: { id?, rect, className, uniqueRef, padding, children, 
 
   useLayoutEffect(() => {
     if (initialized.current) {
-      onRender && onRender();
+      if (onRender) onRender();
     }
   }, [popupPosition]);
 
@@ -50,14 +50,14 @@ function ViewPopup(props: { id?, rect, className, uniqueRef, padding, children, 
       return;
     }
 
-    let width = containerRef.current.offsetWidth;
-    let height = containerRef.current.offsetHeight;
+    const width = containerRef.current.offsetWidth;
+    const height = containerRef.current.offsetHeight;
 
-    let parent = containerRef.current.parentNode;
+    const parent = containerRef.current.parentNode;
     let viewRect = parent.getBoundingClientRect();
     viewRect = [0, 0, viewRect.width, viewRect.height];
 
-    let annotationCenterLeft = rect[0] + (rect[2] - rect[0]) / 2;
+    const annotationCenterLeft = rect[0] + (rect[2] - rect[0]) / 2;
     let left = annotationCenterLeft - width / 2;
 
     let side;
@@ -124,7 +124,7 @@ function ViewPopup(props: { id?, rect, className, uniqueRef, padding, children, 
     initialized.current = true;
   }
 
-  let pointerClass = {};
+  const pointerClass = {};
   if (pos.current) {
     pointerClass["page-popup-" + pos.current.side + "-center"] = true;
   }

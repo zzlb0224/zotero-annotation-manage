@@ -1,4 +1,4 @@
-//@ts-nocheck
+//@ts-nocheck  用于脚本测试
 export async function searchWords(item?: Zotero.Item, items?: Zotero.Item[]) {
   if (!item) return;
   let currentPage: HTMLDivElement;

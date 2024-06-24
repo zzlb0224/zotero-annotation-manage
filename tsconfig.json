@@ -2,12 +2,12 @@
   "compilerOptions": {
     "jsx": "react",
     "experimentalDecorators": true,
-    "allowSyntheticDefaultImports": true,
     "module": "commonjs",
     "target": "ES2018",
     "resolveJsonModule": true,
     "skipLibCheck": true,
-    "strict": true
+    "strict": true,
+    "allowSyntheticDefaultImports": true
   },
   "include": ["src", "typings", "node_modules/zotero-types"],
   "exclude": ["build", "addon"]

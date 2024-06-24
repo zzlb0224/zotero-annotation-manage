@@ -1,20 +1,14 @@
-import globals from "globals";
-import pluginJs from "@eslint/js";
+// @ts-check Let TS check this config file
+
+import eslint from "@eslint/js";
 import tseslint from "typescript-eslint";
-import pluginReactConfig from "eslint-plugin-react/configs/recommended.js";
-
-
-
-
 
 export default tseslint.config(
   {
     ignores: ["build/**", "dist/**", "node_modules/**", "scripts/"],
   },
-  { languageOptions: { parserOptions: { ecmaFeatures: { jsx: true } } } },
-  { languageOptions: { globals: globals.browser } },
   {
-    extends: [pluginReactConfig, pluginJs.configs.recommended, eslint.configs.recommended, ...tseslint.configs.recommended],
+    extends: [eslint.configs.recommended, ...tseslint.configs.recommended],
     rules: {
       "@typescript-eslint/ban-ts-comment": [
         "warn",

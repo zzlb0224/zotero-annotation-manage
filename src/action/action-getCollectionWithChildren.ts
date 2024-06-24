@@ -1,4 +1,4 @@
-//@ts-nocheck
+//@ts-nocheck 用于脚本测试
 import { groupBy, uniqueBy } from "../utils/zzlb";
 interface CollectionWithChildren {
   collectionID: number;

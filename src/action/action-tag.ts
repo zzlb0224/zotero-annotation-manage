@@ -1,4 +1,4 @@
-//@ts-nocheck
+//@ts-nocheck  用于脚本测试
 export async function addTagsFromTA(item?: Zotero.Item, items?: Zotero.Item[]) {
   if (!item) return;
   const getAllTags = async () => {

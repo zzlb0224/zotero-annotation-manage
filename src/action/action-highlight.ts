@@ -1,4 +1,4 @@
-//@ts-nocheck
+//@ts-nocheck 用于脚本测试
 
 export function init() {
   // 脚本在主界面、单独reader windows窗口（shift + enter在一个独立窗口中打开PDF）都有效，在PDF、epub、html文件中都有效
@@ -218,6 +218,5 @@ export function init() {
 
   Zotero.Reader.unregisterEventListener(type, handler);
   Zotero.Reader.registerEventListener(type, handler, pluginID);
-
   //"重新加载" + new Date().toLocaleTimeString();
 }

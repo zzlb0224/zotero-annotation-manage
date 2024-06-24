@@ -30,7 +30,7 @@ import { ChangeColor } from "./ChangeColor";
 import { saveAnnotationTags } from "../modules/AnnotationPopup";
 import { type } from "os";
 import { config } from "process";
-import TagPopup from './TagPopup';
+import TagPopup from "./TagPopup";
 const ConfigTabArray = ["面板配置", "固定位置", "弹出框", "颜色栏", "标签样式", "标签设置", "待开发"] as const;
 export type ConfigTab = (typeof ConfigTabArray)[number];
 
@@ -1320,7 +1320,7 @@ export function PopupRoot({
       buttonPaddingLeftRight,
       sortType,
       divMaxHeight,
-      buttonBorderRadius
+      buttonBorderRadius,
     ],
   );
   return (
