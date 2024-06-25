@@ -29,6 +29,7 @@ import * as React from "react";
 import { usePopover } from "react-tiny-popover";
 import { HexColorPicker } from "react-colorful";
 import { PopupRoot } from "../component/PopupRoot";
+import TagPopup from '../component/TagPopup';
 
 export class AnnotationPopup {
   reader?: _ZoteroTypes.ReaderInstance;
@@ -205,6 +206,7 @@ export class AnnotationPopup {
     setTimeout(() => {
       createRoot(rr).render(
         <>
+          {/* <TagPopup></TagPopup> */}
           <PopupRoot reader={this.reader!} doc={this.doc!} params={this.params!} root={root} maxWidth={this.getSelectTextMaxWidth()} />
         </>,
       );

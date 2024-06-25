@@ -1,35 +1,38 @@
-//@ts-nocheck no check
+//@ts-nocheck nocheck
+//zotero官方的建议popup看起来还挺好用。不过还缺少一点相应的功能
+//TODO 增加parentElement
+//TODO 增加boundaryElement
+//TODO 增加rect边界检测。如果rect越界了，就应该把popup隐藏起来
 import React, { useState, useEffect, useLayoutEffect, useRef } from "react";
 import ReactDOM from "react-dom";
 import cx from "classnames";
 
 // TODO: Resizing window doesn't properly reposition annotation popup on x axis, in EPUB view
-/**
- *
- * @param {{ id:number, rect:number[], className:string, uniqueRef:object, padding:number, children:[], onRender:()=>void }} param0
- * @returns
- */
-function ViewPopup(props: { id?; rect; className; uniqueRef; padding; children; onRender? }) {
-  const [popupPosition, setPopupPosition] = useState(null);
-  const containerRef = useRef();
-  const xrect = useRef();
+function ViewPopup({ id, rect, className, uniqueRef, padding, children = [], onRender = undefined }: { id: string | undefined, rect: number[], className: string, uniqueRef: object, padding: number, children: React.JSX.Element[], onRender: (() => void) | undefined } = { id: "", rect, className, uniqueRef, padding, children: [], onRender: undefined }) {
+  const [popupPosition, setPopupPosition] = useState<object | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const xRect = useRef<number[] | null>(null); //当前指示区域
 
   const initialized = useRef(false);
-  const pos = useRef(null);
+  const pos = useRef<{ top: number, left: number, side: string } | null>(null);
+  useEffect(() => {
+    ztoolkit.log("rect", rect);
+  }, [])
 
   // Update the popup position when the `rect` changes
   useEffect(() => {
-    if (xrect.current) {
-      const dx = rect[0] - xrect.current[0];
-      const dy = rect[1] - xrect.current[1];
-      xrect.current = rect;
-
-      pos.current.left += dx;
-      pos.current.top += dy;
+    if (xRect.current) {
+      const dx = rect[0] - xRect.current[0];
+      const dy = rect[1] - xRect.current[1];
+      xRect.current = rect;
+      if (pos.current) {
+        pos.current.left += dx;
+        pos.current.top += dy;
+      }
 
       setPopupPosition({}); // Trigger re-render
     } else {
-      xrect.current = rect;
+      xRect.current = rect;
     }
   }, [rect]);
 
@@ -53,9 +56,12 @@ function ViewPopup(props: { id?; rect; className; uniqueRef; padding; children; 
     const width = containerRef.current.offsetWidth;
     const height = containerRef.current.offsetHeight;
 
-    const parent = containerRef.current.parentNode;
-    let viewRect = parent.getBoundingClientRect();
-    viewRect = [0, 0, viewRect.width, viewRect.height];
+    const parent = containerRef.current.parentNode as HTMLElement;
+
+    const viewRect0 = parent.getBoundingClientRect();
+    const viewRect = [0, 0, viewRect0.width, viewRect0.height];
+    //这里替换为boundaryElement
+
 
     const annotationCenterLeft = rect[0] + (rect[2] - rect[0]) / 2;
     let left = annotationCenterLeft - width / 2;
@@ -117,17 +123,18 @@ function ViewPopup(props: { id?; rect; className; uniqueRef; padding; children; 
       }
     }
 
-    xrect.current = rect;
+    xRect.current = rect;
     pos.current = { top, left, side };
 
     setPopupPosition({}); // Trigger re-render
     initialized.current = true;
   }
 
-  const pointerClass = {};
+  const pointerClass = {} as { [key: string]: boolean };
   if (pos.current) {
     pointerClass["page-popup-" + pos.current.side + "-center"] = true;
   }
+
 
   return (
     <div

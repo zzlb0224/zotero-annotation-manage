@@ -60,6 +60,7 @@ export function PopupRoot({
 }) {
   const item = reader._item;
   const _annotationManager = reader._annotationManager;
+  ztoolkit.log("params", params)
   const [isShowConfig, setShowConfig] = useState(getPrefAs("show-config", false));
   const [configTab, setConfigTab] = useState<ConfigTab>(getPrefAs("configTab", "面板配置"));
   const [isShowSelectedPopupColorsTag, setShowSelectedPopupColorsTag] = useState(getPrefAs("show-selected-popup-colors-tag", false));
@@ -1323,10 +1324,13 @@ export function PopupRoot({
       buttonBorderRadius,
     ],
   );
+  const dRef = useRef<HTMLDivElement>(null)
   return (
     <>
-      {/*  
-      {divRef.current && <TagPopup rect={divRef.current.getBoundingClientRect()}></TagPopup>} */}
+      {/* <div ref={dRef}></div>
+      {popRef.current?.getBoundingClientRect().top || "空"}
+      {dRef.current?.getBoundingClientRect().top || "空"}
+      {dRef.current?.getBoundingClientRect() && <TagPopup rect={dRef.current.getBoundingClientRect()}></TagPopup>} */}
       <Popover
         parentElement={parentElement}
         boundaryElement={boundaryElement}
