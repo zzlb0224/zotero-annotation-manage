@@ -20,6 +20,7 @@ import {
   memFixedTagFromColor,
   memFixedTags,
   memRelateTags,
+  openAnnotation,
   str2RegExps,
   uniqueBy,
 } from "../utils/zzlb";
@@ -1146,6 +1147,8 @@ export async function saveAnnotationTags(
         const newAnn = reader?._annotationManager.addAnnotation(Components.utils.cloneInto({ ...params?.annotation, color, tags }, doc));
         //@ts-ignore 隐藏弹出框
         reader?._primaryView._onSetSelectionPopup(null);
+        // openAnnotation(item, newAnn?.pageLabel || "", newAnn?.id || "")
+
       }
       memAllTagsDB.remove();
       memRelateTags.remove();
