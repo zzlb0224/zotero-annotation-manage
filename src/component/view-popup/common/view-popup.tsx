@@ -8,7 +8,7 @@ import ReactDOM from "react-dom";
 import cx from "classnames";
 
 // TODO: Resizing window doesn't properly reposition annotation popup on x axis, in EPUB view
-function ViewPopup({ id, rect, className, uniqueRef, padding, children = [], onRender = undefined }: { id: string | undefined, rect: number[], className: string, uniqueRef: object, padding: number, children: React.JSX.Element[], onRender: (() => void) | undefined } = { id: "", rect, className, uniqueRef, padding, children: [], onRender: undefined }) {
+function ViewPopup({ id = "", rect, className = "", uniqueRef, padding = 0, children = [], onRender = undefined }: { id?: string, rect: number[], className?: string, uniqueRef: object, padding: number, children: React.JSX.Element[], onRender?: (() => void) }) {
   const [popupPosition, setPopupPosition] = useState<object | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const xRect = useRef<number[] | null>(null); //当前指示区域

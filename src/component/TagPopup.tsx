@@ -26,7 +26,7 @@ function TagPopup(props: any) {
         setRect(boundingClientRect2Rect(div.getBoundingClientRect()));
       }} style={{ maxWidth: "200px", wordBreak: "break-all" }}>divRef{JSON.stringify(rect)}</div>
       {rect}
-      {rect && <ViewPopup className="tag-popup" rect={rect} uniqueRef={{}} padding={20} id={undefined} onRender={undefined} >
+      {rect && <ViewPopup className="tag-popup" rect={rect} uniqueRef={{}} padding={20}   >
         <IconColor16 color='red'></IconColor16>
         {IconColor16({ color: "red" })}
         <button className="toolbar-button wide-button" data-tabstop={true} onClick={handleAddToNote}>
