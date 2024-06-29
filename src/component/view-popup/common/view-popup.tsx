@@ -8,16 +8,32 @@ import ReactDOM from "react-dom";
 import cx from "classnames";
 
 // TODO: Resizing window doesn't properly reposition annotation popup on x axis, in EPUB view
-function ViewPopup({ id = "", rect, className = "", uniqueRef, padding = 0, children = [], onRender = undefined }: { id?: string, rect: number[], className?: string, uniqueRef: object, padding: number, children: React.JSX.Element[], onRender?: (() => void) }) {
+function ViewPopup({
+  id = "",
+  rect,
+  className = "",
+  uniqueRef,
+  padding = 0,
+  children = [],
+  onRender = undefined,
+}: {
+  id?: string;
+  rect: number[];
+  className?: string;
+  uniqueRef: object;
+  padding: number;
+  children: React.JSX.Element[];
+  onRender?: () => void;
+}) {
   const [popupPosition, setPopupPosition] = useState<object | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const xRect = useRef<number[] | null>(null); //当前指示区域
 
   const initialized = useRef(false);
-  const pos = useRef<{ top: number, left: number, side: string } | null>(null);
+  const pos = useRef<{ top: number; left: number; side: string } | null>(null);
   useEffect(() => {
     ztoolkit.log("rect", rect);
-  }, [])
+  }, []);
 
   // Update the popup position when the `rect` changes
   useEffect(() => {
@@ -61,7 +77,6 @@ function ViewPopup({ id = "", rect, className = "", uniqueRef, padding = 0, chil
     const viewRect0 = parent.getBoundingClientRect();
     const viewRect = [0, 0, viewRect0.width, viewRect0.height];
     //这里替换为boundaryElement
-
 
     const annotationCenterLeft = rect[0] + (rect[2] - rect[0]) / 2;
     let left = annotationCenterLeft - width / 2;
@@ -134,7 +149,6 @@ function ViewPopup({ id = "", rect, className = "", uniqueRef, padding = 0, chil
   if (pos.current) {
     pointerClass["page-popup-" + pos.current.side + "-center"] = true;
   }
-
 
   return (
     <div

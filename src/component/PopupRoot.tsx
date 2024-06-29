@@ -20,6 +20,7 @@ import {
   memFixedColor,
   memFixedTags,
   memRelateTags,
+  str2RegExps,
 } from "../utils/zzlb";
 import * as React from "react";
 import { useEffect, useRef, useState } from "react";
@@ -60,7 +61,7 @@ export function PopupRoot({
 }) {
   const item = reader._item;
   const _annotationManager = reader._annotationManager;
-  ztoolkit.log("params", params)
+  ztoolkit.log("params", params);
   const [isShowConfig, setShowConfig] = useState(getPrefAs("show-config", false));
   const [configTab, setConfigTab] = useState<ConfigTab>(getPrefAs("configTab", "面板配置"));
   const [isShowSelectedPopupColorsTag, setShowSelectedPopupColorsTag] = useState(getPrefAs("show-selected-popup-colors-tag", false));
@@ -121,6 +122,12 @@ export function PopupRoot({
         relateTags = groupBy(memRelateTags(item), (t10) => t10.tag);
       }
 
+      const tagsExclude = (getPref("tags-exclude") as string) || "";
+      if (tagsExclude) {
+        const rs = str2RegExps(tagsExclude);
+        if (rs.length > 0) relateTags = relateTags.filter((f) => !rs.some((s) => s.test(f.key)));
+      }
+
       // if (relateItemShowRelateTags)
       groupByResultIncludeFixedTags(relateTags);
       if (sortType == "最近使用") {
@@ -144,7 +151,16 @@ export function PopupRoot({
     }
     loadData();
   }, [relateItemShowAll, relateItemShowRelateTags, sortType]);
-
+  function excludeTags(
+    from: groupByResult<{
+      tag: string;
+      type: number;
+    }>[],
+  ) {
+    const tagsExclude = (getPref("tags-exclude") as string) || "";
+    const rs = str2RegExps(tagsExclude);
+    return from.filter((f) => !rs.some((s) => s.test(f.key)));
+  }
   useEffect(() => {
     async function search() {
       let searchResult = relateTags;
@@ -155,6 +171,7 @@ export function PopupRoot({
           setCurrentPosition("我的文库");
         } else {
           searchResult = searchIn.filter((f) => new RegExp(searchTag, "i").test(f.key));
+
           setCurrentPosition("搜索中");
         }
       } else {
@@ -328,6 +345,11 @@ export function PopupRoot({
     });
 
     return () => resizeObserver.disconnect();
+  }, []);
+
+  //加载默认值
+  useEffect(() => {
+    setPBoundaryInset(getPrefAs("pBoundaryInset", 40));
   }, []);
 
   const popMaxWidthRef = useRef<HTMLDivElement>(null);
@@ -1324,7 +1346,7 @@ export function PopupRoot({
       buttonBorderRadius,
     ],
   );
-  const dRef = useRef<HTMLDivElement>(null)
+  const dRef = useRef<HTMLDivElement>(null);
   return (
     <>
       {/* <div ref={dRef}></div>

@@ -30,7 +30,7 @@ import * as React from "react";
 import { usePopover } from "react-tiny-popover";
 import { HexColorPicker } from "react-colorful";
 import { PopupRoot } from "../component/PopupRoot";
-import TagPopup from '../component/TagPopup';
+import TagPopup from "../component/TagPopup";
 
 export class AnnotationPopup {
   reader?: _ZoteroTypes.ReaderInstance;
@@ -1148,7 +1148,6 @@ export async function saveAnnotationTags(
         //@ts-ignore 隐藏弹出框
         reader?._primaryView._onSetSelectionPopup(null);
         // openAnnotation(item, newAnn?.pageLabel || "", newAnn?.id || "")
-
       }
       memAllTagsDB.remove();
       memRelateTags.remove();
