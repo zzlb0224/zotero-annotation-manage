@@ -42,7 +42,7 @@
     "zotero-plugin-toolkit": "^2.3.36"
   },
   "devDependencies": {
-    "@eslint/js": "^9.5.0",
+    "@eslint/js": "^9.6.0",
     "@types/node": "^20.14.1",
     "eslint": "^8.57.0",
     "eslint-plugin-react": "^7.34.3",
