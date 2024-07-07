@@ -32,13 +32,12 @@ import { saveAnnotationTags } from "../modules/AnnotationPopup";
 import { type } from "os";
 import { config } from "process";
 import TagPopup from "./TagPopup";
+import { Config, ConfigTypeArray, loadDefaultConfig } from "./Config";
 const ConfigTabArray = ["面板配置", "固定位置", "弹出框", "颜色栏", "标签样式", "标签设置", "待开发"] as const;
 export type ConfigTab = (typeof ConfigTabArray)[number];
 
 const SortTypeArray = ["最近使用", "本条目+最近使用", "使用次数", "字母顺序"] as const;
 export type SortType = (typeof SortTypeArray)[number];
-const ConfigTypeArray = ["草绿", "菊黄", "虾红", "跟随"] as const;
-export type ConfigType = (typeof ConfigTypeArray)[number];
 
 export function PopupRoot({
   reader,
@@ -186,8 +185,8 @@ export function PopupRoot({
       //触发 useLayoutEffect()
       ztoolkit.log(
         "getBoundingClientRect2",
-        popRef.current?.getBoundingClientRect(),
-        popMaxWidthRef.current?.getBoundingClientRect(),
+        refPopover.current?.getBoundingClientRect(),
+        refContentDiv.current?.getBoundingClientRect(),
         boundaryElement.getBoundingClientRect(),
       );
     }
@@ -272,20 +271,13 @@ export function PopupRoot({
     ztoolkit.log("scroll ???", q);
   }, []);
 
-  function setPPading2() {
-    setPPadding((pPadding) => pPadding - 0.0001);
-    setTimeout(() => {
-      setPPadding((pPadding) => pPadding + 0.0001);
-    }, 100);
-    // setPPadding((pPadding) => pPadding == Math.round(pPadding) ? pPadding + 0.0001 : Math.round(pPadding));
-  }
   // const react_popover_root = tabDiv.querySelector(".react_popover_root") as HTMLDivElement || ztoolkit.UI.appendElement({
   //   tag: "div",
   //   styles: { width: "calc(100% - 80px)", height: "calc(100% - 100px)", position: "fixed", left: "40px", top: "80px", zIndex: "0", background: "transparent", border: "1px solid black" },
   //   classList: ["react_popover_root"],
   // }, tabDiv)
-  //@ts-ignore aaaa
-  const a = (tabDiv.querySelector(".reader") as HTMLIFrameElement).contentDocument.querySelector(
+
+  const a = (tabDiv.querySelector(".reader") as HTMLIFrameElement)?.contentDocument?.querySelector(
     "#split-view #primary-view",
   ) as HTMLDivElement;
 
@@ -293,12 +285,12 @@ export function PopupRoot({
   const boundaryElement = tabDiv;
   if (isDebug()) boundaryElement.style.border = "1px solid red";
   // const c = ztoolkit.UI.appendElement({ tag: "div" }, root) as HTMLDivElement
+  //如果没有触发关闭的话，需要通过监控selection-popup的removed事件
   useEffect(() => {
     if (params.ids) return;
     const MutationObserver = ztoolkit.getGlobal("MutationObserver");
     const observer = new MutationObserver((mutations: any) => {
       for (const mutation of mutations) {
-        // ztoolkit.log("fffff", mutation);
         for (const rn of mutation.removedNodes) {
           if ((rn as HTMLDivElement).classList.contains("selection-popup")) {
             setIsPopoverOpen(false);
@@ -307,7 +299,6 @@ export function PopupRoot({
       }
     });
     observer.observe(sp, { childList: true, subtree: true });
-    // ztoolkit.log("fffff sp", sp)
     return () => {
       observer.disconnect();
     };
@@ -321,11 +312,11 @@ export function PopupRoot({
   const [bAutoFocus, setBAutoFocus] = useState(getPrefAs("bAutoFocus", false));
   const [pFixedContentLocationLeft, setPFixedContentLocationLeft] = useState(getPrefAs("pFixedContentLocationLeft", 0));
   const [pFixedContentLocationTop, setPFixedContentLocationTop] = useState(getPrefAs("pFixedContentLocationTop", 0));
-  const [isShowBgColor, setIsShowBgColor] = useState(false);
+
   const selectionPopup = (tabDiv.querySelector("browser") as HTMLIFrameElement).contentDocument?.querySelector(
     "#reader-ui .selection-popup",
   ) as HTMLDivElement;
-  const selectionPopupRef = useRef(selectionPopup);
+
   // const popSize = useSize(selectionPopup)
   const [selectionPopupSize, setSelectionPopupSize] = useState({
     width: 0,
@@ -354,9 +345,9 @@ export function PopupRoot({
     setPBoundaryInset(getPrefAs("pBoundaryInset", 40));
   }, []);
 
-  const popMaxWidthRef = useRef<HTMLDivElement>(null);
+  const refContentDiv = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const c = popMaxWidthRef.current;
+    const c = refContentDiv.current;
     if (!c) return;
     // c.style.maxWidth = "unset"
     // c.style.width = "600px";
@@ -392,155 +383,13 @@ export function PopupRoot({
     // setPBoundaryInset((pBoundaryInset) => pBoundaryInset);
     ztoolkit.log(
       "getBoundingClientRect",
-      popRef.current?.getBoundingClientRect(),
-      popMaxWidthRef.current?.getBoundingClientRect(),
+      refPopover.current?.getBoundingClientRect(),
+      refContentDiv.current?.getBoundingClientRect(),
       boundaryElement.getBoundingClientRect(),
     );
   }, [displayTags]);
-  const popRef = useRef<HTMLDivElement>(null);
-  const divRef = useRef<HTMLDivElement>(null);
-
-  function loadDefault(configType: ConfigType) {
-    let config: Config;
-    if (configType == "草绿") {
-      return (config = {
-        pSingleWindow: true,
-        bAutoFocus: true,
-        configName: configType,
-        bgColor: "#5ad354",
-        divMaxWidth: 550,
-        autoCloseSeconds: 15,
-        pFixedContentLocation: false,
-        pFixedContentLocationLeft: 100,
-        pFixedContentLocationTop: 100,
-        pPadding: 5,
-        pBoundaryInset: 40,
-        pArrowSize: 4,
-        pPositions: "left,right,top,bottom",
-        isShowSelectedPopupColorsTag: false,
-        isShowSelectedPopupMatchTag: true,
-        showTagsLength: 25,
-        fontSize: 18,
-        lineHeight: "0.8",
-        buttonMarginTopBottom: 4,
-        buttonMarginLeftRight: 2,
-        buttonPaddingTopBottom: 3,
-        buttonPaddingLeftRight: 3,
-        buttonBorderRadius: 5,
-        sortType: "最近使用",
-      });
-    }
-    if (configType == "菊黄") {
-      return (config = {
-        pSingleWindow: true,
-        bAutoFocus: true,
-        configName: configType,
-        bgColor: "#cfb50a",
-        divMaxWidth: 600,
-        autoCloseSeconds: 16,
-        pFixedContentLocation: false,
-        pFixedContentLocationLeft: 150,
-        pFixedContentLocationTop: 150,
-        pPadding: 5,
-        pBoundaryInset: 40,
-        pArrowSize: 4,
-        pPositions: "left,right,top,bottom",
-        isShowSelectedPopupColorsTag: false,
-        isShowSelectedPopupMatchTag: true,
-        showTagsLength: 25,
-        fontSize: 18,
-        lineHeight: "0.8",
-        buttonMarginTopBottom: 4,
-        buttonMarginLeftRight: 2,
-        buttonPaddingTopBottom: 3,
-        buttonPaddingLeftRight: 3,
-        buttonBorderRadius: 5,
-        sortType: "最近使用",
-      });
-    }
-    if (configType == "虾红") {
-      return (config = {
-        pSingleWindow: true,
-        bAutoFocus: true,
-        configName: configType,
-        bgColor: "#c66087",
-        divMaxWidth: 450,
-        autoCloseSeconds: 17,
-        pFixedContentLocation: false,
-        pFixedContentLocationLeft: 150,
-        pFixedContentLocationTop: 150,
-        pPadding: 5,
-        pBoundaryInset: 40,
-        pArrowSize: 4,
-        pPositions: "left,right,bottom,top",
-        isShowSelectedPopupColorsTag: false,
-        isShowSelectedPopupMatchTag: true,
-        showTagsLength: 10,
-        fontSize: 18,
-        lineHeight: "0.8",
-        buttonMarginTopBottom: 4,
-        buttonMarginLeftRight: 2,
-        buttonPaddingTopBottom: 3,
-        buttonPaddingLeftRight: 3,
-        buttonBorderRadius: 10,
-        sortType: "最近使用",
-      });
-    }
-    if (configType == "跟随") {
-      return (config = {
-        pSingleWindow: false,
-        bAutoFocus: true,
-        configName: configType,
-        bgColor: "#fff",
-        divMaxWidth: 290,
-        autoCloseSeconds: 17,
-        pFixedContentLocation: false,
-        pFixedContentLocationLeft: 150,
-        pFixedContentLocationTop: 150,
-        pPadding: 5,
-        pBoundaryInset: 40,
-        pArrowSize: 4,
-        pPositions: "left,right,bottom,top",
-        isShowSelectedPopupColorsTag: false,
-        isShowSelectedPopupMatchTag: true,
-        showTagsLength: 10,
-        fontSize: 18,
-        lineHeight: "0.8",
-        buttonMarginTopBottom: 0.5,
-        buttonMarginLeftRight: 0,
-        buttonPaddingTopBottom: 5,
-        buttonPaddingLeftRight: 0.5,
-        buttonBorderRadius: 10,
-        sortType: "最近使用",
-      });
-    }
-  }
-  interface Config {
-    configName: string;
-    bgColor: string;
-    bAutoFocus: boolean;
-    divMaxWidth: number;
-    autoCloseSeconds: number;
-    pSingleWindow: boolean;
-    pFixedContentLocation: boolean;
-    pFixedContentLocationLeft: number;
-    pFixedContentLocationTop: number;
-    pPadding: number;
-    pBoundaryInset: number;
-    pArrowSize: number;
-    pPositions: string;
-    isShowSelectedPopupColorsTag: boolean;
-    isShowSelectedPopupMatchTag: boolean;
-    showTagsLength: number;
-    fontSize: number;
-    lineHeight: string;
-    buttonMarginTopBottom: number;
-    buttonMarginLeftRight: number;
-    buttonPaddingTopBottom: number;
-    buttonPaddingLeftRight: number;
-    buttonBorderRadius: number;
-    sortType: SortType;
-  }
+  const refPopover = useRef<HTMLDivElement>(null);
+  const refPopoverDiv = useRef<HTMLDivElement>(null);
   const [configName, setConfigName] = useState(getPref("configName"));
   function selectConfig(config: Config) {
     setShowConfig(false);
@@ -609,7 +458,7 @@ export function PopupRoot({
   const handleContentDiv = React.useCallback(
     () => (
       <div
-        ref={popMaxWidthRef}
+        ref={refContentDiv}
         style={{
           maxWidth: divMaxWidth + "px",
           maxHeight: divMaxHeight + "px",
@@ -682,7 +531,9 @@ export function PopupRoot({
                       <span
                         style={{
                           background: bgColor,
-                          minWidth: "30px",
+                          minWidth: fontSize + "px",
+                          minHeight: fontSize + "px",
+                          border: "1px solid #000",
                           display: "inline-block",
                         }}
                       ></span>
@@ -767,7 +618,7 @@ export function PopupRoot({
                   {/* <span>当前配置：{configName}</span> */}
 
                   <span style={configItemStyle}>
-                    {ConfigTypeArray.map((a) => loadDefault(a)).map(
+                    {ConfigTypeArray.map((a) => loadDefaultConfig(a)).map(
                       (config) =>
                         config && (
                           <span
@@ -1257,19 +1108,20 @@ export function PopupRoot({
                   }
                   if (bAutoFocus) {
                     //自动获得焦点的时候使用ctrl+C复制选中文本
-                    const text = params.annotation?.text
-                    // ztoolkit.log("复制", e, text)
-                    if (e.ctrlKey && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'c') {
-                      if (e.currentTarget.value == '' && text) {
-                        e.preventDefault()
-                        const cb = new ztoolkit.Clipboard()
-                        cb.addText(text)
-                        cb.copy()
-                        return
+                    const text = params.annotation?.text;
+                    if (e.ctrlKey && !e.altKey && !e.shiftKey && e.key.toLowerCase() === "c") {
+                      if (e.currentTarget.value == "" && text) {
+                        ztoolkit.log("复制", e, text);
+                        e.preventDefault();
+                        const cb = new ztoolkit.Clipboard();
+                        cb.addText(text);
+                        cb.copy();
+                        return;
                       }
                     }
                   }
                   if (e.code == "Enter") {
+                    ztoolkit.log("保存", e, params);
                     setIsPopoverOpen(false);
                     saveAnnotationTags(searchTag, [], [], reader, params, doc);
                     if (params.ids) {
@@ -1278,6 +1130,7 @@ export function PopupRoot({
                     return;
                   }
                   if (e.code == "Escape") {
+                    ztoolkit.log("关闭弹出框", e, params);
                     //@ts-ignore _onSetSelectionPopup
                     reader?._primaryView._onSetSelectionPopup(null);
                     root.remove();
@@ -1385,6 +1238,7 @@ export function PopupRoot({
       </div>
     ),
     [
+      bgColor,
       bAutoFocus,
       configName,
       pSingleWindow,
@@ -1430,6 +1284,7 @@ export function PopupRoot({
       </ArrowContainer> //ArrowContainer
     ),
     [
+      bgColor,
       bAutoFocus,
       configName,
       pSingleWindow,
@@ -1457,16 +1312,13 @@ export function PopupRoot({
       buttonBorderRadius,
     ],
   );
+  const clickMeButtonRef = React.useRef<HTMLElement | null>(null);
   {
     if (!pSingleWindow) {
       return <>{handleContentDiv()}</>;
     }
     return (
       <>
-        {/* <div ref={dRef}></div>
-      {popRef.current?.getBoundingClientRect().top || "空"}
-      {dRef.current?.getBoundingClientRect().top || "空"}
-      {dRef.current?.getBoundingClientRect() && <TagPopup rect={dRef.current.getBoundingClientRect()}></TagPopup>} */}
         <Popover
           parentElement={parentElement}
           boundaryElement={boundaryElement}
@@ -1474,7 +1326,7 @@ export function PopupRoot({
           positions={pPositions as any}
           reposition={true}
           padding={pPadding}
-          ref={popRef}
+          ref={refPopover}
           boundaryInset={pBoundaryInset}
           transformMode={pFixedContentLocation || params.ids ? "absolute" : "relative"}
           // transform={
@@ -1490,7 +1342,13 @@ export function PopupRoot({
             pFixedContentLocation || params.ids ? { left: pFixedContentLocationLeft ?? 0, top: pFixedContentLocationTop ?? 0 } : undefined
           }
           align="start"
-          // onClickOutside={() => setIsPopoverOpen(false)}
+          onClickOutside={(e) => {
+            ztoolkit.log("onClickOutside", e);
+            // setIsPopoverOpen(false)
+            if (!doc.querySelector(".view-popup.selection-popup")?.contains(e.target as HTMLElement)) {
+              setIsPopoverOpen(false);
+            }
+          }}
           // ref={clickMeButtonRef} // if you'd like a ref to your popover's child, you can grab one here
           content={handleContent}
           containerStyle={{
@@ -1498,12 +1356,12 @@ export function PopupRoot({
           }}
         >
           <div
-            ref={divRef}
+            ref={refPopoverDiv}
             style={{
               width: "100%",
               // width: "600px",
               position: "absolute",
-              height: (selectionPopupSize?.height || 120) + "px",
+              height: "1px", // (selectionPopupSize?.height || 120) + "px",
               top: "0",
               // background: "#f00", opacity: "0",
               zIndex: "-1",
