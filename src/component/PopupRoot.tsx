@@ -1255,6 +1255,20 @@ export function PopupRoot({
                   if (autoCloseSeconds > 0) {
                     setAutoCloseSeconds(-1);
                   }
+                  if (bAutoFocus) {
+                    //自动获得焦点的时候使用ctrl+C复制选中文本
+                    const text = params.annotation?.text
+                    // ztoolkit.log("复制", e, text)
+                    if (e.ctrlKey && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'c') {
+                      if (e.currentTarget.value == '' && text) {
+                        e.preventDefault()
+                        const cb = new ztoolkit.Clipboard()
+                        cb.addText(text)
+                        cb.copy()
+                        return
+                      }
+                    }
+                  }
                   if (e.code == "Enter") {
                     setIsPopoverOpen(false);
                     saveAnnotationTags(searchTag, [], [], reader, params, doc);
