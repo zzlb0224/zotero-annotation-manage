@@ -754,6 +754,7 @@ export function PopupRoot({
                     秒后自动关闭。
                   </span><span style={configItemStyle}>
                     <input
+                      type='checkbox'
                       defaultChecked={bAutoFocus}
                       onChange={(e) => {
                         setBAutoFocus(e.currentTarget.checked);
@@ -1369,6 +1370,7 @@ export function PopupRoot({
       </div>
     ),
     [
+      bAutoFocus,
       configName,
       pSingleWindow,
       isPopoverOpen,
@@ -1413,6 +1415,7 @@ export function PopupRoot({
       </ArrowContainer> //ArrowContainer
     ),
     [
+      bAutoFocus,
       configName,
       pSingleWindow,
       isPopoverOpen,
