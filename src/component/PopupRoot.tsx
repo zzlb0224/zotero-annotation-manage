@@ -318,6 +318,7 @@ export function PopupRoot({
   const [pPositions, updatePPositions] = useImmer(getPrefAs("pPositions", "bottom,left,top,right").split(",") as PopoverPosition[]);
   const [pFixedContentLocation, setPFixedContentLocation] = useState(getPrefAs("pFixedContentLocation", false));
   const [pSingleWindow, setPSingleWindow] = useState(getPrefAs("pSingleWindow", false));
+  const [bAutoFocus, setBAutoFocus] = useState(getPrefAs("bAutoFocus", false));
   const [pFixedContentLocationLeft, setPFixedContentLocationLeft] = useState(getPrefAs("pFixedContentLocationLeft", 0));
   const [pFixedContentLocationTop, setPFixedContentLocationTop] = useState(getPrefAs("pFixedContentLocationTop", 0));
   const [isShowBgColor, setIsShowBgColor] = useState(false);
@@ -404,6 +405,7 @@ export function PopupRoot({
     if (configType == "草绿") {
       return (config = {
         pSingleWindow: true,
+        bAutoFocus: true,
         configName: configType,
         bgColor: "#5ad354",
         divMaxWidth: 550,
@@ -431,6 +433,7 @@ export function PopupRoot({
     if (configType == "菊黄") {
       return (config = {
         pSingleWindow: true,
+        bAutoFocus: true,
         configName: configType,
         bgColor: "#cfb50a",
         divMaxWidth: 600,
@@ -458,6 +461,7 @@ export function PopupRoot({
     if (configType == "虾红") {
       return (config = {
         pSingleWindow: true,
+        bAutoFocus: true,
         configName: configType,
         bgColor: "#c66087",
         divMaxWidth: 450,
@@ -485,6 +489,7 @@ export function PopupRoot({
     if (configType == "跟随") {
       return (config = {
         pSingleWindow: false,
+        bAutoFocus: true,
         configName: configType,
         bgColor: "#fff",
         divMaxWidth: 290,
@@ -513,6 +518,7 @@ export function PopupRoot({
   interface Config {
     configName: string;
     bgColor: string;
+    bAutoFocus: boolean,
     divMaxWidth: number;
     autoCloseSeconds: number;
     pSingleWindow: boolean;
@@ -746,6 +752,15 @@ export function PopupRoot({
                       }}
                     />
                     秒后自动关闭。
+                  </span><span style={configItemStyle}>
+                    <input
+                      defaultChecked={bAutoFocus}
+                      onChange={(e) => {
+                        setBAutoFocus(e.currentTarget.checked);
+                        setPref("bAutoFocus", e.currentTarget.checked);
+                      }}
+                    />
+                    输入框自动获得焦点
                   </span>
                   {/* <span>当前配置：{configName}</span> */}
 
@@ -1228,7 +1243,7 @@ export function PopupRoot({
               )}
               <input
                 type="text"
-                autoFocus={true}
+                autoFocus={bAutoFocus}
                 defaultValue={searchTag}
                 onInput={(e) => setSearchTag(e.currentTarget.value)}
                 style={{ ...inputWidth(searchTag), minWidth: "18ch" }}
