@@ -518,7 +518,7 @@ export function PopupRoot({
   interface Config {
     configName: string;
     bgColor: string;
-    bAutoFocus: boolean,
+    bAutoFocus: boolean;
     divMaxWidth: number;
     autoCloseSeconds: number;
     pSingleWindow: boolean;
@@ -752,9 +752,10 @@ export function PopupRoot({
                       }}
                     />
                     秒后自动关闭。
-                  </span><span style={configItemStyle}>
+                  </span>
+                  <label style={configItemStyle}>
                     <input
-                      type='checkbox'
+                      type="checkbox"
                       defaultChecked={bAutoFocus}
                       onChange={(e) => {
                         setBAutoFocus(e.currentTarget.checked);
@@ -762,7 +763,7 @@ export function PopupRoot({
                       }}
                     />
                     输入框自动获得焦点
-                  </span>
+                  </label>
                   {/* <span>当前配置：{configName}</span> */}
 
                   <span style={configItemStyle}>
