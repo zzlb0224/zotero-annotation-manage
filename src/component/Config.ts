@@ -1,3 +1,9 @@
+export const ConfigTabArray = ["面板配置", "固定位置", "弹出框", "颜色栏", "标签样式", "标签设置", "待开发"] as const;
+export type ConfigTab = (typeof ConfigTabArray)[number];
+
+export const SortTypeArray = ["最近使用", "本条目+最近使用", "使用次数", "字母顺序"] as const;
+export type SortType = (typeof SortTypeArray)[number];
+
 export const ConfigTypeArray = ["草绿", "菊黄", "虾红", "跟随"] as const;
 export type ConfigType = (typeof ConfigTypeArray)[number];
 export function loadDefaultConfig(configType: ConfigType) {
@@ -75,7 +81,7 @@ export function loadDefaultConfig(configType: ConfigType) {
             pPositions: "left,right,bottom,top",
             isShowSelectedPopupColorsTag: false,
             isShowSelectedPopupMatchTag: true,
-            showTagsLength: 10,
+            showTagsLength: 20,
             fontSize: 18,
             lineHeight: "0.8",
             buttonMarginTopBottom: 4,

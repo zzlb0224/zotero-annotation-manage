@@ -32,12 +32,8 @@ import { saveAnnotationTags } from "../modules/AnnotationPopup";
 import { type } from "os";
 import { config } from "process";
 import TagPopup from "./TagPopup";
-import { Config, ConfigTypeArray, loadDefaultConfig } from "./Config";
-const ConfigTabArray = ["面板配置", "固定位置", "弹出框", "颜色栏", "标签样式", "标签设置", "待开发"] as const;
-export type ConfigTab = (typeof ConfigTabArray)[number];
+import { Config, ConfigTab, ConfigTabArray, ConfigTypeArray, SortType, SortTypeArray, loadDefaultConfig } from "./Config";
 
-const SortTypeArray = ["最近使用", "本条目+最近使用", "使用次数", "字母顺序"] as const;
-export type SortType = (typeof SortTypeArray)[number];
 
 export function PopupRoot({
   reader,
@@ -452,7 +448,6 @@ export function PopupRoot({
 
     setSortType(config.sortType);
     setPref("sortType", config.sortType);
-
     // setTimeout(() => setShowConfig(true));
   }
   const handleContentDiv = React.useCallback(
@@ -1136,6 +1131,7 @@ export function PopupRoot({
                     root.remove();
                     return;
                   }
+                  ztoolkit.log("按键记录", e)
                 }}
               />
               {/* <span style={tagStyle}>
