@@ -221,6 +221,7 @@ export function PopupRoot({
     borderRadius: buttonBorderRadius + "px",
     fontSize: fontSize + "px",
     lineHeight: lineHeight,
+    cursor: "default"
   };
   const configItemStyle = { display: "inline-block", margin: "0 5px" };
   function inputWidth(searchTag: string) {
@@ -287,7 +288,7 @@ export function PopupRoot({
     const observer = new MutationObserver((mutations: any) => {
       for (const mutation of mutations) {
         for (const rn of mutation.removedNodes) {
-          if ((rn as HTMLDivElement).classList.contains("selection-popup")) {
+          if ((rn as HTMLDivElement)?.classList?.contains("selection-popup")) {
             setIsPopoverOpen(false);
           }
         }
@@ -1075,7 +1076,7 @@ export function PopupRoot({
                     style={{
                       ...tagStyle,
                       background: delTags.length > 0 ? "#990000" : "#009900",
-                      color: "#fff",
+                      color: "#fff"
                     }}
                     onClick={() => {
                       setIsPopoverOpen(false);
@@ -1114,14 +1115,16 @@ export function PopupRoot({
                       }
                     }
                   }
-                  if (e.code == "Enter") {
-                    ztoolkit.log("保存", e, params);
-                    setIsPopoverOpen(false);
-                    saveAnnotationTags(searchTag, [], [], reader, params, doc);
-                    if (params.ids) {
-                      root.remove();
+                  if (e.key == "Enter") {
+                    if (searchTag) {
+                      ztoolkit.log("保存", searchTag, e, params);
+                      setIsPopoverOpen(false);
+                      saveAnnotationTags(searchTag, [], [], reader, params, doc);
+                      if (params.ids) {
+                        root.remove();
+                      }
+                      return;
                     }
-                    return;
                   }
                   if (e.code == "Escape") {
                     ztoolkit.log("关闭弹出框", e, params);

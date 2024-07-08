@@ -265,7 +265,7 @@ export class AnnotationPopup {
                 fixTagSpan = ztoolkit.UI.appendElement(
                   {
                     tag: "span",
-                    styles: { width: "unset", height: "unset" },
+                    styles: { width: "unset", height: "unset", cursor: "default" },
                     classList: ["toolbar-button", "match-tag"],
                     properties: { textContent: "" },
                     listeners: [
