@@ -34,7 +34,6 @@ import { config } from "process";
 import TagPopup from "./TagPopup";
 import { Config, ConfigTab, ConfigTabArray, ConfigTypeArray, SortType, SortTypeArray, loadDefaultConfig } from "./Config";
 
-
 export function PopupRoot({
   reader,
   params,
@@ -1131,7 +1130,7 @@ export function PopupRoot({
                     root.remove();
                     return;
                   }
-                  ztoolkit.log("按键记录", e)
+                  ztoolkit.log("按键记录", e);
                 }}
               />
               {/* <span style={tagStyle}>
