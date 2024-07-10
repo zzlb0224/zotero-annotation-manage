@@ -27,7 +27,7 @@ function unregister() {
 
 function renderTextSelectionPopup(event: _ZoteroTypes.Reader.EventParams<"renderTextSelectionPopup">) {
   const { append, reader, doc, params } = event;
-  const filename = "annotation.css"
+  const filename = "annotation.css";
   addCssFile(doc, filename, true);
   addCssFile(ZoteroPane.document, filename, true);
   addCssFile(reader?._window?.document, filename, true);

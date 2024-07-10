@@ -13,10 +13,6 @@ export default { register, unregister };
 function readerToolbarCallback(event: Parameters<_ZoteroTypes.Reader.EventHandler<"renderToolbar">>[0]) {
   const { append, doc, reader, params } = event;
 
-
-
-
-
   if (doc.getElementById(`${config.addonRef}-space-button`)) return;
   // setTimeout(() => {
   //   const tabDiv = Zotero_Tabs.deck.querySelector("#" + Zotero_Tabs.selectedID) as HTMLDivElement

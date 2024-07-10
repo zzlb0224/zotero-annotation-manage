@@ -23,12 +23,13 @@ export class Tab {
   constructor(url: string, title: string, onLoad?: (doc: Document) => void) {
     this.onLoad = onLoad;
     if (this.tab) {
-      const index = Zotero_Tabs._getTab(this.tab.id).tabIndex;
-      Zotero_Tabs._tabs[index]["title"] = "new Tab - " + title;
-
-      this.browser.loadURI(url, {
-        triggeringPrincipal: Services.scriptSecurityManager.getSystemPrincipal(),
-      });
+      const index = Zotero_Tabs._getTab(this.tab.id)?.tabIndex;
+      if (index) {
+        Zotero_Tabs._tabs[index]["title"] = "new Tab - " + title;
+        this.browser.loadURI(url, {
+          triggeringPrincipal: Services.scriptSecurityManager.getSystemPrincipal(),
+        });
+      }
     } else {
       this.tab = Zotero_Tabs.add({
         type: config.addonInstance,

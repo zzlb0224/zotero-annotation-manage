@@ -122,7 +122,6 @@ export class AnnotationPopup {
     //   win.document.head,
     // );
 
-
     // if (!this.doc.getElementById(`${config.addonRef}annotationCss`)) {
     //   const styles = ztoolkit.UI.createElement(this.doc, "link", {
 
@@ -136,27 +135,23 @@ export class AnnotationPopup {
     //   this.doc.documentElement.appendChild(styles);
     // }
 
-
-
     this.rootDiv = ztoolkit.UI.createElement(this.doc, "div", {
       namespace: "html",
       id: this.idRootDiv,
       // styles: this.getRootStyle(), //创建的时候就要固定大小
       // classList: ["width100", "minWidth100"],
       children: [
-
         {
           tag: "linkset",
           children: [
             {
               tag: "style",
               properties: {
-
                 type: "text/css",
                 innerHTML: `
-                  `
-              }
-            }
+                  `,
+              },
+            },
             // {
             //   namespace: "html",
             //   tag: "link",
@@ -176,8 +171,8 @@ export class AnnotationPopup {
             //     href: `chrome://${config.addonRef}/content/annotation.css`,
             //   },
             // },
-          ]
-        }
+          ],
+        },
       ],
       listeners: [
         {

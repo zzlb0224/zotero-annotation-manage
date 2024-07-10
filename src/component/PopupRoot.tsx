@@ -33,8 +33,8 @@ import { type } from "os";
 import { config } from "process";
 import TagPopup from "./TagPopup";
 import { Config, ConfigTab, ConfigTabArray, ConfigTypeArray, SortType, SortTypeArray, loadDefaultConfig } from "./Config";
-import "./tagStyle.css"
-import styles from "./tagStyle.css"
+import "./tagStyle.css";
+import styles from "./tagStyle.css";
 // console.log(styles.tagButton)
 
 export function PopupRoot({
@@ -56,7 +56,7 @@ export function PopupRoot({
   root: HTMLDivElement;
   maxWidth: number;
 }) {
-  ztoolkit.log("css测试", styles.tagButton)
+  ztoolkit.log("css测试", styles.tagButton);
   const item = reader._item;
   const _annotationManager = reader._annotationManager;
   ztoolkit.log("params", params);
@@ -227,8 +227,8 @@ export function PopupRoot({
     lineHeight: lineHeight,
     cursor: "default",
     ":hover": {
-      marginTop: "20px"
-    }
+      marginTop: "20px",
+    },
   };
   const configItemStyle = { display: "inline-block", margin: "0 5px" };
   function inputWidth(searchTag: string) {
@@ -1082,7 +1082,7 @@ export function PopupRoot({
                     style={{
                       ...tagStyle,
                       background: delTags.length > 0 ? "#990000" : "#009900",
-                      color: "#fff"
+                      color: "#fff",
                     }}
                     onClick={() => {
                       setIsPopoverOpen(false);
