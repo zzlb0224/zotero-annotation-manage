@@ -1,7 +1,7 @@
 import { config } from "../../package.json";
 import { getPref } from "../utils/prefs";
 import { sortValuesLength } from "../utils/sort";
-import { groupBy } from "../utils/zzlb";
+import { addCssFile, groupBy } from "../utils/zzlb";
 import { AnnotationPopup } from "./AnnotationPopup";
 // import { text2Ma } from "./readerTools";
 function register() {
@@ -27,6 +27,11 @@ function unregister() {
 
 function renderTextSelectionPopup(event: _ZoteroTypes.Reader.EventParams<"renderTextSelectionPopup">) {
   const { append, reader, doc, params } = event;
+  const filename = "annotation.css"
+  addCssFile(doc, filename, true);
+  addCssFile(ZoteroPane.document, filename, true);
+  addCssFile(reader?._window?.document, filename, true);
+
   if (getPref("hide-in-selection-popup")) {
     return;
   }

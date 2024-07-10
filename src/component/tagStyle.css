@@ -1,0 +1,8 @@
+.tagButton {
+    cursor: pointer;
+}
+
+.tagButton:hover {
+    background-color: #ccc;
+    box-shadow: 0px 0px 5px #fff;
+}

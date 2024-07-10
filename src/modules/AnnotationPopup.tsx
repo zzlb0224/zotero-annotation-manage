@@ -101,25 +101,83 @@ export class AnnotationPopup {
     //@ts-ignore 隐藏弹出框
     this.reader?._primaryView._onSetSelectionPopup(null);
   }
-  public createDiv() {
+  public async createDiv() {
     if (!this.doc) return;
     Zotero.test_doc = this.doc;
     Zotero.test_params = this.params;
     this.clearDiv();
     //
+
+    // ztoolkit.UI.appendElement(
+    //   {
+    //     tag: "style",
+    //     id: `${config.addonRef}annotationCss2`,
+    //     properties: {
+    //       innerHTML: await getFileContent(
+    //         rootURI + "chrome/content/styles/editor.css",
+    //       ),
+    //     },
+    //     ignoreIfExists: true,
+    //   },
+    //   win.document.head,
+    // );
+
+
+    // if (!this.doc.getElementById(`${config.addonRef}annotationCss`)) {
+    //   const styles = ztoolkit.UI.createElement(this.doc, "link", {
+
+    //     id: `${config.addonRef}annotationCss1`,
+    //     properties: {
+    //       type: "text/css",
+    //       rel: "stylesheet",
+    //       href: `chrome://${rootURI}chrome/content/annotation.css`,
+    //     },
+    //   });
+    //   this.doc.documentElement.appendChild(styles);
+    // }
+
+
+
     this.rootDiv = ztoolkit.UI.createElement(this.doc, "div", {
       namespace: "html",
       id: this.idRootDiv,
       // styles: this.getRootStyle(), //创建的时候就要固定大小
       // classList: ["width100", "minWidth100"],
       children: [
+
         {
-          tag: "link",
-          properties: {
-            rel: "stylesheet",
-            href: `resource://${config.addonRef}/content/annotation.css`,
-          },
-        },
+          tag: "linkset",
+          children: [
+            {
+              tag: "style",
+              properties: {
+
+                type: "text/css",
+                innerHTML: `
+                  `
+              }
+            }
+            // {
+            //   namespace: "html",
+            //   tag: "link",
+            //   properties: {
+            //     type: "text/css",
+            //     rel: "stylesheet",
+            //     href: `${rootURI}chrome/content/annotation.css`,
+            //     // href: `resource://${config.addonRef}/content/annotation.css`,
+            //   },
+            // },
+            // {
+            //   namespace: "html",
+            //   tag: "html:link",
+            //   properties: {
+            //     type: "text/css",
+            //     rel: "stylesheet",
+            //     href: `chrome://${config.addonRef}/content/annotation.css`,
+            //   },
+            // },
+          ]
+        }
       ],
       listeners: [
         {
@@ -1093,7 +1151,6 @@ export class AnnotationPopup {
     return pageLeft - this.getViewerPadding();
   }
 }
-
 export async function saveAnnotationTags(
   searchTag: string,
   selectedTags: { tag: string; color: string }[],

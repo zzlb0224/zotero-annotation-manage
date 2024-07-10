@@ -23,3 +23,13 @@
   /* Mozilla-based browsers will ignore this. */
   min-width: fill-available;
 }
+
+.tagButton {
+  cursor: pointer;
+}
+
+.tagButton:hover {
+  background-color: #ccc;
+  box-shadow: 0px 0px 8px #9e0909;
+  /* border: 2px solid green; */
+}

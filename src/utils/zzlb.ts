@@ -278,12 +278,12 @@ const memAllTagsInLibraryAsync = memoize(async () => {
     );
   const itemTags = getPref("item-tags")
     ? items.flatMap((f) =>
-        f.getTags().map((a) => ({
-          tag: a.tag,
-          type: a.type,
-          dateModified: f.dateModified,
-        })),
-      )
+      f.getTags().map((a) => ({
+        tag: a.tag,
+        type: a.type,
+        dateModified: f.dateModified,
+      })),
+    )
     : [];
   return groupBy([...tags, ...itemTags], (t14) => t14.tag);
 });
@@ -443,11 +443,11 @@ export async function injectCSS(doc: Document | HTMLDivElement, filename: string
       ignoreIfExists: true,
     },
     doc.querySelector("linkset") ||
-      doc.querySelector("head") ||
-      doc.querySelector("body") ||
-      doc.querySelector("div") ||
-      doc.children[0] ||
-      doc,
+    doc.querySelector("head") ||
+    doc.querySelector("body") ||
+    doc.querySelector("div") ||
+    doc.children[0] ||
+    doc,
   );
   // ztoolkit.log("加载css", d);
 }
@@ -829,4 +829,24 @@ export function getPublicationTags(topItem: Zotero.Item | undefined) {
       return e.outerHTML;
     })
     .join(space);
+}
+export function addCssFile(doc: Document | undefined = undefined, filename: string = "", replace = false) {
+  //文件要在这个文件夹里面annotation-manage\addon\chrome\content
+  if (!doc) return;
+  const id = `${config.addonRef}${filename}`.replace(/\./g, "_");
+  if (replace) {
+    doc.getElementById(id)?.remove();
+  }
+  if (!replace && doc.getElementById(id)) {
+    return;
+  }
+  const styles = ztoolkit.UI.createElement(doc, "link", {
+    properties: {
+      id,
+      type: "text/css",
+      rel: "stylesheet",
+      href: `chrome://${config.addonRef}/content/${filename}`,
+    },
+  });
+  doc.documentElement.appendChild(styles);
 }

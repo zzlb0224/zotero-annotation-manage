@@ -33,6 +33,9 @@ import { type } from "os";
 import { config } from "process";
 import TagPopup from "./TagPopup";
 import { Config, ConfigTab, ConfigTabArray, ConfigTypeArray, SortType, SortTypeArray, loadDefaultConfig } from "./Config";
+import "./tagStyle.css"
+import styles from "./tagStyle.css"
+// console.log(styles.tagButton)
 
 export function PopupRoot({
   reader,
@@ -53,6 +56,7 @@ export function PopupRoot({
   root: HTMLDivElement;
   maxWidth: number;
 }) {
+  ztoolkit.log("css测试", styles.tagButton)
   const item = reader._item;
   const _annotationManager = reader._annotationManager;
   ztoolkit.log("params", params);
@@ -221,7 +225,10 @@ export function PopupRoot({
     borderRadius: buttonBorderRadius + "px",
     fontSize: fontSize + "px",
     lineHeight: lineHeight,
-    cursor: "default"
+    cursor: "default",
+    ":hover": {
+      marginTop: "20px"
+    }
   };
   const configItemStyle = { display: "inline-block", margin: "0 5px" };
   function inputWidth(searchTag: string) {
@@ -308,11 +315,6 @@ export function PopupRoot({
   const [bAutoFocus, setBAutoFocus] = useState(getPrefAs("bAutoFocus", false));
   const [pFixedContentLocationLeft, setPFixedContentLocationLeft] = useState(getPrefAs("pFixedContentLocationLeft", 0));
   const [pFixedContentLocationTop, setPFixedContentLocationTop] = useState(getPrefAs("pFixedContentLocationTop", 0));
-
-  const selectionPopup = (tabDiv.querySelector("browser") as HTMLIFrameElement).contentDocument?.querySelector(
-    "#reader-ui .selection-popup",
-  ) as HTMLDivElement;
-
   // const popSize = useSize(selectionPopup)
   const [selectionPopupSize, setSelectionPopupSize] = useState({
     width: 0,
@@ -320,6 +322,10 @@ export function PopupRoot({
   });
   useEffect(() => {
     if (params.ids) return;
+    const selectionPopup = (tabDiv.querySelector("browser") as HTMLIFrameElement).contentDocument?.querySelector(
+      "#reader-ui .selection-popup",
+    ) as HTMLDivElement;
+    if (!selectionPopup) return;
     const ResizeObserver = ztoolkit.getGlobal("ResizeObserver");
     const resizeObserver = new ResizeObserver((_entries: any) => {
       setSelectionPopupSize({
@@ -1154,9 +1160,10 @@ export function PopupRoot({
                     whiteSpace: "nowrap",
                     wordWrap: "normal",
                     backgroundColor: tag.color,
-                    boxShadow: "#ccc 0px 0px 4px 3px",
+                    // boxShadow: "#ccc 0px 0px 4px 3px",
                     // borderRadius: "3px",
                   }}
+                  className="tagButton"
                   onClick={() => {
                     if (isShowConfig) return;
                     setIsPopoverOpen(false);

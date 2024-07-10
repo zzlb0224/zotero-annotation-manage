@@ -1,7 +1,7 @@
 import { config } from "../../package.json";
 import { refSearch, createItemByZotero, searchItem, ruleSearch, ruleTestSingle, showInLibrary } from "../utils/cite";
 import { getPrefAs, setPref } from "../utils/prefs";
-import { isDebug, openAnnotation } from "../utils/zzlb";
+import { addCssFile, isDebug, openAnnotation } from "../utils/zzlb";
 function register() {
   Zotero.Reader.registerEventListener("renderToolbar", readerToolbarCallback, config.addonID);
 }
@@ -12,6 +12,11 @@ export default { register, unregister };
 
 function readerToolbarCallback(event: Parameters<_ZoteroTypes.Reader.EventHandler<"renderToolbar">>[0]) {
   const { append, doc, reader, params } = event;
+
+
+
+
+
   if (doc.getElementById(`${config.addonRef}-space-button`)) return;
   // setTimeout(() => {
   //   const tabDiv = Zotero_Tabs.deck.querySelector("#" + Zotero_Tabs.selectedID) as HTMLDivElement
