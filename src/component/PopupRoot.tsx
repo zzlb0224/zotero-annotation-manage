@@ -347,9 +347,9 @@ export function PopupRoot({
   }, []);
 
   //加载默认值
-  useEffect(() => {
-    setPBoundaryInset(getPrefAs("pBoundaryInset", 40));
-  }, []);
+  // useEffect(() => {
+  //   setPBoundaryInset(getPrefAs("pBoundaryInset", 40));
+  // }, []);
 
   const refContentDiv = useRef<HTMLDivElement>(null);
   useEffect(() => {
