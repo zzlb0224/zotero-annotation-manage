@@ -335,8 +335,9 @@ export function PopupRoot({
       setSelectionPopupSize(size);
       ztoolkit.log("监听宽度的变化", selectionPopupSize, size);
     });
-    if (selectionPopup)
+    if (selectionPopup) {
       resizeObserver.observe(selectionPopup);
+    }
     setSelectionPopupSize({
       width: selectionPopup.clientWidth,
       height: selectionPopup.clientHeight,
