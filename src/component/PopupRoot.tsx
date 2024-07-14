@@ -331,9 +331,9 @@ export function PopupRoot({
       const size = {
         width: selectionPopup.clientWidth,
         height: selectionPopup.clientHeight,
-      }
+      };
       setSelectionPopupSize(size);
-      ztoolkit.log("监听宽度的变化", selectionPopupSize, size)
+      ztoolkit.log("监听宽度的变化", selectionPopupSize, size);
     });
     resizeObserver.observe(selectionPopup);
     setSelectionPopupSize({
@@ -1102,8 +1102,8 @@ export function PopupRoot({
                 // autoFocus={bAutoFocus}
                 defaultValue={searchTag}
                 onInput={(e) => {
-                  ztoolkit.log("onInput", e.currentTarget.value, e)
-                  setSearchTag(e.currentTarget.value)
+                  ztoolkit.log("onInput", e.currentTarget.value, e);
+                  setSearchTag(e.currentTarget.value);
                 }}
                 style={{ ...inputWidth(searchTag), minWidth: "18ch" }}
                 placeholder="搜索标签，按回车添加"
@@ -1325,9 +1325,7 @@ export function PopupRoot({
   const clickMeButtonRef = React.useRef<HTMLElement | null>(null);
   {
     if (!pSingleWindow) {
-      return <>
-        {handleContentDiv()}
-      </>;
+      return <>{handleContentDiv()}</>;
     }
     return (
       <>
