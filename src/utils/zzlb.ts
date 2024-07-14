@@ -278,12 +278,12 @@ const memAllTagsInLibraryAsync = memoize(async () => {
     );
   const itemTags = getPref("item-tags")
     ? items.flatMap((f) =>
-        f.getTags().map((a) => ({
-          tag: a.tag,
-          type: a.type,
-          dateModified: f.dateModified,
-        })),
-      )
+      f.getTags().map((a) => ({
+        tag: a.tag,
+        type: a.type,
+        dateModified: f.dateModified,
+      })),
+    )
     : [];
   return groupBy([...tags, ...itemTags], (t14) => t14.tag);
 });
@@ -409,6 +409,8 @@ export async function openAnnotation(itemOrKeyOrId: Zotero.Item | string | numbe
   }
 }
 
+export async function injectCSSToReader() { }
+
 export const memSVG = memoize(
   async (href) => await getFileContent(href),
   // .then(r=>r.replace(/xmlns="http:\/\/www.w3.org\/2000\/svg"/g,""))
@@ -443,11 +445,11 @@ export async function injectCSS(doc: Document | HTMLDivElement, filename: string
       ignoreIfExists: true,
     },
     doc.querySelector("linkset") ||
-      doc.querySelector("head") ||
-      doc.querySelector("body") ||
-      doc.querySelector("div") ||
-      doc.children[0] ||
-      doc,
+    doc.querySelector("head") ||
+    doc.querySelector("body") ||
+    doc.querySelector("div") ||
+    doc.children[0] ||
+    doc,
   );
   // ztoolkit.log("加载css", d);
 }

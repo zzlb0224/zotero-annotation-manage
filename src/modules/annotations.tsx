@@ -29,6 +29,7 @@ function renderTextSelectionPopup(event: _ZoteroTypes.Reader.EventParams<"render
   const { append, reader, doc, params } = event;
   const filename = "annotation.css";
   addCssFile(doc, filename, true);
+  // ztoolkit.log("addCssFile doc", doc)
   addCssFile(ZoteroPane.document, filename, true);
   addCssFile(reader?._window?.document, filename, true);
 

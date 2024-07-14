@@ -328,10 +328,12 @@ export function PopupRoot({
     if (!selectionPopup) return;
     const ResizeObserver = ztoolkit.getGlobal("ResizeObserver");
     const resizeObserver = new ResizeObserver((_entries: any) => {
-      setSelectionPopupSize({
+      const size = {
         width: selectionPopup.clientWidth,
         height: selectionPopup.clientHeight,
-      });
+      }
+      setSelectionPopupSize(size);
+      ztoolkit.log("监听宽度的变化", selectionPopupSize, size)
     });
     resizeObserver.observe(selectionPopup);
     setSelectionPopupSize({
@@ -461,7 +463,7 @@ export function PopupRoot({
       <div
         ref={refContentDiv}
         style={{
-          maxWidth: divMaxWidth + "px",
+          maxWidth: (pSingleWindow ? divMaxWidth : selectionPopupSize.width) + "px",
           maxHeight: divMaxHeight + "px",
           overflowY: "scroll",
           background: "#f00",
@@ -477,7 +479,6 @@ export function PopupRoot({
             flexWrap: "wrap",
             // maxWidth: Math.max(600, maxWidth) + "px",
             // width: "600px",
-
             // width: divMaxWidth + "px",
             // minHeight: divMaxHeight + "px",
             // overflowY: "scroll",
@@ -1097,9 +1098,13 @@ export function PopupRoot({
               )}
               <input
                 type="text"
-                autoFocus={bAutoFocus}
+                // tabIndex={0}
+                // autoFocus={bAutoFocus}
                 defaultValue={searchTag}
-                onInput={(e) => setSearchTag(e.currentTarget.value)}
+                onInput={(e) => {
+                  ztoolkit.log("onInput", e.currentTarget.value, e)
+                  setSearchTag(e.currentTarget.value)
+                }}
                 style={{ ...inputWidth(searchTag), minWidth: "18ch" }}
                 placeholder="搜索标签，按回车添加"
                 onKeyDown={(e) => {
@@ -1149,12 +1154,12 @@ export function PopupRoot({
                           相关标签来自【{currentPosition}】
                         </span> */}
               <span style={tagStyle}>
-                {" "}
                 {displayTags.length}/{searchResultLength}:
               </span>
               {displayTags.map((tag) => (
                 <span
                   key={tag.key}
+                  tabIndex={0}
                   style={{
                     ...tagStyle,
                     whiteSpace: "nowrap",
@@ -1320,7 +1325,9 @@ export function PopupRoot({
   const clickMeButtonRef = React.useRef<HTMLElement | null>(null);
   {
     if (!pSingleWindow) {
-      return <>{handleContentDiv()}</>;
+      return <>
+        {handleContentDiv()}
+      </>;
     }
     return (
       <>
