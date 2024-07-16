@@ -88,7 +88,7 @@ export function PopupRoot({
   const [delTags, updateDelTags] = useImmer([] as string[]);
 
   const [displayTags, updateDisplayTags] = useImmer([] as { key: string; values: { tag: string }[]; color?: string }[]);
-  const [selectedTags, updateSelectedTags] = useState([] as { tag: string; color: string }[])
+  const [selectedTags, updateSelectedTags] = useState([] as { tag: string; color: string }[]);
   const [searchTag, setSearchTag] = useState("");
   const [currentPosition, setCurrentPosition] = useState(ZoteroPane.getSelectedCollection()?.name || "我的文库");
   const [searchResultLength, setSearchResultLength] = useState(0);
@@ -995,7 +995,6 @@ export function PopupRoot({
                       }}
                     />
                   </label> */}
-
                 </>
               )}
               {"待开发" == configTab && (
@@ -1113,32 +1112,27 @@ export function PopupRoot({
                 </>
               )}
               {selectedTags.length > 0 && (
-                <>[
-                  <span>
-
-                  </span>
-                  {
-                    selectedTags
-                      .map((a) => (
-                        <span
-                          key={a.tag}
-                          style={{
-                            ...tagStyle,
-                            whiteSpace: "nowrap",
-                            wordWrap: "normal",
-                            backgroundColor: memFixedColor(a.tag, ""),
-                            boxShadow: "#ccc 0px 0px 4px 3px",
-                          }}
-                          onClick={(e) => {
-                            const isAdd = e.ctrlKey
-                            const cTag = a.tag
-                            addOrSaveTags(isAdd, cTag);
-                          }}
-                        >
-                          {a.tag}
-                        </span>
-                      ))
-                  }
+                <>
+                  [<span></span>
+                  {selectedTags.map((a) => (
+                    <span
+                      key={a.tag}
+                      style={{
+                        ...tagStyle,
+                        whiteSpace: "nowrap",
+                        wordWrap: "normal",
+                        backgroundColor: memFixedColor(a.tag, ""),
+                        boxShadow: "#ccc 0px 0px 4px 3px",
+                      }}
+                      onClick={(e) => {
+                        const isAdd = e.ctrlKey;
+                        const cTag = a.tag;
+                        addOrSaveTags(isAdd, cTag);
+                      }}
+                    >
+                      {a.tag}
+                    </span>
+                  ))}
                   ]
                 </>
               )}
@@ -1174,8 +1168,8 @@ export function PopupRoot({
                   }
                   if (e.key == "Enter") {
                     ztoolkit.log("Enter保存", searchTag, e, params);
-                    const isAdd = e.ctrlKey
-                    const cTag = searchTag
+                    const isAdd = e.ctrlKey;
+                    const cTag = searchTag;
                     addOrSaveTags(isAdd, cTag);
                   }
                   if (e.code == "Escape") {
@@ -1212,26 +1206,26 @@ export function PopupRoot({
                   className="tagButton"
                   onClick={(e) => {
                     e.preventDefault();
-                    ztoolkit.log("onClick 添加", e)
+                    ztoolkit.log("onClick 添加", e);
                     if (isShowConfig) return false;
                     const isAdd = e.ctrlKey;
-                    const cTag = tag.key
+                    const cTag = tag.key;
                     addOrSaveTags(isAdd, cTag);
-                    return false
+                    return false;
                   }}
-                // onMouseDown={(e) => {
-                //   e.preventDefault();
-                //   ztoolkit.log("onMouseDown 复制", e)
-                //   return false
-                // }}
-                // onContextMenu={e => {
-                //   e.preventDefault();
-                //   ztoolkit.log("onContextMenu 复制", tag.key)
-                //   return false
-                // }}
+                  // onMouseDown={(e) => {
+                  //   e.preventDefault();
+                  //   ztoolkit.log("onMouseDown 复制", e)
+                  //   return false
+                  // }}
+                  // onContextMenu={e => {
+                  //   e.preventDefault();
+                  //   ztoolkit.log("onContextMenu 复制", tag.key)
+                  //   return false
+                  // }}
                 >
                   <span>[{tag.values.length}]</span>
-                  <span                  >{tag.key}</span>
+                  <span>{tag.key}</span>
 
                   {isShowConfig && (
                     <>
@@ -1297,9 +1291,10 @@ export function PopupRoot({
             </span>
           </div>
         </div>
-      </div >
+      </div>
     ),
-    [isCtrlAdd,
+    [
+      isCtrlAdd,
       selectedTags,
       bgColor,
       bAutoFocus,
@@ -1445,18 +1440,18 @@ export function PopupRoot({
   }
 
   function addOrSaveTags(onlyAdd: boolean, cTag: string) {
-    ztoolkit.log("isSaveTag", selectedTags, cTag, onlyAdd)
+    ztoolkit.log("isSaveTag", selectedTags, cTag, onlyAdd);
     if (onlyAdd) {
       updateSelectedTags(() => {
-        const a = selectedTags
-        const i = a.findIndex(a => a.tag == cTag);
+        const a = selectedTags;
+        const i = a.findIndex((a) => a.tag == cTag);
         ztoolkit.log("updateSelectedTags", a, selectedTags, cTag, onlyAdd, i);
         if (i > -1) {
           a.splice(i, 1);
         } else {
           a.splice(999, 0, { tag: cTag, color: memFixedColor(cTag) });
         }
-        return [...a]
+        return [...a];
       });
     } else {
       setIsPopoverOpen(false);
