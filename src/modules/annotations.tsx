@@ -32,6 +32,9 @@ function renderTextSelectionPopup(event: _ZoteroTypes.Reader.EventParams<"render
   // ztoolkit.log("addCssFile doc", doc)
   addCssFile(ZoteroPane.document, filename, true);
   addCssFile(reader?._window?.document, filename, true);
+  // doc.documentElement.addEventListener("contextmenu", e => {
+  //   ztoolkit.log("contextmenu", e.target)
+  // })
 
   if (getPref("hide-in-selection-popup")) {
     return;

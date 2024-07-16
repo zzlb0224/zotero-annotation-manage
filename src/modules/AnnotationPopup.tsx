@@ -1147,7 +1147,7 @@ export class AnnotationPopup {
   }
 }
 export async function saveAnnotationTags(
-  searchTag: string,
+  searchTagAddIfEmpty: string,
   selectedTags: { tag: string; color: string }[],
   delTags: string[],
   reader: _ZoteroTypes.ReaderInstance<"pdf" | "epub" | "snapshot">,
@@ -1161,10 +1161,10 @@ export async function saveAnnotationTags(
   // root: HTMLElement | undefined,
   doc: Document,
 ) {
-  if (selectedTags.length == 0 && searchTag) {
+  if (selectedTags.length == 0 && searchTagAddIfEmpty) {
     selectedTags.push({
-      tag: searchTag,
-      color: memFixedColor(searchTag, undefined),
+      tag: searchTagAddIfEmpty,
+      color: memFixedColor(searchTagAddIfEmpty, undefined),
     });
   }
   if (delTags.length > 0 || selectedTags.length > 0) {

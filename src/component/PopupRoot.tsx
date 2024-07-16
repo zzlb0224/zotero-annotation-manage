@@ -77,6 +77,7 @@ export function PopupRoot({
   const [buttonPaddingLeftRight, setButtonPaddingLeftRight] = useState(getPrefAs("buttonPaddingLeftRight", 0));
   const [buttonBorderRadius, setButtonBorderRadius] = useState(getPrefAs("buttonBorderRadius", 5));
   const [relateItemShowAll, setRelateItemShowAll] = useState(getPrefAs("relateItemShowAll", false));
+  const [isCtrlAdd, setIsCtrlAdd] = useState(getPrefAs("isCtrlAdd", false));
   const [relateItemShowRelateTags, setRelateItemShowRelateTags] = useState(getPrefAs("relateItemShowRelateTags", false));
   // const [relateItemSort, setRelateItemSort] = useState(getPrefAs("relateItemSort", "2"));
 
@@ -87,6 +88,7 @@ export function PopupRoot({
   const [delTags, updateDelTags] = useImmer([] as string[]);
 
   const [displayTags, updateDisplayTags] = useImmer([] as { key: string; values: { tag: string }[]; color?: string }[]);
+  const [selectedTags, updateSelectedTags] = useState([] as { tag: string; color: string }[])
   const [searchTag, setSearchTag] = useState("");
   const [currentPosition, setCurrentPosition] = useState(ZoteroPane.getSelectedCollection()?.name || "我的文库");
   const [searchResultLength, setSearchResultLength] = useState(0);
@@ -982,6 +984,18 @@ export function PopupRoot({
                       </label>
                     ))}
                   </div>
+                  {/* <label style={configItemStyle}>
+                    按住Ctrl同时添加多个Tag
+                    <input
+                      type="checkbox"
+                      defaultChecked={isCtrlAdd}
+                      onInput={(e) => {
+                        setPref("isCtrlAdd", e.currentTarget.checked);
+                        setIsCtrlAdd(e.currentTarget.checked);
+                      }}
+                    />
+                  </label> */}
+
                 </>
               )}
               {"待开发" == configTab && (
@@ -1098,6 +1112,36 @@ export function PopupRoot({
                   </span>
                 </>
               )}
+              {selectedTags.length > 0 && (
+                <>[
+                  <span>
+
+                  </span>
+                  {
+                    selectedTags
+                      .map((a) => (
+                        <span
+                          key={a.tag}
+                          style={{
+                            ...tagStyle,
+                            whiteSpace: "nowrap",
+                            wordWrap: "normal",
+                            backgroundColor: memFixedColor(a.tag, ""),
+                            boxShadow: "#ccc 0px 0px 4px 3px",
+                          }}
+                          onClick={(e) => {
+                            const isAdd = e.ctrlKey
+                            const cTag = a.tag
+                            addOrSaveTags(isAdd, cTag);
+                          }}
+                        >
+                          {a.tag}
+                        </span>
+                      ))
+                  }
+                  ]
+                </>
+              )}
               <input
                 type="text"
                 // tabIndex={0}
@@ -1114,7 +1158,7 @@ export function PopupRoot({
                   if (autoCloseSeconds > 0) {
                     setAutoCloseSeconds(-1);
                   }
-                  if (bAutoFocus) {
+                  if (bAutoFocus && !searchTag) {
                     //自动获得焦点的时候使用ctrl+C复制选中文本
                     const text = params.annotation?.text;
                     if (e.ctrlKey && !e.altKey && !e.shiftKey && e.key.toLowerCase() === "c") {
@@ -1124,27 +1168,22 @@ export function PopupRoot({
                         const cb = new ztoolkit.Clipboard();
                         cb.addText(text);
                         cb.copy();
-                        return;
+                        return false;
                       }
                     }
                   }
                   if (e.key == "Enter") {
-                    if (searchTag) {
-                      ztoolkit.log("保存", searchTag, e, params);
-                      setIsPopoverOpen(false);
-                      saveAnnotationTags(searchTag, [], [], reader, params, doc);
-                      if (params.ids) {
-                        root.remove();
-                      }
-                      return;
-                    }
+                    ztoolkit.log("Enter保存", searchTag, e, params);
+                    const isAdd = e.ctrlKey
+                    const cTag = searchTag
+                    addOrSaveTags(isAdd, cTag);
                   }
                   if (e.code == "Escape") {
                     ztoolkit.log("关闭弹出框", e, params);
                     //@ts-ignore _onSetSelectionPopup
                     reader?._primaryView._onSetSelectionPopup(null);
                     root.remove();
-                    return;
+                    return false;
                   }
                   ztoolkit.log("按键记录", e);
                 }}
@@ -1171,17 +1210,28 @@ export function PopupRoot({
                     // borderRadius: "3px",
                   }}
                   className="tagButton"
-                  onClick={() => {
-                    if (isShowConfig) return;
-                    setIsPopoverOpen(false);
-                    saveAnnotationTags(tag.key, [], [], reader, params, doc);
-                    if (params.ids) {
-                      root.remove();
-                    }
+                  onClick={(e) => {
+                    e.preventDefault();
+                    ztoolkit.log("onClick 添加", e)
+                    if (isShowConfig) return false;
+                    const isAdd = e.ctrlKey;
+                    const cTag = tag.key
+                    addOrSaveTags(isAdd, cTag);
+                    return false
                   }}
+                // onMouseDown={(e) => {
+                //   e.preventDefault();
+                //   ztoolkit.log("onMouseDown 复制", e)
+                //   return false
+                // }}
+                // onContextMenu={e => {
+                //   e.preventDefault();
+                //   ztoolkit.log("onContextMenu 复制", tag.key)
+                //   return false
+                // }}
                 >
                   <span>[{tag.values.length}]</span>
-                  <span>{tag.key}</span>
+                  <span                  >{tag.key}</span>
 
                   {isShowConfig && (
                     <>
@@ -1247,9 +1297,10 @@ export function PopupRoot({
             </span>
           </div>
         </div>
-      </div>
+      </div >
     ),
-    [
+    [isCtrlAdd,
+      selectedTags,
       bgColor,
       bAutoFocus,
       configName,
@@ -1296,6 +1347,8 @@ export function PopupRoot({
       </ArrowContainer> //ArrowContainer
     ),
     [
+      isCtrlAdd,
+      selectedTags,
       bgColor,
       bAutoFocus,
       configName,
@@ -1389,5 +1442,28 @@ export function PopupRoot({
         </Popover>
       </>
     );
+  }
+
+  function addOrSaveTags(onlyAdd: boolean, cTag: string) {
+    ztoolkit.log("isSaveTag", selectedTags, cTag, onlyAdd)
+    if (onlyAdd) {
+      updateSelectedTags(() => {
+        const a = selectedTags
+        const i = a.findIndex(a => a.tag == cTag);
+        ztoolkit.log("updateSelectedTags", a, selectedTags, cTag, onlyAdd, i);
+        if (i > -1) {
+          a.splice(i, 1);
+        } else {
+          a.splice(999, 0, { tag: cTag, color: memFixedColor(cTag) });
+        }
+        return [...a]
+      });
+    } else {
+      setIsPopoverOpen(false);
+      saveAnnotationTags("", [...selectedTags, { tag: cTag, color: memFixedColor(cTag) }], delTags, reader, params, doc);
+      if (params.ids) {
+        root.remove();
+      }
+    }
   }
 }
