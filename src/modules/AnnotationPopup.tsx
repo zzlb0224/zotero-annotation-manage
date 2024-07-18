@@ -1195,10 +1195,12 @@ export async function saveAnnotationTags(
         const tags = tagsRequire.map((a) => ({ name: a }));
 
         //@ts-ignore annotationType
-        const annotationType = reader?._state?.textSelectionAnnotationMode || "hightlight"
+        const annotationType = reader?._state?.textSelectionAnnotationMode || "hightlight";
         // 因为线程不一样，不能采用直接修改params.annotation的方式，所以直接采用新建的方式保存笔记
         // 特意采用 Components.utils.cloneInto 方法
-        const newAnn = reader?._annotationManager.addAnnotation(Components.utils.cloneInto({ ...params?.annotation, type: annotationType, color, tags }, doc));
+        const newAnn = reader?._annotationManager.addAnnotation(
+          Components.utils.cloneInto({ ...params?.annotation, type: annotationType, color, tags }, doc),
+        );
         //@ts-ignore 隐藏弹出框
         reader?._primaryView._onSetSelectionPopup(null);
         // openAnnotation(item, newAnn?.pageLabel || "", newAnn?.id || "")

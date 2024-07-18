@@ -35,9 +35,9 @@ function renderTextSelectionPopup(event: _ZoteroTypes.Reader.EventParams<"render
   // doc.documentElement.addEventListener("contextmenu", e => {
   //   ztoolkit.log("contextmenu", e.target)
   // })
-  Zotero.ref_reader = reader
-  Zotero.ref_reader_annotationManager = reader._annotationManager
-  Zotero.ref_reader_keyboardManager = reader._keyboardManager
+  Zotero.ref_reader = reader;
+  Zotero.ref_reader_annotationManager = reader._annotationManager;
+  Zotero.ref_reader_keyboardManager = reader._keyboardManager;
   // Zotero.ref_reader_keyboardManager = reader.mode
   if (getPref("hide-in-selection-popup")) {
     return;
