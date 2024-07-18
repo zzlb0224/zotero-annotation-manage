@@ -1171,7 +1171,7 @@ export async function saveAnnotationTags(
     const tagsRequire = await getTagsRequire(selectedTags.map((tag) => tag.tag));
 
     const tagsRemove = delTags.filter((f) => !tagsRequire.includes(f));
-    ztoolkit.log("需要添加的tags", tagsRequire, "需要删除的", tagsRemove);
+    ztoolkit.log("需要添加的tags", tagsRequire, "需要删除的", tagsRemove, reader, params);
     if (reader) {
       const item = reader._item;
       if (params.ids) {
@@ -1194,9 +1194,11 @@ export async function saveAnnotationTags(
         const color = selectedTags.map((a) => a.color).filter((f) => f)[0] || memFixedColor(tagsRequire[0], undefined);
         const tags = tagsRequire.map((a) => ({ name: a }));
 
+        //@ts-ignore annotationType
+        const annotationType = reader?._state?.textSelectionAnnotationMode || "hightlight"
         // 因为线程不一样，不能采用直接修改params.annotation的方式，所以直接采用新建的方式保存笔记
         // 特意采用 Components.utils.cloneInto 方法
-        const newAnn = reader?._annotationManager.addAnnotation(Components.utils.cloneInto({ ...params?.annotation, color, tags }, doc));
+        const newAnn = reader?._annotationManager.addAnnotation(Components.utils.cloneInto({ ...params?.annotation, type: annotationType, color, tags }, doc));
         //@ts-ignore 隐藏弹出框
         reader?._primaryView._onSetSelectionPopup(null);
         // openAnnotation(item, newAnn?.pageLabel || "", newAnn?.id || "")
