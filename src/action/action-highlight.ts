@@ -35,6 +35,7 @@ export function init() {
     const { reader, doc, params, append } = event;
     // const _annotationManager = Zotero.Reader.getByTabID(Zotero_Tabs.selectedID)._annotationManager
     const _annotationManager = reader._annotationManager;
+
     const selectionPopup = doc.querySelector(".view-popup.selection-popup");
     if (selectionPopup) {
       selectionPopup.style.width = "600px";
