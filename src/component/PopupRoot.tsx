@@ -32,7 +32,17 @@ import { saveAnnotationTags } from "../modules/AnnotationPopup";
 import { type } from "os";
 import { config } from "process";
 import TagPopup from "./TagPopup";
-import { Config, ConfigTab, ConfigTabArray, ConfigTypeArray, SortType, SortTypeArray, loadDefaultConfig } from "./Config";
+import {
+  Config,
+  ConfigTab,
+  ConfigTabArray,
+  ConfigTypeArray,
+  SortType,
+  SortTypeArray,
+  WindowType,
+  WindowTypeArray,
+  loadDefaultConfig,
+} from "./Config";
 import "./tagStyle.css";
 import styles from "./tagStyle.css";
 // console.log(styles.tagButton)
@@ -60,8 +70,15 @@ export function PopupRoot({
   const item = reader._item;
   const _annotationManager = reader._annotationManager;
   ztoolkit.log("params", params);
-  const [isShowConfig, setShowConfig] = useState(getPrefAs("show-config", false));
+  const [isShowConfig, setShowConfig] = useState(getPrefAs("showConfig", false));
   const [configTab, setConfigTab] = useState<ConfigTab>(getPrefAs("configTab", "面板配置"));
+
+  //取代固定窗口和单独窗口
+  const [windowType, setWindowType] = useState<WindowType>(getPrefAs("windowType", "跟随翻译窗口"));
+
+  // const [pSingleWindow, setPSingleWindow] = useState(getPrefAs("pSingleWindow", false));
+  // const [pFixedContentLocation, setPFixedContentLocation] = useState(getPrefAs("pFixedContentLocation", false));
+
   const [isShowSelectedPopupColorsTag, setShowSelectedPopupColorsTag] = useState(getPrefAs("show-selected-popup-colors-tag", false));
   const [isShowSelectedPopupMatchTag, setShowSelectedPopupMatchTag] = useState(getPrefAs("show-selected-popup-match-tag", false));
   const [divMaxWidth, setDivMaxWidth] = useState(getPrefAs("divMaxWidth", 600));
@@ -312,8 +329,7 @@ export function PopupRoot({
   const [pBoundaryInset, setPBoundaryInset] = useState(getPrefAs("pBoundaryInset", 40));
   const [pArrowSize, setPArrowSize] = useState(getPrefAs("pArrowSize", 0));
   const [pPositions, updatePPositions] = useImmer(getPrefAs("pPositions", "bottom,left,top,right").split(",") as PopoverPosition[]);
-  const [pFixedContentLocation, setPFixedContentLocation] = useState(getPrefAs("pFixedContentLocation", false));
-  const [pSingleWindow, setPSingleWindow] = useState(getPrefAs("pSingleWindow", false));
+
   const [bAutoFocus, setBAutoFocus] = useState(getPrefAs("bAutoFocus", false));
   const [pFixedContentLocationLeft, setPFixedContentLocationLeft] = useState(getPrefAs("pFixedContentLocationLeft", 0));
   const [pFixedContentLocationTop, setPFixedContentLocationTop] = useState(getPrefAs("pFixedContentLocationTop", 0));
@@ -400,9 +416,13 @@ export function PopupRoot({
   const refPopoverDiv = useRef<HTMLDivElement>(null);
   const [configName, setConfigName] = useState(getPref("configName"));
   function selectConfig(config: Config) {
-    setShowConfig(false);
-    setPref("show-config", false);
+    // setShowConfig(false);
+    setPref("showConfig", false);
     setConfigName(config.configName);
+    setPref("windowType", false);
+    setWindowType(config.windowType);
+    setPref("isCtrlAdd", false);
+    setIsCtrlAdd(config.isCtrlAdd);
     setPref("configName", config.configName);
     setBgColor(config.bgColor);
     setPref("bgColor", config.bgColor);
@@ -410,10 +430,10 @@ export function PopupRoot({
     setPref("divMaxWidth", config.divMaxWidth);
     setAutoCloseSeconds(config.autoCloseSeconds);
     setPref("autoCloseSeconds", config.autoCloseSeconds);
-    setPFixedContentLocation(config.pFixedContentLocation);
-    setPref("pFixedContentLocation", config.pFixedContentLocation);
-    setPSingleWindow(config.pSingleWindow);
-    setPref("pSingleWindow", config.pSingleWindow);
+    // setPFixedContentLocation(config.pFixedContentLocation);
+    // setPref("pFixedContentLocation", config.pFixedContentLocation);
+    // setPSingleWindow(config.pSingleWindow);
+    // setPref("pSingleWindow", config.pSingleWindow);
     setPFixedContentLocationLeft(config.pFixedContentLocationLeft);
     setPref("pFixedContentLocationLeft", config.pFixedContentLocationLeft);
     setPFixedContentLocationTop(config.pFixedContentLocationTop);
@@ -463,16 +483,17 @@ export function PopupRoot({
     // setTimeout(() => setShowConfig(true));
   }
   const vars = [
+    windowType,
     isCtrlAdd,
     selectedTags,
     bgColor,
     bAutoFocus,
     configName,
-    pSingleWindow,
+    // pSingleWindow,
     isPopoverOpen,
     pPositions,
     pPadding,
-    pFixedContentLocation,
+    // pFixedContentLocation,
     displayTags,
     isShowConfig,
     configTab,
@@ -531,6 +552,26 @@ export function PopupRoot({
             {"面板配置" == configTab && (
               <>
                 <span style={configItemStyle}>
+                  {ConfigTypeArray.map((a) => loadDefaultConfig(a)).map(
+                    (config) =>
+                      config && (
+                        <span
+                          style={{
+                            ...tagStyle,
+                            background: config.bgColor,
+                            fontWeight: configName == config.configName ? "bold" : "",
+                            border: configName == config.configName ? "1px solid #000" : "",
+                          }}
+                          onClick={() => {
+                            selectConfig(config);
+                          }}
+                        >
+                          {config.configName}
+                        </span>
+                      ),
+                  )}
+                </span>
+                <span style={configItemStyle}>
                   <ChangeColor
                     color={bgColor}
                     onChange={(e) => {
@@ -538,7 +579,7 @@ export function PopupRoot({
                       setPref("bgColor", e);
                     }}
                   >
-                    <span>调整背景颜色: </span>
+                    点击
                     <span
                       style={{
                         background: bgColor,
@@ -548,9 +589,10 @@ export function PopupRoot({
                         display: "inline-block",
                       }}
                     ></span>
+                    <span>调整背景颜色 </span>
                   </ChangeColor>
                 </span>
-                <label style={configItemStyle}>
+                {/* <label style={configItemStyle}>
                   <input
                     type="checkbox"
                     defaultChecked={pSingleWindow}
@@ -561,44 +603,17 @@ export function PopupRoot({
                   />
                   使用独立弹出弹窗 {!pSingleWindow && "（建议宽度小于300）"}
                   {pSingleWindow}
-                </label>
+                </label> */}
 
-                <span style={configItemStyle}>
-                  面板最大宽度:
-                  <input
-                    type="number"
-                    min={100}
-                    max={1200}
-                    step={10}
-                    defaultValue={divMaxWidth}
-                    style={inputWidth("zlb")}
-                    onInput={(e) => {
-                      if (e.currentTarget.value) {
-                        setPref("divMaxWidth", e.currentTarget.valueAsNumber);
-                        setDivMaxWidth(e.currentTarget.valueAsNumber);
-                      }
-                    }}
-                  />
-                  px。
-                  <span style={configItemStyle}>
-                    面板最大高度:
-                    <input
-                      type="number"
-                      min={30}
-                      max={600}
-                      step={10}
-                      defaultValue={divMaxHeight}
-                      style={inputWidth("zlb")}
-                      onInput={(e) => {
-                        if (e.currentTarget.value) {
-                          setPref("divMaxHeight", e.currentTarget.valueAsNumber);
-                          setDivMaxHeight(e.currentTarget.valueAsNumber);
-                        }
-                      }}
-                    />
-                    px。
-                  </span>
-                </span>
+                {/* <div>
+                  排序规则：
+                  {SortTypeArray.map((a) => (
+                    <label>
+                      <input type="radio" value={a} checked={sortType === a} onChange={handleInput("sortType", setSortType)} />
+                      {a}
+                    </label>
+                  ))}
+                </div> */}
                 <span style={configItemStyle}>
                   <input
                     style={inputWidth("zlb")}
@@ -628,31 +643,59 @@ export function PopupRoot({
                 </label>
                 {/* <span>当前配置：{configName}</span> */}
 
+                <div>
+                  窗口显示样式：
+                  {WindowTypeArray.map((a) => (
+                    <label>
+                      <input type="radio" value={a} checked={windowType === a} onChange={handleInput("windowType", setWindowType)} />
+                      {a}
+                    </label>
+                  ))}
+                </div>
+
                 <span style={configItemStyle}>
-                  {ConfigTypeArray.map((a) => loadDefaultConfig(a)).map(
-                    (config) =>
-                      config && (
-                        <span
-                          style={{
-                            ...tagStyle,
-                            background: config.bgColor,
-                            fontWeight: configName == config.configName ? "bold" : "",
-                            border: configName == config.configName ? "1px solid #000" : "",
-                          }}
-                          onClick={() => {
-                            selectConfig(config);
-                          }}
-                        >
-                          {config.configName}
-                        </span>
-                      ),
-                  )}{" "}
+                  最大高度:
+                  <input
+                    type="number"
+                    min={30}
+                    max={600}
+                    step={10}
+                    defaultValue={divMaxHeight}
+                    style={inputWidth("zlb")}
+                    onInput={(e) => {
+                      if (e.currentTarget.value) {
+                        setPref("divMaxHeight", e.currentTarget.valueAsNumber);
+                        setDivMaxHeight(e.currentTarget.valueAsNumber);
+                      }
+                    }}
+                  />
+                  px。
                 </span>
+                {windowType in ["固定位置", "浮动弹出框"] && (
+                  <span style={configItemStyle}>
+                    最大宽度:
+                    <input
+                      type="number"
+                      min={100}
+                      max={1200}
+                      step={10}
+                      defaultValue={divMaxWidth}
+                      style={inputWidth("zlb")}
+                      onInput={(e) => {
+                        if (e.currentTarget.value) {
+                          setPref("divMaxWidth", e.currentTarget.valueAsNumber);
+                          setDivMaxWidth(e.currentTarget.valueAsNumber);
+                        }
+                      }}
+                    />
+                    px。
+                  </span>
+                )}
               </>
             )}
             {"固定位置" == configTab && (
               <div>
-                <label>
+                {/* <label>
                   <input
                     type="checkbox"
                     defaultChecked={pFixedContentLocation}
@@ -662,7 +705,7 @@ export function PopupRoot({
                     }}
                   />
                   固定弹出区域
-                </label>
+                </label> */}
 
                 <span style={configItemStyle}>
                   left:
@@ -699,7 +742,7 @@ export function PopupRoot({
                 </span>
               </div>
             )}
-            {"弹出框" == configTab && (
+            {"浮动弹出框" == configTab && (
               <div
                 style={{
                   fontSize: "18px",
@@ -707,7 +750,7 @@ export function PopupRoot({
                 }}
               >
                 <>
-                  <label style={configItemStyle}>
+                  {/* <label style={configItemStyle}>
                     <input
                       type="checkbox"
                       defaultChecked={!pFixedContentLocation}
@@ -717,7 +760,7 @@ export function PopupRoot({
                       }}
                     />
                     浮动弹出区域。
-                  </label>
+                  </label> */}
                   <span style={configItemStyle}>
                     和颜色框的距离:
                     <input
@@ -989,17 +1032,17 @@ export function PopupRoot({
                     </label>
                   ))}
                 </div>
-                {/* <label style={configItemStyle}>
-                    按住Ctrl同时添加多个Tag
-                    <input
-                      type="checkbox"
-                      defaultChecked={isCtrlAdd}
-                      onInput={(e) => {
-                        setPref("isCtrlAdd", e.currentTarget.checked);
-                        setIsCtrlAdd(e.currentTarget.checked);
-                      }}
-                    />
-                  </label> */}
+                <label style={configItemStyle}>
+                  按住Ctrl同时添加多个Tag
+                  <input
+                    type="checkbox"
+                    defaultChecked={isCtrlAdd}
+                    onInput={(e) => {
+                      setPref("isCtrlAdd", e.currentTarget.checked);
+                      setIsCtrlAdd(e.currentTarget.checked);
+                    }}
+                  />
+                </label>
               </>
             )}
             {"待开发" == configTab && (
@@ -1038,7 +1081,7 @@ export function PopupRoot({
       <div
         ref={refContentDiv}
         style={{
-          maxWidth: (pSingleWindow ? divMaxWidth : selectionPopupSize.width) + "px",
+          maxWidth: (windowType == "跟随翻译窗口" ? (selectionPopupSize.width - 16) : divMaxWidth) + "px",
           maxHeight: divMaxHeight + "px",
           overflowY: "scroll",
           background: "#f00",
@@ -1083,7 +1126,7 @@ export function PopupRoot({
                   background: isShowConfig ? "#00990030" : "#99000030",
                 }}
                 onClick={() => {
-                  setPref("show-config", !isShowConfig);
+                  setPref("showConfig", !isShowConfig);
                   setShowConfig(!isShowConfig);
                 }}
               >
@@ -1176,7 +1219,7 @@ export function PopupRoot({
               <input
                 type="text"
                 // tabIndex={0}
-                // autoFocus={bAutoFocus}
+                autoFocus={bAutoFocus}
                 defaultValue={searchTag}
                 onInput={(e) => {
                   ztoolkit.log("onInput", e.currentTarget.value, e);
@@ -1250,16 +1293,16 @@ export function PopupRoot({
                     addOrSaveTags(isAdd, cTag);
                     return false;
                   }}
-                  // onMouseDown={(e) => {
-                  //   e.preventDefault();
-                  //   ztoolkit.log("onMouseDown 复制", e)
-                  //   return false
-                  // }}
-                  // onContextMenu={e => {
-                  //   e.preventDefault();
-                  //   ztoolkit.log("onContextMenu 复制", tag.key)
-                  //   return false
-                  // }}
+                // onMouseDown={(e) => {
+                //   e.preventDefault();
+                //   ztoolkit.log("onMouseDown 复制", e)
+                //   return false
+                // }}
+                // onContextMenu={e => {
+                //   e.preventDefault();
+                //   ztoolkit.log("onContextMenu 复制", tag.key)
+                //   return false
+                // }}
                 >
                   <span>[{tag.values.length}]</span>
                   <span>{tag.key}</span>
@@ -1361,7 +1404,8 @@ export function PopupRoot({
     // }
     return (
       <>
-        {!pSingleWindow && handleContentDiv()}
+        {/* {JSON.stringify(vars)} */}
+        {windowType == "跟随翻译窗口" && handleContentDiv()}
         <Popover
           parentElement={parentElement}
           boundaryElement={boundaryElement}
@@ -1371,9 +1415,11 @@ export function PopupRoot({
           padding={pPadding}
           ref={refPopover}
           boundaryInset={pBoundaryInset}
-          transformMode={pFixedContentLocation || params.ids ? "absolute" : "relative"}
+          transformMode={windowType == "固定位置" || params.ids ? "absolute" : "relative"}
           transform={
-            pFixedContentLocation || params.ids ? { left: pFixedContentLocationLeft ?? 0, top: pFixedContentLocationTop ?? 0 } : undefined
+            windowType == "固定位置" || params.ids
+              ? { left: pFixedContentLocationLeft ?? 0, top: pFixedContentLocationTop ?? 0 }
+              : undefined
           }
           align="start"
           onClickOutside={(e) => {
@@ -1384,7 +1430,7 @@ export function PopupRoot({
             }
           }}
           // ref={clickMeButtonRef} // if you'd like a ref to your popover's child, you can grab one here
-          content={pSingleWindow ? handleConfigAndContent : handleConfigDiv}
+          content={windowType == "跟随翻译窗口" ? handleConfigDiv : handleConfigAndContent}
           containerStyle={{
             marginTop: "42px",
           }}

@@ -1,4 +1,4 @@
-export const ConfigTabArray = ["面板配置", "固定位置", "弹出框", "颜色栏", "标签样式", "标签设置", "待开发"] as const;
+export const ConfigTabArray = ["面板配置", "固定位置", "浮动弹出框", "颜色栏", "标签样式", "标签设置", "待开发"] as const;
 export type ConfigTab = (typeof ConfigTabArray)[number];
 
 export const SortTypeArray = ["最近使用", "本条目+最近使用", "使用次数", "字母顺序"] as const;
@@ -6,15 +6,21 @@ export type SortType = (typeof SortTypeArray)[number];
 
 export const ConfigTypeArray = ["草绿", "菊黄", "虾红", "跟随"] as const;
 export type ConfigType = (typeof ConfigTypeArray)[number];
+
+export const WindowTypeArray = ["跟随翻译窗口", "固定位置", "浮动弹出框"] as const;
+export type WindowType = (typeof WindowTypeArray)[number];
+
 export function loadDefaultConfig(configType: ConfigType) {
   let config: Config;
   if (configType == "草绿") {
     return (config = {
+      windowType: "固定位置",
+      isCtrlAdd: true,
       pSingleWindow: true,
       bAutoFocus: true,
       configName: configType,
       bgColor: "#5ad354",
-      divMaxWidth: 550,
+      divMaxWidth: 750,
       autoCloseSeconds: 15,
       pFixedContentLocation: false,
       pFixedContentLocationLeft: 100,
@@ -38,6 +44,8 @@ export function loadDefaultConfig(configType: ConfigType) {
   }
   if (configType == "菊黄") {
     return (config = {
+      windowType: "浮动弹出框",
+      isCtrlAdd: true,
       pSingleWindow: true,
       bAutoFocus: true,
       configName: configType,
@@ -66,6 +74,8 @@ export function loadDefaultConfig(configType: ConfigType) {
   }
   if (configType == "虾红") {
     return (config = {
+      windowType: "浮动弹出框",
+      isCtrlAdd: true,
       pSingleWindow: true,
       bAutoFocus: true,
       configName: configType,
@@ -94,6 +104,8 @@ export function loadDefaultConfig(configType: ConfigType) {
   }
   if (configType == "跟随") {
     return (config = {
+      windowType: "跟随翻译窗口",
+      isCtrlAdd: true,
       pSingleWindow: false,
       bAutoFocus: true,
       configName: configType,
@@ -122,6 +134,8 @@ export function loadDefaultConfig(configType: ConfigType) {
   }
 }
 export interface Config {
+  windowType: WindowType;
+  isCtrlAdd: boolean;
   configName: string;
   bgColor: string;
   bAutoFocus: boolean;

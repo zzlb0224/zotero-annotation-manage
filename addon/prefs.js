@@ -20,3 +20,5 @@ pref("__prefsPrefix__.show-query-href", false);
 pref("__prefsPrefix__.google-scholar-mirroring", "");
 
 pref("__prefsPrefix__.isCtrlAdd", true);
+
+pref("__prefsPrefix__.windowType", "跟随翻译窗口");
