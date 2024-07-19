@@ -66,27 +66,24 @@ export function PopupRoot({
   root: HTMLDivElement;
   maxWidth: number;
 }) {
-  ztoolkit.log("css测试", styles.tagButton);
+  //定义全局变量
+  // ztoolkit.log("css测试", styles.tagButton);
   const item = reader._item;
   const _annotationManager = reader._annotationManager;
-  ztoolkit.log("params", params);
+  //定义状态
+  // ztoolkit.log("params", params);
   const [isShowConfig, setShowConfig] = useState(getPrefAs("showConfig", false));
   const [configTab, setConfigTab] = useState<ConfigTab>(getPrefAs("configTab", "面板配置"));
-
   //取代固定窗口和单独窗口
-  const [windowType, setWindowType] = useState<WindowType>(getPrefAs("windowType", "跟随翻译窗口"));
-
+  const [windowType, setWindowType] = useState<WindowType>(getPrefAs("windowType", "跟随"));
   // const [pSingleWindow, setPSingleWindow] = useState(getPrefAs("pSingleWindow", false));
   // const [pFixedContentLocation, setPFixedContentLocation] = useState(getPrefAs("pFixedContentLocation", false));
-
   const [isShowSelectedPopupColorsTag, setShowSelectedPopupColorsTag] = useState(getPrefAs("show-selected-popup-colors-tag", false));
   const [isShowSelectedPopupMatchTag, setShowSelectedPopupMatchTag] = useState(getPrefAs("show-selected-popup-match-tag", false));
   const [divMaxWidth, setDivMaxWidth] = useState(getPrefAs("divMaxWidth", 600));
   const [divMaxHeight, setDivMaxHeight] = useState(getPrefAs("divMaxHeight", 600));
-
   const [fontSize, setFontSize] = useState(getPrefAs("fontSize", 17));
   const [lineHeight, setLineHeight] = useState(getPrefAs("lineHeight", "1.45"));
-
   const [buttonMarginTopBottom, setButtonMarginTopBottom] = useState(getPrefAs("buttonMarginTopBottom", 0));
   const [sortType, setSortType] = useState<SortType>(getPrefAs("sortType", "最近使用"));
   const [buttonMarginLeftRight, setButtonMarginLeftRight] = useState(getPrefAs("buttonMarginLeftRight", 0));
@@ -97,11 +94,8 @@ export function PopupRoot({
   const [isCtrlAdd, setIsCtrlAdd] = useState(getPrefAs("isCtrlAdd", false));
   const [relateItemShowRelateTags, setRelateItemShowRelateTags] = useState(getPrefAs("relateItemShowRelateTags", false));
   // const [relateItemSort, setRelateItemSort] = useState(getPrefAs("relateItemSort", "2"));
-
   const [existAnnotations, updateExistAnnotations] = useImmer([] as Zotero.Item[]);
-
   const [existTags, updateExistTags] = useImmer([] as string[]);
-
   const [delTags, updateDelTags] = useImmer([] as string[]);
 
   const [displayTags, updateDisplayTags] = useImmer([] as { key: string; values: { tag: string }[]; color?: string }[]);
@@ -117,14 +111,59 @@ export function PopupRoot({
       values: { tag: string; type: number; dateModified: string }[];
     }[],
   );
+  // ztoolkit.log("ids", params.ids)
+  const [autoCloseSeconds, setAutoCloseSeconds] = useState(params.ids ? getPrefAs("autoCloseSeconds", 15) : -1); //只在倒计时时间
+
+  const [isPopoverOpen, setIsPopoverOpen] = useState(true);
+  const [bgColor, setBgColor] = useState(getPrefAs("bgColor", "#fff"));
+  const [pPadding, setPPadding] = useState(getPrefAs("pPadding", 0));
+  const [pBoundaryInset, setPBoundaryInset] = useState(getPrefAs("pBoundaryInset", 40));
+  const [pArrowSize, setPArrowSize] = useState(getPrefAs("pArrowSize", 0));
+  const [pPositions, updatePPositions] = useImmer(getPrefAs("pPositions", "bottom,left,top,right").split(",") as PopoverPosition[]);
+  const [bAutoFocus, setBAutoFocus] = useState(getPrefAs("bAutoFocus", false));
+  const [pFixedContentLocationLeft, setPFixedContentLocationLeft] = useState(getPrefAs("pFixedContentLocationLeft", 0));
+  const [pFixedContentLocationTop, setPFixedContentLocationTop] = useState(getPrefAs("pFixedContentLocationTop", 0));
+  const [selectionPopupSize, setSelectionPopupSize] = useState({ width: 0, height: 0 });
+  const [configName, setConfigName] = useState(getPref("configName"));
+
+  const tagStyle = {
+    marginLeft: buttonMarginLeftRight + "px",
+    marginRight: buttonMarginLeftRight + "px",
+    marginTop: buttonMarginTopBottom + "px",
+    marginBottom: buttonMarginTopBottom + "px",
+    paddingLeft: buttonPaddingLeftRight + "px",
+    paddingRight: buttonPaddingLeftRight + "px",
+    paddingTop: buttonPaddingTopBottom + "px",
+    paddingBottom: buttonPaddingTopBottom + "px",
+    borderRadius: buttonBorderRadius + "px",
+    fontSize: fontSize + "px",
+    lineHeight: lineHeight,
+    cursor: "default",
+    ":hover": {
+      marginTop: "20px",
+    },
+  };
+  const configItemStyle = { display: "inline-block", margin: "0 5px" };
+  const tabDiv = Zotero_Tabs.deck.querySelector("#" + Zotero_Tabs.selectedID) as HTMLDivElement;
+  const readerUiDiv = (tabDiv.querySelector("browser") as HTMLIFrameElement).contentDocument?.querySelector(
+    "#reader-ui ",
+  ) as HTMLDivElement;
+  const primaryViewDiv = (tabDiv.querySelector(".reader") as HTMLIFrameElement)?.contentDocument?.querySelector(
+    "#split-view #primary-view",
+  ) as HTMLDivElement;
+  const parentElement = tabDiv;
+  const boundaryElement = tabDiv;
+
+  if (isDebug()) boundaryElement.style.border = "1px solid red";
 
   useEffect(() => {
+    //加载当前item的标签
     async function loadData() {
       if (params.ids) {
-        const ea = item.getAnnotations().filter((f) => params.ids.includes(f.key));
-        updateExistAnnotations((_a) => ea);
-        const ta = ea.flatMap((f) => f.getTags()).map((a) => a.tag);
-        updateExistTags((_a) => ta);
+        const _existAnnotations = item.getAnnotations().filter((f) => params.ids.includes(f.key));
+        updateExistAnnotations((_a) => _existAnnotations);
+        const _existTags = _existAnnotations.flatMap((f) => f.getTags()).map((a) => a.tag);
+        updateExistTags((_a) => _existTags);
       }
 
       let relateTags: groupByResult<{
@@ -168,17 +207,8 @@ export function PopupRoot({
     }
     loadData();
   }, [relateItemShowAll, relateItemShowRelateTags, sortType]);
-  function excludeTags(
-    from: groupByResult<{
-      tag: string;
-      type: number;
-    }>[],
-  ) {
-    const tagsExclude = (getPref("tags-exclude") as string) || "";
-    const rs = str2RegExps(tagsExclude);
-    return from.filter((f) => !rs.some((s) => s.test(f.key)));
-  }
   useEffect(() => {
+    //输入查询的控制
     async function search() {
       let searchResult = relateTags;
       if (searchTag) {
@@ -210,11 +240,7 @@ export function PopupRoot({
     }
     search();
   }, [searchTag, relateTags, showTagsLength, sortType]);
-
-  // ztoolkit.log("ids", params.ids)
-  const [autoCloseSeconds, setAutoCloseSeconds] = useState(params.ids ? getPrefAs("autoCloseSeconds", 15) : -1); //只在倒计时时间
   const timeRef = useRef<NodeJS.Timeout>(); //设置延时器
-
   //倒计时
   useEffect(() => {
     //如果设置倒计时且倒计时不为0
@@ -231,54 +257,6 @@ export function PopupRoot({
       clearTimeout(timeRef.current);
     };
   }, [autoCloseSeconds]);
-
-  const tagStyle = {
-    marginLeft: buttonMarginLeftRight + "px",
-    marginRight: buttonMarginLeftRight + "px",
-    marginTop: buttonMarginTopBottom + "px",
-    marginBottom: buttonMarginTopBottom + "px",
-    paddingLeft: buttonPaddingLeftRight + "px",
-    paddingRight: buttonPaddingLeftRight + "px",
-    paddingTop: buttonPaddingTopBottom + "px",
-    paddingBottom: buttonPaddingTopBottom + "px",
-    borderRadius: buttonBorderRadius + "px",
-    fontSize: fontSize + "px",
-    lineHeight: lineHeight,
-    cursor: "default",
-    ":hover": {
-      marginTop: "20px",
-    },
-  };
-  const configItemStyle = { display: "inline-block", margin: "0 5px" };
-  function inputWidth(searchTag: string) {
-    return {
-      width: `${Math.min(searchTag.length + (searchTag.match(/[\u4E00-\u9FA5]/g) || "").length + 3)}ch`,
-      minWidth: "3ch",
-      maxWidth: "100%",
-    };
-  }
-
-  function handleInput<T>(prefName: string, setStateFunc: (value: React.SetStateAction<T>) => void) {
-    return (e: React.ChangeEvent<HTMLInputElement>) => {
-      setPref(prefName, e.target.value);
-      setStateFunc(e.target.value as T);
-    };
-  }
-
-  function handleInputNumber(prefName: string, setStateFunc: (value: React.SetStateAction<number>) => void) {
-    return (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (e.target.value) {
-        setPref(prefName, e.target.valueAsNumber);
-        setStateFunc(e.target.valueAsNumber);
-      }
-    };
-  }
-  const [isPopoverOpen, setIsPopoverOpen] = useState(true);
-  // const parentElement = doc.firstChild as HTMLElement;
-  ztoolkit.log(doc, reader);
-  const tabDiv = Zotero_Tabs.deck.querySelector("#" + Zotero_Tabs.selectedID) as HTMLDivElement;
-  const [bgColor, setBgColor] = useState(getPrefAs("bgColor", "#fff"));
-  const sp = (tabDiv.querySelector("browser") as HTMLIFrameElement).contentDocument?.querySelector("#reader-ui ") as HTMLDivElement;
   useEffect(() => {
     const q = (
       (tabDiv.querySelector("browser") as HTMLIFrameElement)?.contentDocument?.querySelector("#primary-view iframe") as HTMLIFrameElement
@@ -292,20 +270,6 @@ export function PopupRoot({
 
     ztoolkit.log("scroll ???", q);
   }, []);
-
-  // const react_popover_root = tabDiv.querySelector(".react_popover_root") as HTMLDivElement || ztoolkit.UI.appendElement({
-  //   tag: "div",
-  //   styles: { width: "calc(100% - 80px)", height: "calc(100% - 100px)", position: "fixed", left: "40px", top: "80px", zIndex: "0", background: "transparent", border: "1px solid black" },
-  //   classList: ["react_popover_root"],
-  // }, tabDiv)
-
-  const a = (tabDiv.querySelector(".reader") as HTMLIFrameElement)?.contentDocument?.querySelector(
-    "#split-view #primary-view",
-  ) as HTMLDivElement;
-
-  const parentElement = tabDiv;
-  const boundaryElement = tabDiv;
-  if (isDebug()) boundaryElement.style.border = "1px solid red";
   // const c = ztoolkit.UI.appendElement({ tag: "div" }, root) as HTMLDivElement
   //如果没有触发关闭的话，需要通过监控selection-popup的removed事件
   useEffect(() => {
@@ -320,24 +284,12 @@ export function PopupRoot({
         }
       }
     });
-    observer.observe(sp, { childList: true, subtree: true });
+    observer.observe(readerUiDiv, { childList: true, subtree: true });
     return () => {
       observer.disconnect();
     };
   }, []);
-  const [pPadding, setPPadding] = useState(getPrefAs("pPadding", 0));
-  const [pBoundaryInset, setPBoundaryInset] = useState(getPrefAs("pBoundaryInset", 40));
-  const [pArrowSize, setPArrowSize] = useState(getPrefAs("pArrowSize", 0));
-  const [pPositions, updatePPositions] = useImmer(getPrefAs("pPositions", "bottom,left,top,right").split(",") as PopoverPosition[]);
 
-  const [bAutoFocus, setBAutoFocus] = useState(getPrefAs("bAutoFocus", false));
-  const [pFixedContentLocationLeft, setPFixedContentLocationLeft] = useState(getPrefAs("pFixedContentLocationLeft", 0));
-  const [pFixedContentLocationTop, setPFixedContentLocationTop] = useState(getPrefAs("pFixedContentLocationTop", 0));
-  // const popSize = useSize(selectionPopup)
-  const [selectionPopupSize, setSelectionPopupSize] = useState({
-    width: 0,
-    height: 0,
-  });
   useEffect(() => {
     if (params.ids) return;
     const selectionPopup = (tabDiv.querySelector("browser") as HTMLIFrameElement).contentDocument?.querySelector(
@@ -360,16 +312,12 @@ export function PopupRoot({
       width: selectionPopup.clientWidth,
       height: selectionPopup.clientHeight,
     });
-
     return () => resizeObserver.disconnect();
   }, []);
-
   //加载默认值
   // useEffect(() => {
   //   setPBoundaryInset(getPrefAs("pBoundaryInset", 40));
   // }, []);
-
-  const refContentDiv = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const c = refContentDiv.current;
     if (!c) return;
@@ -412,76 +360,11 @@ export function PopupRoot({
       boundaryElement.getBoundingClientRect(),
     );
   }, [displayTags]);
+  const refContentDiv = useRef<HTMLDivElement>(null);
   const refPopover = useRef<HTMLDivElement>(null);
   const refPopoverDiv = useRef<HTMLDivElement>(null);
-  const [configName, setConfigName] = useState(getPref("configName"));
-  function selectConfig(config: Config) {
-    // setShowConfig(false);
-    setPref("showConfig", false);
-    setConfigName(config.configName);
-    setPref("windowType", false);
-    setWindowType(config.windowType);
-    setPref("isCtrlAdd", false);
-    setIsCtrlAdd(config.isCtrlAdd);
-    setPref("configName", config.configName);
-    setBgColor(config.bgColor);
-    setPref("bgColor", config.bgColor);
-    setDivMaxWidth(config.divMaxWidth);
-    setPref("divMaxWidth", config.divMaxWidth);
-    setAutoCloseSeconds(config.autoCloseSeconds);
-    setPref("autoCloseSeconds", config.autoCloseSeconds);
-    // setPFixedContentLocation(config.pFixedContentLocation);
-    // setPref("pFixedContentLocation", config.pFixedContentLocation);
-    // setPSingleWindow(config.pSingleWindow);
-    // setPref("pSingleWindow", config.pSingleWindow);
-    setPFixedContentLocationLeft(config.pFixedContentLocationLeft);
-    setPref("pFixedContentLocationLeft", config.pFixedContentLocationLeft);
-    setPFixedContentLocationTop(config.pFixedContentLocationTop);
-    setPref("pFixedContentLocationTop", config.pFixedContentLocationTop);
+  const clickMeButtonRef = React.useRef<HTMLElement | null>(null);
 
-    setPBoundaryInset(config.pBoundaryInset);
-    setPref("pBoundaryInset", config.pBoundaryInset);
-
-    setPArrowSize(config.pArrowSize);
-    setPref("pArrowSize", config.pArrowSize);
-
-    updatePPositions((pPositions) => config.pPositions);
-    setPref("pPositions", config.pPositions);
-
-    setShowSelectedPopupColorsTag(config.isShowSelectedPopupColorsTag);
-    setPref("isShowSelectedPopupColorsTag", config.isShowSelectedPopupColorsTag);
-
-    setShowSelectedPopupMatchTag(config.isShowSelectedPopupMatchTag);
-    setPref("isShowSelectedPopupMatchTag", config.isShowSelectedPopupMatchTag);
-
-    setShowTagsLength(config.showTagsLength);
-    setPref("showTagsLength", config.showTagsLength);
-
-    setFontSize(config.fontSize);
-    setPref("fontSize", config.fontSize);
-
-    setLineHeight(config.lineHeight);
-    setPref("lineHeight", config.lineHeight);
-
-    setButtonMarginTopBottom(config.buttonMarginTopBottom);
-    setPref("buttonMarginTopBottom", config.buttonMarginTopBottom);
-
-    setButtonMarginLeftRight(config.buttonMarginLeftRight);
-    setPref("buttonMarginLeftRight", config.buttonMarginLeftRight);
-
-    setButtonPaddingTopBottom(config.buttonPaddingTopBottom);
-    setPref("buttonPaddingTopBottom", config.buttonPaddingTopBottom);
-
-    setButtonPaddingLeftRight(config.buttonPaddingLeftRight);
-    setPref("buttonPaddingLeftRight", config.buttonPaddingLeftRight);
-
-    setButtonBorderRadius(config.buttonBorderRadius);
-    setPref("buttonBorderRadius", config.buttonBorderRadius);
-
-    setSortType(config.sortType);
-    setPref("sortType", config.sortType);
-    // setTimeout(() => setShowConfig(true));
-  }
   const vars = [
     windowType,
     isCtrlAdd,
@@ -671,7 +554,7 @@ export function PopupRoot({
                   />
                   px。
                 </span>
-                {windowType in ["固定位置", "浮动弹出框"] && (
+                {windowType != "跟随" && (
                   <span style={configItemStyle}>
                     最大宽度:
                     <input
@@ -795,7 +678,7 @@ export function PopupRoot({
                       }}
                     />
                   </span>
-                  <span style={configItemStyle}>
+                  {/*已取消 <span style={configItemStyle}>
                     三角大小:
                     <input
                       type="number"
@@ -810,8 +693,8 @@ export function PopupRoot({
                           setPArrowSize(e.currentTarget.valueAsNumber);
                         }
                       }}
-                    />{" "}
-                  </span>
+                    />
+                  </span> */}
                   <span style={configItemStyle}>
                     优先默认位置:
                     {("bottom,left,top,right".split(",") as PopoverPosition[]).sort(sortFixed(pPositions)).map((a, i) => (
@@ -1081,7 +964,7 @@ export function PopupRoot({
       <div
         ref={refContentDiv}
         style={{
-          maxWidth: (windowType == "跟随翻译窗口" ? (selectionPopupSize.width - 16) : divMaxWidth) + "px",
+          maxWidth: (windowType == "跟随" ? selectionPopupSize.width - 16 : divMaxWidth) + "px",
           maxHeight: divMaxHeight + "px",
           overflowY: "scroll",
           background: "#f00",
@@ -1207,7 +1090,7 @@ export function PopupRoot({
                       onClick={(e) => {
                         const isAdd = e.ctrlKey;
                         const cTag = a.tag;
-                        addOrSaveTags(isAdd, cTag);
+                        ctrlAddOrSaveTags(isAdd, cTag);
                       }}
                     >
                       {a.tag}
@@ -1250,7 +1133,7 @@ export function PopupRoot({
                     ztoolkit.log("Enter保存", searchTag, e, params);
                     const isAdd = e.ctrlKey;
                     const cTag = searchTag;
-                    addOrSaveTags(isAdd, cTag);
+                    ctrlAddOrSaveTags(isAdd, cTag);
                   }
                   if (e.code == "Escape") {
                     ztoolkit.log("关闭弹出框", e, params);
@@ -1290,19 +1173,19 @@ export function PopupRoot({
                     if (isShowConfig) return false;
                     const isAdd = e.ctrlKey;
                     const cTag = tag.key;
-                    addOrSaveTags(isAdd, cTag);
+                    ctrlAddOrSaveTags(isAdd, cTag);
                     return false;
                   }}
-                // onMouseDown={(e) => {
-                //   e.preventDefault();
-                //   ztoolkit.log("onMouseDown 复制", e)
-                //   return false
-                // }}
-                // onContextMenu={e => {
-                //   e.preventDefault();
-                //   ztoolkit.log("onContextMenu 复制", tag.key)
-                //   return false
-                // }}
+                  // onMouseDown={(e) => {
+                  //   e.preventDefault();
+                  //   ztoolkit.log("onMouseDown 复制", e)
+                  //   return false
+                  // }}
+                  // onContextMenu={e => {
+                  //   e.preventDefault();
+                  //   ztoolkit.log("onContextMenu 复制", tag.key)
+                  //   return false
+                  // }}
                 >
                   <span>[{tag.values.length}]</span>
                   <span>{tag.key}</span>
@@ -1377,83 +1260,76 @@ export function PopupRoot({
   );
   const handleConfigAndContent = React.useCallback(
     (popoverState: PopoverState) => (
-      <ArrowContainer // if you'd like an arrow, you can import the ArrowContainer!
-        {...popoverState}
-        // position={popoverState.position}
-        // childRect={popoverState.childRect}
-        // popoverRect={popoverState.popoverRect}
-        arrowColor={"#aaaaaa"}
-        arrowSize={pArrowSize}
-        arrowStyle={{
-          opacity: 0.9,
-          marginTop: "42px",
-        }}
-      >
-        <>
-          {handleConfigDiv()}
-          {handleContentDiv()}
-        </>
-      </ArrowContainer> //ArrowContainer
+      // <ArrowContainer // if you'd like an arrow, you can import the ArrowContainer!
+      //   {...popoverState}
+      //   // position={popoverState.position}
+      //   // childRect={popoverState.childRect}
+      //   // popoverRect={popoverState.popoverRect}
+      //   arrowColor={"#aaaaaa"}
+      //   arrowSize={pArrowSize}
+      //   arrowStyle={{
+      //     opacity: 0.9,
+      //     marginTop: "42px",
+      //   }}
+      // >
+      <>
+        {handleConfigDiv()}
+        {handleContentDiv()}
+      </>
+      // </ArrowContainer> //ArrowContainer
     ),
     vars,
   );
-  const clickMeButtonRef = React.useRef<HTMLElement | null>(null);
-  {
-    // if (!pSingleWindow) {
-    //   return <>{handleContentDiv()}</>;
-    // }
-    return (
-      <>
-        {/* {JSON.stringify(vars)} */}
-        {windowType == "跟随翻译窗口" && handleContentDiv()}
-        <Popover
-          parentElement={parentElement}
-          boundaryElement={boundaryElement}
-          isOpen={isPopoverOpen}
-          positions={pPositions as any}
-          reposition={true}
-          padding={pPadding}
-          ref={refPopover}
-          boundaryInset={pBoundaryInset}
-          transformMode={windowType == "固定位置" || params.ids ? "absolute" : "relative"}
-          transform={
-            windowType == "固定位置" || params.ids
-              ? { left: pFixedContentLocationLeft ?? 0, top: pFixedContentLocationTop ?? 0 }
-              : undefined
-          }
-          align="start"
-          onClickOutside={(e) => {
-            ztoolkit.log("onClickOutside", e);
-            // setIsPopoverOpen(false)
-            if (!doc.querySelector(".view-popup.selection-popup")?.contains(e.target as HTMLElement)) {
-              setIsPopoverOpen(false);
-            }
-          }}
-          // ref={clickMeButtonRef} // if you'd like a ref to your popover's child, you can grab one here
-          content={windowType == "跟随翻译窗口" ? handleConfigDiv : handleConfigAndContent}
-          containerStyle={{
-            marginTop: "42px",
-          }}
-        >
-          <div
-            ref={refPopoverDiv}
-            className="popoverHolder"
-            style={{
-              width: "100%",
-              // width: "600px",
-              position: "absolute",
-              height: "1px", // (selectionPopupSize?.height || 120) + "px",
-              top: "0",
-              // background: "#f00", opacity: "0",
-              zIndex: "-1",
-            }}
-          ></div>
-        </Popover>
-      </>
-    );
-  }
 
-  function addOrSaveTags(onlyAdd: boolean, cTag: string) {
+  return (
+    <>
+      {/* {JSON.stringify(vars)} */}
+      {windowType == "跟随" && handleContentDiv()}
+      <Popover
+        parentElement={parentElement}
+        boundaryElement={boundaryElement}
+        isOpen={isPopoverOpen}
+        positions={pPositions as any}
+        reposition={true}
+        padding={pPadding}
+        ref={refPopover}
+        boundaryInset={pBoundaryInset}
+        transformMode={windowType == "固定位置" || params.ids ? "absolute" : "relative"}
+        transform={
+          windowType == "固定位置" || params.ids ? { left: pFixedContentLocationLeft ?? 0, top: pFixedContentLocationTop ?? 0 } : undefined
+        }
+        align="start"
+        onClickOutside={(e) => {
+          ztoolkit.log("onClickOutside", e);
+          // setIsPopoverOpen(false)
+          if (!doc.querySelector(".view-popup.selection-popup")?.contains(e.target as HTMLElement)) {
+            setIsPopoverOpen(false);
+          }
+        }}
+        // ref={clickMeButtonRef} // if you'd like a ref to your popover's child, you can grab one here
+        content={windowType == "跟随" ? handleConfigDiv : handleConfigAndContent}
+        containerStyle={{
+          marginTop: "42px",
+        }}
+      >
+        <div
+          ref={refPopoverDiv}
+          className="popoverHolder"
+          style={{
+            width: "100%",
+            // width: "600px",
+            position: "absolute",
+            height: (selectionPopupSize?.height || 120) + "px",
+            top: "0",
+            // background: "#f00", opacity: "0",
+            zIndex: "-1",
+          }}
+        ></div>
+      </Popover>
+    </>
+  );
+
+  function ctrlAddOrSaveTags(onlyAdd: boolean, cTag: string) {
     ztoolkit.log("isSaveTag", selectedTags, cTag, onlyAdd);
     if (onlyAdd) {
       updateSelectedTags(() => {
@@ -1474,5 +1350,93 @@ export function PopupRoot({
         root.remove();
       }
     }
+  }
+  function selectConfig(config: Config) {
+    // setShowConfig(false);
+    setPref("showConfig", false);
+    setConfigName(config.configName);
+    setPref("windowType", false);
+    setWindowType(config.windowType);
+    setPref("isCtrlAdd", false);
+    setIsCtrlAdd(config.isCtrlAdd);
+    setPref("configName", config.configName);
+    setBgColor(config.bgColor);
+    setPref("bgColor", config.bgColor);
+    setDivMaxWidth(config.divMaxWidth);
+    setPref("divMaxWidth", config.divMaxWidth);
+    setAutoCloseSeconds(config.autoCloseSeconds);
+    setPref("autoCloseSeconds", config.autoCloseSeconds);
+    // setPFixedContentLocation(config.pFixedContentLocation);
+    // setPref("pFixedContentLocation", config.pFixedContentLocation);
+    // setPSingleWindow(config.pSingleWindow);
+    // setPref("pSingleWindow", config.pSingleWindow);
+    setPFixedContentLocationLeft(config.pFixedContentLocationLeft);
+    setPref("pFixedContentLocationLeft", config.pFixedContentLocationLeft);
+    setPFixedContentLocationTop(config.pFixedContentLocationTop);
+    setPref("pFixedContentLocationTop", config.pFixedContentLocationTop);
+
+    setPBoundaryInset(config.pBoundaryInset);
+    setPref("pBoundaryInset", config.pBoundaryInset);
+
+    setPArrowSize(config.pArrowSize);
+    setPref("pArrowSize", config.pArrowSize);
+
+    updatePPositions((pPositions) => config.pPositions);
+    setPref("pPositions", config.pPositions);
+
+    setShowSelectedPopupColorsTag(config.isShowSelectedPopupColorsTag);
+    setPref("isShowSelectedPopupColorsTag", config.isShowSelectedPopupColorsTag);
+
+    setShowSelectedPopupMatchTag(config.isShowSelectedPopupMatchTag);
+    setPref("isShowSelectedPopupMatchTag", config.isShowSelectedPopupMatchTag);
+
+    setShowTagsLength(config.showTagsLength);
+    setPref("showTagsLength", config.showTagsLength);
+
+    setFontSize(config.fontSize);
+    setPref("fontSize", config.fontSize);
+
+    setLineHeight(config.lineHeight);
+    setPref("lineHeight", config.lineHeight);
+
+    setButtonMarginTopBottom(config.buttonMarginTopBottom);
+    setPref("buttonMarginTopBottom", config.buttonMarginTopBottom);
+
+    setButtonMarginLeftRight(config.buttonMarginLeftRight);
+    setPref("buttonMarginLeftRight", config.buttonMarginLeftRight);
+
+    setButtonPaddingTopBottom(config.buttonPaddingTopBottom);
+    setPref("buttonPaddingTopBottom", config.buttonPaddingTopBottom);
+
+    setButtonPaddingLeftRight(config.buttonPaddingLeftRight);
+    setPref("buttonPaddingLeftRight", config.buttonPaddingLeftRight);
+
+    setButtonBorderRadius(config.buttonBorderRadius);
+    setPref("buttonBorderRadius", config.buttonBorderRadius);
+
+    setSortType(config.sortType);
+    setPref("sortType", config.sortType);
+    // setTimeout(() => setShowConfig(true));
+  }
+  function inputWidth(searchTag: string) {
+    return {
+      width: `${Math.min(searchTag.length + (searchTag.match(/[\u4E00-\u9FA5]/g) || "").length + 3)}ch`,
+      minWidth: "3ch",
+      maxWidth: "100%",
+    };
+  }
+  function handleInput<T>(prefName: string, setStateFunc: (value: React.SetStateAction<T>) => void) {
+    return (e: React.ChangeEvent<HTMLInputElement>) => {
+      setPref(prefName, e.target.value);
+      setStateFunc(e.target.value as T);
+    };
+  }
+  function handleInputNumber(prefName: string, setStateFunc: (value: React.SetStateAction<number>) => void) {
+    return (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (e.target.value) {
+        setPref(prefName, e.target.valueAsNumber);
+        setStateFunc(e.target.valueAsNumber);
+      }
+    };
   }
 }

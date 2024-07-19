@@ -7,7 +7,7 @@ export type SortType = (typeof SortTypeArray)[number];
 export const ConfigTypeArray = ["草绿", "菊黄", "虾红", "跟随"] as const;
 export type ConfigType = (typeof ConfigTypeArray)[number];
 
-export const WindowTypeArray = ["跟随翻译窗口", "固定位置", "浮动弹出框"] as const;
+export const WindowTypeArray = ["跟随", "固定位置", "浮动弹出框"] as const;
 export type WindowType = (typeof WindowTypeArray)[number];
 
 export function loadDefaultConfig(configType: ConfigType) {
@@ -104,7 +104,7 @@ export function loadDefaultConfig(configType: ConfigType) {
   }
   if (configType == "跟随") {
     return (config = {
-      windowType: "跟随翻译窗口",
+      windowType: "跟随",
       isCtrlAdd: true,
       pSingleWindow: false,
       bAutoFocus: true,
