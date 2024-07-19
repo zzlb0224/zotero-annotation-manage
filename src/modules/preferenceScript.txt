@@ -565,9 +565,9 @@ function bindFixedColors(doc: Document) {
       ftcStr = FixedTagsColorsDefault;
     }
     if (ftcStr) {
-      setPref("fixed-tags-colors" + collectionKey, ftcStr);
+      setPref("FTC" + collectionKey, ftcStr);
     } else {
-      clearPref("fixed-tags-colors" + collectionKey);
+      clearPref("FTC" + collectionKey);
     }
     memFixedTagColors.remove();
     memFixedColor.remove();

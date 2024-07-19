@@ -35,6 +35,10 @@ function renderTextSelectionPopup(event: _ZoteroTypes.Reader.EventParams<"render
   // doc.documentElement.addEventListener("contextmenu", e => {
   //   ztoolkit.log("contextmenu", e.target)
   // })
+  const item = Zotero.Items.get(reader.itemID!).parentItem //ZoteroPane.getSelectedItems()[0]
+  Zotero.refs_item = item
+  //@ts-ignore IF11
+  ztoolkit.log(item, "显示IF", item.getField("IF"), item.getExtraField("IF"), ztoolkit.ExtraField.getExtraFields(item), ztoolkit.ExtraField.getExtraField(item, "IF"));
   Zotero.ref_reader = reader;
   Zotero.ref_reader_annotationManager = reader._annotationManager;
   Zotero.ref_reader_keyboardManager = reader._keyboardManager;
