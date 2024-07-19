@@ -1,6 +1,6 @@
 {
   "name": "zotero-annotation-manage",
-  "version": "0.6.96",
+  "version": "0.6.97",
   "description": "一个tag管理工具，方便自己管理annotation和tag，进行各种汇总统计，让批注不白做。",
   "config": {
     "addonName": "zotero-annotation-manage",
