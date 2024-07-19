@@ -116,7 +116,7 @@ export function PopupRoot({
 
   const [isPopoverOpen, setIsPopoverOpen] = useState(true);
   const [bgColor, setBgColor] = useState(getPrefAs("bgColor", "#fff"));
-  const [blockHightLightUnderLineToggle, setBlockHightLightUnderLineToggle] = useState(getPrefAs("blockHUToggle", false));//屏蔽 Zotero 高亮/下划线切换按钮
+  const [blockHightLightUnderLineToggle, setBlockHightLightUnderLineToggle] = useState(getPrefAs("blockHUToggle", false)); //屏蔽 Zotero 高亮/下划线切换按钮
   const [pPadding, setPPadding] = useState(getPrefAs("pPadding", 0));
   const [pBoundaryInset, setPBoundaryInset] = useState(getPrefAs("pBoundaryInset", 40));
   const [pArrowSize, setPArrowSize] = useState(getPrefAs("pArrowSize", 0));
@@ -146,9 +146,7 @@ export function PopupRoot({
   };
   const configItemStyle = { display: "inline-block", margin: "0 5px" };
   const tabDiv = Zotero_Tabs.deck.querySelector("#" + Zotero_Tabs.selectedID) as HTMLDivElement;
-  const readerUiDiv = (tabDiv.querySelector("browser") as HTMLIFrameElement).contentDocument?.querySelector(
-    "#reader-ui",
-  ) as HTMLDivElement;
+  const readerUiDiv = (tabDiv.querySelector("browser") as HTMLIFrameElement).contentDocument?.querySelector("#reader-ui") as HTMLDivElement;
   const primaryViewDiv = (tabDiv.querySelector(".reader") as HTMLIFrameElement)?.contentDocument?.querySelector(
     "#split-view #primary-view",
   ) as HTMLDivElement;
@@ -364,12 +362,12 @@ export function PopupRoot({
   }, [displayTags]);
 
   useEffect(() => {
-    const toolToggle = readerUiDiv?.querySelector(".selection-popup .tool-toggle") as HTMLElement | undefined
+    const toolToggle = readerUiDiv?.querySelector(".selection-popup .tool-toggle") as HTMLElement | undefined;
     if (toolToggle) {
       toolToggle.style.display = blockHightLightUnderLineToggle ? "none" : "";
       // ztoolkit.log("toolToggle", "blockHightLightUnderLineToggle", blockHightLightUnderLineToggle, toolToggle.style.display)
     }
-  }, [blockHightLightUnderLineToggle])
+  }, [blockHightLightUnderLineToggle]);
   const refContentDiv = useRef<HTMLDivElement>(null);
   const refPopover = useRef<HTMLDivElement>(null);
   const refPopoverDiv = useRef<HTMLDivElement>(null);
@@ -540,8 +538,8 @@ export function PopupRoot({
                   <input
                     type="checkbox"
                     defaultChecked={blockHightLightUnderLineToggle}
-                    onChange={handleInputBoolean("blockHUToggle", setBlockHightLightUnderLineToggle)} />
-
+                    onChange={handleInputBoolean("blockHUToggle", setBlockHightLightUnderLineToggle)}
+                  />
                   屏蔽 Zotero 高亮/下划线切换按钮
                 </label>
 
@@ -1195,16 +1193,16 @@ export function PopupRoot({
                     ctrlAddOrSaveTags(isAdd, cTag);
                     return false;
                   }}
-                // onMouseDown={(e) => {
-                //   e.preventDefault();
-                //   ztoolkit.log("onMouseDown 复制", e)
-                //   return false
-                // }}
-                // onContextMenu={e => {
-                //   e.preventDefault();
-                //   ztoolkit.log("onContextMenu 复制", tag.key)
-                //   return false
-                // }}
+                  // onMouseDown={(e) => {
+                  //   e.preventDefault();
+                  //   ztoolkit.log("onMouseDown 复制", e)
+                  //   return false
+                  // }}
+                  // onContextMenu={e => {
+                  //   e.preventDefault();
+                  //   ztoolkit.log("onContextMenu 复制", tag.key)
+                  //   return false
+                  // }}
                 >
                   <span>[{tag.values.length}]</span>
                   <span>{tag.key}</span>
