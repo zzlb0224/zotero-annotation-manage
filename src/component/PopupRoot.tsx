@@ -116,6 +116,7 @@ export function PopupRoot({
 
   const [isPopoverOpen, setIsPopoverOpen] = useState(true);
   const [bgColor, setBgColor] = useState(getPrefAs("bgColor", "#fff"));
+  const [blockHightLightUnderLineToggle, setBlockHightLightUnderLineToggle] = useState(getPrefAs("blockHUToggle", false));//屏蔽 Zotero 高亮/下划线切换按钮
   const [pPadding, setPPadding] = useState(getPrefAs("pPadding", 0));
   const [pBoundaryInset, setPBoundaryInset] = useState(getPrefAs("pBoundaryInset", 40));
   const [pArrowSize, setPArrowSize] = useState(getPrefAs("pArrowSize", 0));
@@ -146,7 +147,7 @@ export function PopupRoot({
   const configItemStyle = { display: "inline-block", margin: "0 5px" };
   const tabDiv = Zotero_Tabs.deck.querySelector("#" + Zotero_Tabs.selectedID) as HTMLDivElement;
   const readerUiDiv = (tabDiv.querySelector("browser") as HTMLIFrameElement).contentDocument?.querySelector(
-    "#reader-ui ",
+    "#reader-ui",
   ) as HTMLDivElement;
   const primaryViewDiv = (tabDiv.querySelector(".reader") as HTMLIFrameElement)?.contentDocument?.querySelector(
     "#split-view #primary-view",
@@ -270,6 +271,7 @@ export function PopupRoot({
 
     ztoolkit.log("scroll ???", q);
   }, []);
+
   // const c = ztoolkit.UI.appendElement({ tag: "div" }, root) as HTMLDivElement
   //如果没有触发关闭的话，需要通过监控selection-popup的removed事件
   useEffect(() => {
@@ -360,12 +362,21 @@ export function PopupRoot({
       boundaryElement.getBoundingClientRect(),
     );
   }, [displayTags]);
+
+  useEffect(() => {
+    const toolToggle = readerUiDiv?.querySelector(".selection-popup .tool-toggle") as HTMLElement | undefined
+    if (toolToggle) {
+      toolToggle.style.display = blockHightLightUnderLineToggle ? "none" : "";
+      // ztoolkit.log("toolToggle", "blockHightLightUnderLineToggle", blockHightLightUnderLineToggle, toolToggle.style.display)
+    }
+  }, [blockHightLightUnderLineToggle])
   const refContentDiv = useRef<HTMLDivElement>(null);
   const refPopover = useRef<HTMLDivElement>(null);
   const refPopoverDiv = useRef<HTMLDivElement>(null);
   const clickMeButtonRef = React.useRef<HTMLElement | null>(null);
 
   const vars = [
+    blockHightLightUnderLineToggle,
     windowType,
     isCtrlAdd,
     selectedTags,
@@ -462,7 +473,6 @@ export function PopupRoot({
                       setPref("bgColor", e);
                     }}
                   >
-                    点击
                     <span
                       style={{
                         background: bgColor,
@@ -525,6 +535,15 @@ export function PopupRoot({
                   输入框自动获得焦点
                 </label>
                 {/* <span>当前配置：{configName}</span> */}
+
+                <label>
+                  <input
+                    type="checkbox"
+                    defaultChecked={blockHightLightUnderLineToggle}
+                    onChange={handleInputBoolean("blockHUToggle", setBlockHightLightUnderLineToggle)} />
+
+                  屏蔽 Zotero 高亮/下划线切换按钮
+                </label>
 
                 <div>
                   窗口显示样式：
@@ -1176,16 +1195,16 @@ export function PopupRoot({
                     ctrlAddOrSaveTags(isAdd, cTag);
                     return false;
                   }}
-                  // onMouseDown={(e) => {
-                  //   e.preventDefault();
-                  //   ztoolkit.log("onMouseDown 复制", e)
-                  //   return false
-                  // }}
-                  // onContextMenu={e => {
-                  //   e.preventDefault();
-                  //   ztoolkit.log("onContextMenu 复制", tag.key)
-                  //   return false
-                  // }}
+                // onMouseDown={(e) => {
+                //   e.preventDefault();
+                //   ztoolkit.log("onMouseDown 复制", e)
+                //   return false
+                // }}
+                // onContextMenu={e => {
+                //   e.preventDefault();
+                //   ztoolkit.log("onContextMenu 复制", tag.key)
+                //   return false
+                // }}
                 >
                   <span>[{tag.values.length}]</span>
                   <span>{tag.key}</span>
@@ -1437,6 +1456,12 @@ export function PopupRoot({
         setPref(prefName, e.target.valueAsNumber);
         setStateFunc(e.target.valueAsNumber);
       }
+    };
+  }
+  function handleInputBoolean(prefName: string, setStateFunc: (value: React.SetStateAction<boolean>) => void) {
+    return (e: React.ChangeEvent<HTMLInputElement>) => {
+      setPref(prefName, e.currentTarget.checked);
+      setStateFunc(e.currentTarget.checked);
     };
   }
 }
