@@ -37,15 +37,17 @@ function renderTextSelectionPopup(event: _ZoteroTypes.Reader.EventParams<"render
   // })
   const item = Zotero.Items.get(reader.itemID!).parentItem; //ZoteroPane.getSelectedItems()[0]
   Zotero.refs_item = item;
-  //@ts-ignore IF11
-  ztoolkit.log(
-    item,
-    "显示IF",
-    item.getField("IF"),
-    item.getExtraField("IF"),
-    ztoolkit.ExtraField.getExtraFields(item),
-    ztoolkit.ExtraField.getExtraField(item, "IF"),
-  );
+  if (item) {
+    //@ts-ignore IF11
+    ztoolkit.log(
+      item,
+      "显示IF",
+      item.getField("extra"),
+      item.getExtraField("IF"),
+      ztoolkit.ExtraField.getExtraFields(item),
+      ztoolkit.ExtraField.getExtraField(item, "IF"),
+    );
+  }
   Zotero.ref_reader = reader;
   Zotero.ref_reader_annotationManager = reader._annotationManager;
   Zotero.ref_reader_keyboardManager = reader._keyboardManager;
