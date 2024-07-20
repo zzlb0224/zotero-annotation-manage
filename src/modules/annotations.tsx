@@ -33,7 +33,11 @@ function renderTextSelectionPopup(event: _ZoteroTypes.Reader.EventParams<"render
   addCssFile(ZoteroPane.document, filename, true);
   addCssFile(reader?._window?.document, filename, true);
   // doc.documentElement.addEventListener("contextmenu", e => {
-  //   ztoolkit.log("contextmenu", e.target)
+  //   ztoolkit.log("右键contextmenu", e.buttons, e.button, e.currentTarget, e)
+  // })
+
+  // doc.documentElement.addEventListener("click", e => {
+  //   ztoolkit.log("右键click", e.buttons, e.button, e.currentTarget, e)
   // })
   const item = Zotero.Items.get(reader.itemID!).parentItem; //ZoteroPane.getSelectedItems()[0]
   Zotero.refs_item = item;

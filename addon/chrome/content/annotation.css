@@ -33,3 +33,44 @@
   box-shadow: 0px 0px 8px #9e0909;
   /* border: 2px solid green; */
 }
+
+
+/* css 代码 */
+.input-box {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  position: relative;
+  border: 1px solid #000;
+  border-radius: 5px;
+  height: 40px;
+  min-width: 50px;
+  /* font family is very important */
+  font-family: Arial, 'microsoft yahei';
+  font-size: 14px;
+}
+
+.input-box__label {
+  display: inline-block;
+  font-size: inherit;
+  line-height: normal;
+  visibility: hidden;
+  font-family: inherit;
+  padding: 0 10px;
+}
+
+.input-box__input {
+  box-sizing: border-box;
+  position: absolute;
+  display: inline;
+  font-size: inherit;
+  font-family: inherit;
+  line-height: normal;
+  border-radius: inherit;
+  height: 100%;
+  width: 100%;
+  outline: 0;
+  border: 0;
+  margin: 0;
+  padding: 0 10px;
+}

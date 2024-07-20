@@ -447,7 +447,7 @@ export function PopupRoot({
                   {ConfigTypeArray.map((a) => loadDefaultConfig(a)).map(
                     (config) =>
                       config && (
-                        <span
+                        <input type="button"
                           style={{
                             ...tagStyle,
                             background: config.bgColor,
@@ -457,9 +457,8 @@ export function PopupRoot({
                           onClick={() => {
                             selectConfig(config);
                           }}
-                        >
-                          {config.configName}
-                        </span>
+                          defaultValue={config.configName}
+                        />
                       ),
                   )}
                 </span>
@@ -1020,7 +1019,7 @@ export function PopupRoot({
                 alignItems: "center",
               }}
             >
-              <span
+              <input type='button'
                 style={{
                   ...tagStyle,
                   background: isShowConfig ? "#00990030" : "#99000030",
@@ -1029,9 +1028,8 @@ export function PopupRoot({
                   setPref("showConfig", !isShowConfig);
                   setShowConfig(!isShowConfig);
                 }}
-              >
-                设置
-              </span>
+                defaultValue="设置"
+              />
               {existTags.length > 0 && (
                 <span
                   style={{
@@ -1161,6 +1159,14 @@ export function PopupRoot({
                   }
                   ztoolkit.log("按键记录", e);
                 }}
+                onContextMenu={e => {
+                  e.preventDefault();
+                  new window.Clipboard().readText().then((text) => {
+                    ztoolkit.log("onContextMenu 复制", text);
+                    (e.currentTarget as HTMLInputElement).value = text;
+                  })
+                  return false
+                }}
               />
               {/* <span style={tagStyle}>
                           固定标签来自【{currentPosition}】
@@ -1171,10 +1177,11 @@ export function PopupRoot({
               <span style={tagStyle}>
                 {displayTags.length}/{searchResultLength}:
               </span>
-              {displayTags.map((tag) => (
+              {displayTags.filter(() => false).map((tag) => (
                 <span
                   key={tag.key}
-                  tabIndex={0}
+                  // tabIndex={0}
+
                   style={{
                     ...tagStyle,
                     whiteSpace: "nowrap",
@@ -1184,6 +1191,17 @@ export function PopupRoot({
                     // borderRadius: "3px",
                   }}
                   className="tagButton"
+                  // onClick={(e) => {
+                  //   ztoolkit.log("右键 onClick", e.ctrlKey, e.buttons, e.button, e)
+                  // }}
+                  // onContextMenuCapture={e => {
+                  //   ztoolkit.log("右键 onContextMenuCapture", e.ctrlKey, e.buttons, e.button, e)
+
+                  // }}
+                  // onContextMenu={e => {
+                  //   ztoolkit.log("右键 onContextMenu", e.ctrlKey, e.buttons, e.button, e)
+
+                  // }}
                   onClick={(e) => {
                     e.preventDefault();
                     ztoolkit.log("onClick 添加", e);
@@ -1193,16 +1211,20 @@ export function PopupRoot({
                     ctrlAddOrSaveTags(isAdd, cTag);
                     return false;
                   }}
-                  // onMouseDown={(e) => {
-                  //   e.preventDefault();
-                  //   ztoolkit.log("onMouseDown 复制", e)
-                  //   return false
-                  // }}
-                  // onContextMenu={e => {
-                  //   e.preventDefault();
-                  //   ztoolkit.log("onContextMenu 复制", tag.key)
-                  //   return false
-                  // }}
+                // onMouseDown={(e) => {
+                //   e.preventDefault();
+                //   ztoolkit.log("onMouseDown 复制", e)
+                //   return false
+                // }}
+                // onContextMenu={e => {
+                //   e.preventDefault();
+                //   ztoolkit.log("onContextMenu 复制", tag.key)
+                //   new window.Clipboard().readText().then((text) => {
+                //     ztoolkit.log("onContextMenu 复制", tag.key, text);
+                //     (e.currentTarget as HTMLInputElement).value = text;
+                //   })
+                //   return false
+                // }}
                 >
                   <span>[{tag.values.length}]</span>
                   <span>{tag.key}</span>
@@ -1268,6 +1290,33 @@ export function PopupRoot({
                   )}
                 </span>
               ))}
+
+              {displayTags.map((tag) => (
+                <input type="button" tabIndex={-1} defaultValue={`[${tag.values.length}]${tag.key}`}
+                  onContextMenu={e => {
+                    e.preventDefault();
+                    new ztoolkit.Clipboard().addText(tag.key).copy()
+                    new ztoolkit.ProgressWindow(`已复制${tag.key}`, { closeOnClick: true, closeTime: 1000 }).createLine({ text: tag.key }).show()
+                    return false
+                  }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    ztoolkit.log("onClick 添加", e);
+                    if (isShowConfig) return false;
+                    const isAdd = e.ctrlKey;
+                    const cTag = tag.key;
+                    ctrlAddOrSaveTags(isAdd, cTag);
+                    return false;
+                  }}
+                  style={{
+                    ...tagStyle,
+                    backgroundColor: tag.color,
+                  }}
+                  className="tagButton"
+                />
+              ))}
+
+
             </span>
           </div>
         </div>
@@ -1371,16 +1420,22 @@ export function PopupRoot({
   function selectConfig(config: Config) {
     // setShowConfig(false);
     setPref("showConfig", false);
-    setConfigName(config.configName);
-    setPref("windowType", false);
+
+    setPref("windowType", config.windowType);
     setWindowType(config.windowType);
+
     setPref("isCtrlAdd", false);
     setIsCtrlAdd(config.isCtrlAdd);
+
+    setConfigName(config.configName);
     setPref("configName", config.configName);
+
     setBgColor(config.bgColor);
     setPref("bgColor", config.bgColor);
+
     setDivMaxWidth(config.divMaxWidth);
     setPref("divMaxWidth", config.divMaxWidth);
+
     setAutoCloseSeconds(config.autoCloseSeconds);
     setPref("autoCloseSeconds", config.autoCloseSeconds);
     // setPFixedContentLocation(config.pFixedContentLocation);
@@ -1389,6 +1444,7 @@ export function PopupRoot({
     // setPref("pSingleWindow", config.pSingleWindow);
     setPFixedContentLocationLeft(config.pFixedContentLocationLeft);
     setPref("pFixedContentLocationLeft", config.pFixedContentLocationLeft);
+
     setPFixedContentLocationTop(config.pFixedContentLocationTop);
     setPref("pFixedContentLocationTop", config.pFixedContentLocationTop);
 
