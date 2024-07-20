@@ -39,7 +39,7 @@
     "react-dom": "^18.3.1",
     "react-tiny-popover": "github:zzlb0224/react-tiny-popover",
     "use-immer": "^0.10.0",
-    "zotero-plugin-toolkit": "^2.3.36"
+    "zotero-plugin-toolkit": "^2.3.37"
   },
   "devDependencies": {
     "@eslint/js": "^9.6.0",
