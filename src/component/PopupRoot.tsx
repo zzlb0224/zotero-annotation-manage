@@ -84,15 +84,15 @@ export function PopupRoot({
   const [divMaxHeight, setDivMaxHeight] = useState(getPrefAs("divMaxHeight", 600));
   const [fontSize, setFontSize] = useState(getPrefAs("fontSize", 17));
   const [lineHeight, setLineHeight] = useState(getPrefAs("lineHeight", "1.45"));
-  const [buttonMarginTopBottom, setButtonMarginTopBottom] = useState(getPrefAs("buttonMarginTopBottom", 0));
+  const [btnMarginTB, setbtnMarginTB] = useState(getPrefAs("btnMarginTB", 0));
   const [sortType, setSortType] = useState<SortType>(getPrefAs("sortType", "最近使用"));
-  const [buttonMarginLeftRight, setButtonMarginLeftRight] = useState(getPrefAs("buttonMarginLeftRight", 0));
-  const [buttonPaddingTopBottom, setButtonPaddingTopBottom] = useState(getPrefAs("buttonPaddingTopBottom", 0));
-  const [buttonPaddingLeftRight, setButtonPaddingLeftRight] = useState(getPrefAs("buttonPaddingLeftRight", 0));
+  const [btnMarginLR, setbtnMarginLR] = useState(getPrefAs("btnMarginLR", 0));
+  const [btnPaddingTB, setbtnPaddingTB] = useState(getPrefAs("btnPaddingTB", 0));
+  const [btnPaddingLR, setbtnPaddingLR] = useState(getPrefAs("btnPaddingLR", 0));
   const [buttonBorderRadius, setButtonBorderRadius] = useState(getPrefAs("buttonBorderRadius", 5));
   const [relateItemShowAll, setRelateItemShowAll] = useState(getPrefAs("relateItemShowAll", false));
   const [isCtrlAdd, setIsCtrlAdd] = useState(getPrefAs("isCtrlAdd", false));
-  const [relateItemShowRelateTags, setRelateItemShowRelateTags] = useState(getPrefAs("relateItemShowRelateTags", false));
+  const [rItemShowRelateTags, setrItemShowRelateTags] = useState(getPrefAs("rItemShowRelateTags", false));
   // const [relateItemSort, setRelateItemSort] = useState(getPrefAs("relateItemSort", "2"));
   const [existAnnotations, updateExistAnnotations] = useImmer([] as Zotero.Item[]);
   const [existTags, updateExistTags] = useImmer([] as string[]);
@@ -122,21 +122,22 @@ export function PopupRoot({
   const [pArrowSize, setPArrowSize] = useState(getPrefAs("pArrowSize", 0));
   const [pPositions, updatePPositions] = useImmer(getPrefAs("pPositions", "bottom,left,top,right").split(",") as PopoverPosition[]);
   const [bAutoFocus, setBAutoFocus] = useState(getPrefAs("bAutoFocus", false));
-  const [pFixedContentLocationLeft, setPFixedContentLocationLeft] = useState(getPrefAs("pFixedContentLocationLeft", 0));
-  const [pFixedContentLocationTop, setPFixedContentLocationTop] = useState(getPrefAs("pFixedContentLocationTop", 0));
+  const [pFCLLeft, setFCLLeft] = useState(getPrefAs("pFCLLeft", 0));
+  const [nFCLTop, setFCLTop] = useState(getPrefAs("nFCLTop", 0));
   const [selectionPopupSize, setSelectionPopupSize] = useState({ width: 0, height: 0 });
   const [configName, setConfigName] = useState(getPref("configName"));
 
   const tagStyle = {
-    marginLeft: buttonMarginLeftRight + "px",
-    marginRight: buttonMarginLeftRight + "px",
-    marginTop: buttonMarginTopBottom + "px",
-    marginBottom: buttonMarginTopBottom + "px",
-    paddingLeft: buttonPaddingLeftRight + "px",
-    paddingRight: buttonPaddingLeftRight + "px",
-    paddingTop: buttonPaddingTopBottom + "px",
-    paddingBottom: buttonPaddingTopBottom + "px",
+    marginLeft: btnMarginLR + "px",
+    marginRight: btnMarginLR + "px",
+    marginTop: btnMarginTB + "px",
+    marginBottom: btnMarginTB + "px",
+    paddingLeft: btnPaddingLR + "px",
+    paddingRight: btnPaddingLR + "px",
+    paddingTop: btnPaddingTB + "px",
+    paddingBottom: btnPaddingTB + "px",
     borderRadius: buttonBorderRadius + "px",
+    border: "2px outset ButtonBorder",
     fontSize: fontSize + "px",
     lineHeight: lineHeight,
     cursor: "default",
@@ -183,7 +184,7 @@ export function PopupRoot({
         if (rs.length > 0) relateTags = relateTags.filter((f) => !rs.some((s) => s.test(f.key)));
       }
 
-      // if (relateItemShowRelateTags)
+      // if (rItemShowRelateTags)
       groupByResultIncludeFixedTags(relateTags);
       if (sortType == "最近使用") {
         //2 固定标签 + 最近使用时间
@@ -205,7 +206,7 @@ export function PopupRoot({
       setRelateTags(relateTags);
     }
     loadData();
-  }, [relateItemShowAll, relateItemShowRelateTags, sortType]);
+  }, [relateItemShowAll, rItemShowRelateTags, sortType]);
   useEffect(() => {
     //输入查询的控制
     async function search() {
@@ -375,6 +376,9 @@ export function PopupRoot({
 
   const vars = [
     blockHightLightUnderLineToggle,
+    autoCloseSeconds,
+    existTags,
+    delTags,
     windowType,
     isCtrlAdd,
     selectedTags,
@@ -389,18 +393,18 @@ export function PopupRoot({
     displayTags,
     isShowConfig,
     configTab,
-    pFixedContentLocationLeft,
-    pFixedContentLocationTop,
+    pFCLLeft,
+    nFCLTop,
     divMaxWidth,
     pBoundaryInset,
     pArrowSize,
     showTagsLength,
     fontSize,
     lineHeight,
-    buttonMarginTopBottom,
-    buttonMarginLeftRight,
-    buttonPaddingTopBottom,
-    buttonPaddingLeftRight,
+    btnMarginTB,
+    btnMarginLR,
+    btnPaddingTB,
+    btnPaddingLR,
     sortType,
     divMaxHeight,
     buttonBorderRadius,
@@ -447,7 +451,7 @@ export function PopupRoot({
                   {ConfigTypeArray.map((a) => loadDefaultConfig(a)).map(
                     (config) =>
                       config && (
-                        <input type="button"
+                        <button className="btn"
                           style={{
                             ...tagStyle,
                             background: config.bgColor,
@@ -458,7 +462,8 @@ export function PopupRoot({
                             selectConfig(config);
                           }}
                           defaultValue={config.configName}
-                        />
+                        >{config.configName}
+                        </button>
                       ),
                   )}
                 </span>
@@ -570,26 +575,26 @@ export function PopupRoot({
                   />
                   px。
                 </span>
-                {windowType != "跟随" && (
-                  <span style={configItemStyle}>
-                    最大宽度:
-                    <input
-                      type="number"
-                      min={100}
-                      max={1200}
-                      step={10}
-                      defaultValue={divMaxWidth}
-                      style={inputWidth("zlb")}
-                      onInput={(e) => {
-                        if (e.currentTarget.value) {
-                          setPref("divMaxWidth", e.currentTarget.valueAsNumber);
-                          setDivMaxWidth(e.currentTarget.valueAsNumber);
-                        }
-                      }}
-                    />
-                    px。
-                  </span>
-                )}
+
+                <span style={configItemStyle}>
+                  最大宽度:
+                  <input
+                    type="number"
+                    min={100}
+                    max={1200}
+                    step={10}
+                    defaultValue={divMaxWidth}
+                    style={inputWidth("zlb")}
+                    onInput={(e) => {
+                      if (e.currentTarget.value) {
+                        setPref("divMaxWidth", e.currentTarget.valueAsNumber);
+                        setDivMaxWidth(e.currentTarget.valueAsNumber);
+                      }
+                    }}
+                  />
+                  px。
+                </span>
+
               </>
             )}
             {"固定位置" == configTab && (
@@ -614,11 +619,11 @@ export function PopupRoot({
                     step={10}
                     max={500}
                     style={inputWidth("zlb")}
-                    defaultValue={pFixedContentLocationLeft}
+                    defaultValue={pFCLLeft}
                     onInput={(e) => {
                       if (e.currentTarget.value) {
-                        setPref("pFixedContentLocationLeft", e.currentTarget.value);
-                        setPFixedContentLocationLeft(e.currentTarget.valueAsNumber);
+                        setPref("pFCLLeft", e.currentTarget.value);
+                        setFCLLeft(e.currentTarget.valueAsNumber);
                       }
                     }}
                   />
@@ -631,12 +636,9 @@ export function PopupRoot({
                     step={10}
                     max={1000}
                     style={inputWidth("zzlb")}
-                    defaultValue={pFixedContentLocationTop}
-                    onInput={(e) => {
-                      if (e.currentTarget.value) {
-                        setPFixedContentLocationTop(e.currentTarget.valueAsNumber);
-                      }
-                    }}
+                    defaultValue={nFCLTop}
+                    onInput={handleInputNumber("nFCLTop", setFCLTop)
+                    }
                   />
                 </span>
               </div>
@@ -851,12 +853,12 @@ export function PopupRoot({
                     min={-10}
                     max={200}
                     step={0.5}
-                    defaultValue={buttonMarginTopBottom}
+                    defaultValue={btnMarginTB}
                     style={inputWidth("lb")}
                     onInput={(e) => {
                       if (e.currentTarget.value) {
-                        setPref("buttonMarginTopBottom", e.currentTarget.valueAsNumber);
-                        setButtonMarginTopBottom(e.currentTarget.valueAsNumber);
+                        setPref("btnMarginTB", e.currentTarget.valueAsNumber);
+                        setbtnMarginTB(e.currentTarget.valueAsNumber);
                       }
                     }}
                   />
@@ -865,12 +867,12 @@ export function PopupRoot({
                     min={-10}
                     max={200}
                     step={0.5}
-                    defaultValue={buttonMarginLeftRight}
+                    defaultValue={btnMarginLR}
                     style={inputWidth("lb")}
                     onInput={(e) => {
                       if (e.currentTarget.value) {
-                        setPref("buttonMarginLeftRight", e.currentTarget.valueAsNumber);
-                        setButtonMarginLeftRight(e.currentTarget.valueAsNumber);
+                        setPref("btnMarginLR", e.currentTarget.valueAsNumber);
+                        setbtnMarginLR(e.currentTarget.valueAsNumber);
                       }
                     }}
                   />
@@ -882,12 +884,12 @@ export function PopupRoot({
                     min={-10}
                     max={200}
                     step={0.5}
-                    defaultValue={buttonPaddingTopBottom}
+                    defaultValue={btnPaddingTB}
                     style={inputWidth("lb")}
                     onInput={(e) => {
                       if (e.currentTarget.value) {
-                        setPref("buttonPaddingTopBottom", e.currentTarget.valueAsNumber);
-                        setButtonPaddingTopBottom(e.currentTarget.valueAsNumber);
+                        setPref("btnPaddingTB", e.currentTarget.valueAsNumber);
+                        setbtnPaddingTB(e.currentTarget.valueAsNumber);
                       }
                     }}
                   />
@@ -896,12 +898,12 @@ export function PopupRoot({
                     min={-10}
                     max={200}
                     step={0.5}
-                    defaultValue={buttonPaddingLeftRight}
+                    defaultValue={btnPaddingLR}
                     style={inputWidth("lb")}
                     onInput={(e) => {
                       if (e.currentTarget.value) {
-                        setPref("buttonPaddingLeftRight", e.currentTarget.valueAsNumber);
-                        setButtonPaddingLeftRight(e.currentTarget.valueAsNumber);
+                        setPref("btnPaddingLR", e.currentTarget.valueAsNumber);
+                        setbtnPaddingLR(e.currentTarget.valueAsNumber);
                       }
                     }}
                   />{" "}
@@ -980,7 +982,7 @@ export function PopupRoot({
       <div
         ref={refContentDiv}
         style={{
-          maxWidth: (windowType == "跟随" ? selectionPopupSize.width - 16 : divMaxWidth) + "px",
+          maxWidth: (windowType == "跟随" && !params.ids ? selectionPopupSize.width - 16 : divMaxWidth) + "px",
           maxHeight: divMaxHeight + "px",
           overflowY: "scroll",
           background: "#f00",
@@ -988,7 +990,7 @@ export function PopupRoot({
       >
         <div
           style={{
-            // marginTop: pFixedContentLocation || params.ids ? pFixedContentLocationTop + "px" : "unset",
+            // marginTop: pFixedContentLocation || params.ids ? nFCLTop + "px" : "unset",
             backgroundColor: bgColor,
             opacity: 1,
             whiteSpace: "break-spaces",
@@ -1019,7 +1021,7 @@ export function PopupRoot({
                 alignItems: "center",
               }}
             >
-              <input type='button'
+              <button className="btn"
                 style={{
                   ...tagStyle,
                   background: isShowConfig ? "#00990030" : "#99000030",
@@ -1029,7 +1031,7 @@ export function PopupRoot({
                   setShowConfig(!isShowConfig);
                 }}
                 defaultValue="设置"
-              />
+              >设置</button>
               {existTags.length > 0 && (
                 <span
                   style={{
@@ -1044,7 +1046,7 @@ export function PopupRoot({
                   {groupBy(existTags, (a) => a)
                     .sort(sortValuesLength)
                     .map((a) => (
-                      <span
+                      <button className="btn"
                         key={a.key}
                         style={{
                           ...tagStyle,
@@ -1066,13 +1068,13 @@ export function PopupRoot({
                       >
                         [{a.values.length}/{existAnnotations.length}]{a.key}
                         {delTags.includes(a.key) && <span style={{ background: "#990000", color: "#fff" }}>[待删除]</span>}
-                      </span>
+                      </button>
                     ))}
                 </span>
               )}
               {params.ids && (
                 <>
-                  <span
+                  <button className="btn"
                     style={{
                       ...tagStyle,
                       background: delTags.length > 0 ? "#990000" : "#009900",
@@ -1080,13 +1082,12 @@ export function PopupRoot({
                     }}
                     onClick={() => {
                       setIsPopoverOpen(false);
-
-                      saveAnnotationTags("", [], delTags, reader, params, doc);
+                      saveAnnotationTags("", selectedTags, delTags, reader, params, doc);
                       root?.remove();
                     }}
                   >
                     {delTags.length == 0 ? (autoCloseSeconds > 0 ? autoCloseSeconds + "s" : "点击") + "关闭" : "确认删除"}
-                  </span>
+                  </button>
                 </>
               )}
               {selectedTags.length > 0 && (
@@ -1292,7 +1293,8 @@ export function PopupRoot({
               ))}
 
               {displayTags.map((tag) => (
-                <input type="button" tabIndex={-1} defaultValue={`[${tag.values.length}]${tag.key}`}
+                <button
+                  className="btn tagButton" tabIndex={-1}
                   onContextMenu={e => {
                     e.preventDefault();
                     new ztoolkit.Clipboard().addText(tag.key).copy()
@@ -1312,8 +1314,7 @@ export function PopupRoot({
                     ...tagStyle,
                     backgroundColor: tag.color,
                   }}
-                  className="tagButton"
-                />
+                >[{tag.values.length}]{tag.key}</button>
               ))}
 
 
@@ -1362,7 +1363,7 @@ export function PopupRoot({
         boundaryInset={pBoundaryInset}
         transformMode={windowType == "固定位置" || params.ids ? "absolute" : "relative"}
         transform={
-          windowType == "固定位置" || params.ids ? { left: pFixedContentLocationLeft ?? 0, top: pFixedContentLocationTop ?? 0 } : undefined
+          windowType == "固定位置" || params.ids ? { left: pFCLLeft ?? 0, top: nFCLTop ?? 0 } : undefined
         }
         align="start"
         onClickOutside={(e) => {
@@ -1373,7 +1374,7 @@ export function PopupRoot({
           }
         }}
         // ref={clickMeButtonRef} // if you'd like a ref to your popover's child, you can grab one here
-        content={windowType == "跟随" ? handleConfigDiv : handleConfigAndContent}
+        content={windowType == "跟随" && !params.ids ? handleConfigDiv : handleConfigAndContent}
         containerStyle={{
           marginTop: "42px",
         }}
@@ -1421,8 +1422,6 @@ export function PopupRoot({
     // setShowConfig(false);
     setPref("showConfig", false);
 
-    setPref("windowType", config.windowType);
-    setWindowType(config.windowType);
 
     setPref("isCtrlAdd", false);
     setIsCtrlAdd(config.isCtrlAdd);
@@ -1438,15 +1437,21 @@ export function PopupRoot({
 
     setAutoCloseSeconds(config.autoCloseSeconds);
     setPref("autoCloseSeconds", config.autoCloseSeconds);
+
+    setPref("windowType", config.windowType);
+    setWindowType(config.windowType);
     // setPFixedContentLocation(config.pFixedContentLocation);
     // setPref("pFixedContentLocation", config.pFixedContentLocation);
     // setPSingleWindow(config.pSingleWindow);
     // setPref("pSingleWindow", config.pSingleWindow);
-    setPFixedContentLocationLeft(config.pFixedContentLocationLeft);
-    setPref("pFixedContentLocationLeft", config.pFixedContentLocationLeft);
 
-    setPFixedContentLocationTop(config.pFixedContentLocationTop);
-    setPref("pFixedContentLocationTop", config.pFixedContentLocationTop);
+    setFCLLeft(config.pFCLLeft);
+    setPref("pFCLLeft", config.pFCLLeft);
+
+    setFCLTop(config.nFCLTop);
+    setPref("nFCLTop", config.nFCLTop);
+
+
 
     setPBoundaryInset(config.pBoundaryInset);
     setPref("pBoundaryInset", config.pBoundaryInset);
@@ -1472,17 +1477,17 @@ export function PopupRoot({
     setLineHeight(config.lineHeight);
     setPref("lineHeight", config.lineHeight);
 
-    setButtonMarginTopBottom(config.buttonMarginTopBottom);
-    setPref("buttonMarginTopBottom", config.buttonMarginTopBottom);
+    setbtnMarginTB(config.btnMarginTB);
+    setPref("btnMarginTB", config.btnMarginTB);
 
-    setButtonMarginLeftRight(config.buttonMarginLeftRight);
-    setPref("buttonMarginLeftRight", config.buttonMarginLeftRight);
+    setbtnMarginLR(config.btnMarginLR);
+    setPref("btnMarginLR", config.btnMarginLR);
 
-    setButtonPaddingTopBottom(config.buttonPaddingTopBottom);
-    setPref("buttonPaddingTopBottom", config.buttonPaddingTopBottom);
+    setbtnPaddingTB(config.btnPaddingTB);
+    setPref("btnPaddingTB", config.btnPaddingTB);
 
-    setButtonPaddingLeftRight(config.buttonPaddingLeftRight);
-    setPref("buttonPaddingLeftRight", config.buttonPaddingLeftRight);
+    setbtnPaddingLR(config.btnPaddingLR);
+    setPref("btnPaddingLR", config.btnPaddingLR);
 
     setButtonBorderRadius(config.buttonBorderRadius);
     setPref("buttonBorderRadius", config.buttonBorderRadius);

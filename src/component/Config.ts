@@ -23,8 +23,8 @@ export function loadDefaultConfig(configType: ConfigType) {
       divMaxWidth: 750,
       autoCloseSeconds: 15,
       pFixedContentLocation: false,
-      pFixedContentLocationLeft: 100,
-      pFixedContentLocationTop: 100,
+      pFCLLeft: 100,
+      nFCLTop: 100,
       pPadding: 5,
       pBoundaryInset: 40,
       pArrowSize: 4,
@@ -34,10 +34,10 @@ export function loadDefaultConfig(configType: ConfigType) {
       showTagsLength: 25,
       fontSize: 18,
       lineHeight: "0.8",
-      buttonMarginTopBottom: 4,
-      buttonMarginLeftRight: 2,
-      buttonPaddingTopBottom: 3,
-      buttonPaddingLeftRight: 3,
+      btnMarginTB: 4,
+      btnMarginLR: 2,
+      btnPaddingTB: 3,
+      btnPaddingLR: 3,
       buttonBorderRadius: 5,
       sortType: "最近使用",
     });
@@ -53,8 +53,8 @@ export function loadDefaultConfig(configType: ConfigType) {
       divMaxWidth: 600,
       autoCloseSeconds: 16,
       pFixedContentLocation: false,
-      pFixedContentLocationLeft: 150,
-      pFixedContentLocationTop: 150,
+      pFCLLeft: 150,
+      nFCLTop: 150,
       pPadding: 5,
       pBoundaryInset: 40,
       pArrowSize: 4,
@@ -64,10 +64,10 @@ export function loadDefaultConfig(configType: ConfigType) {
       showTagsLength: 25,
       fontSize: 18,
       lineHeight: "0.8",
-      buttonMarginTopBottom: 4,
-      buttonMarginLeftRight: 2,
-      buttonPaddingTopBottom: 3,
-      buttonPaddingLeftRight: 3,
+      btnMarginTB: 4,
+      btnMarginLR: 2,
+      btnPaddingTB: 3,
+      btnPaddingLR: 3,
       buttonBorderRadius: 5,
       sortType: "最近使用",
     });
@@ -83,8 +83,8 @@ export function loadDefaultConfig(configType: ConfigType) {
       divMaxWidth: 450,
       autoCloseSeconds: 17,
       pFixedContentLocation: false,
-      pFixedContentLocationLeft: 150,
-      pFixedContentLocationTop: 150,
+      pFCLLeft: 150,
+      nFCLTop: 150,
       pPadding: 5,
       pBoundaryInset: 40,
       pArrowSize: 4,
@@ -94,10 +94,10 @@ export function loadDefaultConfig(configType: ConfigType) {
       showTagsLength: 20,
       fontSize: 18,
       lineHeight: "0.8",
-      buttonMarginTopBottom: 4,
-      buttonMarginLeftRight: 2,
-      buttonPaddingTopBottom: 3,
-      buttonPaddingLeftRight: 3,
+      btnMarginTB: 4,
+      btnMarginLR: 2,
+      btnPaddingTB: 3,
+      btnPaddingLR: 3,
       buttonBorderRadius: 10,
       sortType: "最近使用",
     });
@@ -113,8 +113,8 @@ export function loadDefaultConfig(configType: ConfigType) {
       divMaxWidth: 290,
       autoCloseSeconds: 17,
       pFixedContentLocation: false,
-      pFixedContentLocationLeft: 150,
-      pFixedContentLocationTop: 150,
+      pFCLLeft: 150,
+      nFCLTop: 150,
       pPadding: 5,
       pBoundaryInset: 40,
       pArrowSize: 4,
@@ -124,10 +124,10 @@ export function loadDefaultConfig(configType: ConfigType) {
       showTagsLength: 20,
       fontSize: 15,
       lineHeight: "0.8",
-      buttonMarginTopBottom: 0,
-      buttonMarginLeftRight: 0,
-      buttonPaddingTopBottom: 5,
-      buttonPaddingLeftRight: 0,
+      btnMarginTB: 0,
+      btnMarginLR: 0,
+      btnPaddingTB: 5,
+      btnPaddingLR: 0,
       buttonBorderRadius: 10,
       sortType: "最近使用",
     });
@@ -143,8 +143,8 @@ export interface Config {
   autoCloseSeconds: number;
   pSingleWindow: boolean;
   pFixedContentLocation: boolean;
-  pFixedContentLocationLeft: number;
-  pFixedContentLocationTop: number;
+  pFCLLeft: number;
+  nFCLTop: number;
   pPadding: number;
   pBoundaryInset: number;
   pArrowSize: number;
@@ -154,10 +154,10 @@ export interface Config {
   showTagsLength: number;
   fontSize: number;
   lineHeight: string;
-  buttonMarginTopBottom: number;
-  buttonMarginLeftRight: number;
-  buttonPaddingTopBottom: number;
-  buttonPaddingLeftRight: number;
+  btnMarginTB: number;
+  btnMarginLR: number;
+  btnPaddingTB: number;
+  btnPaddingLR: number;
   buttonBorderRadius: number;
   sortType: SortType;
 }

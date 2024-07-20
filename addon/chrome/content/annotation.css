@@ -26,6 +26,7 @@
 
 .tagButton {
   cursor: pointer;
+  border: 2px outset ButtonBorder;
 }
 
 .tagButton:hover {

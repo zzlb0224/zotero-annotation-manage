@@ -44,8 +44,8 @@ export function popDiv({
   const [pArrowSize, setPArrowSize] = useState(getPrefAs("pArrowSize", 0));
   const [pPositions, updatePPositions] = useImmer(getPrefAs("pPositions", "bottom,left,top,right").split(","));
   const [pFixedContentLocation, setPFixedContentLocation] = useState(getPrefAs("pFixedContentLocation", false));
-  const [pFixedContentLocationLeft, setPFixedContentLocationLeft] = useState(getPrefAs("pFixedContentLocationLeft", 0));
-  const [pFixedContentLocationTop, setPFixedContentLocationTop] = useState(getPrefAs("pFixedContentLocationTop", 0));
+  const [pFCLLeft, setpFCLLeft] = useState(getPrefAs("pFCLLeft", 0));
+  const [nFCLTop, setnFCLTop] = useState(getPrefAs("nFCLTop", 0));
   const selectionPopup = (tabDiv.querySelector("browser") as HTMLIFrameElement).contentDocument?.querySelector(
     "#reader-ui .selection-popup",
   ) as HTMLDivElement;
@@ -89,13 +89,13 @@ export function popDiv({
           transform={
             pFixedContentLocation
               ? {
-                  left: pFixedContentLocationLeft,
-                  top: pFixedContentLocationTop,
-                }
+                left: pFCLLeft,
+                top: nFCLTop,
+              }
               : (popoverState) => ({
-                  top: -popoverState.nudgedTop + 65,
-                  left: -popoverState.nudgedLeft,
-                })
+                top: -popoverState.nudgedTop + 65,
+                left: -popoverState.nudgedLeft,
+              })
           }
           // onClickOutside={() => setIsPopoverOpen(false)}
           // ref={clickMeButtonRef} // if you'd like a ref to your popover's child, you can grab one here
