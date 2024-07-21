@@ -71,6 +71,8 @@ export function PopupRoot({
   const item = reader._item;
   // item.isCollection
   const _annotationManager = reader._annotationManager;
+  const _keyboardManager = reader._keyboardManager;
+
   //定义状态
   // ztoolkit.log("params", params);
   const [isShowConfig, setShowConfig] = useState(getPrefAs("showConfig", false));
