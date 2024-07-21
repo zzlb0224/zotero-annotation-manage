@@ -35,7 +35,6 @@
   /* border: 2px solid green; */
 }
 
-
 /* css 代码 */
 .input-box {
   display: inline-flex;
@@ -47,7 +46,7 @@
   height: 40px;
   min-width: 50px;
   /* font family is very important */
-  font-family: Arial, 'microsoft yahei';
+  font-family: Arial, "microsoft yahei";
   font-size: 14px;
 }
 

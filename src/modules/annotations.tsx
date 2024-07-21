@@ -41,7 +41,7 @@ function renderTextSelectionPopup(event: _ZoteroTypes.Reader.EventParams<"render
   // })
   const item = Zotero.Items.get(reader.itemID!).parentItem; //ZoteroPane.getSelectedItems()[0]
   Zotero.ref_item = item;
-  Zotero.ref_params = params
+  Zotero.ref_params = params;
   if (item) {
     //@ts-ignore IF11
     ztoolkit.log(

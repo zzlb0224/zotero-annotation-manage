@@ -254,9 +254,9 @@ export class AnnotationPopup {
     // }, 50);
 
     // this.updateDiv();
-    const itemKey = this.reader?._item.key
-    const reactRootID = `rr${itemKey}`
-    root.ownerDocument.getElementById(reactRootID)?.remove()
+    const itemKey = this.reader?._item.key;
+    const reactRootID = `rr${itemKey}`;
+    root.ownerDocument.getElementById(reactRootID)?.remove();
     const rr = ztoolkit.UI.appendElement({ tag: "div", classList: ["reactRoot"], id: reactRootID }, root) as HTMLDivElement;
     ztoolkit.log("root和rr", root, rr);
     // if (isDebug())
@@ -264,7 +264,14 @@ export class AnnotationPopup {
       createRoot(rr).render(
         <>
           {/* <TagPopup></TagPopup> */}
-          <PopupRoot key={`PopupRoot${itemKey}`} reader={this.reader!} doc={this.doc!} params={this.params!} root={root} maxWidth={this.getSelectTextMaxWidth()} />
+          <PopupRoot
+            key={`PopupRoot${itemKey}`}
+            reader={this.reader!}
+            doc={this.doc!}
+            params={this.params!}
+            root={root}
+            maxWidth={this.getSelectTextMaxWidth()}
+          />
         </>,
       );
     });
@@ -1204,12 +1211,14 @@ export async function saveAnnotationTags(
         // 因为线程不一样，不能采用直接修改params.annotation的方式，所以直接采用新建的方式保存笔记
         // 特意采用 Components.utils.cloneInto 方法
         const newAnn = reader?._annotationManager.addAnnotation(
-          Components.utils.cloneInto({ ...params?.annotation, type: annotationType || _annotationType, comment: comment, color, tags }, doc),
+          Components.utils.cloneInto(
+            { ...params?.annotation, type: annotationType || _annotationType, comment: comment, color, tags },
+            doc,
+          ),
         );
         //@ts-ignore 访问_onSetSelectionPopup 隐藏弹出框
         reader?._primaryView?._onSetSelectionPopup?.(null);
         // openAnnotation(item, newAnn?.pageLabel || "", newAnn?.id || "")
-
       }
       memAllTagsDB.remove();
       memRelateTags.remove();
