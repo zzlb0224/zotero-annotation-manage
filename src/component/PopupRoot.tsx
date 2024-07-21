@@ -257,21 +257,26 @@ export function PopupRoot({
       setIsPopoverOpen(false);
     }
     return () => {
-      clearTimeout(timeRef.current);
+      if (timeRef.current)
+        clearTimeout(timeRef.current);
     };
   }, [autoCloseSeconds]);
   useEffect(() => {
     const q = (
       (tabDiv.querySelector("browser") as HTMLIFrameElement)?.contentDocument?.querySelector("#primary-view iframe") as HTMLIFrameElement
     )?.contentDocument?.querySelector("#viewerContainer") as HTMLDivElement;
+    function qs(e: any) {
+      // ztoolkit.log("scroll", e)
+      // setPPading2()
+    }
     if (q) {
-      q.addEventListener("scroll", (e) => {
-        // ztoolkit.log("scroll", e)
-        // setPPading2()
-      });
+      q.addEventListener("scroll", qs);
     }
 
     ztoolkit.log("scroll ???", q);
+    return () => {
+      q?.removeEventListener("scroll", qs);
+    }
   }, []);
 
   // const c = ztoolkit.UI.appendElement({ tag: "div" }, root) as HTMLDivElement
@@ -316,7 +321,9 @@ export function PopupRoot({
       width: selectionPopup.clientWidth,
       height: selectionPopup.clientHeight,
     });
-    return () => resizeObserver.disconnect();
+    return () => {
+      resizeObserver.disconnect()
+    };
   }, []);
   //加载默认值
   // useEffect(() => {
