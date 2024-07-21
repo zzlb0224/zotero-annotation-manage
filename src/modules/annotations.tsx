@@ -1,7 +1,7 @@
 import { config } from "../../package.json";
 import { getPref } from "../utils/prefs";
 import { sortValuesLength } from "../utils/sort";
-import { addCssFile, groupBy } from "../utils/zzlb";
+import { addCssFile, groupBy, isDebug } from "../utils/zzlb";
 import { AnnotationPopup } from "./AnnotationPopup";
 // import { text2Ma } from "./readerTools";
 function register() {
@@ -40,8 +40,10 @@ function renderTextSelectionPopup(event: _ZoteroTypes.Reader.EventParams<"render
   //   ztoolkit.log("右键click", e.buttons, e.button, e.currentTarget, e)
   // })
   const item = Zotero.Items.get(reader.itemID!).parentItem; //ZoteroPane.getSelectedItems()[0]
+
   Zotero.ref_item = item;
   Zotero.ref_params = params;
+
   if (item) {
     //@ts-ignore IF11
     ztoolkit.log(
@@ -56,7 +58,7 @@ function renderTextSelectionPopup(event: _ZoteroTypes.Reader.EventParams<"render
   Zotero.ref_reader = reader;
   Zotero.ref_reader_annotationManager = reader._annotationManager;
   Zotero.ref_reader_keyboardManager = reader._keyboardManager;
-  // Zotero.ref_reader_keyboardManager = reader.mode
+
   if (getPref("hide-in-selection-popup")) {
     return;
   }

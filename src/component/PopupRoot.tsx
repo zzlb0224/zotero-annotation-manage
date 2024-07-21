@@ -1114,7 +1114,7 @@ export function PopupRoot({
                 </>
               )}
 
-              {bComment && (
+              {bComment && !params.ids && (
                 <input
                   type="text"
                   tabIndex={0}
@@ -1122,7 +1122,7 @@ export function PopupRoot({
                     setComment(e.currentTarget.value);
                   }}
                   autoFocus={bAutoFocus}
-                  style={{ ...inputWidth(comment, 6) }}
+                  style={{ ...inputWidth(comment, 8), fontSize: fontSize }}
                   placeholder="输入注释"
                   onKeyDownCapture={(e) => {
                     ztoolkit.log("按键记录input onKeyDown", e, comment);
@@ -1133,9 +1133,12 @@ export function PopupRoot({
                       return false;
                     }
                     if (e.key == "Tab") {
-                      e.preventDefault();
+                      if (e.preventDefault) { e.preventDefault(); }
+                      else {
+                        //@ts-ignore returnValue
+                        e.returnValue = false;
+                      }
                       refInputTag.current?.focus();
-                      return false;
                     }
                   }}
                 />
@@ -1169,14 +1172,15 @@ export function PopupRoot({
                 ref={refInputTag}
                 type="text"
                 tabIndex={1}
+                autoFocus={bAutoFocus && (!bComment || !!params.ids)}
                 key={`input${item.key}`}
                 defaultValue={searchTag}
                 onInput={(e) => {
                   ztoolkit.log("onInput", e.currentTarget.value, e);
                   setSearchTag(e.currentTarget.value);
                 }}
-                style={{ ...inputWidth(searchTag), minWidth: "18ch" }}
-                placeholder="搜索标签，按回车添加"
+                style={{ ...inputWidth(searchTag, 10), fontSize: fontSize }}
+                placeholder="搜索标签"
                 onKeyDownCapture={(e) => {
                   ztoolkit.log("按键记录input onKeyDown", e);
                   const searchTag = (e.target as HTMLInputElement).value;
@@ -1227,8 +1231,8 @@ export function PopupRoot({
                         <span style={tagStyle}>
                           相关标签来自【{currentPosition}】
                         </span> */}
-              <span style={tagStyle}>
-                {displayTags.length}/{searchResultLength}:
+              <span style={{ fontSize: fontSize }}>
+                {displayTags.length}/{searchResultLength}
               </span>
               {displayTags
                 .filter(() => false)
@@ -1266,20 +1270,20 @@ export function PopupRoot({
                       ctrlAddOrSaveTags(isAdd, cTag);
                       return false;
                     }}
-                    // onMouseDown={(e) => {
-                    //   e.preventDefault();
-                    //   ztoolkit.log("onMouseDown 复制", e)
-                    //   return false
-                    // }}
-                    // onContextMenu={e => {
-                    //   e.preventDefault();
-                    //   ztoolkit.log("onContextMenu 复制", tag.key)
-                    //   new window.Clipboard().readText().then((text) => {
-                    //     ztoolkit.log("onContextMenu 复制", tag.key, text);
-                    //     (e.currentTarget as HTMLInputElement).value = text;
-                    //   })
-                    //   return false
-                    // }}
+                  // onMouseDown={(e) => {
+                  //   e.preventDefault();
+                  //   ztoolkit.log("onMouseDown 复制", e)
+                  //   return false
+                  // }}
+                  // onContextMenu={e => {
+                  //   e.preventDefault();
+                  //   ztoolkit.log("onContextMenu 复制", tag.key)
+                  //   new window.Clipboard().readText().then((text) => {
+                  //     ztoolkit.log("onContextMenu 复制", tag.key, text);
+                  //     (e.currentTarget as HTMLInputElement).value = text;
+                  //   })
+                  //   return false
+                  // }}
                   >
                     <span>[{tag.values.length}]</span>
                     <span>{tag.key}</span>
@@ -1425,7 +1429,7 @@ export function PopupRoot({
           // ztoolkit.log("onClickOutside", e);
           // setIsPopoverOpen(false)
           if (!doc.querySelector(".view-popup.selection-popup")?.contains(e.target as HTMLElement)) {
-            setIsPopoverOpen(false);
+            // setIsPopoverOpen(false);
           }
         }}
         // ref={clickMeButtonRef} // if you'd like a ref to your popover's child, you can grab one here
