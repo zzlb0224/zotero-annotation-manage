@@ -254,14 +254,17 @@ export class AnnotationPopup {
     // }, 50);
 
     // this.updateDiv();
-    const rr = ztoolkit.UI.appendElement({ tag: "div" }, root) as HTMLDivElement;
+    const itemKey = this.reader?._item.key
+    const reactRootID = `rr${itemKey}`
+    root.ownerDocument.getElementById(reactRootID)?.remove()
+    const rr = ztoolkit.UI.appendElement({ tag: "div", classList: ["reactRoot"], id: reactRootID }, root) as HTMLDivElement;
     ztoolkit.log("root和rr", root, rr);
     // if (isDebug())
     setTimeout(() => {
       createRoot(rr).render(
         <>
           {/* <TagPopup></TagPopup> */}
-          <PopupRoot reader={this.reader!} doc={this.doc!} params={this.params!} root={root} maxWidth={this.getSelectTextMaxWidth()} />
+          <PopupRoot key={`PopupRoot${itemKey}`} reader={this.reader!} doc={this.doc!} params={this.params!} root={root} maxWidth={this.getSelectTextMaxWidth()} />
         </>,
       );
     });
@@ -1194,16 +1197,17 @@ export async function saveAnnotationTags(
         const color = selectedTags.map((a) => a.color).filter((f) => f)[0] || memFixedColor(tagsRequire[0], undefined);
         const tags = tagsRequire.map((a) => ({ name: a }));
 
-        //@ts-ignore annotationType
-        const annotationType = reader?._state?.textSelectionAnnotationMode || "hightlight";
+        //@ts-ignore 访问textSelectionAnnotationMode
+        const annotationType = reader?._state?.textSelectionAnnotationMode || "highlight";
         // 因为线程不一样，不能采用直接修改params.annotation的方式，所以直接采用新建的方式保存笔记
         // 特意采用 Components.utils.cloneInto 方法
         const newAnn = reader?._annotationManager.addAnnotation(
           Components.utils.cloneInto({ ...params?.annotation, type: annotationType, color, tags }, doc),
         );
-        //@ts-ignore 隐藏弹出框
-        reader?._primaryView._onSetSelectionPopup(null);
+        //@ts-ignore 访问_onSetSelectionPopup 隐藏弹出框
+        reader?._primaryView?._onSetSelectionPopup?.(null);
         // openAnnotation(item, newAnn?.pageLabel || "", newAnn?.id || "")
+
       }
       memAllTagsDB.remove();
       memRelateTags.remove();

@@ -69,6 +69,7 @@ export function PopupRoot({
   //定义全局变量
   // ztoolkit.log("css测试", styles.tagButton);
   const item = reader._item;
+  // item.isCollection
   const _annotationManager = reader._annotationManager;
   //定义状态
   // ztoolkit.log("params", params);
@@ -1117,7 +1118,8 @@ export function PopupRoot({
               )}
               <input
                 type="text"
-                // tabIndex={0}
+                tabIndex={1}
+                key={`input${item.key}`}
                 autoFocus={bAutoFocus}
                 defaultValue={searchTag}
                 onInput={(e) => {
@@ -1126,7 +1128,9 @@ export function PopupRoot({
                 }}
                 style={{ ...inputWidth(searchTag), minWidth: "18ch" }}
                 placeholder="搜索标签，按回车添加"
-                onKeyDown={(e) => {
+                onKeyDownCapture={(e) => {
+                  ztoolkit.log("按键记录input onKeyDown", e);
+                  const searchTag = (e.target as HTMLInputElement).value
                   // ztoolkit.log(e)
                   if (autoCloseSeconds > 0) {
                     setAutoCloseSeconds(-1);
@@ -1158,7 +1162,6 @@ export function PopupRoot({
                     root.remove();
                     return false;
                   }
-                  ztoolkit.log("按键记录", e);
                 }}
                 onContextMenu={e => {
                   e.preventDefault();
@@ -1367,7 +1370,7 @@ export function PopupRoot({
         }
         align="start"
         onClickOutside={(e) => {
-          ztoolkit.log("onClickOutside", e);
+          // ztoolkit.log("onClickOutside", e);
           // setIsPopoverOpen(false)
           if (!doc.querySelector(".view-popup.selection-popup")?.contains(e.target as HTMLElement)) {
             setIsPopoverOpen(false);
@@ -1413,6 +1416,7 @@ export function PopupRoot({
     } else {
       setIsPopoverOpen(false);
       saveAnnotationTags("", [...selectedTags, { tag: cTag, color: memFixedColor(cTag) }], delTags, reader, params, doc);
+
       if (params.ids) {
         root.remove();
       }
