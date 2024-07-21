@@ -40,7 +40,8 @@ function renderTextSelectionPopup(event: _ZoteroTypes.Reader.EventParams<"render
   //   ztoolkit.log("右键click", e.buttons, e.button, e.currentTarget, e)
   // })
   const item = Zotero.Items.get(reader.itemID!).parentItem; //ZoteroPane.getSelectedItems()[0]
-  Zotero.refs_item = item;
+  Zotero.ref_item = item;
+  Zotero.ref_params = params
   if (item) {
     //@ts-ignore IF11
     ztoolkit.log(

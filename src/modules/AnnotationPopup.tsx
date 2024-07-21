@@ -1163,6 +1163,8 @@ export async function saveAnnotationTags(
   },
   // root: HTMLElement | undefined,
   doc: Document,
+  annotationType: "highlight" | "underline" | undefined = undefined,
+  comment = "",
 ) {
   if (selectedTags.length == 0 && searchTagAddIfEmpty) {
     selectedTags.push({
@@ -1198,11 +1200,11 @@ export async function saveAnnotationTags(
         const tags = tagsRequire.map((a) => ({ name: a }));
 
         //@ts-ignore 访问textSelectionAnnotationMode
-        const annotationType = reader?._state?.textSelectionAnnotationMode || "highlight";
+        const _annotationType = reader?._state?.textSelectionAnnotationMode || "highlight";
         // 因为线程不一样，不能采用直接修改params.annotation的方式，所以直接采用新建的方式保存笔记
         // 特意采用 Components.utils.cloneInto 方法
         const newAnn = reader?._annotationManager.addAnnotation(
-          Components.utils.cloneInto({ ...params?.annotation, type: annotationType, color, tags }, doc),
+          Components.utils.cloneInto({ ...params?.annotation, type: annotationType || _annotationType, comment: comment, color, tags }, doc),
         );
         //@ts-ignore 访问_onSetSelectionPopup 隐藏弹出框
         reader?._primaryView?._onSetSelectionPopup?.(null);

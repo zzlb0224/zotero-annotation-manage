@@ -74,6 +74,8 @@ export function PopupRoot({
   //定义状态
   // ztoolkit.log("params", params);
   const [isShowConfig, setShowConfig] = useState(getPrefAs("showConfig", false));
+  const [bComment, setBComment] = useState(getPrefAs("bComment", false));
+  const [comment, setComment] = useState("");
   const [configTab, setConfigTab] = useState<ConfigTab>(getPrefAs("configTab", "面板配置"));
   //取代固定窗口和单独窗口
   const [windowType, setWindowType] = useState<WindowType>(getPrefAs("windowType", "跟随"));
@@ -373,9 +375,12 @@ export function PopupRoot({
   const refContentDiv = useRef<HTMLDivElement>(null);
   const refPopover = useRef<HTMLDivElement>(null);
   const refPopoverDiv = useRef<HTMLDivElement>(null);
+  const refInputTag = useRef<HTMLInputElement>(null);
   const clickMeButtonRef = React.useRef<HTMLElement | null>(null);
 
   const vars = [
+    bComment,
+    comment,
     blockHightLightUnderLineToggle,
     autoCloseSeconds,
     existTags,
@@ -546,6 +551,15 @@ export function PopupRoot({
                     onChange={handleInputBoolean("blockHUToggle", setBlockHightLightUnderLineToggle)}
                   />
                   屏蔽 Zotero 高亮/下划线切换按钮
+                </label>
+
+                <label>
+                  <input
+                    type="checkbox"
+                    defaultChecked={bComment}
+                    onChange={handleInputBoolean("bComment", setBComment)}
+                  />
+                  允许输入注释
                 </label>
 
                 <div>
@@ -1091,6 +1105,31 @@ export function PopupRoot({
                   </button>
                 </>
               )}
+
+              {bComment &&
+                <input
+                  type="text"
+                  tabIndex={0}
+                  onInput={e => { setComment(e.currentTarget.value) }}
+                  autoFocus={bAutoFocus}
+                  style={{ ...inputWidth(comment, 6) }}
+                  placeholder="输入注释"
+                  onKeyDownCapture={e => {
+                    ztoolkit.log("按键记录input onKeyDown", e, comment);
+                    // setComment(e.currentTarget.value)
+                    if (e.key == "Enter") {
+                      e.preventDefault()
+                      refInputTag.current?.focus()
+                      return false
+                    }
+                    if (e.key == "Tab") {
+                      e.preventDefault()
+                      refInputTag.current?.focus()
+                      return false
+                    }
+                  }}
+                />
+              }
               {selectedTags.length > 0 && (
                 <>
                   [<span></span>
@@ -1117,10 +1156,10 @@ export function PopupRoot({
                 </>
               )}
               <input
+                ref={refInputTag}
                 type="text"
                 tabIndex={1}
                 key={`input${item.key}`}
-                autoFocus={bAutoFocus}
                 defaultValue={searchTag}
                 onInput={(e) => {
                   ztoolkit.log("onInput", e.currentTarget.value, e);
@@ -1415,7 +1454,7 @@ export function PopupRoot({
       });
     } else {
       setIsPopoverOpen(false);
-      saveAnnotationTags("", [...selectedTags, { tag: cTag, color: memFixedColor(cTag) }], delTags, reader, params, doc);
+      saveAnnotationTags("", [...selectedTags, { tag: cTag, color: memFixedColor(cTag) }], delTags, reader, params, doc, undefined, comment);
 
       if (params.ids) {
         root.remove();
@@ -1500,10 +1539,10 @@ export function PopupRoot({
     setPref("sortType", config.sortType);
     // setTimeout(() => setShowConfig(true));
   }
-  function inputWidth(searchTag: string) {
+  function inputWidth(searchTag: string, minChar = 3) {
     return {
-      width: `${Math.min(searchTag.length + (searchTag.match(/[\u4E00-\u9FA5]/g) || "").length + 3)}ch`,
-      minWidth: "3ch",
+      width: `${Math.min(searchTag.length + (searchTag.match(/[\u4E00-\u9FA5]/g) || "").length + 2)}ch`,
+      minWidth: minChar + "ch",
       maxWidth: "100%",
     };
   }
