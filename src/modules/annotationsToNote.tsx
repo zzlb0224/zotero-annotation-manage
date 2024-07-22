@@ -124,7 +124,7 @@ function buildMenu(collectionOrItem: "collection" | "item") {
           {
             //粘贴pdf注释
             tag: "menuitem",
-            label: "粘贴条目下pdf注释",
+            label: "粘贴条目下pdf注释-用作者年份标题识别不同的条目",
             icon: iconBaseUrl + "favicon.png",
             commandListener: async (ev: Event) => {
               const items = await getSelectedItems(collectionOrItem);
@@ -217,7 +217,7 @@ function buildMenu(collectionOrItem: "collection" | "item") {
           {
             //相同PDF合并，注释合并
             tag: "menuitem",
-            label: "相同PDF合并，注释合并",
+            label: "合并条目下所有PDF文件和注释",
             icon: iconBaseUrl + "favicon.png",
             commandListener: async (ev: Event) => {
               const items = await getSelectedItems(collectionOrItem);
@@ -1836,24 +1836,24 @@ function createActionTag(div: HTMLElement | undefined, action: () => void | unde
     // },
     action
       ? {
-          tag: "button",
-          namespace: "html",
-          properties: { textContent: "确定生成" },
-          // styles: {
-          //   padding: "6px",
-          //   background: "#f99",
-          //   margin: "1px",
-          // },
-          listeners: [
-            {
-              type: "click",
-              listener: (ev: any) => {
-                stopPropagation(ev);
-                action();
-              },
+        tag: "button",
+        namespace: "html",
+        properties: { textContent: "确定生成" },
+        // styles: {
+        //   padding: "6px",
+        //   background: "#f99",
+        //   margin: "1px",
+        // },
+        listeners: [
+          {
+            type: "click",
+            listener: (ev: any) => {
+              stopPropagation(ev);
+              action();
             },
-          ],
-        }
+          },
+        ],
+      }
       : { tag: "span" },
     ...others,
   ];
