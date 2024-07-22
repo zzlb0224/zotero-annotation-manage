@@ -185,80 +185,87 @@ function buildMenu(collectionOrItem: "collection" | "item") {
             icon: iconBaseUrl + "favicon.png",
             commandListener: async (ev: Event) => {
               const items = await getSelectedItems(collectionOrItem);
-              Zotero.DB.executeTransaction(async function () {
-                const topItems = items.map(i => i.parentItem ?? i)
-                const pw = new ztoolkit.ProgressWindow("合并").show()
-                for (const item of topItems) {
-                  const pdfIds = item.getAttachments()
-                  const pdfs = Zotero.Items.get(pdfIds).filter(f => f.isPDFAttachment())
+              const topItems = items.map(i => i.parentItem ?? i)
+              const pw = new ztoolkit.ProgressWindow("合并").show()
+              for (const item of topItems) {
+                const pdfIds = item.getAttachments()
+                const pdfs = Zotero.Items.get(pdfIds).filter(f => f.isPDFAttachment())
 
-                  const pdfs2 = pdfs.map(
-                    pdf => {
-                      const filepath = pdf.getFilePath()
-                      const displayTitle = pdf.getDisplayTitle()
-                      const md5 = filepath ? Zotero.Utilities.Internal.md5(Zotero.File.pathToFile(filepath)) : ""
-                      return {
-                        pdf,
-                        pdfKey: pdf.key,
-                        filepath,
-                        md5
-                      }
+                const pdfs2 = pdfs.map(
+                  pdf => {
+                    const filepath = pdf.getFilePath()
+                    const displayTitle = pdf.getDisplayTitle()
+                    const md5 = filepath ? Zotero.Utilities.Internal.md5(Zotero.File.pathToFile(filepath)) : ""
+                    return {
+                      pdf,
+                      pdfKey: pdf.key,
+                      filepath,
+                      md5
                     }
-                  )
-                  const pdf1 = pdfs2.filter(f => f.md5)[0]
-                  if (pdf1) {
-                    for (const pd of pdfs2) {
-                      // ztoolkit.log(pd)
-                      if (pdf1.pdfKey != pd.pdfKey) {
-                        ztoolkit.log("找到另一个pdf", pd)
-                        const attachment = pd.pdf
-                        const ifLinks = (attachment.attachmentLinkMode == Zotero.Attachments.LINK_MODE_LINKED_FILE); // 检测是否为链接模式
-                        const file = await attachment.getFilePathAsync();
-                        if (file && ifLinks) { // 如果文件存在(文件可能已经被删除)且为链接模式删除文件
-                          try {
-                            // await OS.File.remove(file); // 尝试删除文件
-                            await Zotero.File.removeIfExists(file);
-                            //await trash.remove(file);
-                          } catch (error) { // 弹出错误
-                            alert("文件已打开");
-                            return; // 弹出错误后终止执行
-                          }
-                        }
-                        // await Zotero.Items.moveChildItems(
-                        //   pd.pdf,
-                        //   pdf1.pdf,
-                        //   false
-                        // );
-                        const annotations = pd.pdf.getAnnotations(false);
-                        let moveAnnotationLength = 0
-                        for (const annotation of annotations) {
-                          if (annotation.annotationIsExternal) {
-                            continue;
-                          }
-                          if (pdf1.pdf.getAnnotations().find(f => f.annotationType == annotation.annotationType && f.annotationPosition == annotation.annotationPosition)) {
-                            continue;
-                          }
-                          annotation.parentItemID = pdf1.pdf.id;
-                          await annotation.saveTx();
-                          moveAnnotationLength += 1
-                        }
-                        if (moveAnnotationLength > 0)
-                          pw.createLine({
-                            text: `移动${moveAnnotationLength}批注`
-                          })
-                        pd.pdf.deleted = true
-                        pw.createLine({ text: "标记删除" })
-                        pd.pdf.saveTx()
-                        pw.createLine({ text: "保存" })
-                      }
-                    }
-                    pdf1.pdf.saveTx()
                   }
-                  item.saveTx()
-                  pw.createLine({ text: "保存条目。" })
+                )
+                const pdf1 = pdfs2.filter(f => f.md5)[0]
+                if (pdf1) {
+                  for (const pd of pdfs2) {
+                    // ztoolkit.log(pd)
+                    if (pdf1.pdfKey != pd.pdfKey) {
+                      ztoolkit.log("找到另一个pdf", pd)
+                      const attachment = pd.pdf
+                      const ifLinks = (attachment.attachmentLinkMode == Zotero.Attachments.LINK_MODE_LINKED_FILE); // 检测是否为链接模式
+                      const file = await attachment.getFilePathAsync();
+                      if (file && ifLinks) { // 如果文件存在(文件可能已经被删除)且为链接模式删除文件
+                        try {
+                          // await OS.File.remove(file); // 尝试删除文件
+                          await Zotero.File.removeIfExists(file);
+                          //await trash.remove(file);
+                        } catch (error) { // 弹出错误
+                          alert("文件已打开");
+                          return; // 弹出错误后终止执行
+                        }
+                      }
+                      // await Zotero.Items.moveChildItems(
+                      //   pd.pdf,
+                      //   pdf1.pdf,
+                      //   false
+                      // );
+                      const annotations = pd.pdf.getAnnotations(false);
+                      let moveAnnotationLength = 0
+                      for (const annotation of annotations) {
+                        if (annotation.annotationIsExternal) {
+                          continue;
+                        }
+                        if (pdf1.pdf.getAnnotations().find(f => f.annotationType == annotation.annotationType && f.annotationPosition == annotation.annotationPosition)) {
+                          continue;
+                        }
+                        // 直接改parentItemID会出问题
+                        // annotation.parentItemID = pdf1.pdf.id;
+                        // await annotation.saveTx();
+                        const annotationJson = await parseAnnotationJSON(annotation);
+                        if (annotationJson) {
+                          annotationJson.key = Zotero.DataObjectUtilities.generateKey()
+                          const savedAnnotation = await Zotero.Annotations.saveFromJSON(pdf1.pdf, annotationJson)
+                          await savedAnnotation.saveTx();
+                        }
+
+                        moveAnnotationLength += 1
+                      }
+                      if (moveAnnotationLength > 0)
+                        pw.createLine({
+                          text: `移动${moveAnnotationLength}批注`
+                        })
+                      pd.pdf.deleted = true
+                      pw.createLine({ text: "标记删除" })
+                      pd.pdf.saveTx()
+                      pw.createLine({ text: "保存" })
+                    }
+                  }
+                  pdf1.pdf.saveTx()
                 }
-                pw.createLine({ text: "完成" + items.length }).startCloseTimer(5000)
-              })
+                item.saveTx()
+                pw.createLine({ text: "保存条目。" })
+              }
+              pw.createLine({ text: "完成" + items.length }).startCloseTimer(5000)
+
             },
           },
 
@@ -653,12 +660,6 @@ export async function annotationToNoteTags(win: Window, collectionOrItem: "colle
   ztoolkit.UI.appendElement(elemProp, popup);
 }
 
-const ID = {
-  root: `${config.addonRef}-ann2note-ChooseTags-root`,
-  action: `${config.addonRef}-ann2note-ChooseTags-root-action`,
-  input: `${config.addonRef}-ann2note-ChooseTags-root-input`,
-  result: `${config.addonRef}-ann2note-ChooseTags-root-result`,
-};
 
 import { createRoot } from "react-dom/client";
 import { MyButton } from "./MyButton";
