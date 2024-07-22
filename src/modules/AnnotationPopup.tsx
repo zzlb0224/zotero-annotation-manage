@@ -31,7 +31,7 @@ import { usePopover } from "react-tiny-popover";
 import { HexColorPicker } from "react-colorful";
 import { PopupRoot } from "../component/PopupRoot";
 import TagPopup from "../component/TagPopup";
-import { IntlProvider } from 'react-intl';
+import { IntlProvider } from "react-intl";
 
 export class AnnotationPopup {
   reader?: _ZoteroTypes.ReaderInstance;
@@ -266,11 +266,13 @@ export class AnnotationPopup {
         <IntlProvider
           locale={window.navigator.language}
           // messages={this._localizedStrings}
-          onError={window.development && (() => {
-            ztoolkit.log("e", root, rr);
-          })}
+          onError={
+            window.development &&
+            (() => {
+              ztoolkit.log("e", root, rr);
+            })
+          }
         >
-
           {/* <TagPopup></TagPopup> */}
           <PopupRoot
             key={`PopupRoot${itemKey}`}

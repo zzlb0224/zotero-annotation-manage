@@ -1135,8 +1135,9 @@ export function PopupRoot({
                       return false;
                     }
                     if (e.key == "Tab") {
-                      if (e.preventDefault) { e.preventDefault(); }
-                      else {
+                      if (e.preventDefault) {
+                        e.preventDefault();
+                      } else {
                         //@ts-ignore returnValue
                         e.returnValue = false;
                       }
@@ -1272,20 +1273,20 @@ export function PopupRoot({
                       ctrlAddOrSaveTags(isAdd, cTag);
                       return false;
                     }}
-                  // onMouseDown={(e) => {
-                  //   e.preventDefault();
-                  //   ztoolkit.log("onMouseDown 复制", e)
-                  //   return false
-                  // }}
-                  // onContextMenu={e => {
-                  //   e.preventDefault();
-                  //   ztoolkit.log("onContextMenu 复制", tag.key)
-                  //   new window.Clipboard().readText().then((text) => {
-                  //     ztoolkit.log("onContextMenu 复制", tag.key, text);
-                  //     (e.currentTarget as HTMLInputElement).value = text;
-                  //   })
-                  //   return false
-                  // }}
+                    // onMouseDown={(e) => {
+                    //   e.preventDefault();
+                    //   ztoolkit.log("onMouseDown 复制", e)
+                    //   return false
+                    // }}
+                    // onContextMenu={e => {
+                    //   e.preventDefault();
+                    //   ztoolkit.log("onContextMenu 复制", tag.key)
+                    //   new window.Clipboard().readText().then((text) => {
+                    //     ztoolkit.log("onContextMenu 复制", tag.key, text);
+                    //     (e.currentTarget as HTMLInputElement).value = text;
+                    //   })
+                    //   return false
+                    // }}
                   >
                     <span>[{tag.values.length}]</span>
                     <span>{tag.key}</span>

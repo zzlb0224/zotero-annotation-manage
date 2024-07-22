@@ -48,6 +48,13 @@ function unregister() {
   ztoolkit.Menu.unregister(`${config.addonRef}-create-note`);
   ztoolkit.Menu.unregister(`${config.addonRef}-create-note-collection`);
 }
+
+const ID = {
+  root: `${config.addonRef}-ann2note-ChooseTags-root`,
+  action: `${config.addonRef}-ann2note-ChooseTags-root-action`,
+  input: `${config.addonRef}-ann2note-ChooseTags-root-input`,
+  result: `${config.addonRef}-ann2note-ChooseTags-root-result`,
+};
 function buildMenu(collectionOrItem: "collection" | "item") {
   const menu: MenuitemOptions = {
     tag: "menu",
@@ -59,166 +66,195 @@ function buildMenu(collectionOrItem: "collection" | "item") {
         label: "自定义命令",
         icon: iconBaseUrl + "favicon.png",
         children: [
-          { //复制pdf注释
+          {
+            //复制pdf注释
             tag: "menuitem",
             label: "复制条目下pdf注释",
             icon: iconBaseUrl + "favicon.png",
             commandListener: async (ev: Event) => {
               const items = await getSelectedItems(collectionOrItem);
-              const topItems = items.map(i => i.parentItem ?? i)
-              const d = await Promise.all(topItems.map(async item => {
-                const pdfIds = item.getAttachments()
-                const pdfs = Zotero.Items.get(pdfIds).filter(f => f.isPDFAttachment())
-                return {
-                  itemKey: item.key,
-                  // item,
-                  firstCreator: `${item.getField("firstCreator")}`,
-                  year: `${item.getField("year")}`,
-                  title: `${item.getField("title")}`,
-                  pdfs: await Promise.all(pdfs.map(
-                    async pdf => {
-                      const filepath = pdf.getFilePath()
-                      const displayTitle = pdf.getDisplayTitle()
-                      const md5 = filepath ? Zotero.Utilities.Internal.md5(Zotero.File.pathToFile(filepath)) : ""
-                      return {
-                        pdfKey: pdf.key,
-                        filepath, displayTitle, md5, annotations: await Promise.all(pdf.getAnnotations().map(async annotation => {
-                          // if (pdf.key == "NoNoNo")
-                          return {
-                            key: annotation.key,
-                            position: annotation.annotationPosition,
-                            annotationJson: await parseAnnotationJSON(annotation)
-                          }
-                          // return annotation
-                        }))
-                      }
-                    }
-                  ))
-                }
-              }))
-              ztoolkit.log(d)
-              new ztoolkit.Clipboard().addText(JSON.stringify(d)).copy()
-              new ztoolkit.ProgressWindow("复制成功").createLine({ text: `${d.length}-${d.flatMap(p => p.pdfs.length).reduce((partialSum, a) => partialSum + a, 0)}-${d.flatMap(p => p.pdfs.flatMap(f => f.annotations.length)).reduce((partialSum, a) => partialSum + a, 0)}` }).show().startCloseTimer(3000)
+              const topItems = items.map((i) => i.parentItem ?? i);
+              const d = await Promise.all(
+                topItems.map(async (item) => {
+                  const pdfIds = item.getAttachments();
+                  const pdfs = Zotero.Items.get(pdfIds).filter((f) => f.isPDFAttachment());
+                  return {
+                    itemKey: item.key,
+                    // item,
+                    firstCreator: `${item.getField("firstCreator")}`,
+                    year: `${item.getField("year")}`,
+                    title: `${item.getField("title")}`,
+                    pdfs: await Promise.all(
+                      pdfs.map(async (pdf) => {
+                        const filepath = pdf.getFilePath();
+                        const displayTitle = pdf.getDisplayTitle();
+                        const md5 = filepath ? Zotero.Utilities.Internal.md5(Zotero.File.pathToFile(filepath)) : "";
+                        return {
+                          pdfKey: pdf.key,
+                          filepath,
+                          displayTitle,
+                          md5,
+                          annotations: await Promise.all(
+                            pdf.getAnnotations().map(async (annotation) => {
+                              // if (pdf.key == "NoNoNo")
+                              return {
+                                key: annotation.key,
+                                position: annotation.annotationPosition,
+                                annotationJson: await parseAnnotationJSON(annotation),
+                              };
+                              // return annotation
+                            }),
+                          ),
+                        };
+                      }),
+                    ),
+                  };
+                }),
+              );
+              ztoolkit.log(d);
+              new ztoolkit.Clipboard().addText(JSON.stringify(d)).copy();
+              new ztoolkit.ProgressWindow("复制成功")
+                .createLine({
+                  text: `${d.length}-${d.flatMap((p) => p.pdfs.length).reduce((partialSum, a) => partialSum + a, 0)}-${d.flatMap((p) => p.pdfs.flatMap((f) => f.annotations.length)).reduce((partialSum, a) => partialSum + a, 0)}`,
+                })
+                .show()
+                .startCloseTimer(3000);
             },
           },
-          { //粘贴pdf注释
+          {
+            //粘贴pdf注释
             tag: "menuitem",
             label: "粘贴条目下pdf注释",
             icon: iconBaseUrl + "favicon.png",
             commandListener: async (ev: Event) => {
               const items = await getSelectedItems(collectionOrItem);
-              const topItems = items.map(i => i.parentItem ?? i)
+              const topItems = items.map((i) => i.parentItem ?? i);
 
-              const text = await ztoolkit.getGlobal("navigator").clipboard.readText()
+              const text = await ztoolkit.getGlobal("navigator").clipboard.readText();
 
               const d = JSON.parse(text) as [
                 {
-                  itemKey: string, firstCreator: string, year: string, title: string,
+                  itemKey: string;
+                  firstCreator: string;
+                  year: string;
+                  title: string;
                   pdfs: [
                     {
-                      pdfKey: string,
-                      filepath: string,
-                      displayTitle: string,
-                      md5: string,
-                      annotations: [{
-                        key: string,
-                        position: string,
-                        annotationJson: _ZoteroTypes.Annotations.AnnotationJson
-                      }]
-                    }]
-                }]
-              const ds = d.flatMap(a => a.pdfs.flatMap(b => b.annotations.flatMap(c => ({ ...a, ...b, ...c, annotation: c }))))
+                      pdfKey: string;
+                      filepath: string;
+                      displayTitle: string;
+                      md5: string;
+                      annotations: [
+                        {
+                          key: string;
+                          position: string;
+                          annotationJson: _ZoteroTypes.Annotations.AnnotationJson;
+                        },
+                      ];
+                    },
+                  ];
+                },
+              ];
+              const ds = d.flatMap((a) => a.pdfs.flatMap((b) => b.annotations.flatMap((c) => ({ ...a, ...b, ...c, annotation: c }))));
 
-              ztoolkit.log(ds)
+              ztoolkit.log(ds);
               for (const item of topItems) {
-                const pdfIds = item.getAttachments()
-                const pdfs = Zotero.Items.get(pdfIds).filter(f => f.isPDFAttachment())
+                const pdfIds = item.getAttachments();
+                const pdfs = Zotero.Items.get(pdfIds).filter((f) => f.isPDFAttachment());
                 for (const pdf of pdfs) {
-                  const filepath = pdf.getFilePath()
-                  const currentAnnotations = [...pdf.getAnnotations()]
+                  const filepath = pdf.getFilePath();
+                  const currentAnnotations = [...pdf.getAnnotations()];
 
-                  const md5 = filepath ? Zotero.Utilities.Internal.md5(Zotero.File.pathToFile(filepath)) : ""
+                  const md5 = filepath ? Zotero.Utilities.Internal.md5(Zotero.File.pathToFile(filepath)) : "";
                   if (md5) {
-                    const ans = ds.filter(f =>// f.md5 && f.md5 == md5 || 
-                    ( // !f.md5 && 
-                      f.title == item.getField('title')
-                      && f.firstCreator == item.getField('firstCreator')
-                      && f.year == item.getField('year')
-                    ))//
-                    ztoolkit.log("找到保存", ans, ds, md5)
+                    const ans = ds.filter(
+                      (
+                        f, // f.md5 && f.md5 == md5 ||
+                        // !f.md5 &&
+                      ) =>
+                        f.title == item.getField("title") &&
+                        f.firstCreator == item.getField("firstCreator") &&
+                        f.year == item.getField("year"),
+                    ); //
+                    ztoolkit.log("找到保存", ans, ds, md5);
                     for (const an of ans) {
                       if (an.pdfKey == pdf.key) {
-                        ztoolkit.log("pdfKey不能保存", an)
+                        ztoolkit.log("pdfKey不能保存", an);
                         continue;
                       }
-                      if (currentAnnotations.find(f => f.key == an.annotationJson.key)) {
-                        ztoolkit.log("currentAnnotations key不能保存", an)
+                      if (currentAnnotations.find((f) => f.key == an.annotationJson.key)) {
+                        ztoolkit.log("currentAnnotations key不能保存", an);
                         continue;
                       }
-                      if (currentAnnotations.find(f => f.annotationType == an.annotationJson.type && f.annotationPosition == an.position)) {
-                        ztoolkit.log("annotationType annotationPosition不能保存", an)
+                      if (
+                        currentAnnotations.find((f) => f.annotationType == an.annotationJson.type && f.annotationPosition == an.position)
+                      ) {
+                        ztoolkit.log("annotationType annotationPosition不能保存", an);
                         continue;
                       }
-                      ztoolkit.log("开始保存", an)
-                      an.annotationJson.key = Zotero.DataObjectUtilities.generateKey()
+                      ztoolkit.log("开始保存", an);
+                      an.annotationJson.key = Zotero.DataObjectUtilities.generateKey();
                       //ts-ignore annotationType
                       // an.annotationJson.annotationType = an.annotationJson.type
-                      const savedAnnotation = await Zotero.Annotations.saveFromJSON(pdf, an.annotationJson)
+                      const savedAnnotation = await Zotero.Annotations.saveFromJSON(pdf, an.annotationJson);
                       await savedAnnotation.saveTx();
-                      currentAnnotations.push(savedAnnotation)
+                      currentAnnotations.push(savedAnnotation);
                     }
                   }
                   // await Zotero.Annotations.saveFromJSON(attachment, annotation, saveOptions)
                 }
               }
 
-
               new ztoolkit.ProgressWindow("正在导入")
                 .createLine({ text: "" + text.length })
-                .createLine({ text: `${d.length}-${d.flatMap(p => p.pdfs.length).reduce((partialSum, a) => partialSum + a, 0)}-${d.flatMap(p => p.pdfs.flatMap(f => f.annotations.length)).reduce((partialSum, a) => partialSum + a, 0)}` })
-                .show().startCloseTimer(3000)
+                .createLine({
+                  text: `${d.length}-${d.flatMap((p) => p.pdfs.length).reduce((partialSum, a) => partialSum + a, 0)}-${d.flatMap((p) => p.pdfs.flatMap((f) => f.annotations.length)).reduce((partialSum, a) => partialSum + a, 0)}`,
+                })
+                .show()
+                .startCloseTimer(3000);
             },
           },
-          { //相同PDF合并，注释合并
+          {
+            //相同PDF合并，注释合并
             tag: "menuitem",
             label: "相同PDF合并，注释合并",
             icon: iconBaseUrl + "favicon.png",
             commandListener: async (ev: Event) => {
               const items = await getSelectedItems(collectionOrItem);
-              const topItems = items.map(i => i.parentItem ?? i)
-              const pw = new ztoolkit.ProgressWindow("合并").show()
+              const topItems = items.map((i) => i.parentItem ?? i);
+              const pw = new ztoolkit.ProgressWindow("合并").show();
               for (const item of topItems) {
-                const pdfIds = item.getAttachments()
-                const pdfs = Zotero.Items.get(pdfIds).filter(f => f.isPDFAttachment())
+                const pdfIds = item.getAttachments();
+                const pdfs = Zotero.Items.get(pdfIds).filter((f) => f.isPDFAttachment());
 
-                const pdfs2 = pdfs.map(
-                  pdf => {
-                    const filepath = pdf.getFilePath()
-                    const displayTitle = pdf.getDisplayTitle()
-                    const md5 = filepath ? Zotero.Utilities.Internal.md5(Zotero.File.pathToFile(filepath)) : ""
-                    return {
-                      pdf,
-                      pdfKey: pdf.key,
-                      filepath,
-                      md5
-                    }
-                  }
-                )
-                const pdf1 = pdfs2.filter(f => f.md5)[0]
+                const pdfs2 = pdfs.map((pdf) => {
+                  const filepath = pdf.getFilePath();
+                  const displayTitle = pdf.getDisplayTitle();
+                  const md5 = filepath ? Zotero.Utilities.Internal.md5(Zotero.File.pathToFile(filepath)) : "";
+                  return {
+                    pdf,
+                    pdfKey: pdf.key,
+                    filepath,
+                    md5,
+                  };
+                });
+                const pdf1 = pdfs2.filter((f) => f.md5)[0];
                 if (pdf1) {
                   for (const pd of pdfs2) {
                     // ztoolkit.log(pd)
                     if (pdf1.pdfKey != pd.pdfKey) {
-                      ztoolkit.log("找到另一个pdf", pd)
-                      const attachment = pd.pdf
-                      const ifLinks = (attachment.attachmentLinkMode == Zotero.Attachments.LINK_MODE_LINKED_FILE); // 检测是否为链接模式
+                      ztoolkit.log("找到另一个pdf", pd);
+                      const attachment = pd.pdf;
+                      const ifLinks = attachment.attachmentLinkMode == Zotero.Attachments.LINK_MODE_LINKED_FILE; // 检测是否为链接模式
                       const file = await attachment.getFilePathAsync();
-                      if (file && ifLinks) { // 如果文件存在(文件可能已经被删除)且为链接模式删除文件
+                      if (file && ifLinks) {
+                        // 如果文件存在(文件可能已经被删除)且为链接模式删除文件
                         try {
                           // await OS.File.remove(file); // 尝试删除文件
                           await Zotero.File.removeIfExists(file);
                           //await trash.remove(file);
-                        } catch (error) { // 弹出错误
+                        } catch (error) {
+                          // 弹出错误
                           alert("文件已打开");
                           return; // 弹出错误后终止执行
                         }
@@ -229,12 +265,18 @@ function buildMenu(collectionOrItem: "collection" | "item") {
                       //   false
                       // );
                       const annotations = pd.pdf.getAnnotations(false);
-                      let moveAnnotationLength = 0
+                      let moveAnnotationLength = 0;
                       for (const annotation of annotations) {
                         if (annotation.annotationIsExternal) {
                           continue;
                         }
-                        if (pdf1.pdf.getAnnotations().find(f => f.annotationType == annotation.annotationType && f.annotationPosition == annotation.annotationPosition)) {
+                        if (
+                          pdf1.pdf
+                            .getAnnotations()
+                            .find(
+                              (f) => f.annotationType == annotation.annotationType && f.annotationPosition == annotation.annotationPosition,
+                            )
+                        ) {
                           continue;
                         }
                         // 直接改parentItemID会出问题
@@ -242,30 +284,29 @@ function buildMenu(collectionOrItem: "collection" | "item") {
                         // await annotation.saveTx();
                         const annotationJson = await parseAnnotationJSON(annotation);
                         if (annotationJson) {
-                          annotationJson.key = Zotero.DataObjectUtilities.generateKey()
-                          const savedAnnotation = await Zotero.Annotations.saveFromJSON(pdf1.pdf, annotationJson)
+                          annotationJson.key = Zotero.DataObjectUtilities.generateKey();
+                          const savedAnnotation = await Zotero.Annotations.saveFromJSON(pdf1.pdf, annotationJson);
                           await savedAnnotation.saveTx();
                         }
 
-                        moveAnnotationLength += 1
+                        moveAnnotationLength += 1;
                       }
                       if (moveAnnotationLength > 0)
                         pw.createLine({
-                          text: `移动${moveAnnotationLength}批注`
-                        })
-                      pd.pdf.deleted = true
-                      pw.createLine({ text: "标记删除" })
-                      pd.pdf.saveTx()
-                      pw.createLine({ text: "保存" })
+                          text: `移动${moveAnnotationLength}批注`,
+                        });
+                      pd.pdf.deleted = true;
+                      pw.createLine({ text: "标记删除" });
+                      pd.pdf.saveTx();
+                      pw.createLine({ text: "保存" });
                     }
                   }
-                  pdf1.pdf.saveTx()
+                  pdf1.pdf.saveTx();
                 }
-                item.saveTx()
-                pw.createLine({ text: "保存条目。" })
+                item.saveTx();
+                pw.createLine({ text: "保存条目。" });
               }
-              pw.createLine({ text: "完成" + items.length }).startCloseTimer(5000)
-
+              pw.createLine({ text: "完成" + items.length }).startCloseTimer(5000);
             },
           },
 
@@ -660,15 +701,14 @@ export async function annotationToNoteTags(win: Window, collectionOrItem: "colle
   ztoolkit.UI.appendElement(elemProp, popup);
 }
 
-
 import { createRoot } from "react-dom/client";
 import { MyButton } from "./MyButton";
 import { getAnnotationContent } from "../utils/zzlb";
 import { getPublicationTags } from "../utils/zzlb";
 import { PickerColor } from "../component/PickerColor";
 import { PopoverPicker } from "../component/PopoverPicker";
-import annotations from './annotations';
-import { stringify } from 'querystring';
+import annotations from "./annotations";
+import { stringify } from "querystring";
 // import React = require("react");
 async function topDialogRect() {
   const dialogData: { [key: string | number]: any } = {
@@ -1796,24 +1836,24 @@ function createActionTag(div: HTMLElement | undefined, action: () => void | unde
     // },
     action
       ? {
-        tag: "button",
-        namespace: "html",
-        properties: { textContent: "确定生成" },
-        // styles: {
-        //   padding: "6px",
-        //   background: "#f99",
-        //   margin: "1px",
-        // },
-        listeners: [
-          {
-            type: "click",
-            listener: (ev: any) => {
-              stopPropagation(ev);
-              action();
+          tag: "button",
+          namespace: "html",
+          properties: { textContent: "确定生成" },
+          // styles: {
+          //   padding: "6px",
+          //   background: "#f99",
+          //   margin: "1px",
+          // },
+          listeners: [
+            {
+              type: "click",
+              listener: (ev: any) => {
+                stopPropagation(ev);
+                action();
+              },
             },
-          },
-        ],
-      }
+          ],
+        }
       : { tag: "span" },
     ...others,
   ];
