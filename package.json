@@ -52,7 +52,7 @@
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.0.0-alpha.39",
     "zotero-plugin-scaffold": "^0.0.32",
-    "zotero-types": "^2.0.3"
+    "zotero-types": "^2.1.0"
   },
   "prettier": {
     "printWidth": 140,
