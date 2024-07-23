@@ -48,10 +48,10 @@ export class TagColor {
   }
 }
 
-export function groupBy<T>(arr: T[], fn: (item: T) => string) {
+export function groupBy<T>(arr: T[], getKey: (item: T) => string) {
   const groupedByValues: { [key: string]: T[] } = {};
   for (const curr of arr) {
-    const groupKey = fn(curr);
+    const groupKey = getKey(curr);
     if (groupedByValues[groupKey]) {
       groupedByValues[groupKey].push(curr);
     } else {
@@ -67,6 +67,26 @@ export function groupBy<T>(arr: T[], fn: (item: T) => string) {
       }) as groupByResult<T>,
   );
 }
+
+
+export function groupByEqual<TValue, TKey>(arr: TValue[], getKey: (item: TValue) => TKey, equal: ((o1: TKey, o2: TKey) => boolean) | false = false) {
+  const groupedByValues: { [key: string]: TValue[] } = {};
+  const groupedKey = [] as TKey[]
+  const groupedValue = [] as TValue[][]
+  for (const currentValue of arr) {
+    const currentKey = getKey(currentValue);
+    const index = groupedKey.findIndex(f => equal ? equal(currentKey, f) : f == f)
+    if (index == -1) {
+      groupedKey.push(currentKey)
+      groupedValue.push([currentValue])
+    } else {
+      groupedValue[index].push(currentValue)
+    }
+  }
+  return groupedKey.map((key, index) => ({ key, value: groupedValue[index] }))
+}
+
+
 export function promiseAllWithProgress<T>(arr: Promise<T>[], callback?: { (progress: number, index: number): void }): Promise<T[]> {
   let index = 0; //不能用forEach的index，因为执行顺序不一样
   arr.forEach((item: Promise<T>) => {
@@ -278,12 +298,12 @@ const memAllTagsInLibraryAsync = memoize(async () => {
     );
   const itemTags = getPref("item-tags")
     ? items.flatMap((f) =>
-        f.getTags().map((a) => ({
-          tag: a.tag,
-          type: a.type,
-          dateModified: f.dateModified,
-        })),
-      )
+      f.getTags().map((a) => ({
+        tag: a.tag,
+        type: a.type,
+        dateModified: f.dateModified,
+      })),
+    )
     : [];
   return groupBy([...tags, ...itemTags], (t14) => t14.tag);
 });
@@ -409,7 +429,7 @@ export async function openAnnotation(itemOrKeyOrId: Zotero.Item | string | numbe
   }
 }
 
-export async function injectCSSToReader() {}
+export async function injectCSSToReader() { }
 
 export const memSVG = memoize(
   async (href) => await getFileContent(href),
@@ -445,11 +465,11 @@ export async function injectCSS(doc: Document | HTMLDivElement, filename: string
       ignoreIfExists: true,
     },
     doc.querySelector("linkset") ||
-      doc.querySelector("head") ||
-      doc.querySelector("body") ||
-      doc.querySelector("div") ||
-      doc.children[0] ||
-      doc,
+    doc.querySelector("head") ||
+    doc.querySelector("body") ||
+    doc.querySelector("div") ||
+    doc.children[0] ||
+    doc,
   );
   // ztoolkit.log("加载css", d);
 }

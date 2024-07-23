@@ -598,7 +598,7 @@ async function mergePdfs(items: Zotero.Item[], fileSizeEqual = false) {
       text: `保存条目:${item.firstCreator} (${item.getField("year")})。`,
     });
   }
-  pw.createLine({ text: "完成:" + items.length }).startCloseTimer(5000, false);
+  pw.createLine({ text: "完成:" + items.length }).startCloseTimer(5000);
 }
 interface BackupAnnotation {
   itemKey: string;
