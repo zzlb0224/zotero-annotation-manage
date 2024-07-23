@@ -501,6 +501,7 @@ async function pasteAnnotations(items: Zotero.Item[], md5Equal = false, fileSize
 
         pw.createLine({ text: ` pdf:${filepath}` })
           .createLine({ text: ` 找到${ans.length}条相关注释` })
+        let add = 0
         for (const an of ans) {
           if (an.pdfKey == pdf.key) {
             ztoolkit.log("pdfKey不能保存", an);
@@ -522,9 +523,10 @@ async function pasteAnnotations(items: Zotero.Item[], md5Equal = false, fileSize
           await savedAnnotation.saveTx();
           currentAnnotations.push(savedAnnotation);
           success++
+          add++
         }
+        pw.createLine({ text: ` 添加${add}条到pdf` })
       }
-      // await Zotero.Annotations.saveFromJSON(attachment, annotation, saveOptions)
     }
   }
 
