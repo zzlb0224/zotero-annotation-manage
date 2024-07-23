@@ -6,6 +6,8 @@ import { stopPropagation } from "../modules/annotationsToNote";
 import { getColorTags, getCiteAnnotationHtml, getPopupWin, popupWin } from "../modules/annotationsToNote";
 import { TagElementProps } from "zotero-plugin-toolkit/dist/tools/ui";
 import { waitFor } from "./wait";
+import isEqual from 'lodash/isEqual';
+// import { isEqual } from "lodash"
 /* unique 采用set的比较方式*/
 export function unique<T>(arr: T[]) {
   return [...new Set(arr)];
@@ -68,14 +70,17 @@ export function groupBy<T>(arr: T[], getKey: (item: T) => string) {
   );
 }
 
-
-export function groupByEqual<TValue, TKey>(arr: TValue[], getKey: (item: TValue) => TKey, equal: ((o1: TKey, o2: TKey) => boolean) | false = false) {
+export interface groupByEqualResult<TValue, TKey> {
+  key: TKey;
+  values: TValue[];
+}
+export function groupByEqual<TValue, TKey>(arr: TValue[], getKey: (item: TValue) => TKey, equal: ((o1: TKey, o2: TKey) => boolean) = isEqual) {
   const groupedByValues: { [key: string]: TValue[] } = {};
   const groupedKey = [] as TKey[]
   const groupedValue = [] as TValue[][]
   for (const currentValue of arr) {
     const currentKey = getKey(currentValue);
-    const index = groupedKey.findIndex(f => equal ? equal(currentKey, f) : f == f)
+    const index = groupedKey.findIndex(f => equal(currentKey, f))
     if (index == -1) {
       groupedKey.push(currentKey)
       groupedValue.push([currentValue])
@@ -83,8 +88,9 @@ export function groupByEqual<TValue, TKey>(arr: TValue[], getKey: (item: TValue)
       groupedValue[index].push(currentValue)
     }
   }
-  return groupedKey.map((key, index) => ({ key, value: groupedValue[index] }))
+  return groupedKey.map((key, index) => ({ key, values: groupedValue[index] })) as groupByEqualResult<TValue, TKey>[]
 }
+
 
 
 export function promiseAllWithProgress<T>(arr: Promise<T>[], callback?: { (progress: number, index: number): void }): Promise<T[]> {
@@ -307,8 +313,8 @@ const memAllTagsInLibraryAsync = memoize(async () => {
     : [];
   return groupBy([...tags, ...itemTags], (t14) => t14.tag);
 });
-//使用查询优化性能
-export const memAllTagsDB = memoize(async () => {
+export async function asyncGetAllTagsFromDB() {
+  //使用异步查询优化性能
   const rows = await Zotero.DB.queryAsync(
     "select name as tag,type,ann.dateModified from itemTags it join tags t on it.tagID=t.tagID join items ann on it.itemID=ann.itemID",
   );
@@ -320,9 +326,13 @@ export const memAllTagsDB = memoize(async () => {
       dateModified: row.dateModified,
     });
   }
-  ztoolkit.log(lines.length, lines);
+  return lines
+};
+export const memoizeAsyncGroupAllTagsDB = memoize(async () => {
+  const lines = await asyncGetAllTagsFromDB()
   return groupBy(lines, (t15) => t15.tag);
-});
+})
+
 export const memRelateTags = memoize(
   (item?: Zotero.Item) => {
     if (!getPref("show-relate-tags")) return [];

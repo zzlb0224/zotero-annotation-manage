@@ -17,7 +17,7 @@ import {
   groupByResult,
   groupByResultIncludeFixedTags,
   isDebug,
-  memAllTagsDB,
+  memoizeAsyncGroupAllTagsDB,
   memFixedColor,
   memFixedTags,
   memRelateTags,
@@ -179,12 +179,12 @@ export function PopupRoot({
       }>[] = [];
       // root.style.width=this.getSelectTextWidth()+"px"
       if (relateItemShowAll) {
-        relateTags = await memAllTagsDB();
+        relateTags = await memoizeAsyncGroupAllTagsDB();
       } else {
         relateTags = groupBy(memRelateTags(item), (t10) => t10.tag);
       }
-      // const d = groupByEqual(memRelateTags(item), (t10) => t10, (t10));
-
+      // const d = groupByEqual(memRelateTags(item), (t10) => t10, (a, b) => a.tag == b.tag);
+      // const e=groupByEqual((await memAllTagsDB()), a => a.key)
       const tagsExclude = (getPref("tags-exclude") as string) || "";
       if (tagsExclude) {
         const rs = str2RegExps(tagsExclude);
@@ -219,7 +219,7 @@ export function PopupRoot({
     async function search() {
       let searchResult = relateTags;
       if (searchTag) {
-        const searchIn = await memAllTagsDB();
+        const searchIn = await memoizeAsyncGroupAllTagsDB();
         if (searchTag.match(/^\s*$/g)) {
           searchResult = searchIn;
           setCurrentPosition("我的文库");

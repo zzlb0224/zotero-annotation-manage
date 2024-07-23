@@ -78,6 +78,7 @@ export function mapDateModified(r: { key: string; values: { dateModified: string
     values: r.values,
   };
 }
+
 export function sortByFixedTag2TagName<T>(a: groupByResult<T>, b: groupByResult<T>) {
   const tags = memFixedTags();
   if (tags.includes(a.key) && tags.includes(b.key)) {

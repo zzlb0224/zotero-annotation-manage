@@ -15,7 +15,7 @@ import {
   groupByResult,
   groupByResultIncludeFixedTags,
   isDebug,
-  memAllTagsDB,
+  memoizeAsyncGroupAllTagsDB,
   memFixedColor,
   memFixedTagFromColor,
   memFixedTags,
@@ -412,7 +412,7 @@ export class AnnotationPopup {
     }>[] = [];
     // root.style.width=this.getSelectTextWidth()+"px"
     if (getPref("show-all-tags")) {
-      relateTags = await memAllTagsDB();
+      relateTags = await memoizeAsyncGroupAllTagsDB();
     } else {
       relateTags = groupBy(memRelateTags(this.item), (t10) => t10.tag);
     }
@@ -921,7 +921,7 @@ export class AnnotationPopup {
   }
   async searchTagResult() {
     if (this.searchTag) {
-      const searchIn = await memAllTagsDB();
+      const searchIn = await memoizeAsyncGroupAllTagsDB();
       //  getPref("show-all-tags")
       //   ? this.relateTags
       //   : await getAllTagsDB();
@@ -1230,7 +1230,7 @@ export async function saveAnnotationTags(
         reader?._primaryView?._onSetSelectionPopup?.(null);
         // openAnnotation(item, newAnn?.pageLabel || "", newAnn?.id || "")
       }
-      memAllTagsDB.remove();
+      memoizeAsyncGroupAllTagsDB.remove();
       memRelateTags.remove();
     }
   }
@@ -1257,7 +1257,7 @@ async function getTagsRequire(selectedTags: string[]) {
 async function getNestedTags(tags: string[]) {
   const filterArr = tags.filter((f) => f && !f.startsWith("#") && !f.includes("/"));
   const list: string[] = [];
-  const allTags = await memAllTagsDB();
+  const allTags = await memoizeAsyncGroupAllTagsDB();
   for (const t1 of filterArr) {
     for (const t2 of filterArr) {
       if (t1 != t2) {

@@ -30,10 +30,12 @@
   },
   "dependencies": {
     "@eastdesire/jscolor": "^2.5.2",
+    "@types/lodash": "^4.17.7",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@uidotdev/usehooks": "^2.4.1",
     "classnames": "^2.5.1",
+    "lodash": "^4.17.21",
     "react": "^18.3.1",
     "react-colorful": "github:zzlb0224/react-colorful",
     "react-dom": "^18.3.1",
