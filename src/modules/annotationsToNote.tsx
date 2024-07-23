@@ -120,7 +120,7 @@ function buildMenu(collectionOrItem: "collection" | "item") {
               {
                 //相同PDF合并，注释合并
                 tag: "menuitem",
-                label: "仅保留这个PDF，注释合并，条目下其它PDF删除，移动注释",
+                label: "仅保留1个PDF，注释合并(条目下其它PDF删除)",
                 icon: iconBaseUrl + "favicon.png",
                 commandListener: async (ev: Event) => {
                   const items = await getSelectedItems(collectionOrItem);
@@ -130,7 +130,7 @@ function buildMenu(collectionOrItem: "collection" | "item") {
               {
                 //相同PDF合并，注释合并
                 tag: "menuitem",
-                label: "仅保留这个PDF，注释合并，条目下其它与这个PDF大小一样的PDF删除",
+                label: "仅保留1个PDF，注释合并(条目下与这个PDF大小一样的PDF删除)",
                 icon: iconBaseUrl + "favicon.png",
                 commandListener: async (ev: Event) => {
                   const items = await getSelectedItems(collectionOrItem);
