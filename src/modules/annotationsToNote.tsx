@@ -617,7 +617,7 @@ async function mergePdfs(items: Zotero.Item[], fileSizeEqual = false) {
               text: `移动${moveAnnotationLength}批注`,
             });
           pd.pdf.deleted = true;
-          pw.createLine({ text: "标记删除" });
+          pw.createLine({ text: "标记删除:" + pd.pdf.getFilePath() });
           pd.pdf.saveTx();
           pw.createLine({ text: "保存" });
         }
@@ -625,9 +625,11 @@ async function mergePdfs(items: Zotero.Item[], fileSizeEqual = false) {
       pdf1.pdf.saveTx();
     }
     item.saveTx();
-    pw.createLine({ text: "保存条目。" });
+    pw.createLine({
+      text: `保存条目:${item.firstCreator} (${item.getField("year")})`
+    });
   }
-  pw.createLine({ text: "完成" + items.length }).startCloseTimer(5000);
+  pw.createLine({ text: "完成:" + items.length }).startCloseTimer(5000, false);
 }
 interface BackupAnnotation {
   itemKey: string;
