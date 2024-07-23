@@ -480,12 +480,13 @@ async function pasteAnnotations(items: Zotero.Item[], md5Equal = false, fileSize
   ztoolkit.log(ds);
   let success = 0
   for (const item of topItems) {
-    const pdfIds = item.getAttachments();
-    const pdfs = Zotero.Items.get(pdfIds).filter((f) => f.isPDFAttachment());
-    for (const pdf of pdfs) {
-      const filepath = pdf.getFilePath();
-      const currentAnnotations = [...pdf.getAnnotations()];
 
+    const pdfs = Zotero.Items.get(item.getAttachments()).filter((f) => f.isPDFAttachment());
+    pw.createLine({ text: ` 处理${item.firstCreator} (${item.getField("year")}) ${item.getDisplayTitle()}` })
+      .createLine({ text: ` 有${pdfs.length}个Pdf` })
+    for (const pdf of pdfs) {
+      const currentAnnotations = [...pdf.getAnnotations()];
+      const filepath = pdf.getFilePath();
       const md5 = filepath ? Zotero.Utilities.Internal.md5(Zotero.File.pathToFile(filepath)) : "";
       const fileSize = filepath ? Zotero.File.pathToFile(filepath).fileSize : -1;
       if (md5) {
@@ -498,6 +499,8 @@ async function pasteAnnotations(items: Zotero.Item[], md5Equal = false, fileSize
         ); //
         ztoolkit.log("找到保存", titleEqual, fileSizeEqual, md5Equal, ans, ds, md5, fileSize);
 
+        pw.createLine({ text: ` pdf:${filepath}` })
+          .createLine({ text: ` 找到${ans.length}条相关注释` })
         for (const an of ans) {
           if (an.pdfKey == pdf.key) {
             ztoolkit.log("pdfKey不能保存", an);
@@ -539,37 +542,39 @@ async function mergePdfs(items: Zotero.Item[], fileSizeEqual = false) {
   const primaryPdfKeys = items.filter((f) => f.isPDFAttachment()).map((item) => item.key);
   const topItems = items.map((i) => i.parentItem ?? i);
   const pw = new ztoolkit.ProgressWindow("合并").show();
-  const ds = toBackupAnnotation(topItems);
   for (const item of topItems) {
-    const pdfIds = item.getAttachments();
-    const pdfs = Zotero.Items.get(pdfIds).filter((f) => f.isPDFAttachment());
+    pw.createLine({
+      text: `处理条目:${item.firstCreator} (${item.getField("year")})...`
+    });
+    const pdfs = Zotero.Items.get(item.getAttachments()).filter((f) => f.isPDFAttachment());
 
-    const pdfs2 = pdfs.map((pdf) => {
-      const filepath = pdf.getFilePath();
-      const md5 = filepath ? Zotero.Utilities.Internal.md5(Zotero.File.pathToFile(filepath)) : "";
-      const fileSize = filepath ? Zotero.File.pathToFile(filepath).fileSize : -1;
+    const pdfInfos = pdfs.map((pdf) => {
       return {
+        item,
         pdf,
         pdfKey: pdf.key,
-        filepath,
-        md5,
-        fileSize,
+        filepath: pdf.getFilePath(),
+        ...getFileInfo(pdf.getFilePath())
       };
     });
-    ztoolkit.log("mergePdfs", pdfs2);
-    const pdf1 = pdfs2.find((f) => primaryPdfKeys.includes(f.pdfKey)) || pdfs2.find((f) => f.md5);
-    if (pdf1) {
-      for (const pd of pdfs2) {
+    // const ds = await toBackupAnnotation([item], true)
+    ztoolkit.log("mergePdfs", pdfInfos);
+    const pdfMaster = pdfInfos.find((f) => f.md5 && primaryPdfKeys.includes(f.pdfKey)) || pdfInfos.find((f) => f.md5);
+    //有文件的既md5存在的。选中的
+    // const pdfMaster = ds.find(f => f.md5 && primaryPdfKeys.includes(f.pdfKey)) || ds.find(f => f.md5);
+    if (pdfMaster) {
+      const masterPdf = pdfMaster.pdf
+      for (const pdfOther of pdfInfos) {
         // ztoolkit.log(pd)
-        if (pdf1.pdfKey != pd.pdfKey) {
-          if (fileSizeEqual && pdf1.fileSize !== pdf1.fileSize) {
-            ztoolkit.log("找到另一个pdf 但是文件大小不一样", pd);
+        if (pdfMaster.pdfKey != pdfOther.pdfKey) {
+          if (fileSizeEqual && pdfMaster.fileSize !== pdfMaster.fileSize) {
+            ztoolkit.log("找到另一个pdf 但是文件大小不一样", pdfOther);
             continue;
           }
-          ztoolkit.log("找到另一个pdf", pd);
-          const attachment = pd.pdf;
-          const ifLinks = attachment.attachmentLinkMode == Zotero.Attachments.LINK_MODE_LINKED_FILE; // 检测是否为链接模式
-          const file = await attachment.getFilePathAsync();
+          ztoolkit.log("找到另一个pdf", pdfOther);
+          const otherAttachment = pdfOther.pdf!;
+          const ifLinks = otherAttachment.attachmentLinkMode == Zotero.Attachments.LINK_MODE_LINKED_FILE; // 检测是否为链接模式
+          const file = await otherAttachment.getFilePathAsync();
           if (file && ifLinks) {
             // 如果文件存在(文件可能已经被删除)且为链接模式删除文件
             try {
@@ -583,30 +588,31 @@ async function mergePdfs(items: Zotero.Item[], fileSizeEqual = false) {
             }
           }
           // await Zotero.Items.moveChildItems(
-          //   pd.pdf,
-          //   pdf1.pdf,
+          //  attachment,
+          //   mPdf,
           //   false
           // );
-          const annotations = pd.pdf.getAnnotations(false);
+          const fromAnnotations = otherAttachment.getAnnotations(false);
           let moveAnnotationLength = 0;
-          for (const annotation of annotations) {
+          for (const annotation of fromAnnotations) {
             if (annotation.annotationIsExternal) {
               continue;
             }
             if (
-              pdf1.pdf
+              masterPdf
                 .getAnnotations()
                 .find((f) => f.annotationType == annotation.annotationType && f.annotationPosition == annotation.annotationPosition)
             ) {
               continue;
             }
             // 直接改parentItemID会出问题
-            // annotation.parentItemID = pdf1.pdf.id;
+            // annotation.parentItemID = mPdf;
             // await annotation.saveTx();
+
             const annotationJson = await parseAnnotationJSON(annotation);
             if (annotationJson) {
               annotationJson.key = Zotero.DataObjectUtilities.generateKey();
-              const savedAnnotation = await Zotero.Annotations.saveFromJSON(pdf1.pdf, annotationJson);
+              const savedAnnotation = await Zotero.Annotations.saveFromJSON(masterPdf, annotationJson);
               await savedAnnotation.saveTx();
             }
 
@@ -614,19 +620,19 @@ async function mergePdfs(items: Zotero.Item[], fileSizeEqual = false) {
           }
           if (moveAnnotationLength > 0)
             pw.createLine({
-              text: `移动${moveAnnotationLength}批注`,
+              text: ` 移动${moveAnnotationLength}条批注`,
             });
-          pd.pdf.deleted = true;
-          pw.createLine({ text: "标记删除:" + pd.pdf.getFilePath() });
-          pd.pdf.saveTx();
-          pw.createLine({ text: "保存" });
+          otherAttachment.deleted = true;
+          pw.createLine({ text: "  附件删除:" + otherAttachment.getFilePath() });
+          otherAttachment.saveTx();
+          // pw.createLine({ text: "保存" });
         }
       }
-      pdf1.pdf.saveTx();
+      masterPdf.saveTx();
     }
     item.saveTx();
     pw.createLine({
-      text: `保存条目:${item.firstCreator} (${item.getField("year")})`
+      text: `保存条目:${item.firstCreator} (${item.getField("year")})。`
     });
   }
   pw.createLine({ text: "完成:" + items.length }).startCloseTimer(5000, false);
@@ -644,18 +650,19 @@ interface BackupAnnotation {
   key: string;
   position: string;
   annotationJson: _ZoteroTypes.Annotations.AnnotationJson;
+  item?: Zotero.Item;
+  pdf?: Zotero.Item;
+  annotation?: Zotero.Item;
 }
 
-function toBackupAnnotation(topItems: Zotero.Item[]) {
+function toBackupAnnotation(topItems: Zotero.Item[], withObject = false) {
   const d = topItems.flatMap((item) => {
     const pdfIds = item.getAttachments();
     const pdfs = Zotero.Items.get(pdfIds).filter((f) => f.isPDFAttachment());
     return pdfs.flatMap((pdf) => {
       const filepath = pdf.getFilePath();
       const displayTitle = pdf.getDisplayTitle();
-
-      const md5 = filepath ? Zotero.Utilities.Internal.md5(Zotero.File.pathToFile(filepath)) : "";
-      const fileSize = filepath ? Zotero.File.pathToFile(filepath).fileSize : -1;
+      const { md5, fileSize } = getFileInfo(filepath);
       return pdf.getAnnotations().map(async (annotation) => {
         return {
           itemKey: item.key,
@@ -671,11 +678,28 @@ function toBackupAnnotation(topItems: Zotero.Item[]) {
           key: annotation.key,
           position: annotation.annotationPosition,
           annotationJson: await parseAnnotationJSON(annotation),
+          item: withObject ? item : undefined,
+          pdf: withObject ? pdf : undefined,
+          annotation: withObject ? annotation : undefined
         } as BackupAnnotation;
       });
     });
   });
   return Promise.all(d);
+}
+
+function getFileInfo(filepath: string | false) {
+  let md5 = "";
+  let fileSize = -1;
+  if (filepath) {
+    try {
+      md5 = Zotero.Utilities.Internal.md5(Zotero.File.pathToFile(filepath));
+      fileSize = Zotero.File.pathToFile(filepath).fileSize;
+    } catch (error) {
+      ztoolkit.log("文件不可访问", error);
+    }
+  }
+  return { md5, fileSize };
 }
 
 export async function annotationToNoteType(win: Window, collectionOrItem: "collection" | "item" = "collection") {
