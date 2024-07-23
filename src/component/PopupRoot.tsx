@@ -1134,6 +1134,20 @@ export function PopupRoot({
                       refInputTag.current?.focus();
                       return false;
                     }
+                    if (bAutoFocus && !comment) {
+                      //自动获得焦点的时候，使用ctrl+C复制选中文本，如果文本框没有内容复制选中的pdf文字
+                      const text = params.annotation?.text;
+                      if (e.ctrlKey && !e.altKey && !e.shiftKey && e.key.toLowerCase() === "c") {
+                        if (e.currentTarget.value == "" && text) {
+                          ztoolkit.log("复制", e, text);
+                          e.preventDefault();
+                          const cb = new ztoolkit.Clipboard();
+                          cb.addText(text);
+                          cb.copy();
+                          return false;
+                        }
+                      }
+                    }
                     if (e.key == "Tab") {
                       if (e.preventDefault) {
                         e.preventDefault();
@@ -1273,20 +1287,20 @@ export function PopupRoot({
                       ctrlAddOrSaveTags(isAdd, cTag);
                       return false;
                     }}
-                    // onMouseDown={(e) => {
-                    //   e.preventDefault();
-                    //   ztoolkit.log("onMouseDown 复制", e)
-                    //   return false
-                    // }}
-                    // onContextMenu={e => {
-                    //   e.preventDefault();
-                    //   ztoolkit.log("onContextMenu 复制", tag.key)
-                    //   new window.Clipboard().readText().then((text) => {
-                    //     ztoolkit.log("onContextMenu 复制", tag.key, text);
-                    //     (e.currentTarget as HTMLInputElement).value = text;
-                    //   })
-                    //   return false
-                    // }}
+                  // onMouseDown={(e) => {
+                  //   e.preventDefault();
+                  //   ztoolkit.log("onMouseDown 复制", e)
+                  //   return false
+                  // }}
+                  // onContextMenu={e => {
+                  //   e.preventDefault();
+                  //   ztoolkit.log("onContextMenu 复制", tag.key)
+                  //   new window.Clipboard().readText().then((text) => {
+                  //     ztoolkit.log("onContextMenu 复制", tag.key, text);
+                  //     (e.currentTarget as HTMLInputElement).value = text;
+                  //   })
+                  //   return false
+                  // }}
                   >
                     <span>[{tag.values.length}]</span>
                     <span>{tag.key}</span>

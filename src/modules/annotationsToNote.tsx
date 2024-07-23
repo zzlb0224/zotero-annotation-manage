@@ -120,7 +120,7 @@ function buildMenu(collectionOrItem: "collection" | "item") {
               {
                 //相同PDF合并，注释合并
                 tag: "menuitem",
-                label: "合并条目下所有PDF文件和注释，统一条目下所有PDF",
+                label: "仅保留这个PDF，注释合并，条目下其它PDF删除，移动注释",
                 icon: iconBaseUrl + "favicon.png",
                 commandListener: async (ev: Event) => {
                   const items = await getSelectedItems(collectionOrItem);
@@ -130,7 +130,7 @@ function buildMenu(collectionOrItem: "collection" | "item") {
               {
                 //相同PDF合并，注释合并
                 tag: "menuitem",
-                label: "合并条目下所有PDF文件和注释，仅pdf文件大小一样合并",
+                label: "仅保留这个PDF，注释合并，条目下其它与这个PDF大小一样的PDF删除",
                 icon: iconBaseUrl + "favicon.png",
                 commandListener: async (ev: Event) => {
                   const items = await getSelectedItems(collectionOrItem);
@@ -458,9 +458,10 @@ async function copyAnnotations(items: Zotero.Item[]) {
     }),
   );
   ztoolkit.log(d);
-  new ztoolkit.Clipboard().addText(JSON.stringify(d)).copy();
+  const ds = await toBackupAnnotation(topItems)
+  new ztoolkit.Clipboard().addText(JSON.stringify(ds)).copy();
   pw.createLine({
-    text: `${d.length}-${d.flatMap((p) => p.pdfs.length).reduce((partialSum, a) => partialSum + a, 0)}-${d.flatMap((p) => p.pdfs.flatMap((f) => f.annotations.length)).reduce((partialSum, a) => partialSum + a, 0)}`,
+    text: `${groupBy(ds, a => a.itemKey).length}-${groupBy(ds, a => a.pdfKey).length}-${ds.length}`,
   }).startCloseTimer(3000);
 }
 
@@ -477,6 +478,7 @@ async function pasteAnnotations(items: Zotero.Item[], md5Equal = false, fileSize
   // const ds = d.flatMap((a) => a.pdfs.flatMap((b) => b.annotations.flatMap((c) => ({ ...a, ...b, ...c, annotation: c }))));
 
   ztoolkit.log(ds);
+  let success = 0
   for (const item of topItems) {
     const pdfIds = item.getAttachments();
     const pdfs = Zotero.Items.get(pdfIds).filter((f) => f.isPDFAttachment());
@@ -495,6 +497,7 @@ async function pasteAnnotations(items: Zotero.Item[], md5Equal = false, fileSize
             (!md5Equal || f.md5 == md5),
         ); //
         ztoolkit.log("找到保存", titleEqual, fileSizeEqual, md5Equal, ans, ds, md5, fileSize);
+
         for (const an of ans) {
           if (an.pdfKey == pdf.key) {
             ztoolkit.log("pdfKey不能保存", an);
@@ -515,6 +518,7 @@ async function pasteAnnotations(items: Zotero.Item[], md5Equal = false, fileSize
           const savedAnnotation = await Zotero.Annotations.saveFromJSON(pdf, an.annotationJson);
           await savedAnnotation.saveTx();
           currentAnnotations.push(savedAnnotation);
+          success++
         }
       }
       // await Zotero.Annotations.saveFromJSON(attachment, annotation, saveOptions)
@@ -524,6 +528,9 @@ async function pasteAnnotations(items: Zotero.Item[], md5Equal = false, fileSize
   pw.createLine({ text: "" + text.length })
     .createLine({
       text: `${groupBy(ds, (d) => d.itemKey).length}-${groupBy(ds, (d) => d.pdfKey).length}-${ds.length}`,
+    })
+    .createLine({
+      text: `成功${success}`,
     })
     .startCloseTimer(3000);
 }
@@ -1932,24 +1939,24 @@ function createActionTag(div: HTMLElement | undefined, action: () => void | unde
     // },
     action
       ? {
-          tag: "button",
-          namespace: "html",
-          properties: { textContent: "确定生成" },
-          // styles: {
-          //   padding: "6px",
-          //   background: "#f99",
-          //   margin: "1px",
-          // },
-          listeners: [
-            {
-              type: "click",
-              listener: (ev: any) => {
-                stopPropagation(ev);
-                action();
-              },
+        tag: "button",
+        namespace: "html",
+        properties: { textContent: "确定生成" },
+        // styles: {
+        //   padding: "6px",
+        //   background: "#f99",
+        //   margin: "1px",
+        // },
+        listeners: [
+          {
+            type: "click",
+            listener: (ev: any) => {
+              stopPropagation(ev);
+              action();
             },
-          ],
-        }
+          },
+        ],
+      }
       : { tag: "span" },
     ...others,
   ];
