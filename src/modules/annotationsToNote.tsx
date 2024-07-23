@@ -1278,8 +1278,11 @@ function funcSplitTag(items: Zotero.Item[], ans: AnnotationRes[]) {
 
 function createSearchAnnContent(dialogWindow: Window | undefined, popupDiv: HTMLElement | undefined, annotations: AnnotationRes[]) {
   const isWin = dialogWindow != undefined;
-  const doc = dialogWindow?.document || popupDiv;
+  const doc = dialogWindow?.document.documentElement || popupDiv;
   if (!doc) return;
+  dialogWindow?.addEventListener("resize", e => {
+    updatePageContentDebounce()
+  })
   let text = "";
   let tag = "";
   let rowSize = (getPref("SearchAnnRowSize") as number) || 4;
@@ -1290,6 +1293,8 @@ function createSearchAnnContent(dialogWindow: Window | undefined, popupDiv: HTML
   let fontSize = (getPref("SearchAnnFontSize") as number) || 16;
   const selectedAnnotationType: string[] = [];
   let ans: AnnotationRes[] = annotations;
+
+
 
   const content = doc.querySelector(".content") as HTMLElement;
   const query = doc.querySelector(".query") as HTMLElement;
@@ -1386,7 +1391,22 @@ function createSearchAnnContent(dialogWindow: Window | undefined, popupDiv: HTML
           },
         ]),
       },
-
+      {
+        tag: "button",
+        properties: { textContent: "导出" },
+        listeners: [
+          {
+            type: "click",
+            listener: (e) => {
+              e.stopPropagation();
+              exportNote({ filter: () => ans, toText: toText1 });
+              dialogWindow?.close();
+              popupDiv?.remove();
+            },
+            options: { capture: true },
+          },
+        ],
+      },
       {
         tag: "label",
         properties: { textContent: "列" },
@@ -1510,22 +1530,7 @@ function createSearchAnnContent(dialogWindow: Window | undefined, popupDiv: HTML
           },
         ],
       },
-      {
-        tag: "button",
-        properties: { textContent: "导出" },
-        listeners: [
-          {
-            type: "click",
-            listener: (e) => {
-              e.stopPropagation();
-              exportNote({ filter: () => ans, toText: toText1 });
-              dialogWindow?.close();
-              popupDiv?.remove();
-            },
-            options: { capture: true },
-          },
-        ],
-      },
+
 
       {
         tag: "div",
@@ -1648,6 +1653,11 @@ function createSearchAnnContent(dialogWindow: Window | undefined, popupDiv: HTML
     // if (isWin) (dialogWindow as any).sizeToContent();
   }
   async function updatePageContent() {
+    if (!doc) return;
+    const docCss = ztoolkit.getGlobal("getComputedStyle")(doc)
+    const docWidth = parseFloat(docCss.width)
+    const docHeight = parseFloat(docCss.height)
+    ztoolkit.log("画布宽度", docWidth, "高度", docHeight)
     if ((pageIndex - 1) * pageSize > ans.length) {
       pageIndex = 1;
       (query.querySelector(".pageIndex") as HTMLInputElement).value = pageIndex + "";
@@ -1667,7 +1677,7 @@ function createSearchAnnContent(dialogWindow: Window | undefined, popupDiv: HTML
           display: "flex",
           alignItems: "stretch",
           flexDirection: "column",
-          width: "260px",
+          width: (docWidth / columnSize - 20 - 20 / columnSize) + "px",
           background: "#fff",
           borderRadius: "5px",
           margin: "4px",
@@ -1741,10 +1751,10 @@ function createSearchAnnContent(dialogWindow: Window | undefined, popupDiv: HTML
                 tag: "div",
                 styles: {
                   background: anTo.annotationColor + "60", //width: "200px",
-                  height: "100px",
+                  height: ((docHeight - 120) / rowSize - 60) + "px",
                   overflowY: "scroll",
                 },
-                properties: { innerHTML: await getAnnotationContent(anTo) },
+                properties: { innerHTML: (await getAnnotationContent(anTo)).replaceAll(`style="height:100px"><img`, `style="height:${((docHeight - 120) / rowSize - 60)}px"><img`) },
               },
               {
                 tag: "div",
