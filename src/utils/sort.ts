@@ -29,6 +29,9 @@ export function sortTags(fixed: string[] | undefined, a: string | { key: string 
   if (typeof a !== "string" && typeof b !== "string") return sortTags(fixed, a.key, b.key);
   return 0;
 }
+export function sortDesc(a: string | number | undefined, b: string | number | undefined) {
+  return -sortAsc(a, b)
+}
 export function sortAsc(a: string | number | undefined, b: string | number | undefined) {
   if (a === undefined && b === undefined) {
     return 0;
@@ -74,7 +77,7 @@ export function sortFixedTags1000Ann100Modified10Asc(tags: string[] | undefined)
 export function mapDateModified(r: { key: string; values: { dateModified: string; tag: string; type: number }[] }) {
   return {
     key: r.key,
-    dateModified: r.values.map((v) => v.dateModified).sort((a, b) => (a > b ? -1 : 1))[0],
+    dateModified: r.values.map((v) => v.dateModified).sort(sortAsc)[0],
     values: r.values,
   };
 }
