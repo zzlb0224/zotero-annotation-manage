@@ -168,18 +168,13 @@ export function init() {
   async function getHtml() {
     const selectedItems = ZoteroPane.getSelectedItems();
     const item = selectedItems[0];
-    //if (!item) return null; // 提前退出，如果没有选中的项 
+    //if (!item) return null; // 提前退出，如果没有选中的项
     const attachments = Zotero.Items.get(item.getAttachments()).filter(
-      (i) =>
-        i.isPDFAttachment() ||
-        i.isSnapshotAttachment() ||
-        i.isEPUBAttachment() ||
-        i.isWebAttachment(),
+      (i) => i.isPDFAttachment() || i.isSnapshotAttachment() || i.isEPUBAttachment() || i.isWebAttachment(),
     );
     let res = `<h1>${item.getField("title")}</h1>`;
     const allAnnotations = []; // 在函数作用域内声明数组来收集所有注释
     for (const attachment of attachments) {
-
       res += `<h2>@@@${attachment.getFilename()}</h2>`;
       const annotations = attachment.getAnnotations();
       allAnnotations.push(...annotations); // 使用扩展运算符将annotations数组的每个元素添加到allAnnotations数组中
@@ -201,7 +196,6 @@ export function init() {
       annotationObj.attachmentItemID = annotationItem.parentItem?.id; // @ts-ignore 111
       delete annotationObj.key;
       for (const key in annotationObj) {
-
         annotationObj[key] = annotationObj[key] || "";
       }
       annotationObj.tags = annotationObj.tags || [];
@@ -225,7 +219,6 @@ export function init() {
       const annJson = await parseAnnotationJSON(ann);
 
       if (options.ignoreComment && annJson?.comment) {
-
         annJson.comment = "";
       }
       if (annJson) annotationJSONList.push(annJson);

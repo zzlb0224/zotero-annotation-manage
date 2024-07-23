@@ -67,247 +67,77 @@ function buildMenu(collectionOrItem: "collection" | "item") {
         icon: iconBaseUrl + "favicon.png",
         children: [
           {
-            //复制pdf注释
-            tag: "menuitem",
-            label: "复制条目下pdf注释",
+            tag: "menu",
+            label: "备份还原pdf注释",
             icon: iconBaseUrl + "favicon.png",
-            commandListener: async (ev: Event) => {
-              const items = await getSelectedItems(collectionOrItem);
-              const topItems = items.map((i) => i.parentItem ?? i);
-              const d = await Promise.all(
-                topItems.map(async (item) => {
-                  const pdfIds = item.getAttachments();
-                  const pdfs = Zotero.Items.get(pdfIds).filter((f) => f.isPDFAttachment());
-                  return {
-                    itemKey: item.key,
-                    // item,
-                    firstCreator: `${item.getField("firstCreator")}`,
-                    year: `${item.getField("year")}`,
-                    title: `${item.getField("title")}`,
-                    pdfs: await Promise.all(
-                      pdfs.map(async (pdf) => {
-                        const filepath = pdf.getFilePath();
-                        const displayTitle = pdf.getDisplayTitle();
-                        const md5 = filepath ? Zotero.Utilities.Internal.md5(Zotero.File.pathToFile(filepath)) : "";
-                        return {
-                          pdfKey: pdf.key,
-                          filepath,
-                          displayTitle,
-                          md5,
-                          annotations: await Promise.all(
-                            pdf.getAnnotations().map(async (annotation) => {
-                              // if (pdf.key == "NoNoNo")
-                              return {
-                                key: annotation.key,
-                                position: annotation.annotationPosition,
-                                annotationJson: await parseAnnotationJSON(annotation),
-                              };
-                              // return annotation
-                            }),
-                          ),
-                        };
-                      }),
-                    ),
-                  };
-                }),
-              );
-              ztoolkit.log(d);
-              new ztoolkit.Clipboard().addText(JSON.stringify(d)).copy();
-              new ztoolkit.ProgressWindow("复制成功")
-                .createLine({
-                  text: `${d.length}-${d.flatMap((p) => p.pdfs.length).reduce((partialSum, a) => partialSum + a, 0)}-${d.flatMap((p) => p.pdfs.flatMap((f) => f.annotations.length)).reduce((partialSum, a) => partialSum + a, 0)}`,
-                })
-                .show()
-                .startCloseTimer(3000);
-            },
-          },
-          {
-            //粘贴pdf注释
-            tag: "menuitem",
-            label: "粘贴条目下pdf注释-用作者年份标题识别不同的条目",
-            icon: iconBaseUrl + "favicon.png",
-            commandListener: async (ev: Event) => {
-              const items = await getSelectedItems(collectionOrItem);
-              const topItems = items.map((i) => i.parentItem ?? i);
-
-              const text = await ztoolkit.getGlobal("navigator").clipboard.readText();
-
-              const d = JSON.parse(text) as [
-                {
-                  itemKey: string;
-                  firstCreator: string;
-                  year: string;
-                  title: string;
-                  pdfs: [
-                    {
-                      pdfKey: string;
-                      filepath: string;
-                      displayTitle: string;
-                      md5: string;
-                      annotations: [
-                        {
-                          key: string;
-                          position: string;
-                          annotationJson: _ZoteroTypes.Annotations.AnnotationJson;
-                        },
-                      ];
-                    },
-                  ];
+            children: [
+              {
+                //复制pdf注释
+                tag: "menuitem",
+                label: "备份pdf注释到剪切板",
+                icon: iconBaseUrl + "favicon.png",
+                commandListener: async (ev: Event) => {
+                  const items = await getSelectedItems(collectionOrItem);
+                  await copyAnnotations(items);
                 },
-              ];
-              const ds = d.flatMap((a) => a.pdfs.flatMap((b) => b.annotations.flatMap((c) => ({ ...a, ...b, ...c, annotation: c }))));
-
-              ztoolkit.log(ds);
-              for (const item of topItems) {
-                const pdfIds = item.getAttachments();
-                const pdfs = Zotero.Items.get(pdfIds).filter((f) => f.isPDFAttachment());
-                for (const pdf of pdfs) {
-                  const filepath = pdf.getFilePath();
-                  const currentAnnotations = [...pdf.getAnnotations()];
-
-                  const md5 = filepath ? Zotero.Utilities.Internal.md5(Zotero.File.pathToFile(filepath)) : "";
-                  if (md5) {
-                    const ans = ds.filter(
-                      (
-                        f, // f.md5 && f.md5 == md5 ||
-                        // !f.md5 &&
-                      ) =>
-                        f.title == item.getField("title") &&
-                        f.firstCreator == item.getField("firstCreator") &&
-                        f.year == item.getField("year"),
-                    ); //
-                    ztoolkit.log("找到保存", ans, ds, md5);
-                    for (const an of ans) {
-                      if (an.pdfKey == pdf.key) {
-                        ztoolkit.log("pdfKey不能保存", an);
-                        continue;
-                      }
-                      if (currentAnnotations.find((f) => f.key == an.annotationJson.key)) {
-                        ztoolkit.log("currentAnnotations key不能保存", an);
-                        continue;
-                      }
-                      if (
-                        currentAnnotations.find((f) => f.annotationType == an.annotationJson.type && f.annotationPosition == an.position)
-                      ) {
-                        ztoolkit.log("annotationType annotationPosition不能保存", an);
-                        continue;
-                      }
-                      ztoolkit.log("开始保存", an);
-                      an.annotationJson.key = Zotero.DataObjectUtilities.generateKey();
-                      //ts-ignore annotationType
-                      // an.annotationJson.annotationType = an.annotationJson.type
-                      const savedAnnotation = await Zotero.Annotations.saveFromJSON(pdf, an.annotationJson);
-                      await savedAnnotation.saveTx();
-                      currentAnnotations.push(savedAnnotation);
-                    }
-                  }
-                  // await Zotero.Annotations.saveFromJSON(attachment, annotation, saveOptions)
-                }
-              }
-
-              new ztoolkit.ProgressWindow("正在导入")
-                .createLine({ text: "" + text.length })
-                .createLine({
-                  text: `${d.length}-${d.flatMap((p) => p.pdfs.length).reduce((partialSum, a) => partialSum + a, 0)}-${d.flatMap((p) => p.pdfs.flatMap((f) => f.annotations.length)).reduce((partialSum, a) => partialSum + a, 0)}`,
-                })
-                .show()
-                .startCloseTimer(3000);
-            },
-          },
-          {
-            //相同PDF合并，注释合并
-            tag: "menuitem",
-            label: "合并条目下所有PDF文件和注释",
-            icon: iconBaseUrl + "favicon.png",
-            commandListener: async (ev: Event) => {
-              const items = await getSelectedItems(collectionOrItem);
-              const topItems = items.map((i) => i.parentItem ?? i);
-              const pw = new ztoolkit.ProgressWindow("合并").show();
-              for (const item of topItems) {
-                const pdfIds = item.getAttachments();
-                const pdfs = Zotero.Items.get(pdfIds).filter((f) => f.isPDFAttachment());
-
-                const pdfs2 = pdfs.map((pdf) => {
-                  const filepath = pdf.getFilePath();
-                  const displayTitle = pdf.getDisplayTitle();
-                  const md5 = filepath ? Zotero.Utilities.Internal.md5(Zotero.File.pathToFile(filepath)) : "";
-                  return {
-                    pdf,
-                    pdfKey: pdf.key,
-                    filepath,
-                    md5,
-                  };
-                });
-                const pdf1 = pdfs2.filter((f) => f.md5)[0];
-                if (pdf1) {
-                  for (const pd of pdfs2) {
-                    // ztoolkit.log(pd)
-                    if (pdf1.pdfKey != pd.pdfKey) {
-                      ztoolkit.log("找到另一个pdf", pd);
-                      const attachment = pd.pdf;
-                      const ifLinks = attachment.attachmentLinkMode == Zotero.Attachments.LINK_MODE_LINKED_FILE; // 检测是否为链接模式
-                      const file = await attachment.getFilePathAsync();
-                      if (file && ifLinks) {
-                        // 如果文件存在(文件可能已经被删除)且为链接模式删除文件
-                        try {
-                          // await OS.File.remove(file); // 尝试删除文件
-                          await Zotero.File.removeIfExists(file);
-                          //await trash.remove(file);
-                        } catch (error) {
-                          // 弹出错误
-                          alert("文件已打开");
-                          return; // 弹出错误后终止执行
-                        }
-                      }
-                      // await Zotero.Items.moveChildItems(
-                      //   pd.pdf,
-                      //   pdf1.pdf,
-                      //   false
-                      // );
-                      const annotations = pd.pdf.getAnnotations(false);
-                      let moveAnnotationLength = 0;
-                      for (const annotation of annotations) {
-                        if (annotation.annotationIsExternal) {
-                          continue;
-                        }
-                        if (
-                          pdf1.pdf
-                            .getAnnotations()
-                            .find(
-                              (f) => f.annotationType == annotation.annotationType && f.annotationPosition == annotation.annotationPosition,
-                            )
-                        ) {
-                          continue;
-                        }
-                        // 直接改parentItemID会出问题
-                        // annotation.parentItemID = pdf1.pdf.id;
-                        // await annotation.saveTx();
-                        const annotationJson = await parseAnnotationJSON(annotation);
-                        if (annotationJson) {
-                          annotationJson.key = Zotero.DataObjectUtilities.generateKey();
-                          const savedAnnotation = await Zotero.Annotations.saveFromJSON(pdf1.pdf, annotationJson);
-                          await savedAnnotation.saveTx();
-                        }
-
-                        moveAnnotationLength += 1;
-                      }
-                      if (moveAnnotationLength > 0)
-                        pw.createLine({
-                          text: `移动${moveAnnotationLength}批注`,
-                        });
-                      pd.pdf.deleted = true;
-                      pw.createLine({ text: "标记删除" });
-                      pd.pdf.saveTx();
-                      pw.createLine({ text: "保存" });
-                    }
-                  }
-                  pdf1.pdf.saveTx();
-                }
-                item.saveTx();
-                pw.createLine({ text: "保存条目。" });
-              }
-              pw.createLine({ text: "完成" + items.length }).startCloseTimer(5000);
-            },
+              },
+              {
+                tag: "menuseparator",
+              },
+              {
+                //粘贴pdf注释
+                tag: "menuitem",
+                label: "还原pdf注释-用作者年份标题匹配",
+                icon: iconBaseUrl + "favicon.png",
+                commandListener: async (ev: Event) => {
+                  const items = await getSelectedItems(collectionOrItem);
+                  await pasteAnnotations(items);
+                },
+              },
+              {
+                //粘贴pdf注释
+                tag: "menuitem",
+                label: "还原pdf注释-用作者年份标题+文件大小匹配",
+                icon: iconBaseUrl + "favicon.png",
+                commandListener: async (ev: Event) => {
+                  const items = await getSelectedItems(collectionOrItem);
+                  await pasteAnnotations(items, false, true);
+                },
+              },
+              {
+                //粘贴pdf注释
+                tag: "menuitem",
+                label: "还原pdf注释-仅文件md5匹配（严格）",
+                icon: iconBaseUrl + "favicon.png",
+                commandListener: async (ev: Event) => {
+                  const items = await getSelectedItems(collectionOrItem);
+                  await pasteAnnotations(items, true, false, false);
+                },
+              },
+              {
+                tag: "menuseparator",
+              },
+              {
+                //相同PDF合并，注释合并
+                tag: "menuitem",
+                label: "合并条目下所有PDF文件和注释，统一条目下所有PDF",
+                icon: iconBaseUrl + "favicon.png",
+                commandListener: async (ev: Event) => {
+                  const items = await getSelectedItems(collectionOrItem);
+                  await mergePdfs(items);
+                },
+              },
+              {
+                //相同PDF合并，注释合并
+                tag: "menuitem",
+                label: "合并条目下所有PDF文件和注释，仅pdf文件大小一样合并",
+                icon: iconBaseUrl + "favicon.png",
+                commandListener: async (ev: Event) => {
+                  const items = await getSelectedItems(collectionOrItem);
+                  await mergePdfs(items);
+                },
+              },
+            ],
           },
 
           {
@@ -442,31 +272,39 @@ function buildMenu(collectionOrItem: "collection" | "item") {
             },
           },
           {
-            tag: "menuitem",
-            label: "清空日期tag",
+            tag: "menu",
+            label: "日期管理",
             icon: iconBaseUrl + "favicon.png",
             hidden: !getPref("debug"),
-            commandListener: async (ev: Event) => {
-              await DDDTagClear();
-            },
-          },
-          {
-            tag: "menuitem",
-            label: "1.删除日期tag",
-            icon: iconBaseUrl + "favicon.png",
-            hidden: !getPref("debug"),
-            commandListener: async (ev: Event) => {
-              await DDDTagRemove(collectionOrItem);
-            },
-          },
-          {
-            tag: "menuitem",
-            label: "2.设置日期tag",
-            icon: iconBaseUrl + "favicon.png",
-            hidden: !getPref("debug"),
-            commandListener: async (ev: Event) => {
-              await DDDTagSet(collectionOrItem);
-            },
+            children: [
+              {
+                tag: "menuitem",
+                label: "清空日期tag",
+                icon: iconBaseUrl + "favicon.png",
+                hidden: !getPref("debug"),
+                commandListener: async (ev: Event) => {
+                  await DDDTagClear();
+                },
+              },
+              {
+                tag: "menuitem",
+                label: "1.删除日期tag",
+                icon: iconBaseUrl + "favicon.png",
+                hidden: !getPref("debug"),
+                commandListener: async (ev: Event) => {
+                  await DDDTagRemove(collectionOrItem);
+                },
+              },
+              {
+                tag: "menuitem",
+                label: "2.设置日期tag",
+                icon: iconBaseUrl + "favicon.png",
+                hidden: !getPref("debug"),
+                commandListener: async (ev: Event) => {
+                  await DDDTagSet(collectionOrItem);
+                },
+              },
+            ],
           },
         ],
       },
@@ -573,6 +411,264 @@ function buildMenu(collectionOrItem: "collection" | "item") {
   };
   return menu;
 }
+async function copyAnnotations(items: Zotero.Item[]) {
+  const pw = new ztoolkit.ProgressWindow("复制到剪切板成功").show();
+  const topItems = uniqueBy(
+    items.map((i) => i.parentItem ?? i),
+    (a) => a.key,
+  );
+  const d = await Promise.all(
+    topItems.map(async (item) => {
+      const pdfIds = item.getAttachments();
+      const pdfs = Zotero.Items.get(pdfIds).filter((f) => f.isPDFAttachment());
+      return {
+        itemKey: item.key,
+        // item,
+        firstCreator: `${item.getField("firstCreator")}`,
+        year: `${item.getField("year")}`,
+        title: `${item.getField("title")}`,
+        pdfs: await Promise.all(
+          pdfs.map(async (pdf) => {
+            const filepath = pdf.getFilePath();
+            const displayTitle = pdf.getDisplayTitle();
+
+            const md5 = filepath ? Zotero.Utilities.Internal.md5(Zotero.File.pathToFile(filepath)) : "";
+            const fileSize = filepath ? Zotero.File.pathToFile(filepath).fileSize : -1;
+            return {
+              pdfKey: pdf.key,
+              filepath,
+              displayTitle,
+              md5,
+              fileSize,
+              annotations: await Promise.all(
+                pdf.getAnnotations().map(async (annotation) => {
+                  // if (pdf.key == "NoNoNo")
+                  return {
+                    key: annotation.key,
+                    position: annotation.annotationPosition,
+                    annotationJson: await parseAnnotationJSON(annotation),
+                  };
+                  // return annotation
+                }),
+              ),
+            };
+          }),
+        ),
+      };
+    }),
+  );
+  ztoolkit.log(d);
+  new ztoolkit.Clipboard().addText(JSON.stringify(d)).copy();
+  pw.createLine({
+    text: `${d.length}-${d.flatMap((p) => p.pdfs.length).reduce((partialSum, a) => partialSum + a, 0)}-${d.flatMap((p) => p.pdfs.flatMap((f) => f.annotations.length)).reduce((partialSum, a) => partialSum + a, 0)}`,
+  }).startCloseTimer(3000);
+}
+
+async function pasteAnnotations(items: Zotero.Item[], md5Equal = false, fileSizeEqual = false, titleEqual = true) {
+  const pw = new ztoolkit.ProgressWindow("正在从剪切板导入").show();
+
+  const topItems = uniqueBy(
+    items.map((i) => i.parentItem ?? i),
+    (a) => a.key,
+  );
+  const text = await ztoolkit.getGlobal("navigator").clipboard.readText();
+
+  const ds = JSON.parse(text) as BackupAnnotation[];
+  // const ds = d.flatMap((a) => a.pdfs.flatMap((b) => b.annotations.flatMap((c) => ({ ...a, ...b, ...c, annotation: c }))));
+
+  ztoolkit.log(ds);
+  for (const item of topItems) {
+    const pdfIds = item.getAttachments();
+    const pdfs = Zotero.Items.get(pdfIds).filter((f) => f.isPDFAttachment());
+    for (const pdf of pdfs) {
+      const filepath = pdf.getFilePath();
+      const currentAnnotations = [...pdf.getAnnotations()];
+
+      const md5 = filepath ? Zotero.Utilities.Internal.md5(Zotero.File.pathToFile(filepath)) : "";
+      const fileSize = filepath ? Zotero.File.pathToFile(filepath).fileSize : -1;
+      if (md5) {
+        const ans = ds.filter(
+          (f) =>
+            (!titleEqual ||
+              (f.title == item.getField("title") && f.firstCreator == item.getField("firstCreator") && f.year == item.getField("year"))) &&
+            (!fileSizeEqual || f.fileSize == fileSize) &&
+            (!md5Equal || f.md5 == md5),
+        ); //
+        ztoolkit.log("找到保存", titleEqual, fileSizeEqual, md5Equal, ans, ds, md5, fileSize);
+        for (const an of ans) {
+          if (an.pdfKey == pdf.key) {
+            ztoolkit.log("pdfKey不能保存", an);
+            continue;
+          }
+          if (currentAnnotations.find((f) => f.key == an.annotationJson.key)) {
+            ztoolkit.log("currentAnnotations key不能保存", an);
+            continue;
+          }
+          if (currentAnnotations.find((f) => f.annotationType == an.annotationJson.type && f.annotationPosition == an.position)) {
+            ztoolkit.log("annotationType annotationPosition不能保存", an);
+            continue;
+          }
+          ztoolkit.log("开始保存", an);
+          an.annotationJson.key = Zotero.DataObjectUtilities.generateKey();
+          //ts-ignore annotationType
+          // an.annotationJson.annotationType = an.annotationJson.type
+          const savedAnnotation = await Zotero.Annotations.saveFromJSON(pdf, an.annotationJson);
+          await savedAnnotation.saveTx();
+          currentAnnotations.push(savedAnnotation);
+        }
+      }
+      // await Zotero.Annotations.saveFromJSON(attachment, annotation, saveOptions)
+    }
+  }
+
+  pw.createLine({ text: "" + text.length })
+    .createLine({
+      text: `${groupBy(ds, (d) => d.itemKey).length}-${groupBy(ds, (d) => d.pdfKey).length}-${ds.length}`,
+    })
+    .startCloseTimer(3000);
+}
+
+async function mergePdfs(items: Zotero.Item[], fileSizeEqual = false) {
+  const primaryPdfKeys = items.filter((f) => f.isPDFAttachment()).map((item) => item.key);
+  const topItems = items.map((i) => i.parentItem ?? i);
+  const pw = new ztoolkit.ProgressWindow("合并").show();
+  const ds = toBackupAnnotation(topItems);
+  for (const item of topItems) {
+    const pdfIds = item.getAttachments();
+    const pdfs = Zotero.Items.get(pdfIds).filter((f) => f.isPDFAttachment());
+
+    const pdfs2 = pdfs.map((pdf) => {
+      const filepath = pdf.getFilePath();
+      const md5 = filepath ? Zotero.Utilities.Internal.md5(Zotero.File.pathToFile(filepath)) : "";
+      const fileSize = filepath ? Zotero.File.pathToFile(filepath).fileSize : -1;
+      return {
+        pdf,
+        pdfKey: pdf.key,
+        filepath,
+        md5,
+        fileSize,
+      };
+    });
+    ztoolkit.log("mergePdfs", pdfs2);
+    const pdf1 = pdfs2.find((f) => primaryPdfKeys.includes(f.pdfKey)) || pdfs2.find((f) => f.md5);
+    if (pdf1) {
+      for (const pd of pdfs2) {
+        // ztoolkit.log(pd)
+        if (pdf1.pdfKey != pd.pdfKey) {
+          if (fileSizeEqual && pdf1.fileSize !== pdf1.fileSize) {
+            ztoolkit.log("找到另一个pdf 但是文件大小不一样", pd);
+            continue;
+          }
+          ztoolkit.log("找到另一个pdf", pd);
+          const attachment = pd.pdf;
+          const ifLinks = attachment.attachmentLinkMode == Zotero.Attachments.LINK_MODE_LINKED_FILE; // 检测是否为链接模式
+          const file = await attachment.getFilePathAsync();
+          if (file && ifLinks) {
+            // 如果文件存在(文件可能已经被删除)且为链接模式删除文件
+            try {
+              // await OS.File.remove(file); // 尝试删除文件
+              await Zotero.File.removeIfExists(file);
+              //await trash.remove(file);
+            } catch (error) {
+              // 弹出错误
+              // alert("文件已打开");
+              // return; // 弹出错误后终止执行
+            }
+          }
+          // await Zotero.Items.moveChildItems(
+          //   pd.pdf,
+          //   pdf1.pdf,
+          //   false
+          // );
+          const annotations = pd.pdf.getAnnotations(false);
+          let moveAnnotationLength = 0;
+          for (const annotation of annotations) {
+            if (annotation.annotationIsExternal) {
+              continue;
+            }
+            if (
+              pdf1.pdf
+                .getAnnotations()
+                .find((f) => f.annotationType == annotation.annotationType && f.annotationPosition == annotation.annotationPosition)
+            ) {
+              continue;
+            }
+            // 直接改parentItemID会出问题
+            // annotation.parentItemID = pdf1.pdf.id;
+            // await annotation.saveTx();
+            const annotationJson = await parseAnnotationJSON(annotation);
+            if (annotationJson) {
+              annotationJson.key = Zotero.DataObjectUtilities.generateKey();
+              const savedAnnotation = await Zotero.Annotations.saveFromJSON(pdf1.pdf, annotationJson);
+              await savedAnnotation.saveTx();
+            }
+
+            moveAnnotationLength += 1;
+          }
+          if (moveAnnotationLength > 0)
+            pw.createLine({
+              text: `移动${moveAnnotationLength}批注`,
+            });
+          pd.pdf.deleted = true;
+          pw.createLine({ text: "标记删除" });
+          pd.pdf.saveTx();
+          pw.createLine({ text: "保存" });
+        }
+      }
+      pdf1.pdf.saveTx();
+    }
+    item.saveTx();
+    pw.createLine({ text: "保存条目。" });
+  }
+  pw.createLine({ text: "完成" + items.length }).startCloseTimer(5000);
+}
+interface BackupAnnotation {
+  itemKey: string;
+  firstCreator: string;
+  year: string;
+  title: string;
+  pdfKey: string;
+  filepath: string;
+  displayTitle: string;
+  md5: string;
+  fileSize: number;
+  key: string;
+  position: string;
+  annotationJson: _ZoteroTypes.Annotations.AnnotationJson;
+}
+
+function toBackupAnnotation(topItems: Zotero.Item[]) {
+  const d = topItems.flatMap((item) => {
+    const pdfIds = item.getAttachments();
+    const pdfs = Zotero.Items.get(pdfIds).filter((f) => f.isPDFAttachment());
+    return pdfs.flatMap((pdf) => {
+      const filepath = pdf.getFilePath();
+      const displayTitle = pdf.getDisplayTitle();
+
+      const md5 = filepath ? Zotero.Utilities.Internal.md5(Zotero.File.pathToFile(filepath)) : "";
+      const fileSize = filepath ? Zotero.File.pathToFile(filepath).fileSize : -1;
+      return pdf.getAnnotations().map(async (annotation) => {
+        return {
+          itemKey: item.key,
+          // item,
+          firstCreator: `${item.getField("firstCreator")}`,
+          year: `${item.getField("year")}`,
+          title: `${item.getField("title")}`,
+          pdfKey: pdf.key,
+          filepath,
+          displayTitle,
+          md5,
+          fileSize,
+          key: annotation.key,
+          position: annotation.annotationPosition,
+          annotationJson: await parseAnnotationJSON(annotation),
+        } as BackupAnnotation;
+      });
+    });
+  });
+  return Promise.all(d);
+}
+
 export async function annotationToNoteType(win: Window, collectionOrItem: "collection" | "item" = "collection") {
   const doc = win.document;
   const popup = doc.querySelector(`#${config.addonRef}-create-note-type-popup-${collectionOrItem}`) as XUL.MenuPopup;
@@ -1836,24 +1932,24 @@ function createActionTag(div: HTMLElement | undefined, action: () => void | unde
     // },
     action
       ? {
-        tag: "button",
-        namespace: "html",
-        properties: { textContent: "确定生成" },
-        // styles: {
-        //   padding: "6px",
-        //   background: "#f99",
-        //   margin: "1px",
-        // },
-        listeners: [
-          {
-            type: "click",
-            listener: (ev: any) => {
-              stopPropagation(ev);
-              action();
+          tag: "button",
+          namespace: "html",
+          properties: { textContent: "确定生成" },
+          // styles: {
+          //   padding: "6px",
+          //   background: "#f99",
+          //   margin: "1px",
+          // },
+          listeners: [
+            {
+              type: "click",
+              listener: (ev: any) => {
+                stopPropagation(ev);
+                action();
+              },
             },
-          },
-        ],
-      }
+          ],
+        }
       : { tag: "span" },
     ...others,
   ];
