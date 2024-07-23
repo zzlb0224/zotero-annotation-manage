@@ -1,5 +1,6 @@
 //@ts-nocheck 用于脚本测试
-import { groupBy, uniqueBy } from "../utils/zzlb";
+import { uniqueBy } from '../utils/uniqueBy';
+import { groupBy } from '../utils/groupBy';
 interface CollectionWithChildren {
   collectionID: number;
   parentCollectionID?: number;

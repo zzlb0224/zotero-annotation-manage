@@ -2,17 +2,15 @@ import { TagElementProps } from "zotero-plugin-toolkit/dist/tools/ui";
 import { config } from "../../package.json";
 import { getPref } from "../utils/prefs";
 import {
-  mapDateModified,
   sortAsc,
   sortFixedTags1000Ann100Modified10Asc,
   sortFixedTags100Modified10Asc,
   sortFixedTags10ValuesLength,
   sortValuesLength,
 } from "../utils/sort";
+import { mapDateModified } from '../utils/groupBy';
 import {
   CountDown,
-  groupBy,
-  groupByResult,
   groupByResultIncludeFixedTags,
   isDebug,
   memoizeAsyncGroupAllTagsDB,
@@ -22,8 +20,10 @@ import {
   memRelateTags,
   openAnnotation,
   str2RegExps,
-  uniqueBy,
 } from "../utils/zzlb";
+import { uniqueBy } from '../utils/uniqueBy';
+import { groupByResult } from '../utils/groupBy';
+import { groupBy } from '../utils/groupBy';
 import { Relations } from "../utils/Relations";
 import { createRoot } from "react-dom/client";
 import * as React from "react";

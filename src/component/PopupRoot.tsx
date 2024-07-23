@@ -1,6 +1,5 @@
 import { getPref, getPrefAs, setPref } from "../utils/prefs";
 import {
-  mapDateModified,
   sortAsc,
   sortFixed,
   sortFixedTags100Modified10Asc,
@@ -11,10 +10,8 @@ import {
   sortFixedTags10Asc,
   sortFixedTags10AscByKey,
 } from "../utils/sort";
+import { mapDateModified } from '../utils/groupBy';
 import {
-  groupBy,
-  groupByEqual,
-  groupByResult,
   groupByResultIncludeFixedTags,
   isDebug,
   memoizeAsyncGroupAllTagsDB,
@@ -23,6 +20,9 @@ import {
   memRelateTags,
   str2RegExps,
 } from "../utils/zzlb";
+import { groupByResult } from '../utils/groupBy';
+import { groupBy } from '../utils/groupBy';
+import { groupByEqual } from '../utils/groupBy';
 import * as React from "react";
 import { useEffect, useRef, useState } from "react";
 import { getString } from "../utils/locale";

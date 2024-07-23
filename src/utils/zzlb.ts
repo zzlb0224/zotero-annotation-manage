@@ -6,29 +6,8 @@ import { stopPropagation } from "../modules/annotationsToNote";
 import { getColorTags, getCiteAnnotationHtml, getPopupWin, popupWin } from "../modules/annotationsToNote";
 import { TagElementProps } from "zotero-plugin-toolkit/dist/tools/ui";
 import { waitFor } from "./wait";
-import isEqual from 'lodash/isEqual';
-// import { isEqual } from "lodash"
-/* unique 采用set的比较方式*/
-export function unique<T>(arr: T[]) {
-  return [...new Set(arr)];
-}
-export function uniqueBy<T>(arr: T[], fn: (item: T) => string) {
-  const keys: { [key: string]: number } = {};
-  const values: T[] = [];
-  for (const curr of arr) {
-    const groupKey = fn(curr);
-    if (!keys.hasOwnProperty.call(keys, groupKey)) {
-      keys[groupKey] = values.length;
-      values.push(curr);
-    }
-  }
-  return values;
-}
-export interface groupByResult<T> {
-  key: string;
-  value?: T;
-  values: T[];
-}
+import { groupBy, groupByResult } from './groupBy';
+import { uniqueBy } from './uniqueBy';
 export class TagColor {
   public color: string;
   public tag: string;
@@ -49,49 +28,6 @@ export class TagColor {
     return str.match(/(.*?)(#[0-9a-fA-F]{6})/g)?.map((ma) => new TagColor(ma)) || [];
   }
 }
-
-export function groupBy<T>(arr: T[], getKey: (item: T) => string) {
-  const groupedByValues: { [key: string]: T[] } = {};
-  for (const curr of arr) {
-    const groupKey = getKey(curr);
-    if (groupedByValues[groupKey]) {
-      groupedByValues[groupKey].push(curr);
-    } else {
-      groupedByValues[groupKey] = [curr];
-    }
-  }
-  return Object.keys(groupedByValues).map(
-    (key) =>
-      ({
-        key,
-        value: groupedByValues[key][0],
-        values: groupedByValues[key],
-      }) as groupByResult<T>,
-  );
-}
-
-export interface groupByEqualResult<TValue, TKey> {
-  key: TKey;
-  values: TValue[];
-}
-export function groupByEqual<TValue, TKey>(arr: TValue[], getKey: (item: TValue) => TKey, equal: ((o1: TKey, o2: TKey) => boolean) = isEqual) {
-  const groupedByValues: { [key: string]: TValue[] } = {};
-  const groupedKey = [] as TKey[]
-  const groupedValue = [] as TValue[][]
-  for (const currentValue of arr) {
-    const currentKey = getKey(currentValue);
-    const index = groupedKey.findIndex(f => equal(currentKey, f))
-    if (index == -1) {
-      groupedKey.push(currentKey)
-      groupedValue.push([currentValue])
-    } else {
-      groupedValue[index].push(currentValue)
-    }
-  }
-  return groupedKey.map((key, index) => ({ key, values: groupedValue[index] })) as groupByEqualResult<TValue, TKey>[]
-}
-
-
 
 export function promiseAllWithProgress<T>(arr: Promise<T>[], callback?: { (progress: number, index: number): void }): Promise<T[]> {
   let index = 0; //不能用forEach的index，因为执行顺序不一样

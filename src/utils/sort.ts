@@ -1,4 +1,5 @@
-import { groupByResult, memFixedTags } from "./zzlb";
+import { memFixedTags } from "./zzlb";
+import { groupByResult } from './groupBy';
 export function sortFixed(fixed: string[]): (a: string, b: string) => number {
   return (a: string, b: string) => {
     if (fixed.includes(a) && fixed.includes(b)) {
@@ -74,14 +75,6 @@ export function sortFixedTags1000Ann100Modified10Asc(tags: string[] | undefined)
   return (a: { key: string; dateModified: string }, b: { key: string; dateModified: string }) =>
     sortTags(memFixedTags(), a, b) * 1000 + sortTags(tags, a, b) * 100 + sortModified(a, b) * 10 + sortKey(a, b);
 }
-export function mapDateModified(r: { key: string; values: { dateModified: string; tag: string; type: number }[] }) {
-  return {
-    key: r.key,
-    dateModified: r.values.map((v) => v.dateModified).sort(sortAsc)[0],
-    values: r.values,
-  };
-}
-
 export function sortByFixedTag2TagName<T>(a: groupByResult<T>, b: groupByResult<T>) {
   const tags = memFixedTags();
   if (tags.includes(a.key) && tags.includes(b.key)) {

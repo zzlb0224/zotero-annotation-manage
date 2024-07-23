@@ -17,7 +17,6 @@ import { Tab } from "../utils/tab";
 import {
   ReTest,
   getChildCollections,
-  groupBy,
   isDebug,
   memFixedColor,
   memSVG,
@@ -27,8 +26,9 @@ import {
   setProperty,
   str2RegExps,
   toggleProperty,
-  uniqueBy,
 } from "../utils/zzlb";
+import { uniqueBy } from '../utils/uniqueBy';
+import { groupBy } from '../utils/groupBy';
 import { createTopDiv } from "../utils/zzlb";
 import { convertHtml } from "../utils/zzlb";
 import { AnnotationRes } from "../utils/zzlb";
@@ -1282,7 +1282,10 @@ function createSearchAnnContent(dialogWindow: Window | undefined, popupDiv: HTML
   if (!doc) return;
   let text = "";
   let tag = "";
-  let pageSize = (getPref("SearchAnnPageSize") as number) || 16;
+  let rowSize = (getPref("SearchAnnRowSize") as number) || 4;
+  let columnSize = (getPref("SearchAnnColumnSize") as number) || 5;
+  let pageSize = rowSize * columnSize
+  // let pageSize = (getPref("SearchAnnPageSize") as number) || 16;
   let pageIndex = 1;
   let fontSize = (getPref("SearchAnnFontSize") as number) || 16;
   const selectedAnnotationType: string[] = [];
@@ -1383,16 +1386,17 @@ function createSearchAnnContent(dialogWindow: Window | undefined, popupDiv: HTML
           },
         ]),
       },
+
       {
-        tag: "div",
-        properties: { textContent: "每页N条" },
+        tag: "label",
+        properties: { textContent: "列" },
         children: [
           {
             tag: "input",
             namespace: "html",
             properties: {
               placeholder: "输入数字",
-              value: pageSize,
+              value: columnSize,
               type: "number",
             },
             styles: { width: "30px" },
@@ -1401,10 +1405,11 @@ function createSearchAnnContent(dialogWindow: Window | undefined, popupDiv: HTML
                 type: "change",
                 listener: (ev: Event) => {
                   stopPropagation(ev);
-                  pageSize = parseInt((ev.target as HTMLInputElement).value.trim());
-                  if (pageSize <= 0) pageSize = 1;
-                  (ev.target as HTMLInputElement).value = pageSize + "";
-                  setPref("SearchAnnPageSize", pageSize);
+                  columnSize = parseInt((ev.target as HTMLInputElement).value.trim());
+                  if (columnSize <= 0) columnSize = 1;
+                  (ev.target as HTMLInputElement).value = columnSize + "";
+                  pageSize = rowSize * columnSize;
+                  setPref("SearchAnnColumnSize", columnSize);
                   updatePageContentDebounce();
                 },
               },
@@ -1412,6 +1417,65 @@ function createSearchAnnContent(dialogWindow: Window | undefined, popupDiv: HTML
           },
         ],
       },
+      {
+        tag: "label",
+        properties: { textContent: "行" },
+        children: [
+          {
+            tag: "input",
+            namespace: "html",
+            properties: {
+              placeholder: "输入数字",
+              value: rowSize,
+              type: "number",
+            },
+            styles: { width: "30px" },
+            listeners: [
+              {
+                type: "change",
+                listener: (ev: Event) => {
+                  stopPropagation(ev);
+                  rowSize = parseInt((ev.target as HTMLInputElement).value.trim());
+                  if (rowSize <= 0) rowSize = 1;
+                  (ev.target as HTMLInputElement).value = rowSize + "";
+                  pageSize = rowSize * columnSize;
+                  setPref("SearchAnnRowSize", rowSize);
+                  updatePageContentDebounce();
+                },
+              },
+            ],
+          },
+        ],
+      },
+      // {
+      //   tag: "div",
+      //   properties: { textContent: "每页N条" },
+      //   children: [
+      //     {
+      //       tag: "input",
+      //       namespace: "html",
+      //       properties: {
+      //         placeholder: "输入数字",
+      //         value: pageSize,
+      //         type: "number",
+      //       },
+      //       styles: { width: "30px" },
+      //       listeners: [
+      //         {
+      //           type: "change",
+      //           listener: (ev: Event) => {
+      //             stopPropagation(ev);
+      //             pageSize = parseInt((ev.target as HTMLInputElement).value.trim());
+      //             if (pageSize <= 0) pageSize = 1;
+      //             (ev.target as HTMLInputElement).value = pageSize + "";
+      //             setPref("SearchAnnPageSize", pageSize);
+      //             updatePageContentDebounce();
+      //           },
+      //         },
+      //       ],
+      //     },
+      //   ],
+      // },
       {
         tag: "div",
         properties: { textContent: "第几页" },
@@ -1465,7 +1529,7 @@ function createSearchAnnContent(dialogWindow: Window | undefined, popupDiv: HTML
 
       {
         tag: "div",
-        properties: { textContent: "预览文字大小" },
+        properties: { textContent: "文字大小" },
         children: [
           {
             tag: "input",
