@@ -1,38 +1,49 @@
 import * as React from "react";
+import { createRoot } from "react-dom/client";
 import { ProgressWindowHelper } from "zotero-plugin-toolkit/dist/helpers/progressWindow";
 import { MenuitemOptions } from "zotero-plugin-toolkit/dist/managers/menu";
 import { TagElementProps } from "zotero-plugin-toolkit/dist/tools/ui";
 import { config } from "../../package.json";
+import { PickerColor } from "../component/PickerColor";
+import { groupBy } from "../utils/groupBy";
 import { getPref, setPref } from "../utils/prefs";
 import {
   sortAsc,
   sortBy,
+  sortFixedTags10AscByKey,
   sortFixedTags10ValuesLength,
   sortKey,
-  sortFixedTags10AscByKey,
   sortValuesLength,
   sortValuesLengthKeyAsc,
 } from "../utils/sort";
 import { Tab } from "../utils/tab";
+import { uniqueBy } from "../utils/uniqueBy";
 import {
+  AnnotationRes,
   ReTest,
+  clearChild,
+  convertHtml,
+  createDialog,
+  createTopDiv,
+  getAnnotationContent,
   getChildCollections,
+  getPublicationTags,
   isDebug,
   memFixedColor,
   memSVG,
   openAnnotation,
   promiseAllWithProgress,
   setProperty,
+  stopPropagation,
   str2RegExps,
   toggleProperty,
 } from "../utils/zzlb";
-import { uniqueBy } from "../utils/uniqueBy";
-import { groupBy } from "../utils/groupBy";
-import { createTopDiv } from "../utils/zzlb";
-import { convertHtml } from "../utils/zzlb";
-import { AnnotationRes } from "../utils/zzlb";
+import { getAllAnnotations, getTitleFromAnnotations } from './AnnotationsToNote';
+import { copyAnnotations, mergePdfs, pasteAnnotations } from "./BackupAnnotation";
+import { DDDTagClear, DDDTagRemove, DDDTagSet } from "./DDD";
+import { getCiteAnnotationHtml, getCiteItemHtml, getCiteItemHtmlWithPage } from "./getCitationItem";
+import { MyButton } from "./MyButton";
 import { showTitle } from "./RelationHeader";
-import { createDialog } from "../utils/zzlb";
 
 const iconBaseUrl = `chrome://${config.addonRef}/content/icons/`;
 function register() {
@@ -408,18 +419,8 @@ function buildMenu(collectionOrItem: "collection" | "item") {
   return menu;
 }
 
-import { createRoot } from "react-dom/client";
-import { MyButton } from "./MyButton";
-import { getAnnotationContent } from "../utils/zzlb";
-import { getPublicationTags } from "../utils/zzlb";
-import { PickerColor } from "../component/PickerColor";
-import { PopoverPicker } from "../component/PopoverPicker";
-import annotations from "./annotations";
-import { stringify } from "querystring";
-import { copyAnnotations, mergePdfs, pasteAnnotations } from "./BackupAnnotation";
-import { DDDTagClear, DDDTagRemove, DDDTagSet } from "./DDD";
-import { getCiteAnnotationHtml, getCiteItemHtml, getCiteItemHtmlWithPage } from "./getCitationItem";
-// import React = require("react");
+
+
 async function topDialogRect() {
   const dialogData: { [key: string | number]: any } = {
     inputValue: "test",
@@ -1254,37 +1255,7 @@ function createSearchAnnContent(dialogWindow: Window | undefined, popupDiv: HTML
   }
 }
 
-function createChild(doc: Document, items: Zotero.Item[]) {
-  const annotations = getAllAnnotations(items).flatMap((f) => f.tags.map((t3) => Object.assign(f, { tag: t3 })));
-  const tags = groupBy(annotations, (a) => a.tag.tag);
-  tags.sort(sortFixedTags10ValuesLength);
-  ztoolkit.UI.appendElement(
-    {
-      tag: "div",
-      children: tags.map((t4) => ({
-        tag: "span",
-        properties: { textContent: t4.key + "[" + t4.values.length + "]" },
-      })),
-    },
-    doc.querySelector("body")!,
-  );
-  ztoolkit.UI.appendElement(
-    {
-      tag: "div",
-      children: annotations.slice(0, 300).map((t5) => ({ tag: "div", properties: { textContent: t5.text } })),
-    },
-    doc.querySelector("body")!,
-  );
-}
-export function stopPropagation(e: Event) {
-  const win = (e.target as any).ownerGlobal;
-  e = e || win?.event || window.event;
-  if (e.stopPropagation) {
-    e.stopPropagation(); //W3C阻止冒泡方法
-  } else {
-    e.cancelBubble = true; //IE阻止冒泡方法
-  }
-}
+
 async function createChooseTagsDiv(doc: Document, collectionOrItem: "collection" | "item") {
   const selectedTags: string[] = [];
   const idTags = `${config.addonRef}-ann2note-ChooseTags-root-result`; //ID.result;
@@ -1415,13 +1386,6 @@ async function createChooseTagsDiv(doc: Document, collectionOrItem: "collection"
     );
   }
 }
-function clearChild(ele: Element | null) {
-  if (ele) {
-    for (const e of ele.children) e.remove();
-    ele.innerHTML = "";
-  }
-}
-
 function createActionTag(div: HTMLElement | undefined, action: () => void | undefined, others: TagElementProps[] = []): TagElementProps[] {
   if (!div) return [];
   return [
@@ -1459,51 +1423,28 @@ function createActionTag(div: HTMLElement | undefined, action: () => void | unde
     // },
     action
       ? {
-          tag: "button",
-          namespace: "html",
-          properties: { textContent: "确定生成" },
-          // styles: {
-          //   padding: "6px",
-          //   background: "#f99",
-          //   margin: "1px",
-          // },
-          listeners: [
-            {
-              type: "click",
-              listener: (ev: any) => {
-                stopPropagation(ev);
-                action();
-              },
+        tag: "button",
+        namespace: "html",
+        properties: { textContent: "确定生成" },
+        // styles: {
+        //   padding: "6px",
+        //   background: "#f99",
+        //   margin: "1px",
+        // },
+        listeners: [
+          {
+            type: "click",
+            listener: (ev: any) => {
+              stopPropagation(ev);
+              action();
             },
-          ],
-        }
+          },
+        ],
+      }
       : { tag: "span" },
     ...others,
   ];
 }
-// function getPopupWin({
-//   closeTime = 5000,
-//   header = "整理笔记",
-//   lines = [],
-// }: { closeTime?: number; header?: string; lines?: string[] } = {}) {
-//   const popupWin = new ztoolkit.ProgressWindow(header, {
-//     closeTime: closeTime,
-//     closeOnClick: true,
-//   }).show();
-//   if (lines && lines.length > 0) for (const line of lines) popupWin?.createLine({ text: line });
-//   return popupWin;
-// }
-
-function getTitleFromAnnotations(annotations: AnnotationRes[]) {
-  const itemsLength = uniqueBy(annotations, (a) => a.item.key).length;
-  // const pdfLength = uniqueBy(annotations, (a) => a.pdf.key).length;
-  const annotationLength = uniqueBy(annotations, (a) => a.ann.key).length;
-  // const tagLength = uniqueBy(annotations, (a) => a.tag.tag).length;
-  // ${itemsLength}-${annotationLength}
-  const title = `批注 (${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}) ${annotationLength}`;
-  return title;
-}
-
 export async function getSelectedItems(isCollectionOrItem: boolean | "collection" | "item") {
   let items: Zotero.Item[] = [];
   if (isCollectionOrItem === true || isCollectionOrItem === "collection") {
@@ -1826,8 +1767,7 @@ export async function exportNote({
 
   await saveNote(note, `${title}${txt}`);
 }
-
-async function saveNote(targetNoteItem: Zotero.Item, txt: string, pw: ProgressWindowHelper | undefined = undefined) {
+export async function saveNote(targetNoteItem: Zotero.Item, txt: string, pw: ProgressWindowHelper | undefined = undefined) {
   await Zotero.BetterNotes.api.note.insert(targetNoteItem, txt, -1);
   // const editor= await Zotero.BetterNotes.api.editor.getEditorInstance(targetNoteItem.id)
   // await Zotero.BetterNotes.api.editor.replace(editor,0,1e3,txt)
@@ -1835,7 +1775,7 @@ async function saveNote(targetNoteItem: Zotero.Item, txt: string, pw: ProgressWi
   ztoolkit.log("笔记更新完成", new Date().toLocaleTimeString());
   pw?.createLine({ text: `笔记更新完成`, type: "default" });
 }
-async function createNote(txt = "", pw: ProgressWindowHelper | undefined = undefined) {
+export async function createNote(txt = "", pw: ProgressWindowHelper | undefined = undefined) {
   const targetNoteItem = new Zotero.Item("note");
   targetNoteItem.libraryID = ZoteroPane.getSelectedLibraryID();
   const selected = ZoteroPane.getSelectedCollection(true);
@@ -1866,63 +1806,4 @@ async function createNote(txt = "", pw: ProgressWindowHelper | undefined = undef
     .startCloseTimer(5000);
   return targetNoteItem;
 }
-function getAllAnnotations(items: Zotero.Item[]) {
-  const items1 = items.map((a) => (a.isAttachment() && a.isPDFAttachment() && a.parentItem ? a.parentItem : a));
-  // ztoolkit.log(4444, items1);
-  const data = uniqueBy(items1, (a) => a.key)
-    .filter((f) => !f.isAttachment())
-    .flatMap((item) => {
-      const itemTags = item
-        .getTags()
-        .map((a) => a.tag)
-        .sort(sortAsc)
-        .join("  ");
-      const author = item.getField("firstCreator");
-      const year = item.getField("year");
-      const title = item.getField("title");
-      // ztoolkit.log(555, item);
-      return Zotero.Items.get(item.getAttachments(false))
-        .filter((f) => f.isAttachment() && f.isPDFAttachment())
-        .flatMap((pdf) => {
-          // ztoolkit.log(666, pdf);
-          const pdfTitle = pdf.getDisplayTitle();
-          return pdf.getAnnotations().flatMap((ann) => {
-            const text = ann.annotationText || "";
-            const comment = ann.annotationComment || "";
-            const color = ann.annotationColor;
-            const type = ann.annotationType;
-            const tags = ann.getTags();
-            const annotationTags = tags.map((a) => a.tag).join("  ");
-            const page = ann.annotationPageLabel;
-            const dateModified = ann.dateModified;
-            const o = {
-              item,
-              pdf,
-              ann,
-              author,
-              year,
-              title,
-              pdfTitle,
-              text,
-              color,
-              type,
-              comment,
-              itemTags,
-              page,
-              dateModified,
-              tag: {
-                tag: "在filter使用flatMap之后才能用。例如：filter:(ans)=>ans.flatMap(an=>an.tags.map(tag=>Object.assign({},an,{tag})))",
-                type: 0,
-              },
-              tags,
-              annotationTags,
-              html: "<span color='red'>等待转换：请调用convertHtml方法</span>",
-            } as AnnotationRes;
-            return o;
-          });
-        });
-    });
-  return data;
-}
-
 export default { register, unregister };

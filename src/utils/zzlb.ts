@@ -2,7 +2,6 @@
 import { getPref, setPref } from "./prefs";
 import memoize from "./memoize2";
 import { config } from "../../package.json";
-import { stopPropagation } from "../modules/menu";
 import { getColorTags } from "../modules/menu";
 import { getCiteAnnotationHtml } from "../modules/getCitationItem";
 import { TagElementProps } from "zotero-plugin-toolkit/dist/tools/ui";
@@ -242,12 +241,12 @@ const memAllTagsInLibraryAsync = memoize(async () => {
     );
   const itemTags = getPref("item-tags")
     ? items.flatMap((f) =>
-        f.getTags().map((a) => ({
-          tag: a.tag,
-          type: a.type,
-          dateModified: f.dateModified,
-        })),
-      )
+      f.getTags().map((a) => ({
+        tag: a.tag,
+        type: a.type,
+        dateModified: f.dateModified,
+      })),
+    )
     : [];
   return groupBy([...tags, ...itemTags], (t14) => t14.tag);
 });
@@ -377,7 +376,7 @@ export async function openAnnotation(itemOrKeyOrId: Zotero.Item | string | numbe
   }
 }
 
-export async function injectCSSToReader() {}
+export async function injectCSSToReader() { }
 
 export const memSVG = memoize(
   async (href) => await getFileContent(href),
@@ -413,11 +412,11 @@ export async function injectCSS(doc: Document | HTMLDivElement, filename: string
       ignoreIfExists: true,
     },
     doc.querySelector("linkset") ||
-      doc.querySelector("head") ||
-      doc.querySelector("body") ||
-      doc.querySelector("div") ||
-      doc.children[0] ||
-      doc,
+    doc.querySelector("head") ||
+    doc.querySelector("body") ||
+    doc.querySelector("div") ||
+    doc.children[0] ||
+    doc,
   );
   // ztoolkit.log("加载css", d);
 }
@@ -846,4 +845,19 @@ export async function parseAnnotationJSON(annotationItem: Zotero.Item) {
     Zotero.logError(e2);
     return null;
   }
+} export function clearChild(ele: Element | null) {
+  if (ele) {
+    for (const e of ele.children) e.remove();
+    ele.innerHTML = "";
+  }
 }
+export function stopPropagation(e: Event) {
+  const win = (e.target as any).ownerGlobal;
+  e = e || win?.event || window.event;
+  if (e.stopPropagation) {
+    e.stopPropagation(); //W3C阻止冒泡方法
+  } else {
+    e.cancelBubble = true; //IE阻止冒泡方法
+  }
+}
+
