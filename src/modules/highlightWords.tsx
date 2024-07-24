@@ -1,6 +1,6 @@
 import { config } from "../../package.json";
 import { getFileContent, injectCSS, memFixedTagColors } from "../utils/zzlb";
-import { uniqueBy } from '../utils/uniqueBy';
+import { uniqueBy } from "../utils/uniqueBy";
 import { getPref, setPref } from "../utils/prefs";
 // import * as PdfJs from 'pdfjs-dist/legacy/build/pdf.mjs' // 'pdfjs-dist/legacy/build/pdf.js'
 // PdfJs.getDocument

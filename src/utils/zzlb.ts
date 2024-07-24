@@ -3,11 +3,13 @@ import { getPref, setPref } from "./prefs";
 import memoize from "./memoize2";
 import { config } from "../../package.json";
 import { stopPropagation } from "../modules/menu";
-import { getColorTags, getCiteAnnotationHtml, getPopupWin, popupWin } from "../modules/menu";
+import { getColorTags } from "../modules/menu";
+import { getCiteAnnotationHtml } from "../modules/getCitationItem";
 import { TagElementProps } from "zotero-plugin-toolkit/dist/tools/ui";
 import { waitFor } from "./wait";
-import { groupBy, groupByResult } from './groupBy';
-import { uniqueBy } from './uniqueBy';
+import { groupBy, groupByResult } from "./groupBy";
+import { uniqueBy } from "./uniqueBy";
+import { ProgressWindowHelper } from "zotero-plugin-toolkit/dist/helpers/progressWindow";
 export class TagColor {
   public color: string;
   public tag: string;
@@ -240,12 +242,12 @@ const memAllTagsInLibraryAsync = memoize(async () => {
     );
   const itemTags = getPref("item-tags")
     ? items.flatMap((f) =>
-      f.getTags().map((a) => ({
-        tag: a.tag,
-        type: a.type,
-        dateModified: f.dateModified,
-      })),
-    )
+        f.getTags().map((a) => ({
+          tag: a.tag,
+          type: a.type,
+          dateModified: f.dateModified,
+        })),
+      )
     : [];
   return groupBy([...tags, ...itemTags], (t14) => t14.tag);
 });
@@ -262,12 +264,12 @@ export async function asyncGetAllTagsFromDB() {
       dateModified: row.dateModified,
     });
   }
-  return lines
-};
+  return lines;
+}
 export const memoizeAsyncGroupAllTagsDB = memoize(async () => {
-  const lines = await asyncGetAllTagsFromDB()
+  const lines = await asyncGetAllTagsFromDB();
   return groupBy(lines, (t15) => t15.tag);
-})
+});
 
 export const memRelateTags = memoize(
   (item?: Zotero.Item) => {
@@ -375,7 +377,7 @@ export async function openAnnotation(itemOrKeyOrId: Zotero.Item | string | numbe
   }
 }
 
-export async function injectCSSToReader() { }
+export async function injectCSSToReader() {}
 
 export const memSVG = memoize(
   async (href) => await getFileContent(href),
@@ -411,11 +413,11 @@ export async function injectCSS(doc: Document | HTMLDivElement, filename: string
       ignoreIfExists: true,
     },
     doc.querySelector("linkset") ||
-    doc.querySelector("head") ||
-    doc.querySelector("body") ||
-    doc.querySelector("div") ||
-    doc.children[0] ||
-    doc,
+      doc.querySelector("head") ||
+      doc.querySelector("body") ||
+      doc.querySelector("div") ||
+      doc.children[0] ||
+      doc,
   );
   // ztoolkit.log("加载css", d);
 }
@@ -586,7 +588,11 @@ export class CountDown {
     return this._total - Date.now() + this._start;
   }
 }
-export async function convertHtml(arr: AnnotationRes[], targetNoteItem: Zotero.Item | undefined = undefined) {
+export async function convertHtml(
+  arr: AnnotationRes[],
+  targetNoteItem: Zotero.Item | undefined = undefined,
+  pw: ProgressWindowHelper | undefined = undefined,
+) {
   try {
     // const annotations = arr.map((a) => a.ann);
     for (const a of arr) {
@@ -643,8 +649,7 @@ export async function convertHtml(arr: AnnotationRes[], targetNoteItem: Zotero.I
   });
   //使用Promise.all能并行计算？感觉比for快很多
   const list = await promiseAllWithProgress(data, (progress, index) => {
-    getPopupWin({ lines: [""] });
-    popupWin?.changeLine({
+    pw?.changeLine({
       progress,
       text: `[${progress.toFixed()}%] ${index}/${arr.length}`,
     });

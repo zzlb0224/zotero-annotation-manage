@@ -1,5 +1,5 @@
 import { memFixedTags } from "./zzlb";
-import { groupByResult } from './groupBy';
+import { groupByResult } from "./groupBy";
 export function sortFixed(fixed: string[]): (a: string, b: string) => number {
   return (a: string, b: string) => {
     if (fixed.includes(a) && fixed.includes(b)) {
@@ -31,7 +31,7 @@ export function sortTags(fixed: string[] | undefined, a: string | { key: string 
   return 0;
 }
 export function sortDesc(a: string | number | undefined, b: string | number | undefined) {
-  return -sortAsc(a, b)
+  return -sortAsc(a, b);
 }
 export function sortAsc(a: string | number | undefined, b: string | number | undefined) {
   if (a === undefined && b === undefined) {

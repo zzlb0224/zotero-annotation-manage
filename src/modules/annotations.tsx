@@ -2,7 +2,7 @@ import { config } from "../../package.json";
 import { getPref } from "../utils/prefs";
 import { sortValuesLength } from "../utils/sort";
 import { addCssFile, isDebug } from "../utils/zzlb";
-import { groupBy } from '../utils/groupBy';
+import { groupBy } from "../utils/groupBy";
 import { AnnotationPopup } from "./AnnotationPopup";
 // import { text2Ma } from "./readerTools";
 function register() {

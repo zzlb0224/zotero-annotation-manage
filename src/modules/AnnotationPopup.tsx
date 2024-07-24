@@ -8,7 +8,7 @@ import {
   sortFixedTags10ValuesLength,
   sortValuesLength,
 } from "../utils/sort";
-import { mapDateModified } from '../utils/groupBy';
+import { mapDateModified } from "../utils/groupBy";
 import {
   CountDown,
   groupByResultIncludeFixedTags,
@@ -21,9 +21,9 @@ import {
   openAnnotation,
   str2RegExps,
 } from "../utils/zzlb";
-import { uniqueBy } from '../utils/uniqueBy';
-import { groupByResult } from '../utils/groupBy';
-import { groupBy } from '../utils/groupBy';
+import { uniqueBy } from "../utils/uniqueBy";
+import { groupByResult } from "../utils/groupBy";
+import { groupBy } from "../utils/groupBy";
 import { Relations } from "../utils/Relations";
 import { createRoot } from "react-dom/client";
 import * as React from "react";
