@@ -75,7 +75,7 @@ export function sortFixedTags1000Ann100Modified10Asc(tags: string[] | undefined)
   return (a: { key: string; dateModified: string }, b: { key: string; dateModified: string }) =>
     sortTags(memFixedTags(), a, b) * 1000 + sortTags(tags, a, b) * 100 + sortModified(a, b) * 10 + sortKey(a, b);
 }
-export function sortByFixedTag2TagName<T>(a: groupByResult<T>, b: groupByResult<T>) {
+export function sortByFixedTag2TagName<T>(a: groupByResult<T, string>, b: groupByResult<T, string>) {
   const tags = memFixedTags();
   if (tags.includes(a.key) && tags.includes(b.key)) {
     return tags.indexOf(a.key) - tags.indexOf(b.key);

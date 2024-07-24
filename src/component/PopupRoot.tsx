@@ -10,7 +10,7 @@ import {
   sortFixedTags10Asc,
   sortFixedTags10AscByKey,
 } from "../utils/sort";
-import { mapDateModified } from "../utils/groupBy";
+import { groupByResult, mapDateModified } from "../utils/groupBy";
 import {
   groupByResultIncludeFixedTags,
   isDebug,
@@ -20,9 +20,7 @@ import {
   memRelateTags,
   str2RegExps,
 } from "../utils/zzlb";
-import { groupByResult } from "../utils/groupBy";
 import { groupBy } from "../utils/groupBy";
-import { groupByEqual } from "../utils/groupBy";
 import * as React from "react";
 import { useEffect, useRef, useState } from "react";
 import { getString } from "../utils/locale";
@@ -176,7 +174,7 @@ export function PopupRoot({
         tag: string;
         type: number;
         dateModified: string;
-      }>[] = [];
+      }, string>[] = [];
       // root.style.width=this.getSelectTextWidth()+"px"
       if (relateItemShowAll) {
         relateTags = await memoizeAsyncGroupAllTagsDB();
@@ -1289,20 +1287,20 @@ export function PopupRoot({
                       ctrlAddOrSaveTags(isAdd, cTag);
                       return false;
                     }}
-                    // onMouseDown={(e) => {
-                    //   e.preventDefault();
-                    //   ztoolkit.log("onMouseDown 复制", e)
-                    //   return false
-                    // }}
-                    // onContextMenu={e => {
-                    //   e.preventDefault();
-                    //   ztoolkit.log("onContextMenu 复制", tag.key)
-                    //   new window.Clipboard().readText().then((text) => {
-                    //     ztoolkit.log("onContextMenu 复制", tag.key, text);
-                    //     (e.currentTarget as HTMLInputElement).value = text;
-                    //   })
-                    //   return false
-                    // }}
+                  // onMouseDown={(e) => {
+                  //   e.preventDefault();
+                  //   ztoolkit.log("onMouseDown 复制", e)
+                  //   return false
+                  // }}
+                  // onContextMenu={e => {
+                  //   e.preventDefault();
+                  //   ztoolkit.log("onContextMenu 复制", tag.key)
+                  //   new window.Clipboard().readText().then((text) => {
+                  //     ztoolkit.log("onContextMenu 复制", tag.key, text);
+                  //     (e.currentTarget as HTMLInputElement).value = text;
+                  //   })
+                  //   return false
+                  // }}
                   >
                     <span>[{tag.values.length}]</span>
                     <span>{tag.key}</span>

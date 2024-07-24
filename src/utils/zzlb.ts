@@ -191,7 +191,7 @@ export function setProperty<T, K extends keyof NonNullable<T>>(obj: NonNullable<
     return (obj[key] = value);
   }
 }
-export function groupByResultIncludeFixedTags<T>(tagGroup: groupByResult<T>[]) {
+export function groupByResultIncludeFixedTags<T>(tagGroup: groupByResult<T, string>[]) {
   memFixedTags().forEach((tag) => {
     if (tagGroup.findIndex((f) => f.key == tag) == -1) {
       tagGroup.push({ key: tag, values: [] });

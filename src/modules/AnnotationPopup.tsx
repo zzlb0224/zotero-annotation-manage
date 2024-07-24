@@ -47,8 +47,8 @@ export class AnnotationPopup {
   existAnnotations: Zotero.Item[];
   rootDiv?: HTMLDivElement; //占位div
   fontSize: string = "18px";
-  relateTags: groupByResult<{ tag: string; type: number }>[] = [];
-  tagsDisplay: groupByResult<{ tag: string; type: number }>[] = [];
+  relateTags: groupByResult<{ tag: string; type: number }, string>[] = [];
+  tagsDisplay: groupByResult<{ tag: string; type: number }, string>[] = [];
   searchTag = "";
   selectedTags: { tag: string; color: string }[] = [];
   delTags: string[] = [];
@@ -409,7 +409,7 @@ export class AnnotationPopup {
       tag: string;
       type: number;
       dateModified: string;
-    }>[] = [];
+    }, string>[] = [];
     // root.style.width=this.getSelectTextWidth()+"px"
     if (getPref("show-all-tags")) {
       relateTags = await memoizeAsyncGroupAllTagsDB();
@@ -913,11 +913,11 @@ export class AnnotationPopup {
     from: groupByResult<{
       tag: string;
       type: number;
-    }>[],
+    }, string>[],
   ) {
     const tagsExclude = (getPref("tags-exclude") as string) || "";
-    const rs = str2RegExps(tagsExclude);
-    return from.filter((f) => !rs.some((s) => s.test(f.key)));
+    const regExps = str2RegExps(tagsExclude);
+    return from.filter((f) => !regExps.some((regExp) => regExp.test(f.key)));
   }
   async searchTagResult() {
     if (this.searchTag) {
