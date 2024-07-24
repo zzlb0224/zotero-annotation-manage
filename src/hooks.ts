@@ -4,7 +4,7 @@ import { getString, initLocale } from "./utils/locale";
 import { registerPrefsScripts } from "./modules/preferenceScript";
 import { createZToolkit } from "./utils/ztoolkit";
 import Annotations from "./modules/annotations";
-import AnnotationsToNote, { annotationToNoteTags as annotationToNoteTags, annotationToNoteType } from "./modules/annotationsToNote";
+import AnnotationsToNote, { annotationToNoteTags as annotationToNoteTags, annotationToNoteType } from "./modules/menu";
 import RelationHeader from "./modules/RelationHeader";
 import highlightWords from "./modules/highlightWords";
 import toolLink from "./modules/referenceMark";

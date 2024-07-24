@@ -2,8 +2,8 @@
 import { getPref, setPref } from "./prefs";
 import memoize from "./memoize2";
 import { config } from "../../package.json";
-import { stopPropagation } from "../modules/annotationsToNote";
-import { getColorTags, getCiteAnnotationHtml, getPopupWin, popupWin } from "../modules/annotationsToNote";
+import { stopPropagation } from "../modules/menu";
+import { getColorTags, getCiteAnnotationHtml, getPopupWin, popupWin } from "../modules/menu";
 import { TagElementProps } from "zotero-plugin-toolkit/dist/tools/ui";
 import { waitFor } from "./wait";
 import { groupBy, groupByResult } from './groupBy';
