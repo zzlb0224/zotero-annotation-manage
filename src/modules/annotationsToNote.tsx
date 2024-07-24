@@ -449,8 +449,9 @@ async function pasteAnnotations(items: Zotero.Item[], md5Equal = false, fileSize
     for (const pdf of pdfs) {
       const currentAnnotations = [...pdf.getAnnotations()];
       const filepath = pdf.getFilePath();
-      const md5 = filepath ? Zotero.Utilities.Internal.md5(Zotero.File.pathToFile(filepath)) : "";
-      const fileSize = filepath ? Zotero.File.pathToFile(filepath).fileSize : -1;
+      const { md5, fileSize } = getFileInfo(filepath)
+      // const md5 = filepath ? Zotero.Utilities.Internal.md5(Zotero.File.pathToFile(filepath)) : "";
+      // const fileSize = filepath ? Zotero.File.pathToFile(filepath).fileSize : -1;
       if (md5) {
         const ans = ds.filter(
           (f) =>
