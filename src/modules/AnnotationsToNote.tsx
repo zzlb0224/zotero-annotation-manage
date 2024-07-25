@@ -18,8 +18,8 @@ import {
 } from "../utils/zzlb";
 import { exportNote, toText1, getSelectedItems, createActionTag, exportTagsNote } from "./menu";
 import { showTitle } from "./RelationHeader";
-// import { groupBy } from '../utils/groupBy';
-import { groupBy } from "lodash";
+import { groupBy } from '../utils/groupBy';
+// import { groupBy } from "lodash";
 
 export function getAllAnnotations(items: Zotero.Item[]) {
     const items1 = items.map((a) => (a.isAttachment() && a.isPDFAttachment() && a.parentItem ? a.parentItem : a));
