@@ -8,6 +8,7 @@ import AnnotationsToNote, { annotationToNoteTags as annotationToNoteTags, annota
 import RelationHeader from "./modules/RelationHeader";
 import highlightWords from "./modules/highlightWords";
 import toolLink from "./modules/referenceMark";
+import { actionTranAnnotations } from "./action/action-tran-annotations";
 
 async function onStartup() {
   await Promise.all([Zotero.initializationPromise, Zotero.unlockPromise, Zotero.uiReadyPromise]);

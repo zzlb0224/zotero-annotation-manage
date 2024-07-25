@@ -1,11 +1,7 @@
 import { isEqual } from "lodash";
 import { sortAsc } from "./sort";
-import { groupByResultIncludeFixedTags } from './zzlb';
 
-export function groupBy<TValue, TKey>(
-  arr: TValue[],
-  getKey: (item: TValue) => TKey,
-) {
+export function groupBy<TValue, TKey>(arr: TValue[], getKey: (item: TValue) => TKey) {
   const groupedKey = [] as TKey[];
   const groupedValue = [] as TValue[][];
   for (const currentValue of arr) {
@@ -18,7 +14,7 @@ export function groupBy<TValue, TKey>(
       groupedValue[index].push(currentValue);
     }
   }
-  return groupedKey.map((key, index) => ({ key, values: groupedValue[index] }))//as groupByResult<TValue, TKey>[];
+  return groupedKey.map((key, index) => ({ key, values: groupedValue[index] })); //as groupByResult<TValue, TKey>[];
 }
 
 export interface groupByResult<TValue, TKey> {
@@ -48,7 +44,6 @@ export interface groupByResult<TValue, TKey> {
 //   key: string;
 //   values: TValue[];
 // }
-
 
 export function mapDateModified(arr: { key: string; values: { dateModified: string; tag: string; type: number }[] }) {
   return {

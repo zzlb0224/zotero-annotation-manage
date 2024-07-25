@@ -405,11 +405,14 @@ export class AnnotationPopup {
     if (!root) return;
     const doc = this.doc;
     if (!doc) return;
-    let relateTags: groupByResult<{
-      tag: string;
-      type: number;
-      dateModified: string;
-    }, string>[] = [];
+    let relateTags: groupByResult<
+      {
+        tag: string;
+        type: number;
+        dateModified: string;
+      },
+      string
+    >[] = [];
     // root.style.width=this.getSelectTextWidth()+"px"
     if (getPref("show-all-tags")) {
       relateTags = await memoizeAsyncGroupAllTagsDB();
@@ -910,10 +913,13 @@ export class AnnotationPopup {
     throw new Error("Method not implemented.");
   }
   excludeTags(
-    from: groupByResult<{
-      tag: string;
-      type: number;
-    }, string>[],
+    from: groupByResult<
+      {
+        tag: string;
+        type: number;
+      },
+      string
+    >[],
   ) {
     const tagsExclude = (getPref("tags-exclude") as string) || "";
     const regExps = str2RegExps(tagsExclude);
