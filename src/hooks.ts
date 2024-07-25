@@ -4,11 +4,17 @@ import { getString, initLocale } from "./utils/locale";
 import { registerPrefsScripts } from "./modules/preferenceScript";
 import { createZToolkit } from "./utils/ztoolkit";
 import Annotations from "./modules/annotations";
-import AnnotationsToNote, { annotationToNoteTags as annotationToNoteTags, annotationToNoteType } from "./modules/menu";
+import AnnotationsToNote, { getSelectedItems } from "./modules/menu";
 import RelationHeader from "./modules/RelationHeader";
 import highlightWords from "./modules/highlightWords";
 import toolLink from "./modules/referenceMark";
 import { actionTranAnnotations } from "./action/action-tran-annotations";
+import { memFixedColor, stopPropagation } from "./utils/zzlb";
+import { exportNoteByType, exportSingleNote, getAllAnnotations } from "./modules/AnnotationsToNote";
+import { groupBy } from "./utils/groupBy";
+import { sortFixedTags10ValuesLength, sortValuesLength } from "./utils/sort";
+import { TagElementProps } from "zotero-plugin-toolkit/dist/tools/ui";
+import { annotationToNoteTags, annotationToNoteType } from "./hooksMenuEvent";
 
 async function onStartup() {
   await Promise.all([Zotero.initializationPromise, Zotero.unlockPromise, Zotero.uiReadyPromise]);
@@ -167,6 +173,7 @@ async function onMenuEvent(type: "annotationToNoteTags" | "annotationToNoteType"
       return;
   }
 }
+
 function onDialogEvents(type: string) {
   switch (type) {
     case "dialogExample":
