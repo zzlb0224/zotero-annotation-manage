@@ -1,4 +1,5 @@
 import { config } from "../../package.json";
+import { getString } from '../utils/locale';
 
 function register() {
   Zotero.Reader.registerEventListener("renderToolbar", readerToolbarCallback, config.addonID);
@@ -70,7 +71,7 @@ function readerToolbarCallback(event: Parameters<_ZoteroTypes.Reader.EventHandle
     classList: ["toolbarButton", "toolbar-button", `${config.addonRef}-space-button`],
     properties: {
       tabIndex: -1,
-      title: "清理空白",
+      title: getString("spaceRemove-CleaningUpWhitespace"),// "清理空白",
       textContent: "空",
     },
     listeners: [
@@ -124,7 +125,7 @@ function readerToolbarCallback(event: Parameters<_ZoteroTypes.Reader.EventHandle
       return;
     }
     running = true;
-    popDiv.textContent = "正在清理";
+    popDiv.textContent = getString("spaceRemove-Cleaning") //"正在清理";
     let firstSpan: HTMLSpanElement | undefined = undefined;
     let str = "";
     for (const span of pdfDoc.querySelectorAll("span[role=presentation]") as NodeListOf<HTMLSpanElement>) {
@@ -152,7 +153,7 @@ function readerToolbarCallback(event: Parameters<_ZoteroTypes.Reader.EventHandle
       }
     }
 
-    popDiv.textContent = "清理完毕";
+    popDiv.textContent = getString("spaceRemove-cleanedUp");
     setTimeout(() => {
       running = false;
       if (onceMore) {
@@ -167,7 +168,7 @@ function readerToolbarCallback(event: Parameters<_ZoteroTypes.Reader.EventHandle
       {
         tag: "div",
         id: `${config.addonRef}-space-button-pop`,
-        properties: { textContent: "替换空白" },
+        properties: { textContent: getString("spaceRemove-replaceEmpty") },
         styles: {
           right: "100px",
           top: div.offsetTop + div.offsetHeight + 5 + "px",

@@ -1054,9 +1054,8 @@ export function PopupRoot({
                   setPref("showConfig", !isShowConfig);
                   setShowConfig(!isShowConfig);
                 }}
-                defaultValue="设置"
               >
-                设置
+                {getString("popupRoot-setup")}
               </button>
               {existTags.length > 0 && (
                 <span
@@ -1290,20 +1289,20 @@ export function PopupRoot({
                       ctrlAddOrSaveTags(isAdd, cTag);
                       return false;
                     }}
-                    // onMouseDown={(e) => {
-                    //   e.preventDefault();
-                    //   ztoolkit.log("onMouseDown 复制", e)
-                    //   return false
-                    // }}
-                    // onContextMenu={e => {
-                    //   e.preventDefault();
-                    //   ztoolkit.log("onContextMenu 复制", tag.key)
-                    //   new window.Clipboard().readText().then((text) => {
-                    //     ztoolkit.log("onContextMenu 复制", tag.key, text);
-                    //     (e.currentTarget as HTMLInputElement).value = text;
-                    //   })
-                    //   return false
-                    // }}
+                  // onMouseDown={(e) => {
+                  //   e.preventDefault();
+                  //   ztoolkit.log("onMouseDown 复制", e)
+                  //   return false
+                  // }}
+                  // onContextMenu={e => {
+                  //   e.preventDefault();
+                  //   ztoolkit.log("onContextMenu 复制", tag.key)
+                  //   new window.Clipboard().readText().then((text) => {
+                  //     ztoolkit.log("onContextMenu 复制", tag.key, text);
+                  //     (e.currentTarget as HTMLInputElement).value = text;
+                  //   })
+                  //   return false
+                  // }}
                   >
                     <span>[{tag.values.length}]</span>
                     <span>{tag.key}</span>

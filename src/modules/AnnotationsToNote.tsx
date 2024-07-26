@@ -22,6 +22,7 @@ import { showTitle } from "./RelationHeader";
 import { groupBy } from "../utils/groupBy";
 import { getCiteItemHtmlWithPage, getCiteAnnotationHtml } from "./getCitationItem";
 import { ProgressWindowHelper } from "zotero-plugin-toolkit/dist/helpers/progressWindow";
+import { getString } from '../utils/locale';
 // import { groupBy } from "lodash";
 
 export function getAllAnnotations(items: Zotero.Item[]) {
@@ -208,7 +209,7 @@ export function createSearchAnnContent(dialogWindow: Window | undefined, popupDi
       },
       {
         tag: "button",
-        properties: { textContent: "导出" },
+        properties: { textContent: getString("export") },
         listeners: [
           {
             type: "click",

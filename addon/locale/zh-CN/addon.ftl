@@ -12,3 +12,15 @@ tabpanel-reader-tab-label = 阅读器标签
 
 addon-static-example = This is default branch!
     .branch-example = This is a branch under addon-static-example!
+
+export = 导出
+text-empty = ==空白==<br/><br/>==空白==<br/><br/>==空白==
+text-error = 发生错误
+text-FixedTagsDefault = 目的,假设,框架,数据,量表,方法,理论,结论,贡献,未来,背景,现状,问题,对策
+
+spaceRemove-replaceEmpty = 替换空白
+spaceRemove-cleanedUp = 清理完毕
+spaceRemove-Cleaning = 正在清理 
+spaceRemove-CleaningUpWhitespace = 清理空白
+
+popupRoot-setup = 设置

@@ -9,6 +9,7 @@ import { waitFor } from "./wait";
 import { groupBy, groupByResult } from "./groupBy";
 import { uniqueBy } from "./uniqueBy";
 import { ProgressWindowHelper } from "zotero-plugin-toolkit/dist/helpers/progressWindow";
+import { getString } from './locale';
 export class TagColor {
   public color: string;
   public tag: string;
@@ -241,12 +242,12 @@ const memAllTagsInLibraryAsync = memoize(async () => {
     );
   const itemTags = getPref("item-tags")
     ? items.flatMap((f) =>
-        f.getTags().map((a) => ({
-          tag: a.tag,
-          type: a.type,
-          dateModified: f.dateModified,
-        })),
-      )
+      f.getTags().map((a) => ({
+        tag: a.tag,
+        type: a.type,
+        dateModified: f.dateModified,
+      })),
+    )
     : [];
   return groupBy([...tags, ...itemTags], (t14) => t14.tag);
 });
@@ -376,7 +377,7 @@ export async function openAnnotation(itemOrKeyOrId: Zotero.Item | string | numbe
   }
 }
 
-export async function injectCSSToReader() {}
+export async function injectCSSToReader() { }
 
 export const memSVG = memoize(
   async (href) => await getFileContent(href),
@@ -412,11 +413,11 @@ export async function injectCSS(doc: Document | HTMLDivElement, filename: string
       ignoreIfExists: true,
     },
     doc.querySelector("linkset") ||
-      doc.querySelector("head") ||
-      doc.querySelector("body") ||
-      doc.querySelector("div") ||
-      doc.children[0] ||
-      doc,
+    doc.querySelector("head") ||
+    doc.querySelector("body") ||
+    doc.querySelector("div") ||
+    doc.children[0] ||
+    doc,
   );
   // ztoolkit.log("加载css", d);
 }
@@ -610,7 +611,7 @@ export async function convertHtml(
       }
     }
   } catch (error) {
-    ztoolkit.log("发生错误", error);
+    ztoolkit.log(getString("text-error"), error);
   }
 
   const getImageCount = 0;
@@ -783,7 +784,7 @@ export async function getAnnotationContent(ann: Zotero.Item) {
 
       `  ${ann.annotationText || ""} ( ${ann.parentItem?.parentItem?.firstCreator}, ${ann.parentItem?.parentItem?.getField("year")}, p.${ann.annotationPageLabel} ) ${ann.annotationComment || ""}`,
     );
-  else html = "==空白==<br/><br/>==空白==<br/><br/>==空白==";
+  else html = getString("text-empty")
   return html.replace(/<br\s*>/g, "<br/>");
 }
 export function getPublicationTags(topItem: Zotero.Item | undefined) {
