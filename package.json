@@ -50,7 +50,7 @@
     "eslint": "^8.57.0",
     "eslint-plugin-react": "^7.35.0",
     "globals": "^15.8.0",
-    "prettier": "^3.3.0",
+    "prettier": "^3.3.3",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.0.0-alpha.51",
     "zotero-plugin-scaffold": "^0.0.32",
