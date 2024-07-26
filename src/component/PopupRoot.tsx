@@ -77,7 +77,7 @@ export function PopupRoot({
   const [isShowConfig, setShowConfig] = useState(getPrefAs("showConfig", false));
   const [bComment, setBComment] = useState(getPrefAs("bComment", false));
   const [comment, setComment] = useState("");
-  const [configTab, setConfigTab] = useState<ConfigTab>(getPrefAs("configTab", "面板配置"));
+  const [configTab, setConfigTab] = useState<ConfigTab>(getPrefAs("configTab", "PanelConfig"));
   //取代固定窗口和单独窗口
   const [windowType, setWindowType] = useState<WindowType>(getPrefAs("windowType", "跟随"));
   // const [pSingleWindow, setPSingleWindow] = useState(getPrefAs("pSingleWindow", false));
@@ -458,12 +458,12 @@ export function PopupRoot({
                     setConfigTab(a);
                   }}
                 >
-                  {a}
+                  {getString("popupRoot-" + a)}
                 </span>
               ))}
             </div>
 
-            {"面板配置" == configTab && (
+            {"PanelConfig" == configTab && (
               <>
                 <span style={configItemStyle}>
                   {ConfigTypeArray.map((a) => loadDefaultConfig(a)).map(
@@ -621,7 +621,7 @@ export function PopupRoot({
                 </span>
               </>
             )}
-            {"固定位置" == configTab && (
+            {"FixedPanel" == configTab && (
               <div>
                 {/* <label>
                   <input
@@ -666,7 +666,7 @@ export function PopupRoot({
                 </span>
               </div>
             )}
-            {"浮动弹出框" == configTab && (
+            {"PopupPanel" == configTab && (
               <div
                 style={{
                   fontSize: "18px",
@@ -788,7 +788,7 @@ export function PopupRoot({
               </div>
             )}
 
-            {"颜色栏" == configTab && (
+            {"ColorsPanel" == configTab && (
               <span>
                 <label style={configItemStyle}>
                   <input
@@ -819,7 +819,7 @@ export function PopupRoot({
                 <br />
               </span>
             )}
-            {"标签样式" == configTab && (
+            {"TagsStyle" == configTab && (
               <>
                 <span style={configItemStyle}>
                   显示
@@ -945,7 +945,7 @@ export function PopupRoot({
                 </span>
               </>
             )}
-            {"标签设置" == configTab && (
+            {"TagsSetting" == configTab && (
               <>
                 <div>
                   排序规则：
@@ -969,7 +969,7 @@ export function PopupRoot({
                 </label>
               </>
             )}
-            {"待开发" == configTab && (
+            {"Development" == configTab && (
               <>
                 <div>
                   相关标签的范围：（未完成）
@@ -1441,8 +1441,8 @@ export function PopupRoot({
         padding={pPadding}
         ref={refPopover}
         boundaryInset={pBoundaryInset}
-        transformMode={windowType == "固定位置" || params.ids ? "absolute" : "relative"}
-        transform={windowType == "固定位置" || params.ids ? { left: pFCLLeft ?? 0, top: nFCLTop ?? 0 } : undefined}
+        transformMode={windowType == "FixedPanel" || params.ids ? "absolute" : "relative"}
+        transform={windowType == "FixedPanel" || params.ids ? { left: pFCLLeft ?? 0, top: nFCLTop ?? 0 } : undefined}
         align="start"
         onClickOutside={(e) => {
           // ztoolkit.log("onClickOutside", e);
