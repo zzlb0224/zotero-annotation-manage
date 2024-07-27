@@ -352,6 +352,7 @@ export class AnnotationPopup {
                               tag,
                               color,
                             });
+
                             this.saveAnnotationTags();
                           }
                         },
@@ -1189,6 +1190,9 @@ export async function saveAnnotationTags(
   annotationType: "highlight" | "underline" | undefined = undefined,
   comment = "",
 ) {
+  ztoolkit.log("进入saveAnnotationTags")
+  //@ts-ignore 访问_onSetSelectionPopup 隐藏弹出框
+  reader?._primaryView?._onSetSelectionPopup?.(null);
   if (selectedTags.length == 0 && searchTagAddIfEmpty) {
     selectedTags.push({
       tag: searchTagAddIfEmpty,
