@@ -400,6 +400,8 @@ async function createRelatedContent(anKey: string, win: Window | undefined, div:
 }
 
 export function showTitle(anTo: Zotero.Item, x: number, y: number, parent: HTMLElement, ms: number = 500) {
+  //点击标题栏复制条目标题
+  new ztoolkit.Clipboard().addText("" + anTo.parentItem?.parentItem?.getDisplayTitle()).copy()
   const d = ztoolkit.UI.appendElement(
     {
       tag: "span",
