@@ -1237,7 +1237,7 @@ export async function saveAnnotationTags(
           ),
         );
         //@ts-ignore 访问_onSetSelectionPopup 隐藏弹出框
-        reader?._primaryView?._onSetSelectionPopup?.(null);
+        // reader?._primaryView?._onSetSelectionPopup?.(null);
         // openAnnotation(item, newAnn?.pageLabel || "", newAnn?.id || "")
       }
       memoizeAsyncGroupAllTagsDB.remove();

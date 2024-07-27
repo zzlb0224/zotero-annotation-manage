@@ -1491,7 +1491,7 @@ export function PopupRoot({
     } else {
       setIsPopoverOpen(false);
       //@ts-ignore 访问_onSetSelectionPopup 隐藏弹出框
-      reader?._primaryView?._onSetSelectionPopup?.(null);
+      // reader?._primaryView?._onSetSelectionPopup?.(null);
       saveAnnotationTags(
         "",
         [...selectedTags, { tag: cTag, color: memFixedColor(cTag) }],
