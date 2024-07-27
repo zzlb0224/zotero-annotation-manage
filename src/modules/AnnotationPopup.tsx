@@ -1126,16 +1126,16 @@ export class AnnotationPopup {
   }
 
   private async saveAnnotationTags() {
-    const selectedTags = this.selectedTags;
+    const selectedTags = [...this.selectedTags];
     const searchTag = this.searchTag;
-    const delTags = this.delTags;
+    const delTags = [...this.delTags];
     const reader = this.reader!;
     const doc = this.doc!;
     const params = this.params!;
     const existAnnotations = this.existAnnotations;
     const root = this.rootDiv;
 
-    await saveAnnotationTags(searchTag, selectedTags, delTags, reader, params, doc);
+    saveAnnotationTags(searchTag, selectedTags, delTags, reader, params, doc);
     if (params.ids) {
       root?.remove();
     }
