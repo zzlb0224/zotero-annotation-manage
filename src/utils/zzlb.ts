@@ -106,6 +106,7 @@ export const memFixedColor = memoize(
 );
 
 export const memFixedTagColors = memoize(getFixedTagColors, getCollectionKey);
+
 function getCollectionKey(collectionKey: string | undefined = undefined) {
   return collectionKey === undefined ? ZoteroPane.getSelectedCollection()?.key || "" : collectionKey;
 }
@@ -383,6 +384,7 @@ export const memSVG = memoize(
   async (href) => await getFileContent(href),
   // .then(r=>r.replace(/xmlns="http:\/\/www.w3.org\/2000\/svg"/g,""))
 );
+
 
 export async function loadSVG(doc: Document, href: string = `chrome://${config.addonRef}/content/16/annotate-highlight.svg`) {
   // const href =svg.includes("chrome") `chrome://${config.addonRef}/content/${svg}`;

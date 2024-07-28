@@ -1,14 +1,18 @@
 import { isEqual } from "lodash";
 import { sortAsc } from "./sort";
 
-export function groupBy<TValue, TKey>(arr: TValue[], getKey: (item: TValue) => TKey) {
+export function groupByObject<TValue, TKey>(arr: TValue[], getKey: (item: TValue) => TKey) {
   const groupedKey = [] as TKey[];
+  const groupedKeyStr = [] as string[];
   const groupedValue = [] as TValue[][];
   for (const currentValue of arr) {
     const currentKey = getKey(currentValue);
-    const index = groupedKey.findIndex((f) => isEqual(currentKey, f));
+    const currentKeyStr = JSON.stringify(currentKey);
+    const index = groupedKeyStr.findIndex(f => f == currentKeyStr);
+    // const index = groupedKey.findIndex((f) => isEqual(currentKey, f));
     if (index == -1) {
       groupedKey.push(currentKey);
+      groupedKeyStr.push(currentKeyStr);
       groupedValue.push([currentValue]);
     } else {
       groupedValue[index].push(currentValue);
@@ -21,25 +25,25 @@ export interface groupByResult<TValue, TKey> {
   key: TKey;
   values: TValue[];
 }
-// export function groupBy<T>(arr: T[], getKey: (item: T) => string) {
-//   const groupedByValues: { [key: string]: T[] } = {};
-//   for (const curr of arr) {
-//     const groupKey = getKey(curr);
-//     if (groupedByValues[groupKey]) {
-//       groupedByValues[groupKey].push(curr);
-//     } else {
-//       groupedByValues[groupKey] = [curr];
-//     }
-//   }
-//   return Object.keys(groupedByValues).map(
-//     (key) =>
-//       ({
-//         key,
-//         value: groupedByValues[key][0],
-//         values: groupedByValues[key],
-//       }) as groupByEqualResult<T, string>,
-//   );
-// }
+export function groupBy<TValue>(arr: TValue[], getKey: (item: TValue) => string) {
+  const groupedByValues: { [key: string]: TValue[] } = {};
+  for (const curr of arr) {
+    const groupKey = getKey(curr);
+    if (groupedByValues[groupKey]) {
+      groupedByValues[groupKey].push(curr);
+    } else {
+      groupedByValues[groupKey] = [curr];
+    }
+  }
+  return Object.keys(groupedByValues).map(
+    (key) =>
+    ({
+      key,
+      value: groupedByValues[key][0],
+      values: groupedByValues[key],
+    }) //as groupByEqualResult<T, string>,
+  );
+}
 // export interface groupByResult<TValue> {
 //   key: string;
 //   values: TValue[];

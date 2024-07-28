@@ -15,22 +15,22 @@ export function memoize2<TFunc extends (this: any, ...newArgs: any[]) => any>(
     //清理不需要的缓存
     Object.keys(cacheTime).forEach((key) => {
       if (Date.now() - cacheTime[key] > timeout) {
-        // ztoolkit.log("删除缓存", key);
+        ztoolkit.log("超时删除缓存", key);
         del(key);
       }
     });
     const cacheKey = (keyFn && keyFn(...newArgs)) || ["_", ...newArgs].join("_");
 
     if (cacheThis[cacheKey] != this || cacheObj[cacheKey] == undefined || Date.now() - cacheTime[cacheKey] > timeout) {
-      // ztoolkit.log("建立缓存cache2", {
-      //   cacheKey,
-      //   this: cacheThis[cacheKey],
-      //   obj: cacheObj[cacheKey],
-      //   start: cacheTime[cacheKey],
-      //   time2: Date.now() - cacheTime[cacheKey],
-      //   timeout,
-      //   thisEq: cacheThis[cacheKey] == this,
-      // });
+      ztoolkit.log("建立缓存cache2", {
+        cacheKey,
+        this: cacheThis[cacheKey],
+        obj: cacheObj[cacheKey],
+        start: cacheTime[cacheKey],
+        time2: Date.now() - cacheTime[cacheKey],
+        timeout,
+        thisEq: cacheThis[cacheKey] == this,
+      });
       cacheTime[cacheKey] = Date.now();
       cacheThis[cacheKey] = this;
       if (resultFn.constructor.name == "AsyncFunction") {
