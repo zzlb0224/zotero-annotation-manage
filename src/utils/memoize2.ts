@@ -9,7 +9,7 @@ export function memoize2<TFunc extends (this: any, ...newArgs: any[]) => any>(
   timeout = 600000,
 ): MemoizedFn<TFunc> {
   const cacheThis: { [key: string]: ThisParameterType<TFunc> } = {};
-  const cacheObj: { [key: string]: ReturnType<TFunc> } = {};
+  const cacheObjs: { [key: string]: ReturnType<TFunc> } = {};
   const cacheTime: { [key: string]: number } = {};
   function memoized(this: ThisParameterType<TFunc>, ...newArgs: Parameters<TFunc>): ReturnType<TFunc> {
     //清理不需要的缓存
@@ -17,7 +17,7 @@ export function memoize2<TFunc extends (this: any, ...newArgs: any[]) => any>(
       del);
     const cacheKey = (keyFn && keyFn(...newArgs)) || ["_", ...newArgs].join("_");
 
-    if (cacheThis[cacheKey] != this || cacheObj[cacheKey] == undefined || Date.now() - cacheTime[cacheKey] > timeout) {
+    if (cacheThis[cacheKey] != this || cacheObjs[cacheKey] == undefined || Date.now() - cacheTime[cacheKey] > timeout) {
       // ztoolkit.log("建立缓存cache2", {
       //   cacheKey,
       //   this: cacheThis[cacheKey],
@@ -30,16 +30,16 @@ export function memoize2<TFunc extends (this: any, ...newArgs: any[]) => any>(
       cacheTime[cacheKey] = Date.now();
       cacheThis[cacheKey] = this;
       if (resultFn.constructor.name == "AsyncFunction") {
-        return (cacheObj[cacheKey] = (resultFn(...newArgs) as any).then((value: ReturnType<TFunc>) => (cacheObj[cacheKey] = value)));
+        return (cacheObjs[cacheKey] = (resultFn(...newArgs) as any).then((value: ReturnType<TFunc>) => (cacheObjs[cacheKey] = value)));
       } else {
-        return (cacheObj[cacheKey] = resultFn(...newArgs));
+        return (cacheObjs[cacheKey] = resultFn(...newArgs));
       }
     }
-    return cacheObj[cacheKey] as ReturnType<TFunc>;
+    return cacheObjs[cacheKey] as ReturnType<TFunc>;
   }
   function del(key: string) {
     delete cacheTime[key];
-    delete cacheObj[key];
+    delete cacheObjs[key];
     delete cacheThis[key];
   }
   memoized.removeCache = (cacheKey: string | RegExp | undefined = undefined) => {
