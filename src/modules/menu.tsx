@@ -353,6 +353,7 @@ function buildMenu(collectionOrItem: "collection" | "item") {
         label: "选择单个Tag导出",
         icon: iconBaseUrl + "favicon.png",
         popupId: `${config.addonRef}-create-note-tag-popup-${collectionOrItem}`,
+        //动态菜单需要用公开的函数？hooks.onMenuEvent
         onpopupshowing: `Zotero.${config.addonInstance}.hooks.onMenuEvent("annotationToNoteTags", { window,type:"${collectionOrItem}" })`,
       },
       {
