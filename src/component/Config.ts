@@ -1,4 +1,12 @@
-export const ConfigTabArray = ["PanelConfig", "FixedPanel", "PopupPanel", "ColorsPanel", "TagsStyle", "TagsSetting", "Development"] as const;
+export const ConfigTabArray = [
+  "PanelConfig",
+  "FixedPanel",
+  "PopupPanel",
+  "ColorsPanel",
+  "TagsStyle",
+  "TagsSetting",
+  "Development",
+] as const;
 export type ConfigTab = (typeof ConfigTabArray)[number];
 
 export const SortTypeArray = ["最近使用", "本条目+最近使用", "使用次数", "字母顺序"] as const;

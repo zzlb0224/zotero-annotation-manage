@@ -1190,7 +1190,7 @@ export async function saveAnnotationTags(
   annotationType: "highlight" | "underline" | undefined = undefined,
   comment = "",
 ) {
-  ztoolkit.log("进入saveAnnotationTags")
+  ztoolkit.log("进入saveAnnotationTags");
   //@ts-ignore 访问_onSetSelectionPopup 隐藏弹出框
   reader?._primaryView?._onSetSelectionPopup?.(null);
   if (selectedTags.length == 0 && searchTagAddIfEmpty) {
@@ -1240,8 +1240,11 @@ export async function saveAnnotationTags(
         // reader?._primaryView?._onSetSelectionPopup?.(null);
         // openAnnotation(item, newAnn?.pageLabel || "", newAnn?.id || "")
       }
-      memoizeAsyncGroupAllTagsDB.remove();
-      memRelateTags.remove();
+      memoizeAsyncGroupAllTagsDB.removeCache();
+      memRelateTags.removeCache();
+      //清理了缓存之后又做个缓存，增加速度
+      memoizeAsyncGroupAllTagsDB();
+      memRelateTags(item);
     }
   }
 }

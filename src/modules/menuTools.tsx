@@ -1,12 +1,11 @@
 import { config } from "../../package.json";
-import { getString } from '../utils/locale';
+import { getString } from "../utils/locale";
 import { uniqueBy } from "../utils/uniqueBy";
 import { AnnotationRes, promiseAllWithProgress } from "../utils/zzlb";
 import { getAllAnnotations } from "./AnnotationsToNote";
 import { getSelectedItems } from "./menu";
 
 export function funcSplitTag(items: Zotero.Item[], ans: AnnotationRes[]) {
-
   ztoolkit.log(`找到${items.length}条目${ans.length}笔记`);
 
   const header = `找到${items.length}条目${ans.length}笔记`;

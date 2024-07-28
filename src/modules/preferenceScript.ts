@@ -189,7 +189,7 @@ function bindPrefEvents() {
         colors.splice(index, 1);
       }
       setPref("fixed-colors", colors.join(", ") || FixedColorDefault);
-      memFixedColor.remove();
+      memFixedColor.removeCache();
       replaceColorTagsElement(doc);
       btn.textContent = "选中颜色删除";
       btn.style.background = "";
@@ -203,8 +203,8 @@ function bindPrefEvents() {
     if (target.value.includes("\n")) {
       target.value = target.value.replace(/\n/g, "");
     }
-    memFixedTags.remove();
-    memFixedColor.remove();
+    memFixedTags.removeCache();
+    memFixedColor.removeCache();
     replaceColorTagsElement(doc);
     replaceTagsPreviewDiv(doc);
   });
@@ -214,7 +214,7 @@ function bindPrefEvents() {
     if (target.value.includes("\n")) {
       target.value = target.value.replace(/\n/g, "");
     }
-    memFixedColor.remove();
+    memFixedColor.removeCache();
     replaceColorTagsElement(doc);
     replaceTagsPreviewDiv(doc);
   });
@@ -230,7 +230,7 @@ function bindPrefEvents() {
       colors.push(color);
     }
     setPref("fixed-colors", colors.join(", ") || FixedColorDefault);
-    memFixedColor.remove();
+    memFixedColor.removeCache();
     replaceColorTagsElement(doc);
     replaceTagsPreviewDiv(doc);
   });
@@ -240,8 +240,8 @@ function bindPrefEvents() {
   });
   doc.querySelector(`#zotero-prefpane-${config.addonRef}-optional-color`)?.addEventListener("keyup", (e) => {
     initOptionalColorLabel(doc);
-    memFixedColor.remove();
-    memOptionalColor.remove();
+    memFixedColor.removeCache();
+    memOptionalColor.removeCache();
     replaceTagsPreviewDiv(doc);
   });
 
@@ -249,28 +249,28 @@ function bindPrefEvents() {
     replaceTagsPreviewDiv(doc);
   });
   doc.querySelector(`#zotero-prefpane-${config.addonRef}-max-show`)?.addEventListener("keyup", (e) => {
-    memOptionalColor.remove();
+    memOptionalColor.removeCache();
     replaceTagsPreviewDiv(doc);
   });
   doc.querySelector(`#zotero-prefpane-${config.addonRef}-show-all-tags`)?.addEventListener("command", (e) => {
-    memOptionalColor.remove();
+    memOptionalColor.removeCache();
     replaceTagsPreviewDiv(doc);
   });
   doc.querySelector(`#zotero-prefpane-${config.addonRef}-children-collection`)?.addEventListener("command", (e) => {
-    memOptionalColor.remove();
+    memOptionalColor.removeCache();
     replaceTagsPreviewDiv(doc);
   });
   doc.querySelector(`#zotero-prefpane-${config.addonRef}-preview-button`)?.addEventListener("command", (e) => {
     replaceTagsPreviewDiv(doc);
   });
   doc.querySelector(`#zotero-prefpane-${config.addonRef}-current-collection`)?.addEventListener("command", (e) => {
-    memOptionalColor.remove();
+    memOptionalColor.removeCache();
     replaceTagsPreviewDiv(doc);
   });
   doc.querySelector(`#zotero-prefpane-${config.addonRef}-show-relate-tags`)?.addEventListener("command", (e) => {
-    memOptionalColor.remove();
+    memOptionalColor.removeCache();
     replaceTagsPreviewDiv(doc);
-    memRelateTags.remove();
+    memRelateTags.removeCache();
   });
 }
 
@@ -512,10 +512,10 @@ function bindFixedColors(doc: Document) {
     } else {
       clearPref("FTC" + collectionKey);
     }
-    memFixedTagColors.remove();
-    memFixedColor.remove();
-    memFixedTags.remove();
-    memFixedTagFromColor.remove();
+    memFixedTagColors.removeCache();
+    memFixedColor.removeCache();
+    memFixedTags.removeCache();
+    memFixedTagFromColor.removeCache();
     tPreview();
   }
 }

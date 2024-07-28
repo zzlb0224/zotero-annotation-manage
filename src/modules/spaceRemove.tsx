@@ -1,5 +1,5 @@
 import { config } from "../../package.json";
-import { getString } from '../utils/locale';
+import { getString } from "../utils/locale";
 
 function register() {
   Zotero.Reader.registerEventListener("renderToolbar", readerToolbarCallback, config.addonID);
@@ -71,7 +71,7 @@ function readerToolbarCallback(event: Parameters<_ZoteroTypes.Reader.EventHandle
     classList: ["toolbarButton", "toolbar-button", `${config.addonRef}-space-button`],
     properties: {
       tabIndex: -1,
-      title: getString("spaceRemove-CleaningUpWhitespace"),// "清理空白",
+      title: getString("spaceRemove-CleaningUpWhitespace"), // "清理空白",
       textContent: "空",
     },
     listeners: [
@@ -125,7 +125,7 @@ function readerToolbarCallback(event: Parameters<_ZoteroTypes.Reader.EventHandle
       return;
     }
     running = true;
-    popDiv.textContent = getString("spaceRemove-Cleaning") //"正在清理";
+    popDiv.textContent = getString("spaceRemove-Cleaning"); //"正在清理";
     let firstSpan: HTMLSpanElement | undefined = undefined;
     let str = "";
     for (const span of pdfDoc.querySelectorAll("span[role=presentation]") as NodeListOf<HTMLSpanElement>) {

@@ -22,7 +22,7 @@ import { showTitle } from "./RelationHeader";
 import { groupBy } from "../utils/groupBy";
 import { getCiteItemHtmlWithPage, getCiteAnnotationHtml } from "./getCitationItem";
 import { ProgressWindowHelper } from "zotero-plugin-toolkit/dist/helpers/progressWindow";
-import { getString } from '../utils/locale';
+import { getString } from "../utils/locale";
 // import { groupBy } from "lodash";
 
 export function getAllAnnotations(items: Zotero.Item[]) {
