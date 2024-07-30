@@ -1,47 +1,43 @@
-
-interface FixedTagColorsEventMap
-// extends
-// GlobalEventHandlersEventMap,
-// OnErrorEventHandlerForNodesEventMap,
-// TouchEventHandlersEventMap 
-{
+interface FixedTagColorsEventMap {
+  // extends
+  // GlobalEventHandlersEventMap,
+  // OnErrorEventHandlerForNodesEventMap,
+  // TouchEventHandlersEventMap
   fullscreenchange1: Event;
   fullscreenerror: Event;
 }
 class FixedTagColors extends EventTarget {
   div: HTMLDivElement;
-  addEventListener<K extends keyof FixedTagColorsEventMap>(type: K, listener: (this: FixedTagColors, ev: FixedTagColorsEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void {
-
-  }
-
-
+  addEventListener<K extends keyof FixedTagColorsEventMap>(
+    type: K,
+    listener: (this: FixedTagColors, ev: FixedTagColorsEventMap[K]) => any,
+    options?: boolean | AddEventListenerOptions,
+  ): void {}
 
   constructor(div: HTMLDivElement, onGet: EventListener, onSave: EventListener) {
     super();
     this.div = div;
     // div.dispatchEvent(new Event("get"));
     // div.dispatchEvent(new Event("save"));
-    this.dispatchEvent(new Event("fullscreenchange1"))
+    this.dispatchEvent(new Event("fullscreenchange1"));
   }
 }
 const a = new FixedTagColors(
   "" as any as HTMLDivElement,
-  () => { },
-  (ev) => { },
+  () => {},
+  (ev) => {},
 );
-a.addEventListener("fullscreenchange1", e => { })
-
-
-
+a.addEventListener("fullscreenchange1", (e) => {});
 
 class DOMEventTarget {
   listeners: Map<any, any>;
   constructor() {
     this.listeners = new Map();
   }
-  addEventListener(type: string, listener: { (e: any): void; bind?: any; }) {
+  addEventListener(type: string, listener: { (e: any): void; bind?: any }) {
     this.listeners.set(listener.bind(this), {
-      type, listener
+      type,
+      listener,
     });
   }
   removeEventListener(type: any, listener: any) {
@@ -53,7 +49,7 @@ class DOMEventTarget {
     }
   }
   dispatchEvent(event: Event) {
-    Object.defineProperty(event, 'target', { value: this });
+    Object.defineProperty(event, "target", { value: this });
 
     for (const [key, value] of this.listeners) {
       if (value.type !== event.type) {
@@ -65,7 +61,7 @@ class DOMEventTarget {
 }
 
 const eventEmitter = new DOMEventTarget();
-eventEmitter.addEventListener('test', (e: any) => {
-  console.log('addEventListener works');
+eventEmitter.addEventListener("test", (e: any) => {
+  console.log("addEventListener works");
 });
-eventEmitter.dispatchEvent(new Event('test'));
+eventEmitter.dispatchEvent(new Event("test"));

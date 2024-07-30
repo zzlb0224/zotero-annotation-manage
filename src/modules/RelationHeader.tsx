@@ -401,9 +401,7 @@ async function createRelatedContent(anKey: string, win: Window | undefined, div:
 
 export function showTitle(anTo: Zotero.Item, x: number, y: number, parent: HTMLElement, ms: number = 500) {
   const title = anTo.parentItem?.parentItem?.getDisplayTitle() || "";
-  //点击标题栏复制条目标题
-  new ztoolkit.Clipboard().addText(title).copy();
-  new ztoolkit.ProgressWindow("复制标题").createLine({ text: title }).show(5000);
+
   const d = ztoolkit.UI.appendElement(
     {
       tag: "span",
@@ -427,6 +425,9 @@ export function showTitle(anTo: Zotero.Item, x: number, y: number, parent: HTMLE
         {
           type: "click",
           listener: () => {
+            //点击标题栏复制条目标题
+            new ztoolkit.Clipboard().addText(title).copy();
+            new ztoolkit.ProgressWindow("复制标题").createLine({ text: title }).show(5000);
             d.remove();
           },
         },

@@ -13,8 +13,9 @@ export function memoize2<TFunc extends (this: any, ...newArgs: any[]) => any>(
   const cacheTime: { [key: string]: number } = {};
   function memoized(this: ThisParameterType<TFunc>, ...newArgs: Parameters<TFunc>): ReturnType<TFunc> {
     //清理不需要的缓存
-    Object.keys(cacheTime).filter(key => Date.now() - cacheTime[key] > timeout).forEach(
-      del);
+    Object.keys(cacheTime)
+      .filter((key) => Date.now() - cacheTime[key] > timeout)
+      .forEach(del);
     const cacheKey = (keyFn && keyFn(...newArgs)) || ["_", ...newArgs].join("_");
 
     if (cacheThis[cacheKey] != this || cacheObjs[cacheKey] == undefined || Date.now() - cacheTime[cacheKey] > timeout) {

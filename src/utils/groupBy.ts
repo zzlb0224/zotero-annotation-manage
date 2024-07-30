@@ -1,20 +1,41 @@
 import { Function, isEqual } from "lodash";
 import { sortAsc } from "./sort";
-function stringify(o3: any): string {
-  switch (typeof o3) {
+function stringify(value: any): string {
+  switch (typeof value) {
+    case "symbol":
+      return "m" + value.toString();
+    case "string":
+      return "s" + value;
+    case "number":
+      return "n" + value;
+    case "bigint":
+      return "i" + value;
+    case "undefined":
+      return "u";
+    case "boolean":
+      return value ? "b1" : "b0";
     case "function":
-      return "f" + o3.name + "(" + o3.length + ")";
+      return "f" + value.name + "_" + value.length;
     case "object":
+      if (Array.isArray(value)) {
+        return (
+          "[" +
+          Object.keys(value)
+            .map((key, index) => stringify(value[index]))
+            .join(",") +
+          "]"
+        );
+      }
       return (
         "{" +
-        Object.keys(o3)
+        Object.keys(value)
           .sort()
-          .map((a2) => a2 + "=" + stringify(o3[a2]))
+          .map((key) => key + "=" + stringify(value[key]))
           .join(";") +
         "}"
       );
     default:
-      return o3 + "";
+      return "d" + value;
   }
 }
 export function groupBy<TValue, TKey>(arr: TValue[], getKey: (item: TValue) => TKey) {
