@@ -243,12 +243,12 @@ const memAllTagsInLibraryAsync = memoize(async () => {
     );
   const itemTags = getPref("item-tags")
     ? items.flatMap((f) =>
-        f.getTags().map((a) => ({
-          tag: a.tag,
-          type: a.type,
-          dateModified: f.dateModified,
-        })),
-      )
+      f.getTags().map((a) => ({
+        tag: a.tag,
+        type: a.type,
+        dateModified: f.dateModified,
+      })),
+    )
     : [];
   return groupBy([...tags, ...itemTags], (t14) => t14.tag);
 });
@@ -378,7 +378,7 @@ export async function openAnnotation(itemOrKeyOrId: Zotero.Item | string | numbe
   }
 }
 
-export async function injectCSSToReader() {}
+export async function injectCSSToReader() { }
 
 export const memSVG = memoize(
   async (href) => await getFileContent(href),
@@ -414,11 +414,11 @@ export async function injectCSS(doc: Document | HTMLDivElement, filename: string
       ignoreIfExists: true,
     },
     doc.querySelector("linkset") ||
-      doc.querySelector("head") ||
-      doc.querySelector("body") ||
-      doc.querySelector("div") ||
-      doc.children[0] ||
-      doc,
+    doc.querySelector("head") ||
+    doc.querySelector("body") ||
+    doc.querySelector("div") ||
+    doc.children[0] ||
+    doc,
   );
   // ztoolkit.log("加载css", d);
 }
@@ -617,11 +617,17 @@ export async function convertHtml(
 
   const getImageCount = 0;
 
+
   const data = arr.map(async (ann) => {
     //TODO 感觉这个方法读取图片是从缓存里面读取的，有些图片没有加载成功
-    let html = (await Zotero.BetterNotes.api.convert.annotations2html([ann.ann], {
-      noteItem: targetNoteItem,
-    })) as string;
+    // let html = (await Zotero.BetterNotes.api.convert.annotations2html([ann.ann], {
+    //   noteItem: targetNoteItem,
+    // })) as string;
+    const anJson = await parseAnnotationJSON(ann.ann)
+    let html = ""
+    if (anJson) {
+      html = Zotero.EditorInstanceUtilities.serializeAnnotations([anJson], false).html
+    }
     if (html) {
       //
     } else if (ann.ann.annotationType == ("underline" as string) || ann.ann.annotationType == ("text" as string)) {
@@ -644,8 +650,10 @@ export async function convertHtml(
       ann.html = html
         .replace(/<br\s*>/g, "<br/>")
         .replace(/<\/p>$/, getColorTags(ann.tags.map((c) => c.tag)) + "</p>")
+        .replace(/<\/span>\n\s*$/, getColorTags(ann.tags.map((c) => c.tag)) + "</span>\n")
         .replace(/<p>[\s\r\n]*<\/p>/g, "")
         .replace(/<img /g, '<img style="max-width: 100%;height: auto;" ');
+    ztoolkit.log("convertHtml", [html])
     return ann;
   });
   //使用Promise.all能并行计算？感觉比for快很多
@@ -766,9 +774,15 @@ export async function createDialog(title: string, children: TagElementProps[]) {
   return dialogHelper.window;
 }
 export async function getAnnotationContent(ann: Zotero.Item) {
-  let html = (await Zotero.BetterNotes.api.convert.annotations2html([ann], {
-    noteItem: undefined,
-  })) as string;
+  // let html = (await Zotero.BetterNotes.api.convert.annotations2html([ann], {
+  //   noteItem: undefined,
+  // })) as string;
+  const anJson = await parseAnnotationJSON(ann)
+  let html = ""
+  if (anJson) {
+    html = Zotero.EditorInstanceUtilities.serializeAnnotations([anJson], false).html
+  }
+  // let { html } = anJson ? Zotero.EditorInstanceUtilities.serializeAnnotations([anJson], false) : { html: "" }
   if (html)
     html = html
       .replace(
