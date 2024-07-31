@@ -215,6 +215,7 @@ export function createSearchAnnContent(dialogWindow: Window | undefined, popupDi
             type: "click",
             listener: (e) => {
               e.stopPropagation();
+              //预览批注导出的按钮  
               exportNote({ filter: () => ans, toText: toText1 });
               dialogWindow?.close();
               popupDiv?.remove();
@@ -829,25 +830,25 @@ export function exportTagsNote(tags: string[], items: Zotero.Item[]) {
 }
 export function toText1(ans: AnnotationRes[]) {
   return (
-    groupBy(
+    [groupBy(
       ans.flatMap((a) => a.tags),
       (a) => a.tag,
     )
       .map((a) => `[${a.values.length}]${a.key}`)
-      .join(",") +
-    "\n" +
-    groupBy(ans, (a) => a.pdfTitle)
+      .join(" ")
+      ,
+    groupBy(ans, (a) => a.pdf.key)
       .sort(sortKey)
+      .map(a => ({ ...a, values: uniqueBy(a.values, f => f.ann.key) }))
       .flatMap((a, index, aa) => [
         // `<h1>(${index + 1}/${aa.length}) ${a.key} ${getCiteItemHtmlWithPage(a.values[0].ann)}</h1>`,
         // `${getPublicationTags(a.values[0]?.item)}`,
         `<h1>(${index + 1}/${aa.length}) ${getCiteItemHtmlWithPage(a.values[0].ann)} ${getPublicationTags(a.values[0]?.item)}</h1>`,
-        `${a.key}`,
-        ...a.values.map((b) => b.html),
-        // a.values.map((b) => b.html).join("\n"),
+        `title：${a.values[0].item.getDisplayTitle()}`,
+        ...a.values.flatMap((b) => b.html),
       ])
-      .join("")
-  );
+      .join("<br/>")]
+  ).join("<br/>");
 }
 export async function exportNote({
   toText,
