@@ -774,15 +774,19 @@ export async function createDialog(title: string, children: TagElementProps[]) {
   return dialogHelper.window;
 }
 export async function getAnnotationContent(ann: Zotero.Item) {
-  // let html = (await Zotero.BetterNotes.api.convert.annotations2html([ann], {
-  //   noteItem: undefined,
-  // })) as string;
-  const anJson = await parseAnnotationJSON(ann)
-  let html = ""
-  if (anJson) {
-    html = Zotero.EditorInstanceUtilities.serializeAnnotations([anJson], false).html
-  }
-  // let { html } = anJson ? Zotero.EditorInstanceUtilities.serializeAnnotations([anJson], false) : { html: "" }
+  let html = (await Zotero.BetterNotes.api.convert.annotations2html([ann], {
+    noteItem: undefined,
+  })) as string;
+  // const jsonAnnotation = await parseAnnotationJSON(ann)
+  // let html = ""
+  // if (jsonAnnotation && ann.parentID) {
+  //   const attachmentItem = Zotero.Items.get(ann.parentID);
+  //   //@ts-ignore attachmentItemID
+  //   jsonAnnotation.attachmentItemID = attachmentItem.id;
+  //   jsonAnnotation.id = ann.key;
+  //   html = Zotero.EditorInstanceUtilities.serializeAnnotations([jsonAnnotation], false).html
+  // }
+
   if (html)
     html = html
       .replace(
