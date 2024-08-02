@@ -33,5 +33,21 @@ popupRoot-TagsStyle =  标签样式
 popupRoot-TagsSetting =  标签设置
 popupRoot-Development = 开发中
 
+popupRoot-FollowParent =  跟随
+
+popupRoot-ConfigType-Green = 草绿
+popupRoot-ConfigType-Yellow = 菊黄
+popupRoot-ConfigType-Red = 虾红
+popupRoot-ConfigType-FollowParent = 跟随
+
+
+popupRoot-WindowType-FollowParent =  跟随 
+popupRoot-WindowType-FixedPanel =  面板配置
+popupRoot-WindowType-PopupPanel =  弹出面板
+
+popupRoot-SortType-RecentUse =  最近使用
+popupRoot-SortType-ItemAndRecent =  本条目+最近使用
+popupRoot-SortType-UseCountDesc =  使用次数
+popupRoot-SortType-CharAsc =  字母顺序
 
 

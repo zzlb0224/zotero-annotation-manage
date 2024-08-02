@@ -21,7 +21,7 @@ pref("__prefsPrefix__.google-scholar-mirroring", "");
 
 pref("__prefsPrefix__.isCtrlAdd", true);
 
-pref("__prefsPrefix__.windowType", "跟随");
+pref("__prefsPrefix__.windowType", "FollowParent");
 
 pref("__prefsPrefix__.blockHUToggle", false);
 

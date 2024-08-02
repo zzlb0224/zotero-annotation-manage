@@ -9,18 +9,18 @@ export const ConfigTabArray = [
 ] as const;
 export type ConfigTab = (typeof ConfigTabArray)[number];
 
-export const SortTypeArray = ["最近使用", "本条目+最近使用", "使用次数", "字母顺序"] as const;
+export const SortTypeArray = ["RecentUse", "ItemAndRecent", "UseCountDesc", "CharAsc"] as const;
 export type SortType = (typeof SortTypeArray)[number];
 
-export const ConfigTypeArray = ["草绿", "菊黄", "虾红", "跟随"] as const;
+export const ConfigTypeArray = ["Green", "Yellow", "Red", "FollowParent"] as const;
 export type ConfigType = (typeof ConfigTypeArray)[number];
 
-export const WindowTypeArray = ["跟随", "FixedPanel", "PopupPanel"] as const;
+export const WindowTypeArray = ["FollowParent", "FixedPanel", "PopupPanel"] as const;
 export type WindowType = (typeof WindowTypeArray)[number];
 
 export function loadDefaultConfig(configType: ConfigType) {
   let config: Config;
-  if (configType == "草绿") {
+  if (configType == "Green") {
     return (config = {
       windowType: "FixedPanel",
       isCtrlAdd: true,
@@ -47,10 +47,10 @@ export function loadDefaultConfig(configType: ConfigType) {
       btnPaddingTB: 3,
       btnPaddingLR: 3,
       buttonBorderRadius: 5,
-      sortType: "最近使用",
+      sortType: "RecentUse",
     });
   }
-  if (configType == "菊黄") {
+  if (configType == "Yellow") {
     return (config = {
       windowType: "PopupPanel",
       isCtrlAdd: true,
@@ -77,10 +77,10 @@ export function loadDefaultConfig(configType: ConfigType) {
       btnPaddingTB: 3,
       btnPaddingLR: 3,
       buttonBorderRadius: 5,
-      sortType: "最近使用",
+      sortType: "RecentUse",
     });
   }
-  if (configType == "虾红") {
+  if (configType == "Red") {
     return (config = {
       windowType: "PopupPanel",
       isCtrlAdd: true,
@@ -107,12 +107,12 @@ export function loadDefaultConfig(configType: ConfigType) {
       btnPaddingTB: 3,
       btnPaddingLR: 3,
       buttonBorderRadius: 10,
-      sortType: "最近使用",
+      sortType: "RecentUse",
     });
   }
-  if (configType == "跟随") {
+  if (configType == "FollowParent") {
     return (config = {
-      windowType: "跟随",
+      windowType: "FollowParent",
       isCtrlAdd: true,
       pSingleWindow: false,
       bAutoFocus: true,
@@ -137,7 +137,7 @@ export function loadDefaultConfig(configType: ConfigType) {
       btnPaddingTB: 5,
       btnPaddingLR: 0,
       buttonBorderRadius: 10,
-      sortType: "最近使用",
+      sortType: "RecentUse",
     });
   }
 }

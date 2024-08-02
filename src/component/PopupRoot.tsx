@@ -79,7 +79,7 @@ export function PopupRoot({
   const [comment, setComment] = useState("");
   const [configTab, setConfigTab] = useState<ConfigTab>(getPrefAs("configTab", "PanelConfig"));
   //取代固定窗口和单独窗口
-  const [windowType, setWindowType] = useState<WindowType>(getPrefAs("windowType", "跟随"));
+  const [windowType, setWindowType] = useState<WindowType>(getPrefAs("windowType", "FollowParent"));
   // const [pSingleWindow, setPSingleWindow] = useState(getPrefAs("pSingleWindow", false));
   // const [pFixedContentLocation, setPFixedContentLocation] = useState(getPrefAs("pFixedContentLocation", false));
   const [isShowSelectedPopupColorsTag, setShowSelectedPopupColorsTag] = useState(getPrefAs("show-selected-popup-colors-tag", false));
@@ -89,7 +89,7 @@ export function PopupRoot({
   const [fontSize, setFontSize] = useState(getPrefAs("fontSize", 17));
   const [lineHeight, setLineHeight] = useState(getPrefAs("lineHeight", "1.45"));
   const [btnMarginTB, setbtnMarginTB] = useState(getPrefAs("btnMarginTB", 0));
-  const [sortType, setSortType] = useState<SortType>(getPrefAs("sortType", "最近使用"));
+  const [sortType, setSortType] = useState<SortType>(getPrefAs("sortType", "RecentUse"));
   const [btnMarginLR, setbtnMarginLR] = useState(getPrefAs("btnMarginLR", 0));
   const [btnPaddingTB, setbtnPaddingTB] = useState(getPrefAs("btnPaddingTB", 0));
   const [btnPaddingLR, setbtnPaddingLR] = useState(getPrefAs("btnPaddingLR", 0));
@@ -194,14 +194,14 @@ export function PopupRoot({
 
       // if (rItemShowRelateTags)
       groupByResultIncludeFixedTags(relateTags);
-      if (sortType == "最近使用") {
+      if (sortType == "RecentUse") {
         //2 固定标签 + 最近使用时间
         relateTags = relateTags.map(mapDateModified).sort(sortFixedTags100Modified10Asc);
-      } else if (sortType == "字母顺序") {
+      } else if (sortType == "CharAsc") {
         relateTags = relateTags.sort(sortFixedTags10AscByKey);
-      } else if (sortType == "使用次数") {
+      } else if (sortType == "UseCountDesc") {
         relateTags = relateTags.sort(sortFixedTags10ValuesLength);
-      } else if (sortType == "本条目+最近使用") {
+      } else if (sortType == "ItemAndRecent") {
         //3 固定标签 + 本条目 + 修改时间
         const itemAnnTags = item
           ?.getAnnotations()
@@ -482,7 +482,7 @@ export function PopupRoot({
                           }}
                           defaultValue={config.configName}
                         >
-                          {config.configName}
+                          {getString("popupRoot-ConfigType" + config.configName)}
                         </button>
                       ),
                   )}
@@ -577,7 +577,7 @@ export function PopupRoot({
                   {WindowTypeArray.map((a) => (
                     <label>
                       <input type="radio" value={a} checked={windowType === a} onChange={handleInput("windowType", setWindowType)} />
-                      {a}
+                      {getString("popupRoot-ConfigType" + a)}
                     </label>
                   ))}
                 </div>
@@ -952,7 +952,7 @@ export function PopupRoot({
                   {SortTypeArray.map((a) => (
                     <label>
                       <input type="radio" value={a} checked={sortType === a} onChange={handleInput("sortType", setSortType)} />
-                      {a}
+                      {getString("popupRoot-ConfigType" + a)}
                     </label>
                   ))}
                 </div>
@@ -1005,7 +1005,7 @@ export function PopupRoot({
       <div
         ref={refContentDiv}
         style={{
-          maxWidth: (windowType == "跟随" && !params.ids ? selectionPopupSize.width - 16 : divMaxWidth) + "px",
+          maxWidth: (windowType == "FollowParent" && !params.ids ? selectionPopupSize.width - 16 : divMaxWidth) + "px",
           maxHeight: divMaxHeight + "px",
           overflowY: "scroll",
           background: "#f00",
@@ -1289,20 +1289,20 @@ export function PopupRoot({
                       ctrlAddOrSaveTags(isAdd, cTag);
                       return false;
                     }}
-                    // onMouseDown={(e) => {
-                    //   e.preventDefault();
-                    //   ztoolkit.log("onMouseDown 复制", e)
-                    //   return false
-                    // }}
-                    // onContextMenu={e => {
-                    //   e.preventDefault();
-                    //   ztoolkit.log("onContextMenu 复制", tag.key)
-                    //   new window.Clipboard().readText().then((text) => {
-                    //     ztoolkit.log("onContextMenu 复制", tag.key, text);
-                    //     (e.currentTarget as HTMLInputElement).value = text;
-                    //   })
-                    //   return false
-                    // }}
+                  // onMouseDown={(e) => {
+                  //   e.preventDefault();
+                  //   ztoolkit.log("onMouseDown 复制", e)
+                  //   return false
+                  // }}
+                  // onContextMenu={e => {
+                  //   e.preventDefault();
+                  //   ztoolkit.log("onContextMenu 复制", tag.key)
+                  //   new window.Clipboard().readText().then((text) => {
+                  //     ztoolkit.log("onContextMenu 复制", tag.key, text);
+                  //     (e.currentTarget as HTMLInputElement).value = text;
+                  //   })
+                  //   return false
+                  // }}
                   >
                     <span>[{tag.values.length}]</span>
                     <span>{tag.key}</span>
@@ -1431,7 +1431,7 @@ export function PopupRoot({
   return (
     <>
       {/* {JSON.stringify(vars)} */}
-      {windowType == "跟随" && handleContentDiv()}
+      {windowType == "FollowParent" && handleContentDiv()}
       <Popover
         parentElement={parentElement}
         boundaryElement={boundaryElement}
@@ -1452,7 +1452,7 @@ export function PopupRoot({
           }
         }}
         // ref={clickMeButtonRef} // if you'd like a ref to your popover's child, you can grab one here
-        content={windowType == "跟随" && !params.ids ? handleConfigDiv : handleConfigAndContent}
+        content={windowType == "FollowParent" && !params.ids ? handleConfigDiv : handleConfigAndContent}
         containerStyle={{
           marginTop: "42px",
         }}

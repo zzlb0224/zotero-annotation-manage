@@ -378,7 +378,7 @@ export class AnnotationPopup {
       // root.style.width = maxWidth + "px";
 
       // root.style.minWidth = Math.min(width, maxWidth) + "px";
-      // // 当翻译采用固定大小的时候，跟随它
+      // // 当翻译采用固定大小的时候，followParent它
       // const keepSize = Zotero.Prefs.get(
       //   `extensions.zotero.ZoteroPDFTranslate.keepPopupSize`,
       //   true,
