@@ -282,7 +282,7 @@ function bindFixedColors(doc: Document) {
 
   let collectionKey = "";
 
-  const PrefPre = "fixed-tags-colors";
+  const PrefPre = "FTC";
 
   const eFixedTagsColorsTextArea = doc.querySelector(`#zotero-prefpane-${config.addonRef}-fixed-tags-colors`) as HTMLTextAreaElement;
   const eFixedTagsColor = doc.querySelector(`#zotero-prefpane-${config.addonRef}-fixed-tags-color`) as HTMLSpanElement;
@@ -508,9 +508,9 @@ function bindFixedColors(doc: Document) {
       ftcStr = FixedTagsColorsDefault;
     }
     if (ftcStr) {
-      setPref("FTC" + collectionKey, ftcStr);
+      setPref(PrefPre + collectionKey, ftcStr);
     } else {
-      clearPref("FTC" + collectionKey);
+      clearPref(PrefPre + collectionKey);
     }
     memFixedTagColors.removeCache();
     memFixedColor.removeCache();
@@ -600,9 +600,9 @@ async function replaceTagsPreviewDiv(doc?: Document) {
     preview.appendChild(rootDiv);
     rootDiv.innerText = `预览批注来自：${from}。条目：${ann.parentItem?.parentItem?.getDisplayTitle()}。
         包含标签: [${ann
-          .getTags()
-          .map((a) => a.tag)
-          .join(",")}]内容：${ann.annotationType} ${ann.annotationText || ""} ${ann.annotationComment || ""}
+        .getTags()
+        .map((a) => a.tag)
+        .join(",")}]内容：${ann.annotationType} ${ann.annotationText || ""} ${ann.annotationComment || ""}
         `;
     rootDiv.style.position = "";
     rootDiv.style.width = "";
