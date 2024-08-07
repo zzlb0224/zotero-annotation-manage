@@ -161,6 +161,7 @@ function bindPrefEvents() {
     const df = doc.querySelector(`#zotero-prefpane-${config.addonRef}-debug-func`) as HTMLDivElement;
     df.style.display = checked ? "" : "none";
   });
+  /*
   doc.querySelector(`#zotero-prefpane-${config.addonRef}-enable`)?.addEventListener("command", (e) => {
     // ztoolkit.log(e, getPref("tags"));
   });
@@ -237,41 +238,41 @@ function bindPrefEvents() {
 
   doc.querySelector(`#zotero-prefpane-${config.addonRef}-sort`)?.addEventListener("command", (e) => {
     replaceTagsPreviewDiv(doc);
-  });
-  doc.querySelector(`#zotero-prefpane-${config.addonRef}-optional-color`)?.addEventListener("keyup", (e) => {
-    initOptionalColorLabel(doc);
-    memFixedColor.removeCache();
-    memOptionalColor.removeCache();
-    replaceTagsPreviewDiv(doc);
-  });
+  });*/
+  // doc.querySelector(`#zotero-prefpane-${config.addonRef}-optional-color`)?.addEventListener("keyup", (e) => {
+  //   initOptionalColorLabel(doc);
+  //   memFixedColor.removeCache();
+  //   memOptionalColor.removeCache();
+  //   replaceTagsPreviewDiv(doc);
+  // });
 
-  doc.querySelector(`#zotero-prefpane-${config.addonRef}-tags-exclude`)?.addEventListener("keyup", (e) => {
-    replaceTagsPreviewDiv(doc);
-  });
-  doc.querySelector(`#zotero-prefpane-${config.addonRef}-max-show`)?.addEventListener("keyup", (e) => {
-    memOptionalColor.removeCache();
-    replaceTagsPreviewDiv(doc);
-  });
-  doc.querySelector(`#zotero-prefpane-${config.addonRef}-show-all-tags`)?.addEventListener("command", (e) => {
-    memOptionalColor.removeCache();
-    replaceTagsPreviewDiv(doc);
-  });
-  doc.querySelector(`#zotero-prefpane-${config.addonRef}-children-collection`)?.addEventListener("command", (e) => {
-    memOptionalColor.removeCache();
-    replaceTagsPreviewDiv(doc);
-  });
-  doc.querySelector(`#zotero-prefpane-${config.addonRef}-preview-button`)?.addEventListener("command", (e) => {
-    replaceTagsPreviewDiv(doc);
-  });
-  doc.querySelector(`#zotero-prefpane-${config.addonRef}-current-collection`)?.addEventListener("command", (e) => {
-    memOptionalColor.removeCache();
-    replaceTagsPreviewDiv(doc);
-  });
-  doc.querySelector(`#zotero-prefpane-${config.addonRef}-show-relate-tags`)?.addEventListener("command", (e) => {
-    memOptionalColor.removeCache();
-    replaceTagsPreviewDiv(doc);
-    memRelateTags.removeCache();
-  });
+  // doc.querySelector(`#zotero-prefpane-${config.addonRef}-tags-exclude`)?.addEventListener("keyup", (e) => {
+  //   replaceTagsPreviewDiv(doc);
+  // });
+  // doc.querySelector(`#zotero-prefpane-${config.addonRef}-max-show`)?.addEventListener("keyup", (e) => {
+  //   memOptionalColor.removeCache();
+  //   replaceTagsPreviewDiv(doc);
+  // });
+  // doc.querySelector(`#zotero-prefpane-${config.addonRef}-show-all-tags`)?.addEventListener("command", (e) => {
+  //   memOptionalColor.removeCache();
+  //   replaceTagsPreviewDiv(doc);
+  // });
+  // doc.querySelector(`#zotero-prefpane-${config.addonRef}-children-collection`)?.addEventListener("command", (e) => {
+  //   memOptionalColor.removeCache();
+  //   replaceTagsPreviewDiv(doc);
+  // });
+  // doc.querySelector(`#zotero-prefpane-${config.addonRef}-preview-button`)?.addEventListener("command", (e) => {
+  //   replaceTagsPreviewDiv(doc);
+  // });
+  // doc.querySelector(`#zotero-prefpane-${config.addonRef}-current-collection`)?.addEventListener("command", (e) => {
+  //   memOptionalColor.removeCache();
+  //   replaceTagsPreviewDiv(doc);
+  // });
+  // doc.querySelector(`#zotero-prefpane-${config.addonRef}-show-relate-tags`)?.addEventListener("command", (e) => {
+  //   memOptionalColor.removeCache();
+  //   replaceTagsPreviewDiv(doc);
+  //   memRelateTags.removeCache();
+  // });
 }
 
 function bindFixedColors(doc: Document) {
