@@ -577,7 +577,7 @@ export function PopupRoot({
                   {WindowTypeArray.map((a) => (
                     <label>
                       <input type="radio" value={a} checked={windowType === a} onChange={handleInput("windowType", setWindowType)} />
-                      {getString("popupRoot-ConfigType" + a)}
+                      {getString("popupRoot-ConfigType-" + a)}
                     </label>
                   ))}
                 </div>
@@ -952,7 +952,7 @@ export function PopupRoot({
                   {SortTypeArray.map((a) => (
                     <label>
                       <input type="radio" value={a} checked={sortType === a} onChange={handleInput("sortType", setSortType)} />
-                      {getString("popupRoot-ConfigType" + a)}
+                      {getString("popupRoot-ConfigType-" + a)}
                     </label>
                   ))}
                 </div>
