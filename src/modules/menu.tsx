@@ -16,6 +16,7 @@ import { DDDTagClear, DDDTagRemove, DDDTagSet } from "./DDD";
 import { getCiteItemHtml } from "./getCitationItem";
 import { funcSplitTag, funcTranslateAnnotations } from "./menuTools";
 import { MyButton } from "./MyButton";
+import { getString } from '../utils/locale';
 
 const iconBaseUrl = `chrome://${config.addonRef}/content/icons/`;
 function register() {
@@ -381,6 +382,17 @@ function buildMenu(collectionOrItem: "collection" | "item") {
         popupId: `${config.addonRef}-create-note-type-popup-${collectionOrItem}`,
         onpopupshowing: `Zotero.${config.addonInstance}.hooks.onMenuEvent("annotationToNoteType", { window,type:"${collectionOrItem}" })`,
       },
+      {
+        tag: "menuseparator",
+      },
+      {
+        tag: "menu",
+        label: getString("menu-annotationMatrix"),
+        icon: iconBaseUrl + "favicon.png",
+        commandListener: async (ev: Event) => {
+          alert("测试中。。。")
+        },
+      },
     ],
   };
   return menu;
@@ -656,24 +668,24 @@ export function createActionTag(
     // },
     action
       ? {
-          tag: "button",
-          namespace: "html",
-          properties: { textContent: "确定生成" },
-          // styles: {
-          //   padding: "6px",
-          //   background: "#f99",
-          //   margin: "1px",
-          // },
-          listeners: [
-            {
-              type: "click",
-              listener: (ev: any) => {
-                stopPropagation(ev);
-                action();
-              },
+        tag: "button",
+        namespace: "html",
+        properties: { textContent: "确定生成" },
+        // styles: {
+        //   padding: "6px",
+        //   background: "#f99",
+        //   margin: "1px",
+        // },
+        listeners: [
+          {
+            type: "click",
+            listener: (ev: any) => {
+              stopPropagation(ev);
+              action();
             },
-          ],
-        }
+          },
+        ],
+      }
       : { tag: "span" },
     ...others,
   ];
