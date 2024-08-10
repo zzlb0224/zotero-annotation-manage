@@ -577,7 +577,7 @@ export function PopupRoot({
                   {WindowTypeArray.map((a) => (
                     <label>
                       <input type="radio" value={a} checked={windowType === a} onChange={handleInput("windowType", setWindowType)} />
-                      {getString("popupRoot-ConfigType-" + a)}
+                      {getString("popupRoot-WindowType-" + a)}
                     </label>
                   ))}
                 </div>

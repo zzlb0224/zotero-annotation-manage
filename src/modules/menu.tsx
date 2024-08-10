@@ -387,7 +387,7 @@ function buildMenu(collectionOrItem: "collection" | "item") {
       },
       {
         tag: "menu",
-        label: getString("menu-annotationMatrix"),
+        label: getString("menu-AnnotationMatrix"),
         icon: iconBaseUrl + "favicon.png",
         commandListener: async (ev: Event) => {
           alert("测试中。。。")
