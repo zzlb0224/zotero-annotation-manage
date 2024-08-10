@@ -32,7 +32,7 @@ function unregister() {
 function buildMenu(collectionOrItem: "collection" | "item") {
   const menu: MenuitemOptions = {
     tag: "menu",
-    label: "笔记管理",
+    label: "笔记管理 - in " + collectionOrItem,
     icon: iconBaseUrl + "favicon.png",
     children: [
       {
@@ -212,7 +212,7 @@ function buildMenu(collectionOrItem: "collection" | "item") {
       },
       {
         tag: "menu",
-        label: "备份还原pdf注释（pdf页码不一样会影响批注位置，慎用）",
+        label: "备份还原pdf注释（慎用）",
         icon: iconBaseUrl + "favicon.png",
         children: [
           {
@@ -264,7 +264,7 @@ function buildMenu(collectionOrItem: "collection" | "item") {
           {
             //相同PDF合并，注释合并
             tag: "menuitem",
-            label: "仅保留1个PDF，注释合并(条目下其它PDF删除)",
+            label: "仅保留1个PDF，注释合并(条目下其它PDF删除，慎用，可能会产生位置偏移)",
             icon: iconBaseUrl + "favicon.png",
             commandListener: async (ev: Event) => {
               const items = await getSelectedItems(collectionOrItem);
