@@ -952,7 +952,7 @@ export function PopupRoot({
                   {SortTypeArray.map((a) => (
                     <label>
                       <input type="radio" value={a} checked={sortType === a} onChange={handleInput("sortType", setSortType)} />
-                      {getString("popupRoot-ConfigType-" + a)}
+                      {getString("popupRoot-SortType-" + a)}
                     </label>
                   ))}
                 </div>
