@@ -482,7 +482,7 @@ export function PopupRoot({
                           }}
                           defaultValue={config.configName}
                         >
-                          {getString("popupRoot-ConfigType" + config.configName)}
+                          {getString("popupRoot-ConfigType-" + config.configName)}
                         </button>
                       ),
                   )}

@@ -45,16 +45,16 @@
     "zotero-plugin-toolkit": "^2.3.37"
   },
   "devDependencies": {
-    "@eslint/js": "^9.6.0",
-    "@types/node": "^20.14.11",
+    "@eslint/js": "^9.8.0",
+    "@types/node": "^20.14.14",
     "eslint": "^8.57.0",
     "eslint-plugin-react": "^7.35.0",
-    "globals": "^15.8.0",
+    "globals": "^15.9.0",
     "prettier": "^3.3.3",
     "typescript": "^5.5.4",
-    "typescript-eslint": "^8.0.0",
+    "typescript-eslint": "^8.0.1",
     "zotero-plugin-scaffold": "^0.0.33",
-    "zotero-types": "^2.1.0"
+    "zotero-types": "^2.1.1"
   },
   "prettier": {
     "printWidth": 140,
