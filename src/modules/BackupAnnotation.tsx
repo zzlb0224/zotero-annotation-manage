@@ -107,7 +107,7 @@ export async function pasteAnnotations(items: Zotero.Item[], md5Equal = false, f
     })
     .startCloseTimer(3000);
 }
-export async function mergePdfs(items: Zotero.Item[], fileSizeEqual = false) {
+export async function mergePdfs(items: Zotero.Item[], fileSizeEqual = true, md5Equal = true) {
   const primaryPdfKeys = items.filter((f) => f.isPDFAttachment()).map((item) => item.key);
   const topItems = items.map((i) => i.parentItem ?? i);
   const pw = new ztoolkit.ProgressWindow("合并").show();
@@ -137,6 +137,10 @@ export async function mergePdfs(items: Zotero.Item[], fileSizeEqual = false) {
         // ztoolkit.log(pd)
         if (pdfMaster.pdfKey != pdfOther.pdfKey) {
           if (fileSizeEqual && pdfMaster.fileSize !== pdfMaster.fileSize) {
+            ztoolkit.log("找到另一个pdf 但是文件大小不一样", pdfOther);
+            continue;
+          }
+          if (md5Equal && pdfMaster.md5 !== pdfMaster.md5) {
             ztoolkit.log("找到另一个pdf 但是文件大小不一样", pdfOther);
             continue;
           }

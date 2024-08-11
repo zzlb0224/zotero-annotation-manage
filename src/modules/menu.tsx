@@ -323,7 +323,7 @@ function buildMenu(collectionOrItem: "collection" | "item") {
       },
       { //备份还原pdf注释（慎用）
         tag: "menu",
-        label: "备份还原pdf注释（慎用）",
+        label: "备份还原pdf注释",
         icon: iconBaseUrl + "favicon.png",
         children: [
           {
@@ -346,7 +346,7 @@ function buildMenu(collectionOrItem: "collection" | "item") {
             icon: iconBaseUrl + "favicon.png",
             commandListener: async (ev: Event) => {
               const items = await getSelectedItems(collectionOrItem);
-              await pasteAnnotations(items);
+              await pasteAnnotations(items, false, false, true);
             },
           },
           {
@@ -356,7 +356,7 @@ function buildMenu(collectionOrItem: "collection" | "item") {
             icon: iconBaseUrl + "favicon.png",
             commandListener: async (ev: Event) => {
               const items = await getSelectedItems(collectionOrItem);
-              await pasteAnnotations(items, false, true);
+              await pasteAnnotations(items, false, true, false);
             },
           },
           {
@@ -375,11 +375,11 @@ function buildMenu(collectionOrItem: "collection" | "item") {
           {
             //相同PDF合并，注释合并
             tag: "menuitem",
-            label: "仅保留1个PDF，注释合并(条目下其它PDF删除，慎用，可能会产生位置偏移)",
+            label: "🫣仅保留1个PDF，注释合并(条目下其它PDF删除!!!慎用，PDF页码不一样可能会产生位置偏移!!!)",
             icon: iconBaseUrl + "favicon.png",
             commandListener: async (ev: Event) => {
               const items = await getSelectedItems(collectionOrItem);
-              await mergePdfs(items);
+              await mergePdfs(items, false, false);
             },
           },
           {
@@ -389,7 +389,17 @@ function buildMenu(collectionOrItem: "collection" | "item") {
             icon: iconBaseUrl + "favicon.png",
             commandListener: async (ev: Event) => {
               const items = await getSelectedItems(collectionOrItem);
-              await mergePdfs(items);
+              await mergePdfs(items, true, false);
+            },
+          },
+          {
+            //相同PDF合并，注释合并
+            tag: "menuitem",
+            label: "仅保留1个PDF，注释合并(条目下与这个PDF的MD5一样的PDF删除)",
+            icon: iconBaseUrl + "favicon.png",
+            commandListener: async (ev: Event) => {
+              const items = await getSelectedItems(collectionOrItem);
+              await mergePdfs(items, false, true);
             },
           },
         ],
