@@ -1007,7 +1007,8 @@ export function PopupRoot({
         style={{
           maxWidth: (windowType == "FollowParent" && !params.ids ? selectionPopupSize.width - 16 : divMaxWidth) + "px",
           maxHeight: divMaxHeight + "px",
-          overflowY: "scroll",
+          //@ts-ignore overflowY
+          overflowY: "overlay",
           background: "#f00",
         }}
       >

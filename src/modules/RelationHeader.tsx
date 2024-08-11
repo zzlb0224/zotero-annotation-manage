@@ -365,7 +365,7 @@ async function createRelatedContent(anKey: string, win: Window | undefined, div:
                 styles: {
                   background: anTo.annotationColor + "60", //width: "200px",
                   maxHeight: "100px",
-                  overflowY: "scroll",
+                  overflowY: "overlay",
                 },
                 properties: { innerHTML: await getAnnotationContent(anTo) },
               },
@@ -472,7 +472,7 @@ async function createRelatedDialog(readerDoc: Document, anKey: string) {
           maxHeight: mainWindow.innerHeight - 40 + "px",
           maxWidth: Math.max(mainWindow.outerWidth - left - 100, 1000) + "px",
           flexWrap: "wrap",
-          overflowY: "scroll",
+          overflowY: "overlay",
         },
       })
       // .addButton("Confirm", "confirm")

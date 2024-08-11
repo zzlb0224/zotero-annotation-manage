@@ -493,7 +493,7 @@ export function createSearchAnnContent(dialogWindow: Window | undefined, popupDi
           display: "flex",
           alignItems: "stretch",
           flexDirection: "column",
-          width: docWidth / columnSize - 20 - 20 / columnSize + "px",
+          width: docWidth / columnSize - 10 - 60 / columnSize + "px",
           background: "#fff",
           borderRadius: "5px",
           margin: "4px",
@@ -568,7 +568,8 @@ export function createSearchAnnContent(dialogWindow: Window | undefined, popupDi
                 styles: {
                   background: anTo.annotationColor + "60", //width: "200px",
                   height: (docHeight - 120) / rowSize - 60 + "px",
-                  overflowY: "scroll",
+                  overflowY: "overlay",
+                  overflowX: "overlay", // 预览导出的注释内容显示不全，希望可以增加窗口拖动条 #93
                 },
                 properties: {
                   innerHTML: (await getAnnotationContent(anTo)).replaceAll(

@@ -474,7 +474,7 @@ function readerToolbarCallback(event: Parameters<_ZoteroTypes.Reader.EventHandle
             styles: {
               width: "100%",
               height: "5em",
-              overflowY: "scroll",
+              overflowY: "overlay",
             },
             properties: {
               value: searchText,

@@ -326,7 +326,7 @@ function buildMenu(collectionOrItem: "collection" | "item") {
                 // maxHeight:  Math.max(mainWindow.innerHeight*0.9,700) + "px",
                 // maxWidth: Math.max(mainWindow.outerWidth -180, 700) + "px",
                 flexWrap: "wrap",
-                overflowY: "scroll",
+                overflowY: "overlay",
               },
             },
           ]);

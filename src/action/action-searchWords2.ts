@@ -3,8 +3,7 @@
 
 
     const reader = Zotero.Reader.getByTabID(Zotero_Tabs.selectedID);
-    //@ts-ignore _iframeWindow
-    const PDFViewerApplication = reader._iframeWindow.wrappedJSObject.PDFViewerApplication;
+    const PDFViewerApplication = reader._iframeWindow?.wrappedJSObject.PDFViewerApplication;
     await PDFViewerApplication.pdfLoadingTask.promise;
     await PDFViewerApplication.pdfViewer.pagesPromise;
     const pages = PDFViewerApplication.pdfViewer._pages;

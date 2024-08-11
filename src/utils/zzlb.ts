@@ -456,7 +456,7 @@ export function createTopDiv(
         zIndex: "9999",
         maxWidth: "calc(100% - 300px)",
         maxHeight: "600px",
-        overflowY: "scroll",
+        overflowY: "overlay",
         display: "flex",
         boxShadow: "#999999 0px 0px 4px 3px",
         background: "white",
