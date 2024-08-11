@@ -35,7 +35,7 @@ function buildMenu(collectionOrItem: "collection" | "item") {
     label: "笔记管理 - in " + collectionOrItem,
     icon: iconBaseUrl + "favicon.png",
     children: [
-      {
+      { //自定义命令
         tag: "menu",
         label: "自定义命令",
         icon: iconBaseUrl + "favicon.png",
@@ -210,83 +210,11 @@ function buildMenu(collectionOrItem: "collection" | "item") {
           },
         ],
       },
-      {
-        tag: "menu",
-        label: "备份还原pdf注释（慎用）",
-        icon: iconBaseUrl + "favicon.png",
-        children: [
-          {
-            //复制pdf注释
-            tag: "menuitem",
-            label: "备份pdf注释到剪切板",
-            icon: iconBaseUrl + "favicon.png",
-            commandListener: async (ev: Event) => {
-              const items = await getSelectedItems(collectionOrItem);
-              await copyAnnotations(items);
-            },
-          },
-          {
-            tag: "menuseparator",
-          },
-          {
-            //粘贴pdf注释
-            tag: "menuitem",
-            label: "还原pdf注释-用作者年份标题匹配",
-            icon: iconBaseUrl + "favicon.png",
-            commandListener: async (ev: Event) => {
-              const items = await getSelectedItems(collectionOrItem);
-              await pasteAnnotations(items);
-            },
-          },
-          {
-            //粘贴pdf注释
-            tag: "menuitem",
-            label: "还原pdf注释-用作者年份标题+文件大小匹配",
-            icon: iconBaseUrl + "favicon.png",
-            commandListener: async (ev: Event) => {
-              const items = await getSelectedItems(collectionOrItem);
-              await pasteAnnotations(items, false, true);
-            },
-          },
-          {
-            //粘贴pdf注释
-            tag: "menuitem",
-            label: "还原pdf注释-仅文件md5匹配（严格）",
-            icon: iconBaseUrl + "favicon.png",
-            commandListener: async (ev: Event) => {
-              const items = await getSelectedItems(collectionOrItem);
-              await pasteAnnotations(items, true, false, false);
-            },
-          },
-          {
-            tag: "menuseparator",
-          },
-          {
-            //相同PDF合并，注释合并
-            tag: "menuitem",
-            label: "仅保留1个PDF，注释合并(条目下其它PDF删除，慎用，可能会产生位置偏移)",
-            icon: iconBaseUrl + "favicon.png",
-            commandListener: async (ev: Event) => {
-              const items = await getSelectedItems(collectionOrItem);
-              await mergePdfs(items);
-            },
-          },
-          {
-            //相同PDF合并，注释合并
-            tag: "menuitem",
-            label: "仅保留1个PDF，注释合并(条目下与这个PDF大小一样的PDF删除)",
-            icon: iconBaseUrl + "favicon.png",
-            commandListener: async (ev: Event) => {
-              const items = await getSelectedItems(collectionOrItem);
-              await mergePdfs(items);
-            },
-          },
-        ],
-      },
-      {
+
+      { //----
         tag: "menuseparator",
       },
-      {
+      { //预览批注导出
         tag: "menuitem",
         label: "预览批注导出",
         icon: iconBaseUrl + "favicon.png",
@@ -392,6 +320,79 @@ function buildMenu(collectionOrItem: "collection" | "item") {
         commandListener: async (ev: Event) => {
           alert("测试中。。。")
         },
+      },
+      { //备份还原pdf注释（慎用）
+        tag: "menu",
+        label: "备份还原pdf注释（慎用）",
+        icon: iconBaseUrl + "favicon.png",
+        children: [
+          {
+            //复制pdf注释
+            tag: "menuitem",
+            label: "备份pdf注释到剪切板",
+            icon: iconBaseUrl + "favicon.png",
+            commandListener: async (ev: Event) => {
+              const items = await getSelectedItems(collectionOrItem);
+              await copyAnnotations(items);
+            },
+          },
+          {
+            tag: "menuseparator",
+          },
+          {
+            //粘贴pdf注释
+            tag: "menuitem",
+            label: "还原pdf注释-用作者年份标题匹配",
+            icon: iconBaseUrl + "favicon.png",
+            commandListener: async (ev: Event) => {
+              const items = await getSelectedItems(collectionOrItem);
+              await pasteAnnotations(items);
+            },
+          },
+          {
+            //粘贴pdf注释
+            tag: "menuitem",
+            label: "还原pdf注释-用作者年份标题+文件大小匹配",
+            icon: iconBaseUrl + "favicon.png",
+            commandListener: async (ev: Event) => {
+              const items = await getSelectedItems(collectionOrItem);
+              await pasteAnnotations(items, false, true);
+            },
+          },
+          {
+            //粘贴pdf注释
+            tag: "menuitem",
+            label: "还原pdf注释-仅文件md5匹配（严格）",
+            icon: iconBaseUrl + "favicon.png",
+            commandListener: async (ev: Event) => {
+              const items = await getSelectedItems(collectionOrItem);
+              await pasteAnnotations(items, true, false, false);
+            },
+          },
+          {
+            tag: "menuseparator",
+          },
+          {
+            //相同PDF合并，注释合并
+            tag: "menuitem",
+            label: "仅保留1个PDF，注释合并(条目下其它PDF删除，慎用，可能会产生位置偏移)",
+            icon: iconBaseUrl + "favicon.png",
+            commandListener: async (ev: Event) => {
+              const items = await getSelectedItems(collectionOrItem);
+              await mergePdfs(items);
+            },
+          },
+          {
+            //相同PDF合并，注释合并
+            tag: "menuitem",
+            label: "仅保留1个PDF，注释合并(条目下与这个PDF大小一样的PDF删除)",
+            icon: iconBaseUrl + "favicon.png",
+            commandListener: async (ev: Event) => {
+              const items = await getSelectedItems(collectionOrItem);
+              await mergePdfs(items);
+            },
+          },
+        ],
       },
     ],
   };

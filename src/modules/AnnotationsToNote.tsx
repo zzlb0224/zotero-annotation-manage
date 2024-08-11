@@ -489,14 +489,14 @@ export function createSearchAnnContent(dialogWindow: Window | undefined, popupDi
         tag: "div",
         styles: {
           padding: "5px",
-          marginRight: "20px",
+          // marginRight: "20px",
           display: "flex",
           alignItems: "stretch",
           flexDirection: "column",
-          width: docWidth / columnSize - 10 - 60 / columnSize + "px",
+          width: docWidth / columnSize - 15 - 15 / columnSize + "px",
           background: "#fff",
           borderRadius: "5px",
-          margin: "4px",
+          margin: "0 0 4px 4px",
         },
         properties: { textContent: "" },
         children: [
