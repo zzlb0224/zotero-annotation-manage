@@ -109,6 +109,11 @@ export function createSearchAnnContent(dialogWindow: Window | undefined, popupDi
   // let pageSize = (getPref("SearchAnnPageSize") as number) || 16;
   let pageIndex = 1;
   let fontSize = (getPref("SearchAnnFontSize") as number) || 16;
+  let bShowTitle = (getPref("bShowTitle") as boolean) || false;
+  let bShowTag = (getPref("bShowTag") as boolean) || false;
+  let bShowRank = (getPref("bShowRank") as boolean) || false;
+  let bFixedHeight = (getPref("bFixedHeight") as boolean) || false;
+  let fixedHeight = (getPref("fixedHeight") as number) || 180;
   const selectedAnnotationType: string[] = [];
   let ans: AnnotationRes[] = annotations;
 
@@ -284,35 +289,7 @@ export function createSearchAnnContent(dialogWindow: Window | undefined, popupDi
           },
         ],
       },
-      // {
-      //   tag: "div",
-      //   properties: { textContent: "每页N条" },
-      //   children: [
-      //     {
-      //       tag: "input",
-      //       namespace: "html",
-      //       properties: {
-      //         placeholder: "输入数字",
-      //         value: pageSize,
-      //         type: "number",
-      //       },
-      //       styles: { width: "30px" },
-      //       listeners: [
-      //         {
-      //           type: "change",
-      //           listener: (ev: Event) => {
-      //             stopPropagation(ev);
-      //             pageSize = parseInt((ev.target as HTMLInputElement).value.trim());
-      //             if (pageSize <= 0) pageSize = 1;
-      //             (ev.target as HTMLInputElement).value = pageSize + "";
-      //             setPref("SearchAnnPageSize", pageSize);
-      //             updatePageContentDebounce();
-      //           },
-      //         },
-      //       ],
-      //     },
-      //   ],
-      // },
+
       {
         tag: "div",
         properties: { textContent: "第几页" },
@@ -348,7 +325,7 @@ export function createSearchAnnContent(dialogWindow: Window | undefined, popupDi
         ],
       },
 
-      {
+      { //文字大小
         tag: "div",
         properties: { textContent: "文字大小" },
         children: [
@@ -381,6 +358,159 @@ export function createSearchAnnContent(dialogWindow: Window | undefined, popupDi
         ],
       },
 
+
+      {
+        tag: "label",
+        namespace: "html",
+        properties: { textContent: "显示标题" },
+        styles: { paddingRight: "20px" },
+        children: [
+          {
+            tag: "input",
+            namespace: "html",
+            properties: {
+              type: "checkbox",
+              checked: bShowTitle,
+            },
+            listeners: [
+              {
+                type: "change",
+                listener: (ev: any) => {
+                  ev.stopPropagation();
+                  const ck = ev.target as HTMLInputElement;
+                  bShowTitle = ck.checked;
+                  setPref("bShowTitle", ck.checked);
+                  updatePageContentDebounce();
+                },
+                options: { capture: true },
+              },
+            ],
+          },
+        ],
+      },
+
+      { //显示标签
+        tag: "label",
+        namespace: "html",
+        properties: { textContent: "显示标签" },
+        styles: { paddingRight: "20px" },
+        children: [
+          {
+            tag: "input",
+            namespace: "html",
+            properties: {
+              type: "checkbox",
+              checked: bShowTag,
+            },
+            listeners: [
+              {
+                type: "change",
+                listener: (ev: any) => {
+                  ev.stopPropagation();
+                  const ck = ev.target as HTMLInputElement;
+                  bShowTag = ck.checked;
+                  setPref("bShowTag", ck.checked);
+                  updatePageContentDebounce();
+                },
+                options: { capture: true },
+              },
+            ],
+          },
+        ],
+      },
+      { //显示等级
+        tag: "label",
+        namespace: "html",
+        properties: { textContent: "显示等级" },
+        styles: { paddingRight: "20px" },
+        children: [
+          {
+            tag: "input",
+            namespace: "html",
+            properties: {
+              type: "checkbox",
+              checked: bShowRank,
+            },
+            listeners: [
+              {
+                type: "change",
+                listener: (ev: any) => {
+                  ev.stopPropagation();
+                  const ck = ev.target as HTMLInputElement;
+                  bShowRank = ck.checked;
+                  setPref("bShowRank", ck.checked);
+                  updatePageContentDebounce();
+                },
+                options: { capture: true },
+              },
+            ],
+          },
+        ],
+      },
+      { //固定高度
+        tag: "label",
+        namespace: "html",
+        properties: { textContent: "固定高度" },
+        // styles: { paddingRight: "20px" },
+        children: [
+          {
+            tag: "input",
+            namespace: "html",
+            properties: {
+              type: "checkbox",
+              checked: bFixedHeight,
+            },
+            listeners: [
+              {
+                type: "change",
+                listener: (ev: any) => {
+                  ev.stopPropagation();
+                  const ck = ev.target as HTMLInputElement;
+                  bFixedHeight = ck.checked;
+                  setPref("bFixedHeight", ck.checked);
+                  updatePageContentDebounce();
+                },
+                options: { capture: true },
+              },
+            ],
+          },
+        ],
+      },
+
+      { //固定高度
+        tag: "div",
+        properties: { textContent: "" },
+        children: [
+          {
+            tag: "input",
+            namespace: "html",
+            classList: ["fontSize"],
+            properties: {
+              placeholder: "输入数字",
+              value: fixedHeight,
+              type: "number",
+              step: "50"
+            },
+            styles: { width: "30px" },
+            listeners: [
+              {
+                type: "change",
+                listener: (ev: Event) => {
+                  stopPropagation(ev);
+                  const input = ev.target as HTMLInputElement;
+                  fixedHeight = parseInt(input.value.trim());
+                  if (fixedHeight < 6) fontSize = 6;
+                  setPref("fixedHeight", fixedHeight);
+                  updatePageContentDebounce();
+                },
+              },
+            ],
+          },
+          {
+            tag: "span", properties: { textContent: "px" },
+          }
+        ],
+      },
       // {
       //   tag: "button",
       //   properties: { textContent: "关闭" },
@@ -503,7 +633,7 @@ export function createSearchAnnContent(dialogWindow: Window | undefined, popupDi
           {
             tag: "div",
             styles: {
-              display: "flex",
+              display: bShowTitle ? "flex" : "none",
               justifyContent: "space-between",
               alignItems: "center",
             },
@@ -567,7 +697,7 @@ export function createSearchAnnContent(dialogWindow: Window | undefined, popupDi
                 tag: "div",
                 styles: {
                   background: anTo.annotationColor + "60", //width: "200px",
-                  height: (docHeight - 120) / rowSize - 60 + "px",
+                  height: (bFixedHeight ? fixedHeight : (docHeight - 120) / rowSize - 60) + "px",
                   overflowY: "overlay",
                   overflowX: "overlay", // 预览导出的注释内容显示不全，希望可以增加窗口拖动条 #93
                 },
@@ -582,13 +712,14 @@ export function createSearchAnnContent(dialogWindow: Window | undefined, popupDi
                 tag: "div",
                 styles: {
                   background: anTo.annotationColor + "10", //width: "200px"
+                  display: (bShowRank || bShowTag) ? "" : "none",
                 },
                 properties: {
                   innerHTML:
-                    anTo
+                    `${bShowTag ? anTo
                       .getTags()
                       .map((a) => a.tag)
-                      .join(",") + getPublicationTags(anTo),
+                      .join(",") : ""} ${bShowRank ? getPublicationTags(anTo) : ""}`,
                 },
               },
             ],
