@@ -59,13 +59,20 @@ export async function pasteAnnotations(items: Zotero.Item[], md5Equal = false, f
       // const md5 = filepath ? Zotero.Utilities.Internal.md5(Zotero.File.pathToFile(filepath)) : "";
       // const fileSize = filepath ? Zotero.File.pathToFile(filepath).fileSize : -1;
       if (md5) {
-        const ans = ds.filter(
+        const titleEqualAns = ds.filter(
           (f) =>
-            (!titleEqual ||
-              (f.title == item.getField("title") && f.firstCreator == item.getField("firstCreator") && f.year == item.getField("year"))) &&
-            (!fileSizeEqual || f.fileSize == fileSize) &&
-            (!md5Equal || f.md5 == md5),
+          (titleEqual &&
+            (f.title == item.getField("title") && f.firstCreator == item.getField("firstCreator") && f.year == item.getField("year")))
         ); //
+        const fileSizeEqualAns = ds.filter(
+          (f) =>
+            (fileSizeEqual && f.fileSize == fileSize)
+        ); //
+        const md5EqualAns = ds.filter(
+          (f) =>
+            (md5Equal && f.md5 == md5),
+        ); //
+        const ans = uniqueBy([...titleEqualAns, ...fileSizeEqualAns, ...md5EqualAns], u => u.key)
         ztoolkit.log("找到保存", titleEqual, fileSizeEqual, md5Equal, ans, ds, md5, fileSize);
 
         pw.createLine({ text: ` pdf:${filepath}` }).createLine({ text: ` 找到${ans.length}条相关注释` });
