@@ -84,6 +84,8 @@ export function PopupRoot({
   // const [pFixedContentLocation, setPFixedContentLocation] = useState(getPrefAs("pFixedContentLocation", false));
   const [isShowSelectedPopupColorsTag, setShowSelectedPopupColorsTag] = useState(getPrefAs("show-selected-popup-colors-tag", false));
   const [isShowSelectedPopupMatchTag, setShowSelectedPopupMatchTag] = useState(getPrefAs("show-selected-popup-match-tag", false));
+  const [colorsFlexDirection, setColorsFlexDirection] = useState(getPrefAs("colors-flex-direction", "column"));
+  const [matchFlexDirection, setMatchFlexDirection] = useState(getPrefAs("match-flex-direction", "column"));
   const [divMaxWidth, setDivMaxWidth] = useState(getPrefAs("divMaxWidth", 600));
   const [divMaxHeight, setDivMaxHeight] = useState(getPrefAs("divMaxHeight", 600));
   const [fontSize, setFontSize] = useState(getPrefAs("fontSize", 17));
@@ -805,6 +807,32 @@ export function PopupRoot({
                 </label>
                 <label style={configItemStyle}>
                   <input
+                    type="radio"
+                    name='colorsFlexDirection'
+                    defaultChecked={colorsFlexDirection == "column"}
+                    value="column"
+                    onInput={(e) => {
+                      setPref("colors-flex-direction", e.currentTarget.value);
+                      setColorsFlexDirection(e.currentTarget.value);
+                    }}
+                  />
+                  column
+                </label>
+                <label style={configItemStyle}>
+                  <input
+                    type="radio"
+                    name='colorsFlexDirection'
+                    defaultChecked={colorsFlexDirection == "row"}
+                    value="row"
+                    onInput={(e) => {
+                      setPref("colors-flex-direction", e.currentTarget.value);
+                      setColorsFlexDirection(e.currentTarget.value);
+                    }}
+                  />
+                  row
+                </label>
+                <label style={configItemStyle}>
+                  <input
                     type="checkbox"
                     defaultChecked={isShowSelectedPopupMatchTag}
                     onInput={(e) => {
@@ -816,6 +844,36 @@ export function PopupRoot({
                     branch: "label",
                   })}
                 </label>
+
+
+
+                <label style={configItemStyle}>
+                  <input
+                    type="radio"
+                    name='matchFlexDirection'
+                    defaultChecked={matchFlexDirection == "column"}
+                    value="column"
+                    onInput={(e) => {
+                      setPref("match-flex-direction", e.currentTarget.value);
+                      setMatchFlexDirection(e.currentTarget.value);
+                    }}
+                  />
+                  column
+                </label>
+                <label style={configItemStyle}>
+                  <input
+                    type="radio"
+                    name='matchFlexDirection'
+                    defaultChecked={matchFlexDirection == "row"}
+                    value="row"
+                    onInput={(e) => {
+                      setPref("match-flex-direction", e.currentTarget.value);
+                      setMatchFlexDirection(e.currentTarget.value);
+                    }}
+                  />
+                  row
+                </label>
+
                 <br />
               </span>
             )}
