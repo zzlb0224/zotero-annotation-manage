@@ -315,7 +315,15 @@ function buildMenu(collectionOrItem: "collection" | "item") {
       },
       {
         tag: "menu",
-        label: getString("menu-AnnotationMatrix"),
+        label: "自动更新note(测试中)",
+        icon: iconBaseUrl + "favicon.png",
+        commandListener: async (ev: Event) => {
+          alert("测试中。。。")
+        },
+      },
+      {
+        tag: "menu",
+        label: getString("menu-AnnotationMatrix") + "(测试中)",
         icon: iconBaseUrl + "favicon.png",
         commandListener: async (ev: Event) => {
           alert("测试中。。。")
