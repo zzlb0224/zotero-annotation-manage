@@ -319,7 +319,7 @@ function buildMenu(collectionOrItem: "collection" | "item") {
         label: "自动更新note(测试中)",
         icon: iconBaseUrl + "favicon.png",
         commandListener: async (ev: Event) => {
-          //!TODO 
+          //!TODO
           alert("测试中。。。");
         },
       },
@@ -328,7 +328,7 @@ function buildMenu(collectionOrItem: "collection" | "item") {
         label: getString("menu-AnnotationMatrix") + "(测试中)",
         icon: iconBaseUrl + "favicon.png",
         commandListener: async (ev: Event) => {
-          //!TODO 
+          //!TODO
           alert("测试中。。。");
         },
       },
@@ -691,24 +691,24 @@ export function createActionTag(
     // },
     action
       ? {
-        tag: "button",
-        namespace: "html",
-        properties: { textContent: "确定生成" },
-        // styles: {
-        //   padding: "6px",
-        //   background: "#f99",
-        //   margin: "1px",
-        // },
-        listeners: [
-          {
-            type: "click",
-            listener: (ev: any) => {
-              stopPropagation(ev);
-              action();
+          tag: "button",
+          namespace: "html",
+          properties: { textContent: "确定生成" },
+          // styles: {
+          //   padding: "6px",
+          //   background: "#f99",
+          //   margin: "1px",
+          // },
+          listeners: [
+            {
+              type: "click",
+              listener: (ev: any) => {
+                stopPropagation(ev);
+                action();
+              },
             },
-          },
-        ],
-      }
+          ],
+        }
       : { tag: "span" },
     ...others,
   ];
