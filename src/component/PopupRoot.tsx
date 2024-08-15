@@ -808,7 +808,7 @@ export function PopupRoot({
                 <label style={configItemStyle}>
                   <input
                     type="radio"
-                    name='colorsFlexDirection'
+                    name="colorsFlexDirection"
                     defaultChecked={colorsFlexDirection == "column"}
                     value="column"
                     onInput={(e) => {
@@ -821,7 +821,7 @@ export function PopupRoot({
                 <label style={configItemStyle}>
                   <input
                     type="radio"
-                    name='colorsFlexDirection'
+                    name="colorsFlexDirection"
                     defaultChecked={colorsFlexDirection == "row"}
                     value="row"
                     onInput={(e) => {
@@ -845,12 +845,10 @@ export function PopupRoot({
                   })}
                 </label>
 
-
-
                 <label style={configItemStyle}>
                   <input
                     type="radio"
-                    name='matchFlexDirection'
+                    name="matchFlexDirection"
                     defaultChecked={matchFlexDirection == "column"}
                     value="column"
                     onInput={(e) => {
@@ -863,7 +861,7 @@ export function PopupRoot({
                 <label style={configItemStyle}>
                   <input
                     type="radio"
-                    name='matchFlexDirection'
+                    name="matchFlexDirection"
                     defaultChecked={matchFlexDirection == "row"}
                     value="row"
                     onInput={(e) => {
@@ -1348,20 +1346,20 @@ export function PopupRoot({
                       ctrlAddOrSaveTags(isAdd, cTag);
                       return false;
                     }}
-                  // onMouseDown={(e) => {
-                  //   e.preventDefault();
-                  //   ztoolkit.log("onMouseDown 复制", e)
-                  //   return false
-                  // }}
-                  // onContextMenu={e => {
-                  //   e.preventDefault();
-                  //   ztoolkit.log("onContextMenu 复制", tag.key)
-                  //   new window.Clipboard().readText().then((text) => {
-                  //     ztoolkit.log("onContextMenu 复制", tag.key, text);
-                  //     (e.currentTarget as HTMLInputElement).value = text;
-                  //   })
-                  //   return false
-                  // }}
+                    // onMouseDown={(e) => {
+                    //   e.preventDefault();
+                    //   ztoolkit.log("onMouseDown 复制", e)
+                    //   return false
+                    // }}
+                    // onContextMenu={e => {
+                    //   e.preventDefault();
+                    //   ztoolkit.log("onContextMenu 复制", tag.key)
+                    //   new window.Clipboard().readText().then((text) => {
+                    //     ztoolkit.log("onContextMenu 复制", tag.key, text);
+                    //     (e.currentTarget as HTMLInputElement).value = text;
+                    //   })
+                    //   return false
+                    // }}
                   >
                     <span>[{tag.values.length}]</span>
                     <span>{tag.key}</span>

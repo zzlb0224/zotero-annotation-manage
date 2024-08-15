@@ -61,33 +61,29 @@ export async function pasteAnnotations(items: Zotero.Item[], md5Equal = false, f
       if (md5) {
         const titleEqualAns = ds.filter(
           (f) =>
-          (titleEqual &&
-            (f.title == item.getField("title") && f.firstCreator == item.getField("firstCreator") && f.year == item.getField("year")))
-        ); //
-        const fileSizeEqualAns = ds.filter(
-          (f) =>
-            (fileSizeEqual && f.fileSize == fileSize)
-        ); //
-        const md5EqualAns = ds.filter(
-          (f) =>
-            (md5Equal && f.md5 == md5),
-        ); //
-        const ans = uniqueBy([...titleEqualAns, ...fileSizeEqualAns, ...md5EqualAns], u => u.key)
+            titleEqual &&
+            f.title == item.getField("title") &&
+            f.firstCreator == item.getField("firstCreator") &&
+            f.year == item.getField("year"),
+        ); //标题年份作者一致
+        const fileSizeEqualAns = ds.filter((f) => fileSizeEqual && f.fileSize == fileSize && f.fileSize > 0); //文件大小一致 大于0才能比较大小
+        const md5EqualAns = ds.filter((f) => md5Equal && f.md5 == md5); //md5一致意味着内容也要一致
+        const ans = uniqueBy([...titleEqualAns, ...fileSizeEqualAns, ...md5EqualAns], (u) => u.key);
         ztoolkit.log("找到保存", titleEqual, fileSizeEqual, md5Equal, ans, ds, md5, fileSize);
 
         pw.createLine({ text: ` pdf:${filepath}` }).createLine({ text: ` 找到${ans.length}条相关注释` });
         let add = 0;
         for (const an of ans) {
           if (an.pdfKey == pdf.key) {
-            ztoolkit.log("pdfKey不能保存", an);
+            ztoolkit.log("pdfKey不能保存", "说明pdf是同一个", an);
             continue;
           }
           if (currentAnnotations.find((f) => f.key == an.annotationJson.key)) {
-            ztoolkit.log("currentAnnotations key不能保存", an);
+            ztoolkit.log("currentAnnotations key不能保存", "说明这个annotation 已经在这里了", an);
             continue;
           }
           if (currentAnnotations.find((f) => f.annotationType == an.annotationJson.type && f.annotationPosition == an.position)) {
-            ztoolkit.log("annotationType annotationPosition不能保存", an);
+            ztoolkit.log("annotationType annotationPosition不能保存", "位置一样同类型的也不要添加", an);
             continue;
           }
           ztoolkit.log("开始保存", an);

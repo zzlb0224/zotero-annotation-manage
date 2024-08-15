@@ -303,7 +303,7 @@ export class AnnotationPopup {
             const colorDiv = ztoolkit.UI.appendElement(
               {
                 tag: "div",
-                styles: { display: "flex", flexDirection: getPref("match-flex-direction") as string || "column" },
+                styles: { display: "flex", flexDirection: (getPref("match-flex-direction") as string) || "column" },
                 classList: ["colorDiv"],
               },
               colorsElement,
@@ -324,7 +324,7 @@ export class AnnotationPopup {
               btn.style.width = "unset";
               btn.style.height = "unset";
               btn.style.display = "flex";
-              btn.style.flexDirection = getPref("colors-flex-direction") as string || "column";
+              btn.style.flexDirection = (getPref("colors-flex-direction") as string) || "column";
             }
             spanColorTag.textContent = `${btn.title}`;
           } else {
@@ -339,7 +339,9 @@ export class AnnotationPopup {
                   {
                     tag: "span",
                     styles: {
-                      width: "unset", height: "unset", cursor: "default",
+                      width: "unset",
+                      height: "unset",
+                      cursor: "default",
                       // display: "flex",
                       // flexDirection: getPref("colors-flex-direction") as string || "column",
                     },

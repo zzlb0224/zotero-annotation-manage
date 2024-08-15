@@ -220,7 +220,7 @@ export function createSearchAnnContent(dialogWindow: Window | undefined, popupDi
             type: "click",
             listener: (e) => {
               e.stopPropagation();
-              //预览批注导出的按钮  
+              //预览批注导出的按钮
               exportNote({ filter: () => ans, toText: toText1 });
               dialogWindow?.close();
               popupDiv?.remove();
@@ -325,7 +325,8 @@ export function createSearchAnnContent(dialogWindow: Window | undefined, popupDi
         ],
       },
 
-      { //文字大小
+      {
+        //文字大小
         tag: "div",
         properties: { textContent: "文字大小" },
         children: [
@@ -358,7 +359,6 @@ export function createSearchAnnContent(dialogWindow: Window | undefined, popupDi
         ],
       },
 
-
       {
         tag: "label",
         namespace: "html",
@@ -389,7 +389,8 @@ export function createSearchAnnContent(dialogWindow: Window | undefined, popupDi
         ],
       },
 
-      { //显示标签
+      {
+        //显示标签
         tag: "label",
         namespace: "html",
         properties: { textContent: "显示标签" },
@@ -418,7 +419,8 @@ export function createSearchAnnContent(dialogWindow: Window | undefined, popupDi
           },
         ],
       },
-      { //显示等级
+      {
+        //显示等级
         tag: "label",
         namespace: "html",
         properties: { textContent: "显示等级" },
@@ -447,7 +449,8 @@ export function createSearchAnnContent(dialogWindow: Window | undefined, popupDi
           },
         ],
       },
-      { //固定高度
+      {
+        //固定高度
         tag: "label",
         namespace: "html",
         properties: { textContent: "固定高度" },
@@ -697,7 +700,7 @@ export function createSearchAnnContent(dialogWindow: Window | undefined, popupDi
                 tag: "div",
                 styles: {
                   background: anTo.annotationColor + "60", //width: "200px",
-                  height: bFixedHeight ? (((docHeight - 120) / rowSize - 60) + "px") : "",
+                  height: bFixedHeight ? (docHeight - 120) / rowSize - 60 + "px" : "",
                   overflowY: "overlay",
                   overflowX: "overlay", // 预览导出的注释内容显示不全，希望可以增加窗口拖动条 #93
                 },
@@ -712,14 +715,17 @@ export function createSearchAnnContent(dialogWindow: Window | undefined, popupDi
                 tag: "div",
                 styles: {
                   background: anTo.annotationColor + "10", //width: "200px"
-                  display: (bShowRank || bShowTag) ? "" : "none",
+                  display: bShowRank || bShowTag ? "" : "none",
                 },
                 properties: {
-                  innerHTML:
-                    `${bShowTag ? anTo
-                      .getTags()
-                      .map((a) => a.tag)
-                      .join(",") : ""} ${bShowRank ? getPublicationTags(anTo) : ""}`,
+                  innerHTML: `${
+                    bShowTag
+                      ? anTo
+                          .getTags()
+                          .map((a) => a.tag)
+                          .join(",")
+                      : ""
+                  } ${bShowRank ? getPublicationTags(anTo) : ""}`,
                 },
               },
             ],
@@ -961,17 +967,16 @@ export function exportTagsNote(tags: string[], items: Zotero.Item[]) {
   }
 }
 export function toText1(ans: AnnotationRes[]) {
-  return (
-    [groupBy(
+  return [
+    groupBy(
       ans.flatMap((a) => a.tags),
       (a) => a.tag,
     )
       .map((a) => `[${a.values.length}]${a.key}`)
-      .join(" ")
-      ,
+      .join(" "),
     groupBy(ans, (a) => a.pdf.key)
       .sort(sortKey)
-      .map(a => ({ ...a, values: uniqueBy(a.values, f => f.ann.key) }))
+      .map((a) => ({ ...a, values: uniqueBy(a.values, (f) => f.ann.key) }))
       .flatMap((a, index, aa) => [
         // `<h1>(${index + 1}/${aa.length}) ${a.key} ${getCiteItemHtmlWithPage(a.values[0].ann)}</h1>`,
         // `${getPublicationTags(a.values[0]?.item)}`,
@@ -979,8 +984,8 @@ export function toText1(ans: AnnotationRes[]) {
         `title：${a.values[0].item.getDisplayTitle()}`,
         ...a.values.flatMap((b) => b.html),
       ])
-      .join("<br/>")]
-  ).join("<br/>");
+      .join("<br/>"),
+  ].join("<br/>");
 }
 export async function exportNote({
   toText,

@@ -16,7 +16,7 @@ import { DDDTagClear, DDDTagRemove, DDDTagSet } from "./DDD";
 import { getCiteItemHtml } from "./getCitationItem";
 import { funcSplitTag, funcTranslateAnnotations } from "./menuTools";
 import { MyButton } from "./MyButton";
-import { getString } from '../utils/locale';
+import { getString } from "../utils/locale";
 
 const iconBaseUrl = `chrome://${config.addonRef}/content/icons/`;
 function register() {
@@ -35,13 +35,12 @@ function buildMenu(collectionOrItem: "collection" | "item") {
     label: "笔记管理 - in " + collectionOrItem,
     icon: iconBaseUrl + "favicon.png",
     children: [
-      { //自定义命令
+      {
+        //自定义命令
         tag: "menu",
         label: "自定义命令",
         icon: iconBaseUrl + "favicon.png",
         children: [
-
-
           {
             tag: "menuitem",
             label: "拆分#标签",
@@ -211,10 +210,12 @@ function buildMenu(collectionOrItem: "collection" | "item") {
         ],
       },
 
-      { //----
+      {
+        //----
         tag: "menuseparator",
       },
-      { //预览批注导出
+      {
+        //预览批注导出
         tag: "menuitem",
         label: "预览批注导出",
         icon: iconBaseUrl + "favicon.png",
@@ -318,7 +319,8 @@ function buildMenu(collectionOrItem: "collection" | "item") {
         label: "自动更新note(测试中)",
         icon: iconBaseUrl + "favicon.png",
         commandListener: async (ev: Event) => {
-          alert("测试中。。。")
+          //!TODO 
+          alert("测试中。。。");
         },
       },
       {
@@ -326,10 +328,12 @@ function buildMenu(collectionOrItem: "collection" | "item") {
         label: getString("menu-AnnotationMatrix") + "(测试中)",
         icon: iconBaseUrl + "favicon.png",
         commandListener: async (ev: Event) => {
-          alert("测试中。。。")
+          //!TODO 
+          alert("测试中。。。");
         },
       },
-      { //备份还原pdf注释（慎用）
+      {
+        //备份还原pdf注释（慎用）
         tag: "menu",
         label: "备份还原pdf注释",
         icon: iconBaseUrl + "favicon.png",
