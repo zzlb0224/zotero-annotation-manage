@@ -1246,14 +1246,14 @@ export async function saveAnnotationTags(
         // reader?._primaryView?._onSetSelectionPopup?.(null);
         // openAnnotation(item, newAnn?.pageLabel || "", newAnn?.id || "")
       }
-      memoizeAsyncGroupAllTagsDB.removeCache();
-      memRelateTags.removeCache();
-      setTimeout(() => {
-        //给2s等待时间
-        //清理了缓存之后又做个缓存，增加速度
-        memoizeAsyncGroupAllTagsDB();
-        memRelateTags(item);
-      }, 2000);
+      memoizeAsyncGroupAllTagsDB.replaceCacheByKey();
+      memRelateTags.replaceCacheByArgs(item);
+      // setTimeout(() => {
+      //   //给2s等待时间
+      //   //清理了缓存之后又做个缓存，增加速度
+      //   memoizeAsyncGroupAllTagsDB();
+      //   memRelateTags(item);
+      // }, 2000);
     }
   }
 }

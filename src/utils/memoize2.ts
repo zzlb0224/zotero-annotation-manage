@@ -1,7 +1,8 @@
 // 参考https://github.com/alexreardon/memoize-one设计的二代缓存
 export type MemoizedFn<TFunc extends (this: any, ...args: any[]) => any> = {
   removeCache: (key?: string | RegExp | undefined) => void;//删除缓存
-  replaceCache: (key?: string | RegExp | undefined) => void;//重建缓存
+  replaceCacheByKey: (key?: string | RegExp | undefined) => void;//重建缓存
+  replaceCacheByArgs: (...newArgs: Parameters<TFunc>) => void;//重建缓存
   (this: ThisParameterType<TFunc>, ...args: Parameters<TFunc>): ReturnType<TFunc>;
 };
 export function memoize2<TFunc extends (this: any, ...newArgs: any[]) => any>(
@@ -52,7 +53,10 @@ export function memoize2<TFunc extends (this: any, ...newArgs: any[]) => any>(
     delete cacheThis[key];
     delete cacheArgs[key];
   }
-  memoized.replaceCache = (cacheKey: string | RegExp | undefined = undefined) => {
+  memoized.replaceCacheByArgs = (newArgs: Parameters<TFunc>) => {
+    updateCacheObject(keyFn?.(...newArgs) || "", newArgs);
+  }
+  memoized.replaceCacheByKey = (cacheKey: string | RegExp | undefined = undefined) => {
     if (cacheKey === undefined) {
       //替换所有缓存
       Object.keys(cacheTime).forEach(key => updateCacheObject(key, cacheArgs[key]));
@@ -61,7 +65,7 @@ export function memoize2<TFunc extends (this: any, ...newArgs: any[]) => any>(
       Object.keys(cacheTime).filter(cacheKey.test).forEach(key => updateCacheObject(key, cacheArgs[key]));
     } else {
       //只替换对应key的缓存
-      updateCacheObject(cacheKey, cacheArgs[cacheKey]);
+      updateCacheObject(keyFn?.(...cacheArgs[cacheKey]) || "", cacheArgs[cacheKey]);
     }
   };
   memoized.removeCache = (cacheKey: string | RegExp | undefined = undefined) => {
