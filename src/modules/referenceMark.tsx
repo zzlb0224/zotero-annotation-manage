@@ -201,7 +201,7 @@ async function changeFromText(text: string, panel: HTMLDivElement, item: Zotero.
               listeners: [
                 {
                   type: "click",
-                  listener(e) {
+                  listener(e: Event) {
                     const d = e.target as HTMLDivElement;
                     if (!item.parentItem) return;
                     if (item.parentItem.relatedItems.includes(searchedItem.key)) {

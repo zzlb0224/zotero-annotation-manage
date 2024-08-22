@@ -19,7 +19,17 @@ import {
 } from "../utils/zzlb";
 import annotations from "./annotations";
 
+export function registerPrefsWindow() {
+  Zotero.PreferencePanes.register({
+    pluginID: config.addonID,
+    src: rootURI + "chrome/content/preferences.xhtml",
+    label: getString("pref.title"),
+    image: `chrome://${config.addonRef}/content/icons/favicon.png`,
+  });
+}
+
 export async function registerPrefsScripts(_window: Window) {
+
   // This function is called when the prefs window is opened
   // See addon/chrome/content/preferences.xul onpaneload
   if (!addon.data.prefs) {
@@ -601,9 +611,9 @@ async function replaceTagsPreviewDiv(doc?: Document) {
     preview.appendChild(rootDiv);
     rootDiv.innerText = `预览批注来自：${from}。条目：${ann.parentItem?.parentItem?.getDisplayTitle()}。
         包含标签: [${ann
-          .getTags()
-          .map((a) => a.tag)
-          .join(",")}]内容：${ann.annotationType} ${ann.annotationText || ""} ${ann.annotationComment || ""}
+        .getTags()
+        .map((a) => a.tag)
+        .join(",")}]内容：${ann.annotationType} ${ann.annotationText || ""} ${ann.annotationComment || ""}
         `;
     rootDiv.style.position = "";
     rootDiv.style.width = "";

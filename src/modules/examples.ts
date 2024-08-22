@@ -67,7 +67,7 @@ export class BasicExampleFactory {
       image: `chrome://${config.addonRef}/content/icons/favicon.png`,
       defaultXUL: true,
     };
-    ztoolkit.PreferencePane.register(prefOptions);
+    // ztoolkit.PreferencePane.register(prefOptions);
   }
 }
 
@@ -209,37 +209,37 @@ export class UIExampleFactory {
     });
   }
 
-  @example
-  static async registerCustomItemBoxRow() {
-    await ztoolkit.ItemBox.register(
-      "itemBoxFieldEditable",
-      "Editable Custom Field",
-      (field: any, unformatted: any, includeBaseMapped: any, item: any, original: any) => {
-        return ztoolkit.ExtraField.getExtraField(item, "itemBoxFieldEditable") || "";
-      },
-      {
-        editable: true,
-        setFieldHook: (field: any, value: any, loadIn: any, item: any, original: any) => {
-          window.alert("Custom itemBox value is changed and saved to extra!");
-          ztoolkit.ExtraField.setExtraField(item, "itemBoxFieldEditable", value);
-          return true;
-        },
-        index: 1,
-      },
-    );
+  // @example
+  // static async registerCustomItemBoxRow() {
+  //   await ztoolkit.ItemBox.register(
+  //     "itemBoxFieldEditable",
+  //     "Editable Custom Field",
+  //     (field: any, unformatted: any, includeBaseMapped: any, item: any, original: any) => {
+  //       return ztoolkit.ExtraField.getExtraField(item, "itemBoxFieldEditable") || "";
+  //     },
+  //     {
+  //       editable: true,
+  //       setFieldHook: (field: any, value: any, loadIn: any, item: any, original: any) => {
+  //         window.alert("Custom itemBox value is changed and saved to extra!");
+  //         ztoolkit.ExtraField.setExtraField(item, "itemBoxFieldEditable", value);
+  //         return true;
+  //       },
+  //       index: 1,
+  //     },
+  //   );
 
-    await ztoolkit.ItemBox.register(
-      "itemBoxFieldNonEditable",
-      "Non-Editable Custom Field",
-      (field: any, unformatted: any, includeBaseMapped: any, item: Zotero.Item, original: any) => {
-        return "[CANNOT EDIT THIS]" + (item.getField("title") as string).slice(0, 10);
-      },
-      {
-        editable: false,
-        index: 2,
-      },
-    );
-  }
+  //   // await ztoolkit.ItemBox.register(
+  //   //   "itemBoxFieldNonEditable",
+  //   //   "Non-Editable Custom Field",
+  //   //   (field: any, unformatted: any, includeBaseMapped: any, item: Zotero.Item, original: any) => {
+  //   //     return "[CANNOT EDIT THIS]" + (item.getField("title") as string).slice(0, 10);
+  //   //   },
+  //   //   {
+  //   //     editable: false,
+  //   //     index: 2,
+  //   //   },
+  //   // );
+  // }
 
   @example
   static registerItemPaneSection() {

@@ -1,8 +1,8 @@
 import { BasicExampleFactory, HelperExampleFactory, KeyExampleFactory, PromptExampleFactory, UIExampleFactory } from "./modules/examples";
 import { config } from "../package.json";
 import { getString, initLocale } from "./utils/locale";
-import { registerPrefsScripts } from "./modules/preferenceScript";
-import { createZToolkit } from "./utils/ztoolkit";
+import { registerPrefsScripts, registerPrefsWindow } from "./modules/preferenceScript";
+// import { createZToolkit } from "./utils/ztoolkit";
 import Annotations from "./modules/annotations";
 import AnnotationsToNote, { getSelectedItems } from "./modules/menu";
 import RelationHeader from "./modules/RelationHeader";
@@ -13,8 +13,9 @@ import { memFixedColor, stopPropagation } from "./utils/zzlb";
 import { exportNoteByType, exportSingleNote, getAllAnnotations } from "./modules/AnnotationsToNote";
 import { groupBy } from "./utils/groupBy";
 import { sortFixedTags10ValuesLength, sortValuesLength } from "./utils/sort";
-import { TagElementProps } from "zotero-plugin-toolkit/dist/tools/ui";
+// import { TagElementProps } from "zotero-plugin-toolkit/dist/tools/ui";
 import { annotationToNoteTags, annotationToNoteType } from "./hooksMenuEvent";
+import { createZToolkit } from './utils/ztoolkit';
 
 async function onStartup() {
   await Promise.all([Zotero.initializationPromise, Zotero.unlockPromise, Zotero.uiReadyPromise]);
@@ -95,6 +96,7 @@ async function onMainWindowLoad(win: Window): Promise<void> {
   highlightWords.register();
   toolLink.register();
   // registeredID_showAnnotations()
+  registerPrefsWindow();
 }
 
 async function onMainWindowUnload(win: Window): Promise<void> {
