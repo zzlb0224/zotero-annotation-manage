@@ -381,7 +381,7 @@ export async function openAnnotation(itemOrKeyOrId: Zotero.Item | string | numbe
 export async function injectCSSToReader() { }
 
 export const memSVG = memoize(
-  async (href) => await getFileContent(href),
+  async (href: string) => await getFileContent(href),
   // .then(r=>r.replace(/xmlns="http:\/\/www.w3.org\/2000\/svg"/g,""))
 );
 
