@@ -2,6 +2,7 @@ import { createRoot } from "react-dom/client";
 import { IntlProvider } from "react-intl";
 import * as React from "react";
 import { AnnotationRes } from '../utils/zzlb';
+import { getCiteAnnotationHtml } from '../modules/getCitationItem';
 
 export function content2AnnotationMatrix(content: HTMLElement, annotations: AnnotationRes[]) {
     createRoot(content).render(
@@ -55,7 +56,7 @@ export function AnnotationMatrix({
                             <tr key={annotation.ann.key}>
                                 <td >{annotation.author}</td>
                                 <td >{annotation.year}</td>
-                                <td >{annotation.text}</td>
+                                <td >{annotation.text} </td>
                                 <td >{annotation.comment}</td>
                                 {/* <td > <span dangerouslySetInnerHTML={{ __html: annotation.html }}></span></td> */}
                                 <td >{annotation.annotationTags}</td>

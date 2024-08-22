@@ -1103,7 +1103,7 @@ export function createAnnotationMatrix(dialogWindow: Window | undefined, popupDi
 
   ztoolkit.log(content);
   setTimeout(async () => {
-    await convertHtml(annotations)
+    // await convertHtml(annotations)
     content2AnnotationMatrix(content, annotations);
   });
 }
