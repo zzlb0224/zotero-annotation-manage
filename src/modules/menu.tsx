@@ -10,7 +10,7 @@ import { sortBy, sortValuesLengthKeyAsc } from "../utils/sort";
 import { Tab } from "../utils/tab";
 import { uniqueBy } from "../utils/uniqueBy";
 import { ReTest, clearChild, createDialog, getChildCollections, isDebug, memFixedColor, stopPropagation } from "../utils/zzlb";
-import { createChooseTagsDiv, createSearchAnnContent, getAllAnnotations } from "./AnnotationsToNote";
+import { createAnnotationMatrix, createChooseTagsDiv, createSearchAnnContent, getAllAnnotations } from "./AnnotationsToNote";
 import { copyAnnotations, mergePdfs, pasteAnnotations } from "./BackupAnnotation";
 import { DDDTagClear, DDDTagRemove, DDDTagSet } from "./DDD";
 import { getCiteItemHtml } from "./getCitationItem";
@@ -324,12 +324,50 @@ function buildMenu(collectionOrItem: "collection" | "item") {
         },
       },
       {
-        tag: "menu",
+        tag: "menuitem",
         label: getString("menu-AnnotationMatrix") + "(测试中)",
         icon: iconBaseUrl + "favicon.png",
         commandListener: async (ev: Event) => {
-          //!TODO
-          alert("测试中。。。");
+          const target = ev.target as HTMLElement;
+          const doc = target.ownerDocument;
+          const items = await getSelectedItems(collectionOrItem);
+          const annotations = getAllAnnotations(items);
+          const mainWindow = Zotero.getMainWindow();
+          let header = "";
+          if (collectionOrItem == "collection") {
+            header = `collection:${ZoteroPane.getSelectedCollection()?.name}`;
+          } else if (items.length == 1) {
+            header = `单条目:${items[0].getDisplayTitle()}`;
+          } else {
+            header = `多条目:${items.length}个条目`;
+          }
+          const win = await createDialog(header, [
+            { tag: "div", classList: ["query"] },
+            {
+              tag: "div",
+              classList: ["status"],
+              properties: { innerHTML: "" },
+            },
+            {
+              tag: "div",
+              classList: ["content"],
+              // properties: { innerHTML: "2 0" },
+              styles: {
+                display: "flex",
+                // minHeight: "20px",
+                // minWidth: "100px",
+                // height: Math.max(mainWindow.innerHeight*0.7,700)+ "px",
+                // width: Math.max(mainWindow.outerWidth *0.8, 700) + "px",
+                // minHeight: Math.max(mainWindow.innerHeight*0.7,700)+ "px",
+                // minWidth: Math.max(mainWindow.outerWidth *0.8, 700) + "px",
+                // maxHeight:  Math.max(mainWindow.innerHeight*0.9,700) + "px",
+                // maxWidth: Math.max(mainWindow.outerWidth -180, 700) + "px",
+                flexWrap: "wrap",
+                overflowY: "overlay",
+              },
+            },
+          ]);
+          createAnnotationMatrix(win, undefined, annotations);
         },
       },
       {
@@ -691,24 +729,24 @@ export function createActionTag(
     // },
     action
       ? {
-          tag: "button",
-          namespace: "html",
-          properties: { textContent: "确定生成" },
-          // styles: {
-          //   padding: "6px",
-          //   background: "#f99",
-          //   margin: "1px",
-          // },
-          listeners: [
-            {
-              type: "click",
-              listener: (ev: any) => {
-                stopPropagation(ev);
-                action();
-              },
+        tag: "button",
+        namespace: "html",
+        properties: { textContent: "确定生成" },
+        // styles: {
+        //   padding: "6px",
+        //   background: "#f99",
+        //   margin: "1px",
+        // },
+        listeners: [
+          {
+            type: "click",
+            listener: (ev: any) => {
+              stopPropagation(ev);
+              action();
             },
-          ],
-        }
+          },
+        ],
+      }
       : { tag: "span" },
     ...others,
   ];

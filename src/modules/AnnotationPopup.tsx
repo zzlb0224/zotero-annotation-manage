@@ -26,12 +26,12 @@ import { groupByResult } from "../utils/groupBy";
 import { groupBy } from "../utils/groupBy";
 import { Relations } from "../utils/Relations";
 import { createRoot } from "react-dom/client";
+import { IntlProvider } from "react-intl";
 import * as React from "react";
 import { usePopover } from "react-tiny-popover";
 import { HexColorPicker } from "react-colorful";
 import { PopupRoot } from "../component/PopupRoot";
 import TagPopup from "../component/TagPopup";
-import { IntlProvider } from "react-intl";
 
 export class AnnotationPopup {
   reader?: _ZoteroTypes.ReaderInstance;

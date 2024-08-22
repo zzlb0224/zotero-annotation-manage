@@ -35,4 +35,23 @@ popupRoot-TagsSetting =  标签设置
 popupRoot-Development = 开发中
 
 
+popupRoot-FollowParent =  Follow
+
+popupRoot-ConfigType-Green = Green
+popupRoot-ConfigType-Yellow = Yellow
+popupRoot-ConfigType-Red = Red
+popupRoot-ConfigType-FollowParent = Follow
+
+
+popupRoot-WindowType-FollowParent =  Follow 
+popupRoot-WindowType-FixedPanel =  FixedPanel
+popupRoot-WindowType-PopupPanel =  PopupPanel
+
+popupRoot-SortType-RecentUse =  RecentUse
+popupRoot-SortType-ItemAndRecent =  ItemAndRecent
+popupRoot-SortType-UseCountDesc =  UseCountDesc
+popupRoot-SortType-CharAsc =  CharAsc
+
+
+menu-AnnotationMatrix =  AnnotationMatrix
 
