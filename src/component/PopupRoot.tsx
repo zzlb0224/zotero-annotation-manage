@@ -1172,6 +1172,22 @@ export function PopupRoot({
                   >
                     {delTags.length == 0 ? (autoCloseSeconds > 0 ? autoCloseSeconds + "s" : "点击") + "关闭" : "确认删除"}
                   </button>
+                  {delTags.length > 0 && (<>
+                    <button
+                      className="btn"
+                      style={{
+                        ...tagStyle,
+                        background: "#009900",
+                        color: "#fff",
+                      }}
+                      onClick={() => {
+                        setIsPopoverOpen(false);
+                        root?.remove();
+                      }}
+                    >
+                      关闭
+                    </button>
+                  </>)}
                 </>
               )}
 
@@ -1346,20 +1362,20 @@ export function PopupRoot({
                       ctrlAddOrSaveTags(isAdd, cTag);
                       return false;
                     }}
-                    // onMouseDown={(e) => {
-                    //   e.preventDefault();
-                    //   ztoolkit.log("onMouseDown 复制", e)
-                    //   return false
-                    // }}
-                    // onContextMenu={e => {
-                    //   e.preventDefault();
-                    //   ztoolkit.log("onContextMenu 复制", tag.key)
-                    //   new window.Clipboard().readText().then((text) => {
-                    //     ztoolkit.log("onContextMenu 复制", tag.key, text);
-                    //     (e.currentTarget as HTMLInputElement).value = text;
-                    //   })
-                    //   return false
-                    // }}
+                  // onMouseDown={(e) => {
+                  //   e.preventDefault();
+                  //   ztoolkit.log("onMouseDown 复制", e)
+                  //   return false
+                  // }}
+                  // onContextMenu={e => {
+                  //   e.preventDefault();
+                  //   ztoolkit.log("onContextMenu 复制", tag.key)
+                  //   new window.Clipboard().readText().then((text) => {
+                  //     ztoolkit.log("onContextMenu 复制", tag.key, text);
+                  //     (e.currentTarget as HTMLInputElement).value = text;
+                  //   })
+                  //   return false
+                  // }}
                   >
                     <span>[{tag.values.length}]</span>
                     <span>{tag.key}</span>
