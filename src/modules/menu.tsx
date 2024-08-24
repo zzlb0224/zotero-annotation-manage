@@ -17,6 +17,7 @@ import { getCiteItemHtml } from "./getCitationItem";
 import { funcSplitTag, funcTranslateAnnotations } from "./menuTools";
 import { MyButton } from "./MyButton";
 import { getString } from "../utils/locale";
+import { waitFor, waitUtilAsync } from '../utils/wait';
 
 const iconBaseUrl = `chrome://${config.addonRef}/content/icons/`;
 function register() {
@@ -366,8 +367,17 @@ function buildMenu(collectionOrItem: "collection" | "item") {
                 overflowY: "overlay",
               },
             },
-          ]);
+          ]) as Window;
           createAnnotationMatrix(win, undefined, annotations);
+          // 跨window操作示例
+          // const onOk = () => {
+          //   const libId = Zotero.Libraries.userLibraryID
+          // }
+          // waitUtilAsync(() => !!win.document.querySelector("#content"), 100, 10000).then(() => {
+          //   win.mainWindow = mainWindow;
+          //   win.Zotero = Zotero;
+          //   win.onOk = onOk
+          // })
         },
       },
       {
