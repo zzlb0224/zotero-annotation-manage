@@ -373,7 +373,7 @@ function buildMenu(collectionOrItem: "collection" | "item") {
           // const onOk = () => {
           //   const libId = Zotero.Libraries.userLibraryID
           // }
-          // waitUtilAsync(() => !!win.document.querySelector("#content"), 100, 10000).then(() => {
+          // waitFor(() => win.document.querySelector("#content"), 100, 10000).then(() => {
           //   win.mainWindow = mainWindow;
           //   win.Zotero = Zotero;
           //   win.onOk = onOk
