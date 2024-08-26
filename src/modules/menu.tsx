@@ -33,13 +33,14 @@ function unregister() {
 function buildMenu(collectionOrItem: "collection" | "item") {
   const menu: MenuitemOptions = {
     tag: "menu",
-    label: "笔记管理 - in " + collectionOrItem,
+    label: getString("menu-annotationManage") + " - in " + collectionOrItem,
+
     icon: iconBaseUrl + "favicon.png",
     children: [
       {
         //自定义命令
         tag: "menu",
-        label: "自定义命令",
+        label: getString("menu-customMenu"),// "自定义命令",
         icon: iconBaseUrl + "favicon.png",
         children: [
           {
@@ -739,24 +740,24 @@ export function createActionTag(
     // },
     action
       ? {
-          tag: "button",
-          namespace: "html",
-          properties: { textContent: "确定生成" },
-          // styles: {
-          //   padding: "6px",
-          //   background: "#f99",
-          //   margin: "1px",
-          // },
-          listeners: [
-            {
-              type: "click",
-              listener: (ev: any) => {
-                stopPropagation(ev);
-                action();
-              },
+        tag: "button",
+        namespace: "html",
+        properties: { textContent: "确定生成" },
+        // styles: {
+        //   padding: "6px",
+        //   background: "#f99",
+        //   margin: "1px",
+        // },
+        listeners: [
+          {
+            type: "click",
+            listener: (ev: any) => {
+              stopPropagation(ev);
+              action();
             },
-          ],
-        }
+          },
+        ],
+      }
       : { tag: "span" },
     ...others,
   ];
