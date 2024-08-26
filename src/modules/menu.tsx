@@ -17,7 +17,7 @@ import { getCiteItemHtml } from "./getCitationItem";
 import { funcSplitTag, funcTranslateAnnotations } from "./menuTools";
 import { MyButton } from "./MyButton";
 import { getString } from "../utils/locale";
-import { waitFor, waitUtilAsync } from '../utils/wait';
+import { waitFor, waitUtilAsync } from "../utils/wait";
 
 const iconBaseUrl = `chrome://${config.addonRef}/content/icons/`;
 function register() {
@@ -342,7 +342,7 @@ function buildMenu(collectionOrItem: "collection" | "item") {
           } else {
             header = `多条目:${items.length}个条目`;
           }
-          const win = await createDialog(header, [
+          const win = (await createDialog(header, [
             { tag: "div", classList: ["query"] },
             {
               tag: "div",
@@ -367,7 +367,7 @@ function buildMenu(collectionOrItem: "collection" | "item") {
                 overflowY: "overlay",
               },
             },
-          ]) as Window;
+          ])) as Window;
           createAnnotationMatrix(win, undefined, annotations);
           // 跨window操作示例
           // const onOk = () => {
@@ -739,24 +739,24 @@ export function createActionTag(
     // },
     action
       ? {
-        tag: "button",
-        namespace: "html",
-        properties: { textContent: "确定生成" },
-        // styles: {
-        //   padding: "6px",
-        //   background: "#f99",
-        //   margin: "1px",
-        // },
-        listeners: [
-          {
-            type: "click",
-            listener: (ev: any) => {
-              stopPropagation(ev);
-              action();
+          tag: "button",
+          namespace: "html",
+          properties: { textContent: "确定生成" },
+          // styles: {
+          //   padding: "6px",
+          //   background: "#f99",
+          //   margin: "1px",
+          // },
+          listeners: [
+            {
+              type: "click",
+              listener: (ev: any) => {
+                stopPropagation(ev);
+                action();
+              },
             },
-          },
-        ],
-      }
+          ],
+        }
       : { tag: "span" },
     ...others,
   ];

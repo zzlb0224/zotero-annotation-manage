@@ -20,7 +20,7 @@
   "homepage": "https://github.com/zzlb0224/zotero-annotation-manage#readme",
   "license": "AGPL-3.0-or-later",
   "scripts": {
-    "reinstall": "rd /S /Q node_modules && del /S /Q package-lock.json && npm install && npm run build",
+    "reinstall": "rd /S /Q node_modules && del /S /Q package-lock.json && npm install && npm run lint && npm run build",
     "start": "zotero-plugin serve",
     "build": "tsc --noEmit && zotero-plugin build",
     "lint": "prettier --write . && eslint . --fix",

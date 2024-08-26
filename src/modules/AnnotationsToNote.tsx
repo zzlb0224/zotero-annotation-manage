@@ -26,7 +26,7 @@ import { getString } from "../utils/locale";
 import { createRoot } from "react-dom/client";
 import { IntlProvider } from "react-intl";
 import * as React from "react";
-import { AnnotationMatrix, content2AnnotationMatrix } from '../component/AnnotationMatrix';
+import { AnnotationMatrix, content2AnnotationMatrix } from "../component/AnnotationMatrix";
 // import { groupBy } from "lodash";
 
 export function getAllAnnotations(items: Zotero.Item[]) {
@@ -722,13 +722,14 @@ export function createSearchAnnContent(dialogWindow: Window | undefined, popupDi
                   display: bShowRank || bShowTag ? "" : "none",
                 },
                 properties: {
-                  innerHTML: `${bShowTag
-                    ? anTo
-                      .getTags()
-                      .map((a) => a.tag)
-                      .join(",")
-                    : ""
-                    } ${bShowRank ? getPublicationTags(anTo) : ""}`,
+                  innerHTML: `${
+                    bShowTag
+                      ? anTo
+                          .getTags()
+                          .map((a) => a.tag)
+                          .join(",")
+                      : ""
+                  } ${bShowRank ? getPublicationTags(anTo) : ""}`,
                 },
               },
             ],
@@ -1089,14 +1090,11 @@ export async function createNote(txt = "", pw: ProgressWindowHelper | undefined 
   return targetNoteItem;
 }
 
-
-
 export function createAnnotationMatrix(dialogWindow: Window | undefined, popupDiv: HTMLElement | undefined, annotations: AnnotationRes[]) {
   const isWin = dialogWindow != undefined;
   const doc = dialogWindow?.document.documentElement || popupDiv;
   if (!doc) return;
-  dialogWindow?.addEventListener("resize", (e) => {
-  });
+  dialogWindow?.addEventListener("resize", (e) => {});
 
   const content = doc.querySelector(".content") as HTMLElement;
   const query = doc.querySelector(".query") as HTMLElement;

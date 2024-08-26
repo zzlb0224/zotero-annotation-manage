@@ -1,8 +1,8 @@
 // 参考https://github.com/alexreardon/memoize-one设计的二代缓存
 export type MemoizedFn<TFunc extends (this: any, ...args: Parameters<TFunc>) => any> = {
-  removeCache: (key?: string | RegExp | undefined) => void;//删除缓存
-  replaceCacheByKey: (key?: string | RegExp | undefined) => void;//重建缓存
-  replaceCacheByArgs: (...newArgs: Parameters<TFunc>) => void;//重建缓存
+  removeCache: (key?: string | RegExp | undefined) => void; //删除缓存
+  replaceCacheByKey: (key?: string | RegExp | undefined) => void; //重建缓存
+  replaceCacheByArgs: (...newArgs: Parameters<TFunc>) => void; //重建缓存
   (this: ThisParameterType<TFunc>, ...args: Parameters<TFunc>): ReturnType<TFunc>;
 };
 export function memoize2<TFunc extends (this: any, ...newArgs: any[]) => any>(
@@ -37,7 +37,7 @@ export function memoize2<TFunc extends (this: any, ...newArgs: any[]) => any>(
     //   time2: Date.now() - cacheTime[cacheKey],
     //   timeout,
     //   thisEq: cacheThis[cacheKey] == this,
-    // }); 
+    // });
     cacheTime[cacheKey] = Date.now();
     cacheArgs[cacheKey] = newArgs;
     if (resultFn.constructor.name == "AsyncFunction") {
@@ -55,14 +55,16 @@ export function memoize2<TFunc extends (this: any, ...newArgs: any[]) => any>(
   }
   memoized.replaceCacheByArgs = (...newArgs: Parameters<TFunc>) => {
     updateCacheObject(keyFn?.(...newArgs) || "", newArgs);
-  }
+  };
   memoized.replaceCacheByKey = (cacheKey: string | RegExp | undefined = undefined) => {
     if (cacheKey === undefined) {
       //替换所有缓存
-      Object.keys(cacheTime).forEach(key => updateCacheObject(key, cacheArgs[key]));
+      Object.keys(cacheTime).forEach((key) => updateCacheObject(key, cacheArgs[key]));
     } else if (cacheKey instanceof RegExp) {
       //按正则替换缓存
-      Object.keys(cacheTime).filter(cacheKey.test).forEach(key => updateCacheObject(key, cacheArgs[key]));
+      Object.keys(cacheTime)
+        .filter(cacheKey.test)
+        .forEach((key) => updateCacheObject(key, cacheArgs[key]));
     } else {
       //只替换对应key的缓存
       updateCacheObject(keyFn?.(...cacheArgs[cacheKey]) || "", cacheArgs[cacheKey]);

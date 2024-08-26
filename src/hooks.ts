@@ -15,7 +15,7 @@ import { groupBy } from "./utils/groupBy";
 import { sortFixedTags10ValuesLength, sortValuesLength } from "./utils/sort";
 // import { TagElementProps } from "zotero-plugin-toolkit/dist/tools/ui";
 import { annotationToNoteTags, annotationToNoteType } from "./hooksMenuEvent";
-import { createZToolkit } from './utils/ztoolkit';
+import { createZToolkit } from "./utils/ztoolkit";
 
 async function onStartup() {
   await Promise.all([Zotero.initializationPromise, Zotero.unlockPromise, Zotero.uiReadyPromise]);
