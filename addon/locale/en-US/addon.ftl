@@ -54,4 +54,6 @@ popupRoot-SortType-CharAsc =  CharAsc
 
 
 menu-AnnotationMatrix =  AnnotationMatrix
+menu-annotationManage =  annotation
+menu-customMenu =  custom menu
 

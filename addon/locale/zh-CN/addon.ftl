@@ -52,3 +52,5 @@ popupRoot-SortType-CharAsc =  字母顺序
 
 
 menu-AnnotationMatrix =  文献矩阵
+menu-annotationManage =  笔记管理
+menu-customMenu =  自定义菜单
