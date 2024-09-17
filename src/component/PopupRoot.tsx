@@ -1192,6 +1192,22 @@ export function PopupRoot({
                   )}
                 </>
               )}
+              {!item && (<>  !量表处理
+                {/* {item.getAnnotations().map(a => a.getTags().map(b => b.tag).join(","))} */}
+                {item.getAnnotations().some(s => s.hasTag("量表")) && (<div>
+                  <button className='toolbar-button' style={{ width: "unset" }}>量表...</button>
+                  <div>{item.getAnnotations().filter(f => f.hasTag("量表")).map(a => (<button className='toolbar-button' style={{ width: "unset" }}>{a.annotationText}</button>))}</div>
+                  <div>
+                    <button className='toolbar-button' style={{ width: "unset" }}>item</button>
+                    <button className='toolbar-button' style={{ width: "unset" }}>CR</button>
+                    <button className='toolbar-button' style={{ width: "unset" }}>AVE</button>
+                  </div>
+                  <div>
+                    <button className='toolbar-button' style={{ width: "unset" }}>factor loading</button>
+                  </div>
+                </div>)}
+                !!
+              </>)}
 
               {bComment && !params.ids && (
                 <input
@@ -1364,20 +1380,20 @@ export function PopupRoot({
                       ctrlAddOrSaveTags(isAdd, cTag);
                       return false;
                     }}
-                    // onMouseDown={(e) => {
-                    //   e.preventDefault();
-                    //   ztoolkit.log("onMouseDown 复制", e)
-                    //   return false
-                    // }}
-                    // onContextMenu={e => {
-                    //   e.preventDefault();
-                    //   ztoolkit.log("onContextMenu 复制", tag.key)
-                    //   new window.Clipboard().readText().then((text) => {
-                    //     ztoolkit.log("onContextMenu 复制", tag.key, text);
-                    //     (e.currentTarget as HTMLInputElement).value = text;
-                    //   })
-                    //   return false
-                    // }}
+                  // onMouseDown={(e) => {
+                  //   e.preventDefault();
+                  //   ztoolkit.log("onMouseDown 复制", e)
+                  //   return false
+                  // }}
+                  // onContextMenu={e => {
+                  //   e.preventDefault();
+                  //   ztoolkit.log("onContextMenu 复制", tag.key)
+                  //   new window.Clipboard().readText().then((text) => {
+                  //     ztoolkit.log("onContextMenu 复制", tag.key, text);
+                  //     (e.currentTarget as HTMLInputElement).value = text;
+                  //   })
+                  //   return false
+                  // }}
                   >
                     <span>[{tag.values.length}]</span>
                     <span>{tag.key}</span>
