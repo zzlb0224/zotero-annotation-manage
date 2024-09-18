@@ -20,7 +20,7 @@ import {
 import { getSelectedItems, createActionTag } from "./menu";
 import { showTitle } from "./RelationHeader";
 import { groupBy } from "../utils/groupBy";
-import { getCiteItemHtmlWithPage, getCiteAnnotationHtml } from "./getCitationItem";
+import { getCiteItemHtmlWithPage, getCiteAnnotationHtml, getCiteItemHtml } from "./getCitationItem";
 import { ProgressWindowHelper } from "zotero-plugin-toolkit/dist/helpers/progressWindow";
 import { getString } from "../utils/locale";
 import { createRoot } from "react-dom/client";
@@ -722,14 +722,13 @@ export function createSearchAnnContent(dialogWindow: Window | undefined, popupDi
                   display: bShowRank || bShowTag ? "" : "none",
                 },
                 properties: {
-                  innerHTML: `${
-                    bShowTag
-                      ? anTo
-                          .getTags()
-                          .map((a) => a.tag)
-                          .join(",")
-                      : ""
-                  } ${bShowRank ? getPublicationTags(anTo) : ""}`,
+                  innerHTML: `${bShowTag
+                    ? anTo
+                      .getTags()
+                      .map((a) => a.tag)
+                      .join(",")
+                    : ""
+                    } ${bShowRank ? getPublicationTags(anTo) : ""}`,
                 },
               },
             ],
@@ -941,6 +940,58 @@ export async function exportNoteByType(type: _ZoteroTypes.Annotations.Annotation
     },
   });
 }
+export async function exportScaleNote(collectionOrItem: "collection" | "item") {
+  const items = await getSelectedItems(collectionOrItem);
+  const ans = getAllAnnotations(items).filter(f => f.annotationTags.includes("量表"));
+  const note = await createNote("")
+  const pw = new ztoolkit.ProgressWindow("")
+  const ans2 = await convertHtml(ans, note, pw)
+  const ans2group = groupBy(ans2, a => a.item.key)
+  const title = `量表来自${ans2group.length}个条目`;
+
+  let authorYear = "authorYear";
+  let variable = "variable";
+  let AVE = "AVE";
+  let CA = "CA";
+  let CR = "CR";
+  let reference = "reference";
+  let scaleItem = "item";
+  let factorLoading = "factorLoading";
+  let description = "description";
+  let res = `<h1>${title}</h1>
+  <table border="0" cellspacing="1"><tr><td>${authorYear}</td><td>${variable}</td><td>${factorLoading
+    }</td><td>${scaleItem
+    }</td><td>${reference}</td><td>${CR}</td><td>${CA}</td><td>${AVE}</td><td>${description}</td></tr>`
+  for (const item of ans2group) {
+    const vars = item.values.filter(f => f.tags.some(s => s.tag == "量表"))
+    authorYear = getCiteItemHtml(item.values[0].item)
+    const getAns = (type: "AVE" | "CR" | "CA" | "reference" | "item" | "factorLoading" | "description", text: string = "**") => item.values.filter(f => f.tags.some(s => s.tag == "量表" + type) && f.comment.includes(`*${text}*`))
+    for (const scale of vars) {
+      variable = scale.html;
+      description = getAns("description", scale.text)?.[0]?.text || "";
+      AVE = getAns("AVE", scale.text)?.[0]?.text || "";
+      CA = getAns("CA", scale.text)?.[0]?.text || "";
+      CR = getAns("CR", scale.text)?.[0]?.text || "";
+      reference = getAns("reference", scale.text)?.[0]?.text || "";
+      factorLoading = ""
+      res += `<tr><td>${authorYear}</td><td>${variable}</td><td>${scaleItem
+        }</td><td>${factorLoading
+        }</td><td>${reference}</td><td>${CR}</td><td>${CA}</td><td>${AVE}</td><td>${description}</td></tr>`
+      const scaleItems = item.values.filter(f => f.tags.some(s => s.tag == "量表item") && f.comment.includes(`*${scale.text}*`))
+      authorYear = variable = AVE = CA = CR = reference = "";
+      for (const scaleItem1 of scaleItems) {
+        scaleItem = scaleItem1.html;
+        description = getAns("description", scaleItem1.text)?.[0]?.text || "";
+        factorLoading = getAns("factorLoading", scaleItem1.text)?.[0]?.text || "";
+        res += `<tr><td>${authorYear}</td><td>${variable}</td><td>${factorLoading
+          }</td><td>${reference}</td><td>${CR}</td><td>${CA}</td><td>${AVE}</td><td>${description}</td></tr>`
+      }
+    }
+  }
+  res += "</table>"
+  ztoolkit.log(res)
+  await saveNote(note, res, pw)
+}
 export async function exportSingleNote(tag: string, collectionOrItem: "collection" | "item") {
   if (tag)
     exportNote({
@@ -950,12 +1001,12 @@ export async function exportSingleNote(tag: string, collectionOrItem: "collectio
         groupBy(ans, (a) => a.pdfTitle)
           .sort(sortKey)
           .flatMap((a, index, aa) => [
-            // `<h1>(${index + 1}/${aa.length}) ${a.key} ${getCiteItemHtmlWithPage(a.values[0].ann)} </h1>`,
-            // `${getPublicationTags(a.values[0]?.item)}`,
-            `<h1>(${index + 1}/${aa.length}) ${getCiteItemHtmlWithPage(a.values[0].ann)} ${getPublicationTags(a.values[0]?.item)}</h1>`,
+            // `<h1>(${ index + 1} /${aa.length}) ${a.key} ${getCiteItemHtmlWithPage(a.values[0].ann)} </h1> `,
+            // `${ getPublicationTags(a.values[0]?.item) } `,
+            `<h1>(${index + 1}/${aa.length}) ${getCiteItemHtmlWithPage(a.values[0].ann)} ${getPublicationTags(a.values[0]?.item)}</h1> `,
             `${a.key}`,
             a.values
-              .map((b) => b.html ?? `<h2>${getCiteAnnotationHtml(b.ann, b.ann.annotationText + b.ann.annotationComment)}</h2>`)
+              .map((b) => b.html ?? `<h2> ${getCiteAnnotationHtml(b.ann, b.ann.annotationText + b.ann.annotationComment)}</h2> `)
               .join(" "),
           ])
           .join(""),
@@ -976,15 +1027,15 @@ export function toText1(ans: AnnotationRes[]) {
       ans.flatMap((a) => a.tags),
       (a) => a.tag,
     )
-      .map((a) => `[${a.values.length}]${a.key}`)
+      .map((a) => `[${a.values.length}]${a.key} `)
       .join(" "),
     groupBy(ans, (a) => a.pdf.key)
       .sort(sortKey)
       .map((a) => ({ ...a, values: uniqueBy(a.values, (f) => f.ann.key) }))
       .flatMap((a, index, aa) => [
-        // `<h1>(${index + 1}/${aa.length}) ${a.key} ${getCiteItemHtmlWithPage(a.values[0].ann)}</h1>`,
-        // `${getPublicationTags(a.values[0]?.item)}`,
-        `<h1>(${index + 1}/${aa.length}) ${getCiteItemHtmlWithPage(a.values[0].ann)} ${getPublicationTags(a.values[0]?.item)}</h1>`,
+        // `<h1>(${ index + 1}/${aa.length}) ${a.key} ${getCiteItemHtmlWithPage(a.values[0].ann)}</h1> `,
+        // `${ getPublicationTags(a.values[0]?.item)}`,
+        `<h1>(${index + 1}/${aa.length}) ${getCiteItemHtmlWithPage(a.values[0].ann)} ${getPublicationTags(a.values[0]?.item)}</h1> `,
         `title：${a.values[0].item.getDisplayTitle()}`,
         ...a.values.flatMap((b) => b.html),
       ])
@@ -1046,7 +1097,7 @@ export async function exportNote({
   for (const item of usedItems) {
     note.addRelatedItem(item);
   }
-  note.addTag(`${config.addonRef}:引用Item${usedItems.length}个`);
+  note.addTag(`${config.addonRef}: 引用Item${usedItems.length}个`);
 
   await saveNote(note, `${title}${txt}`);
 }
@@ -1076,7 +1127,7 @@ export async function createNote(txt = "", pw: ProgressWindowHelper | undefined 
   }
 
   if (txt) await Zotero.BetterNotes.api.note.insert(targetNoteItem, txt, -1);
-  targetNoteItem.addTag(`${config.addonRef}:生成的笔记`, 0);
+  targetNoteItem.addTag(`${config.addonRef}: 生成的笔记`, 0);
   //必须保存后面才能保存图片
   await targetNoteItem.saveTx();
   const header = "";
@@ -1094,7 +1145,7 @@ export function createAnnotationMatrix(dialogWindow: Window | undefined, popupDi
   const isWin = dialogWindow != undefined;
   const doc = dialogWindow?.document.documentElement || popupDiv;
   if (!doc) return;
-  dialogWindow?.addEventListener("resize", (e) => {});
+  dialogWindow?.addEventListener("resize", (e) => { });
 
   const content = doc.querySelector(".content") as HTMLElement;
   const query = doc.querySelector(".query") as HTMLElement;

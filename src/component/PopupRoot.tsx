@@ -133,16 +133,16 @@ export function PopupRoot({
   const [selectionPopupSize, setSelectionPopupSize] = useState({ width: 0, height: 0 });
   const [configName, setConfigName] = useState(getPref("configName"));
   const [bScale, setBScale] = useState(getPref("bScale") as boolean)
-  const [sScale, setSScale] = useState("")
+  const [sScale, setSScale] = useState(getPref("sScale"))
   const [sScaleType, setSScaleType] = useState(getPref("sScaleType") as string)
   const [sScaleItem, setSScaleItem] = useState("")
   useEffect(() => {
-    const lsScale = getPref("sScale") as string;
-    const i = item.getAnnotations().findIndex(f => f.hasTag("量表") && f.annotationText == lsScale)
-    if (i > -1) {
-      setSScale(lsScale)
+    if (sScale) {
+      if (item.getAnnotations().findIndex(f => f.hasTag("量表") && f.annotationText == sScale) == -1) {
+        setSScale("")
+        setPref("sScale", "")
+      }
     }
-    ztoolkit.log("useEffect", lsScale)
   }, [])
 
   const tagStyle = {
@@ -1087,19 +1087,25 @@ export function PopupRoot({
         {!params.ids && (<>
           {/* {item.getAnnotations().map(a => a.getTags().map(b => b.tag).join(","))} */}
           {item.getAnnotations().some(s => s.hasTag("量表")) && (<div>
-            <button className='toolbar-button' style={{ width: "unset" }} onClick={() => {
+            <div style={{ display: "flex", flexWrap: "wrap" }}> <button className='toolbar-button' style={{ width: "unset", margin: "2px" }} onClick={() => {
               const nbScale = !bScale;
               setBScale(nbScale)
               setPref("bScale", nbScale)
             }
-            }>量表...</button>
+            }>量表操作</button>
+              <button className='toolbar-button' style={{ width: "unset", margin: "2px" }} onClick={() => {
+                const nbScale = !bScale;
+                setBScale(nbScale)
+                setPref("bScale", nbScale)
+              }
+              }>元操作</button></div>
             {bScale && (<>
-              <div style={{ display: "flex" }}>
+              <div style={{ display: "flex", flexWrap: "wrap" }}>
                 {sScaleType ? (
                   <button className='toolbar-button' style={{ width: "unset" }} onClick={() => {
                     setSScaleType("")
                   }}>类型：{sScaleType}</button>
-                ) : (["item", "CR", "CA", "AVE", "author", "factor loading"].map(a => (<button className='toolbar-button' style={{ width: "unset", margin: "2px" }} onClick={() => {
+                ) : (["item", "CR", "CA", "AVE", "factorLoading", "reference", "description"].map(a => (<button className='toolbar-button' style={{ width: "unset", margin: "2px" }} onClick={() => {
                   setSScaleType(a)
                   setPref("sScaleType", a)
                 }}>{a}</button>)))}
@@ -1116,7 +1122,7 @@ export function PopupRoot({
                 ))}
               </div>
               <div>
-                {sScaleType == "factor loading" && sScale && (sScaleItem ? (<button className='toolbar-button' style={{ width: "unset" }} onClick={() => {
+                {sScaleType == "factorLoading" && sScale && (sScaleItem ? (<button className='toolbar-button' style={{ width: "unset" }} onClick={() => {
                   setSScaleItem("")
                 }}>量表item：{sScaleItem}</button>) : (item.getAnnotations().filter(f => f.hasTag("量表item") && f.annotationComment.includes(`*${sScale}*`)).map(a =>
                 (<button className='toolbar-button' style={{ width: "unset" }} onClick={() => {
@@ -1125,20 +1131,14 @@ export function PopupRoot({
                 )
                 ))}
               </div>
-              <div>{sScaleType != "" && sScale != "" && (sScaleType != "factor loading" || sScaleItem != "") && (<button className='toolbar-button' style={{ width: "unset" }} onClick={() => {
-                setIsPopoverOpen(false);
-                const comment = `*${sScale}*` + (sScaleType == "factor loading" ? `*${sScaleItem}*` : "");
-                saveAnnotationTags(
-                  "量表" + sScaleType,
-                  [...selectedTags,],
-                  [...delTags],
-                  reader,
-                  params,
-                  doc,
-                  undefined,
-                  comment,
-                );
-              }}>确认</button>)}</div>
+              <div>{sScaleType != "" && sScale != "" && (sScaleType != "factor loading" || sScaleItem != "") && (<div style={{ display: "flex", flexWrap: "wrap" }}>
+                {["item", "CR", "CA", "AVE", "factorLoading", "reference", "description"]//.filter(f => f != sScaleType)
+                  .map(a => (<button className='toolbar-button' style={{ width: "unset", margin: "2px" }} onClick={() => {
+                    scaleAddAnnotation();
+                    setPref("sScaleType", a)
+                  }}>{sScaleType == a ? `【${a}】` : a}</button>))}
+              </div>)}</div>
+
 
             </>)}
           </div>)}
@@ -1624,6 +1624,21 @@ export function PopupRoot({
       </Popover>
     </>
   );
+
+  function scaleAddAnnotation() {
+    setIsPopoverOpen(false);
+    const comment = `*${sScale}*` + (sScaleType == "factor loading" ? `*${sScaleItem}*` : "");
+    saveAnnotationTags(
+      "量表" + sScaleType,
+      [...selectedTags,],
+      [...delTags],
+      reader,
+      params,
+      doc,
+      undefined,
+      comment
+    );
+  }
 
   function ctrlAddOrSaveTags(onlyAdd: boolean, cTag: string) {
     ztoolkit.log("isSaveTag", selectedTags, cTag, onlyAdd);

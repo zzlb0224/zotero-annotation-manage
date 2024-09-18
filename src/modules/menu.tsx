@@ -10,7 +10,7 @@ import { sortBy, sortValuesLengthKeyAsc } from "../utils/sort";
 import { Tab } from "../utils/tab";
 import { uniqueBy } from "../utils/uniqueBy";
 import { ReTest, clearChild, createDialog, getChildCollections, isDebug, memFixedColor, stopPropagation } from "../utils/zzlb";
-import { createAnnotationMatrix, createChooseTagsDiv, createSearchAnnContent, getAllAnnotations } from "./AnnotationsToNote";
+import { createAnnotationMatrix, createChooseTagsDiv, createSearchAnnContent, exportNote, exportScaleNote, getAllAnnotations } from "./AnnotationsToNote";
 import { copyAnnotations, mergePdfs, pasteAnnotations } from "./BackupAnnotation";
 import { DDDTagClear, DDDTagRemove, DDDTagSet } from "./DDD";
 import { getCiteItemHtml } from "./getCitationItem";
@@ -312,6 +312,16 @@ function buildMenu(collectionOrItem: "collection" | "item") {
         icon: iconBaseUrl + "favicon.png",
         popupId: `${config.addonRef}-create-note-type-popup-${collectionOrItem}`,
         onpopupshowing: `Zotero.${config.addonInstance}.hooks.onMenuEvent("annotationToNoteType", { window,type:"${collectionOrItem}" })`,
+      },
+      {
+        tag: "menuseparator",
+      }, {
+        tag: "menuitem",
+        label: "导出量表格式(测试中)",
+        icon: iconBaseUrl + "favicon.png",
+        commandListener: async (ev: Event) => {
+          exportScaleNote(collectionOrItem);
+        },
       },
       {
         tag: "menuseparator",
@@ -740,24 +750,24 @@ export function createActionTag(
     // },
     action
       ? {
-          tag: "button",
-          namespace: "html",
-          properties: { textContent: "确定生成" },
-          // styles: {
-          //   padding: "6px",
-          //   background: "#f99",
-          //   margin: "1px",
-          // },
-          listeners: [
-            {
-              type: "click",
-              listener: (ev: any) => {
-                stopPropagation(ev);
-                action();
-              },
+        tag: "button",
+        namespace: "html",
+        properties: { textContent: "确定生成" },
+        // styles: {
+        //   padding: "6px",
+        //   background: "#f99",
+        //   margin: "1px",
+        // },
+        listeners: [
+          {
+            type: "click",
+            listener: (ev: any) => {
+              stopPropagation(ev);
+              action();
             },
-          ],
-        }
+          },
+        ],
+      }
       : { tag: "span" },
     ...others,
   ];
