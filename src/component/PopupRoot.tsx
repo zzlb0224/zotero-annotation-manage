@@ -132,6 +132,18 @@ export function PopupRoot({
   const [nFCLTop, setFCLTop] = useState(getPrefAs("nFCLTop", 0));
   const [selectionPopupSize, setSelectionPopupSize] = useState({ width: 0, height: 0 });
   const [configName, setConfigName] = useState(getPref("configName"));
+  const [bScale, setBScale] = useState(getPref("bScale") as boolean)
+  const [sScale, setSScale] = useState("")
+  const [sScaleType, setSScaleType] = useState(getPref("sScaleType") as string)
+  const [sScaleItem, setSScaleItem] = useState("")
+  useEffect(() => {
+    const lsScale = getPref("sScale") as string;
+    const i = item.getAnnotations().findIndex(f => f.hasTag("量表") && f.annotationText == lsScale)
+    if (i > -1) {
+      setSScale(lsScale)
+    }
+    ztoolkit.log("useEffect", lsScale)
+  }, [])
 
   const tagStyle = {
     marginLeft: btnMarginLR + "px",
@@ -393,6 +405,10 @@ export function PopupRoot({
   const clickMeButtonRef = React.useRef<HTMLElement | null>(null);
 
   const vars = [
+    bScale,
+    sScale,
+    sScaleType,
+    sScaleItem,
     bComment,
     comment,
     blockHightLightUnderLineToggle,
@@ -1065,9 +1081,68 @@ export function PopupRoot({
           maxHeight: divMaxHeight + "px",
           //@ts-ignore overflowY
           overflowY: "overlay",
-          background: "#f00",
+          // background: "#f00",
         }}
       >
+        {!params.ids && (<>
+          {/* {item.getAnnotations().map(a => a.getTags().map(b => b.tag).join(","))} */}
+          {item.getAnnotations().some(s => s.hasTag("量表")) && (<div>
+            <button className='toolbar-button' style={{ width: "unset" }} onClick={() => {
+              const nbScale = !bScale;
+              setBScale(nbScale)
+              setPref("bScale", nbScale)
+            }
+            }>量表...</button>
+            {bScale && (<>
+              <div style={{ display: "flex" }}>
+                {sScaleType ? (
+                  <button className='toolbar-button' style={{ width: "unset" }} onClick={() => {
+                    setSScaleType("")
+                  }}>类型：{sScaleType}</button>
+                ) : (["item", "CR", "CA", "AVE", "author", "factor loading"].map(a => (<button className='toolbar-button' style={{ width: "unset", margin: "2px" }} onClick={() => {
+                  setSScaleType(a)
+                  setPref("sScaleType", a)
+                }}>{a}</button>)))}
+              </div>
+              <div>
+                {sScaleType && (sScale ? (<button className='toolbar-button' style={{ width: "unset" }} onClick={() => {
+                  setSScale("")
+                }}>量表：{sScale}</button>) : (item.getAnnotations().filter(f => f.hasTag("量表")).map(a =>
+                (<button className='toolbar-button' style={{ width: "unset" }} onClick={() => {
+                  setSScale(a.annotationText);
+                  setPref("sScale", a.annotationText)
+                }}>{a.annotationText}</button>)
+                )
+                ))}
+              </div>
+              <div>
+                {sScaleType == "factor loading" && sScale && (sScaleItem ? (<button className='toolbar-button' style={{ width: "unset" }} onClick={() => {
+                  setSScaleItem("")
+                }}>量表item：{sScaleItem}</button>) : (item.getAnnotations().filter(f => f.hasTag("量表item") && f.annotationComment.includes(`*${sScale}*`)).map(a =>
+                (<button className='toolbar-button' style={{ width: "unset" }} onClick={() => {
+                  setSScaleItem(a.annotationText);
+                }}>{a.annotationText}</button>)
+                )
+                ))}
+              </div>
+              <div>{sScaleType != "" && sScale != "" && (sScaleType != "factor loading" || sScaleItem != "") && (<button className='toolbar-button' style={{ width: "unset" }} onClick={() => {
+                setIsPopoverOpen(false);
+                const comment = `*${sScale}*` + (sScaleType == "factor loading" ? `*${sScaleItem}*` : "");
+                saveAnnotationTags(
+                  "量表" + sScaleType,
+                  [...selectedTags,],
+                  [...delTags],
+                  reader,
+                  params,
+                  doc,
+                  undefined,
+                  comment,
+                );
+              }}>确认</button>)}</div>
+
+            </>)}
+          </div>)}
+        </>)}
         <div
           style={{
             // marginTop: pFixedContentLocation || params.ids ? nFCLTop + "px" : "unset",
@@ -1192,22 +1267,7 @@ export function PopupRoot({
                   )}
                 </>
               )}
-              {!item && (<>  !量表处理
-                {/* {item.getAnnotations().map(a => a.getTags().map(b => b.tag).join(","))} */}
-                {item.getAnnotations().some(s => s.hasTag("量表")) && (<div>
-                  <button className='toolbar-button' style={{ width: "unset" }}>量表...</button>
-                  <div>{item.getAnnotations().filter(f => f.hasTag("量表")).map(a => (<button className='toolbar-button' style={{ width: "unset" }}>{a.annotationText}</button>))}</div>
-                  <div>
-                    <button className='toolbar-button' style={{ width: "unset" }}>item</button>
-                    <button className='toolbar-button' style={{ width: "unset" }}>CR</button>
-                    <button className='toolbar-button' style={{ width: "unset" }}>AVE</button>
-                  </div>
-                  <div>
-                    <button className='toolbar-button' style={{ width: "unset" }}>factor loading</button>
-                  </div>
-                </div>)}
-                !!
-              </>)}
+
 
               {bComment && !params.ids && (
                 <input
@@ -1492,7 +1552,7 @@ export function PopupRoot({
             </span>
           </div>
         </div>
-      </div>
+      </div >
     ),
     vars,
   );
