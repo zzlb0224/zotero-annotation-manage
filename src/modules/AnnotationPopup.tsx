@@ -1,6 +1,6 @@
 import { TagElementProps } from "zotero-plugin-toolkit/dist/tools/ui";
 import { config } from "../../package.json";
-import { getPref } from "../utils/prefs";
+import { getPref, setPref } from "../utils/prefs";
 import {
   sortAsc,
   sortFixedTags1000Ann100Modified10Asc,
@@ -20,6 +20,7 @@ import {
   memRelateTags,
   openAnnotation,
   str2RegExps,
+  getItem,
 } from "../utils/zzlb";
 import { uniqueBy } from "../utils/uniqueBy";
 import { groupByResult } from "../utils/groupBy";
@@ -32,6 +33,8 @@ import { usePopover } from "react-tiny-popover";
 import { HexColorPicker } from "react-colorful";
 import { PopupRoot } from "../component/PopupRoot";
 import TagPopup from "../component/TagPopup";
+import { waitFor } from '../utils/wait';
+import { ScaleActionTypeArray, ScaleItemActionTypeArray } from '../component/Config';
 
 export class AnnotationPopup {
   reader?: _ZoteroTypes.ReaderInstance;
@@ -1227,6 +1230,9 @@ export async function saveAnnotationTags(
           }
           annotation.saveTx(); //增加每一个都要保存，为啥不能批量保存？
         }
+        memoizeAsyncGroupAllTagsDB.replaceCacheByKey();
+        memRelateTags.replaceCacheByArgs(item);
+        return existAnnotations;
         // root?.remove();
       } else {
         const color = selectedTags.map((a) => a.color).filter((f) => f)[0] || memFixedColor(tagsRequire[0], undefined);
@@ -1245,9 +1251,38 @@ export async function saveAnnotationTags(
         //@ts-ignore 访问_onSetSelectionPopup 隐藏弹出框
         // reader?._primaryView?._onSetSelectionPopup?.(null);
         // openAnnotation(item, newAnn?.pageLabel || "", newAnn?.id || "")
+        const newAnnItem = await waitFor(() => getItem(newAnn?.id || ""))
+        if (newAnnItem) {
+          ztoolkit.log("创建了一个新批注", newAnn, newAnnItem)
+          const lastScaleKey = getPref("lastScaleKey") as string
+          const lastScale = getItem(lastScaleKey)
+          const lastScaleItemKey = getPref("lastScaleItemKey") as string
+          const lastScaleItem = getItem(lastScaleItemKey)
+          if (tags.some(s => s.name == "量表")) {
+            setPref("lastScaleKey", newAnnItem.key)
+            setPref("lastScaleItemKey", "")
+          } else
+            if (lastScale) {
+              if (newAnnItem.parentKey == lastScale.parentKey) {
+                if (tags.some(s => ScaleActionTypeArray.map(a => "量表" + a).includes(s.name))) {
+                  new Relations(lastScale).addRelationsToItem(newAnnItem)
+                  if (tags.some(s => s.name == "量表item")) {
+                    setPref("lastScaleItemKey", newAnnItem.key)
+                  }
+                } else if (lastScaleItem.parentKey == newAnnItem.parentKey) {
+                  if (tags.some(s => ScaleItemActionTypeArray.map(a => "量表" + a).includes(s.name))) {
+                    new Relations(lastScale).addRelationsToItem(newAnnItem)
+                    new Relations(lastScaleItem).addRelationsToItem(newAnnItem)
+                  }
+                }
+              }
+            }
+          memoizeAsyncGroupAllTagsDB.replaceCacheByKey();
+          memRelateTags.replaceCacheByArgs(item);
+          return [newAnnItem]
+        }
       }
-      memoizeAsyncGroupAllTagsDB.replaceCacheByKey();
-      memRelateTags.replaceCacheByArgs(item);
+
       // setTimeout(() => {
       //   //给2s等待时间
       //   //清理了缓存之后又做个缓存，增加速度
@@ -1256,6 +1291,7 @@ export async function saveAnnotationTags(
       // }, 2000);
     }
   }
+  return false;
 }
 
 async function getTagsRequire(selectedTags: string[]) {
