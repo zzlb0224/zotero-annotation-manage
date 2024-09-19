@@ -36,6 +36,8 @@ import {
   ConfigTab,
   ConfigTabArray,
   ConfigTypeArray,
+  ScaleActionType,
+  ScaleActionTypeArray,
   SortType,
   SortTypeArray,
   WindowType,
@@ -133,17 +135,26 @@ export function PopupRoot({
   const [nFCLTop, setFCLTop] = useState(getPrefAs("nFCLTop", 0));
   const [selectionPopupSize, setSelectionPopupSize] = useState({ width: 0, height: 0 });
   const [configName, setConfigName] = useState(getPref("configName"));
-  const [bScale, setBScale] = useState(getPref("bScale") as boolean)
   const [exAction, setExAction] = useState(getPref("exAction") as string)
   const [sScale, setSScale] = useState(getPref("sScale"))
-  const [sScaleType, setSScaleType] = useState(getPref("sScaleType") as string)
+  const [sScaleAction, setSScaleAction] = useState<ScaleActionType | undefined>(getPref("sScaleAction") as ScaleActionType)
   const [sScaleItem, setSScaleItem] = useState("")
   useEffect(() => {
     if (sScale) {
       if (item.getAnnotations().findIndex(f => f.hasTag("量表") && f.annotationText == sScale) == -1) {
         setSScale("")
         setPref("sScale", "")
+        setSScaleItem("")
+        setPref("sScaleItem", "")
+      } else {
+        if (item.getAnnotations().findIndex(f => f.hasTag("量表item") && f.annotationText == sScaleItem && f.annotationComment.includes(`*${sScale}*`)) == -1) {
+          setSScaleItem("")
+          setPref("sScaleItem", "")
+        }
       }
+    } else {
+      setSScaleItem("")
+      setPref("sScaleItem", "")
     }
   }, [])
 
@@ -408,9 +419,8 @@ export function PopupRoot({
 
   const vars = [
     exAction,
-    bScale,
     sScale,
-    sScaleType,
+    sScaleAction,
     sScaleItem,
     bComment,
     comment,
@@ -1105,18 +1115,18 @@ export function PopupRoot({
           </div>
 
           {exAction == "量表" && (<>
-            <div style={{ display: "flex", flexWrap: "wrap" }}>
-              {sScaleType ? (
+            {/* <div style={{ display: "flex", flexWrap: "wrap" }}>
+              {sScaleAction ? (
                 <button className='toolbar-button' style={{ width: "unset" }} onClick={() => {
-                  setSScaleType("")
-                }}>类型：{sScaleType}</button>
+                  setSScaleAction("")
+                }}>类型：{sScaleAction}</button>
               ) : (["item", "CR", "CA", "AVE", "factorLoading", "reference", "description"].map(a => (<button className='toolbar-button' style={{ width: "unset", margin: "2px" }} onClick={() => {
-                setSScaleType(a)
-                setPref("sScaleType", a)
+                setSScaleAction(a)
+                setPref("sScaleAction", a)
               }}>{a}</button>)))}
-            </div>
+            </div> */}
             <div>
-              {sScaleType && (sScale ? (<button className='toolbar-button' style={{ width: "unset" }} onClick={() => {
+              {sScaleAction && (sScale ? (<button className='toolbar-button' style={{ width: "unset" }} onClick={() => {
                 setSScale("")
               }}>量表：{sScale}</button>) : (item.getAnnotations().filter(f => f.hasTag("量表")).map(a =>
               (<button className='toolbar-button' style={{ width: "unset" }} onClick={() => {
@@ -1127,24 +1137,25 @@ export function PopupRoot({
               ))}
             </div>
             <div>
-              {sScaleType == "factorLoading" && sScale && (sScaleItem ? (<button className='toolbar-button' style={{ width: "unset" }} onClick={() => {
+              {(sScaleAction == "factorLoading" || sScaleAction == "itemDescription" || sScaleItem) && (sScaleItem ? (<button className='toolbar-button' style={{ width: "unset" }} onClick={() => {
                 setSScaleItem("")
               }}>量表item：{sScaleItem}</button>) : (item.getAnnotations().filter(f => f.hasTag("量表item") && f.annotationComment.includes(`*${sScale}*`)).map(a =>
               (<button className='toolbar-button' style={{ width: "unset" }} onClick={() => {
                 setSScaleItem(a.annotationText);
+                setPref("sScaleItem", a.annotationText)
               }}>{a.annotationText}</button>)
               )
               ))}
             </div>
-            <div>{sScaleType != "" && sScale != "" && (sScaleType != "factor loading" || sScaleItem != "") && (<div style={{ display: "flex", flexWrap: "wrap" }}>
-              {["item", "CR", "CA", "AVE", "factorLoading", "reference", "description"]//.filter(f => f != sScaleType)
-                .map(a => (<button className='toolbar-button' style={{ width: "unset", margin: "2px" }} onClick={() => {
-                  scaleAddAnnotation();
-                  setPref("sScaleType", a)
-                }}>{sScaleType == a ? `【${a}】` : a}</button>))}
-            </div>)}</div>
-
-
+            <div style={{ display: "flex", flexWrap: "wrap" }}>
+              {//["item", "CR", "CA", "AVE", "factorLoading", "reference", "description"]//.filter(f => f != sScaleAction)
+                ScaleActionTypeArray
+                  .map(a => (<button className='toolbar-button' style={{ width: "unset", margin: "2px" }} onClick={() => {
+                    setSScaleAction(a)
+                    setPref("sScaleAction", a)
+                    scaleAddAnnotation(a);
+                  }}>{sScaleAction == a ? `【${a}】` : a}</button>))}
+            </div>
           </>)}
 
 
@@ -1631,19 +1642,39 @@ export function PopupRoot({
     </>
   );
 
-  function scaleAddAnnotation() {
-    setIsPopoverOpen(false);
-    const comment = `*${sScale}*` + (sScaleType == "factor loading" ? `*${sScaleItem}*` : "");
-    saveAnnotationTags(
-      "量表" + sScaleType,
-      [...selectedTags,],
-      [...delTags],
-      reader,
-      params,
-      doc,
-      undefined,
-      comment
-    );
+  function scaleAddAnnotation(action: ScaleActionType) {
+    // const action = sScaleAction
+    if (action == "factorLoading" || action == "itemDescription") {
+      if (sScaleItem) {
+        setIsPopoverOpen(false);
+        saveAnnotationTags(
+          "量表" + action,
+          [...selectedTags,],
+          [...delTags],
+          reader,
+          params,
+          doc,
+          undefined,
+          `*${sScaleItem}*`
+        );
+      }
+    }
+    else {
+      if (sScale) {
+        setIsPopoverOpen(false);
+        saveAnnotationTags(
+          "量表" + action,
+          [...selectedTags,],
+          [...delTags],
+          reader,
+          params,
+          doc,
+          undefined,
+          `*${sScale}*`
+        );
+      }
+    }
+
   }
 
   function ctrlAddOrSaveTags(onlyAdd: boolean, cTag: string) {

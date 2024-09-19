@@ -18,6 +18,9 @@ export type ConfigType = (typeof ConfigTypeArray)[number];
 export const WindowTypeArray = ["FollowParent", "FixedPanel", "PopupPanel"] as const;
 export type WindowType = (typeof WindowTypeArray)[number];
 
+export const ScaleActionTypeArray = ["CR", "CA", "AVE", "reference", "description", "item", "factorLoading", "itemDescription"] as const;
+export type ScaleActionType = (typeof ScaleActionTypeArray)[number];
+
 export function loadDefaultConfig(configType: ConfigType) {
   let config: Config;
   if (configType == "Green") {
