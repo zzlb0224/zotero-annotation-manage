@@ -10,7 +10,7 @@ import { sortBy, sortValuesLengthKeyAsc } from "../utils/sort";
 import { Tab } from "../utils/tab";
 import { uniqueBy } from "../utils/uniqueBy";
 import { ReTest, clearChild, createDialog, getChildCollections, isDebug, memFixedColor, stopPropagation } from "../utils/zzlb";
-import { createAnnotationMatrix, createChooseTagsDiv, createSearchAnnContent, exportNote, exportScaleNote, getAllAnnotations } from "./AnnotationsToNote";
+import { createAnnotationMatrix, createChooseTagsDiv, createSearchAnnContent, exportNote, exportScaleCsv, exportScaleNote, getAllAnnotations } from "./AnnotationsToNote";
 import { copyAnnotations, mergePdfs, pasteAnnotations } from "./BackupAnnotation";
 import { DDDTagClear, DDDTagRemove, DDDTagSet } from "./DDD";
 import { getCiteItemHtml } from "./getCitationItem";
@@ -317,10 +317,17 @@ function buildMenu(collectionOrItem: "collection" | "item") {
         tag: "menuseparator",
       }, {
         tag: "menuitem",
-        label: "导出量表格式(测试中)",
+        label: "导出量表格式Note(测试中)",
         icon: iconBaseUrl + "favicon.png",
         commandListener: async (ev: Event) => {
           exportScaleNote(collectionOrItem);
+        },
+      }, {
+        tag: "menuitem",
+        label: "导出量表格式CSV(测试中)",
+        icon: iconBaseUrl + "favicon.png",
+        commandListener: async (ev: Event) => {
+          exportScaleCsv(collectionOrItem);
         },
       },
       {

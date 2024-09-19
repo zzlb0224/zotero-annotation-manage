@@ -940,6 +940,87 @@ export async function exportNoteByType(type: _ZoteroTypes.Annotations.Annotation
     },
   });
 }
+export async function exportScaleCsv(collectionOrItem: "collection" | "item") {
+
+  const pw = new ztoolkit.ProgressWindow("")
+  // const ans2 = await convertHtml(ans, note, pw)
+
+  const sData = await getScaleData(collectionOrItem);
+  const data = sData.map(a => [a.authorYear ? `${a.authorYear?.author || " "}(${a.authorYear?.year || " "})` : " ", `${a.authorYear?.title || " "}`, `${a.variable?.text || " "}`, `${a.scaleItem?.text || " "}`, `${a.scaleItem?.comment || " "}`, `${a.factorLoading?.text || " "}`, `${a.reference?.text || " "}`, `${a.CR?.text || " "}`, `${a.CA?.text || " "}`, `${a.AVE?.text || " "}`, `${a.description?.text || " "}`, `${a.description?.comment || " "}`]);
+
+  const csv = [];
+  const separator = ",";
+  for (let i = 0; i < data.length; i++) {
+    const row = [], cols = data[i];
+    for (let j = 0; j < cols.length; j++) {
+      let data = cols[j]?.replace(/(\r\n|\n|\r)/gm, '').replace(/(\s\s)/gm, ' ') || ""
+      data = data.replace(/"/g, '""');
+      row.push('"' + data + '"');
+    }
+    csv.push(row.join(separator));
+  }
+  const csv_string = csv.join('\n');
+  const classes = Components.classes as any
+  const nsIFilePicker = Components.interfaces.nsIFilePicker;
+  const fp = classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
+
+  fp.defaultString = "EX - " + ZoteroPane.getSelectedCollection()?.name + ".csv";
+  fp.init(window, "Save to file", nsIFilePicker.modeSave);
+  fp.appendFilter("CSV (*.csv; *.txt)", "*.csv; *.txt");
+  fp.defaultExtension = "csv";
+
+  fp.open(function () {
+    const outputStream = classes["@mozilla.org/network/file-output-stream;1"].createInstance(Components.interfaces.nsIFileOutputStream);
+    outputStream.init(fp.file, 0x04 | 0x08 | 0x20, 420, 0);
+    const converter = classes["@mozilla.org/intl/converter-output-stream;1"].createInstance(Components.interfaces.nsIConverterOutputStream);
+    converter.init(outputStream, "gb2312", 0, 0);
+    converter.writeString(csv_string);
+    converter.close();
+    outputStream.close();
+  });
+
+}
+async function getScaleData(collectionOrItem: "collection" | "item") {
+  const items = await getSelectedItems(collectionOrItem);
+  const ans = getAllAnnotations(items).filter(f => f.annotationTags.includes("量表"));
+  const pw = new ztoolkit.ProgressWindow("")
+  const ans2group = groupBy(ans, a => a.item.key)
+  const title = `量表来自${ans2group.length}个条目`;
+
+  const authorYear = "authorYear";
+  const variable = "variable";
+  const AVE = "AVE";
+  const CA = "CA";
+  const CR = "CR";
+  const reference = "reference";
+  const scaleItem = "item";
+  const factorLoading = "factorLoading";
+  const description = "description";
+  const data = []
+  // data.push({ authorYear, variable, factorLoading, scaleItem, reference, CR, CA, AVE, description });
+  for (const item of ans2group) {
+    const vars = item.values.filter(f => f.tags.some(s => s.tag == "量表"))
+    const authorYear = item.values[0]
+    const getAns = (type: "AVE" | "CR" | "CA" | "reference" | "item" | "factorLoading" | "description" | "itemDescription", text: string = "**") => item.values.filter(f => f.tags.some(s => s.tag == "量表" + type) && f.comment.includes(`*${text}*`))
+    for (const scale of vars) {
+      const variable = scale;
+      const description = getAns("description", scale.text)?.[0]
+      const AVE = getAns("AVE", scale.text)?.[0];
+      const CA = getAns("CA", scale.text)?.[0]
+      const CR = getAns("CR", scale.text)?.[0]
+      const reference = getAns("reference", scale.text)?.[0]
+      data.push({ authorYear, variable, reference, CR, CA, AVE, description });
+      const scaleItems = item.values.filter(f => f.tags.some(s => s.tag == "量表item") && f.comment.includes(`*${scale.text}*`))
+      for (const scaleItem1 of scaleItems) {
+        const scaleItem = scaleItem1;
+        const description = getAns("itemDescription", scaleItem1.text)?.[0];
+        const factorLoading = getAns("factorLoading", scaleItem1.text)?.[0];
+        data.push({ factorLoading, scaleItem, description });
+      }
+    }
+  }
+  return data
+}
 export async function exportScaleNote(collectionOrItem: "collection" | "item") {
   const items = await getSelectedItems(collectionOrItem);
   const ans = getAllAnnotations(items).filter(f => f.annotationTags.includes("量表"));

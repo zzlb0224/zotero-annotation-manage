@@ -71,6 +71,7 @@ export function PopupRoot({
   // item.isCollection
   const _annotationManager = reader._annotationManager;
   const _keyboardManager = reader._keyboardManager;
+  const annotations = item.getAnnotations();
 
   //定义状态
   // ztoolkit.log("params", params);
@@ -133,6 +134,7 @@ export function PopupRoot({
   const [selectionPopupSize, setSelectionPopupSize] = useState({ width: 0, height: 0 });
   const [configName, setConfigName] = useState(getPref("configName"));
   const [bScale, setBScale] = useState(getPref("bScale") as boolean)
+  const [exAction, setExAction] = useState(getPref("exAction") as string)
   const [sScale, setSScale] = useState(getPref("sScale"))
   const [sScaleType, setSScaleType] = useState(getPref("sScaleType") as string)
   const [sScaleItem, setSScaleItem] = useState("")
@@ -405,6 +407,7 @@ export function PopupRoot({
   const clickMeButtonRef = React.useRef<HTMLElement | null>(null);
 
   const vars = [
+    exAction,
     bScale,
     sScale,
     sScaleType,
@@ -1085,63 +1088,66 @@ export function PopupRoot({
         }}
       >
         {!params.ids && (<>
-          {/* {item.getAnnotations().map(a => a.getTags().map(b => b.tag).join(","))} */}
-          {item.getAnnotations().some(s => s.hasTag("量表")) && (<div>
-            <div style={{ display: "flex", flexWrap: "wrap" }}> <button className='toolbar-button' style={{ width: "unset", margin: "2px" }} onClick={() => {
-              const nbScale = !bScale;
-              setBScale(nbScale)
-              setPref("bScale", nbScale)
-            }
-            }>量表操作</button>
-              <button className='toolbar-button' style={{ width: "unset", margin: "2px" }} onClick={() => {
-                const nbScale = !bScale;
-                setBScale(nbScale)
-                setPref("bScale", nbScale)
+
+          <div style={{ display: "flex", flexWrap: "wrap" }}>
+            {["量表", "元"].filter(f => annotations.some(s => s.hasTag(f))).map(action => (<button className='toolbar-button' style={{ width: "unset", margin: "2px" }} onClick={() => {
+              if (exAction == action) {
+                setExAction("")
+                setPref("exAction", "")
               }
-              }>元操作</button></div>
-            {bScale && (<>
-              <div style={{ display: "flex", flexWrap: "wrap" }}>
-                {sScaleType ? (
-                  <button className='toolbar-button' style={{ width: "unset" }} onClick={() => {
-                    setSScaleType("")
-                  }}>类型：{sScaleType}</button>
-                ) : (["item", "CR", "CA", "AVE", "factorLoading", "reference", "description"].map(a => (<button className='toolbar-button' style={{ width: "unset", margin: "2px" }} onClick={() => {
-                  setSScaleType(a)
+              else {
+                setExAction(action)
+                setPref("exAction", action)
+              }
+            }
+            }>{exAction == action ? `【${action}操作】` : action}</button>))}
+
+          </div>
+
+          {exAction == "量表" && (<>
+            <div style={{ display: "flex", flexWrap: "wrap" }}>
+              {sScaleType ? (
+                <button className='toolbar-button' style={{ width: "unset" }} onClick={() => {
+                  setSScaleType("")
+                }}>类型：{sScaleType}</button>
+              ) : (["item", "CR", "CA", "AVE", "factorLoading", "reference", "description"].map(a => (<button className='toolbar-button' style={{ width: "unset", margin: "2px" }} onClick={() => {
+                setSScaleType(a)
+                setPref("sScaleType", a)
+              }}>{a}</button>)))}
+            </div>
+            <div>
+              {sScaleType && (sScale ? (<button className='toolbar-button' style={{ width: "unset" }} onClick={() => {
+                setSScale("")
+              }}>量表：{sScale}</button>) : (item.getAnnotations().filter(f => f.hasTag("量表")).map(a =>
+              (<button className='toolbar-button' style={{ width: "unset" }} onClick={() => {
+                setSScale(a.annotationText);
+                setPref("sScale", a.annotationText)
+              }}>{a.annotationText}</button>)
+              )
+              ))}
+            </div>
+            <div>
+              {sScaleType == "factorLoading" && sScale && (sScaleItem ? (<button className='toolbar-button' style={{ width: "unset" }} onClick={() => {
+                setSScaleItem("")
+              }}>量表item：{sScaleItem}</button>) : (item.getAnnotations().filter(f => f.hasTag("量表item") && f.annotationComment.includes(`*${sScale}*`)).map(a =>
+              (<button className='toolbar-button' style={{ width: "unset" }} onClick={() => {
+                setSScaleItem(a.annotationText);
+              }}>{a.annotationText}</button>)
+              )
+              ))}
+            </div>
+            <div>{sScaleType != "" && sScale != "" && (sScaleType != "factor loading" || sScaleItem != "") && (<div style={{ display: "flex", flexWrap: "wrap" }}>
+              {["item", "CR", "CA", "AVE", "factorLoading", "reference", "description"]//.filter(f => f != sScaleType)
+                .map(a => (<button className='toolbar-button' style={{ width: "unset", margin: "2px" }} onClick={() => {
+                  scaleAddAnnotation();
                   setPref("sScaleType", a)
-                }}>{a}</button>)))}
-              </div>
-              <div>
-                {sScaleType && (sScale ? (<button className='toolbar-button' style={{ width: "unset" }} onClick={() => {
-                  setSScale("")
-                }}>量表：{sScale}</button>) : (item.getAnnotations().filter(f => f.hasTag("量表")).map(a =>
-                (<button className='toolbar-button' style={{ width: "unset" }} onClick={() => {
-                  setSScale(a.annotationText);
-                  setPref("sScale", a.annotationText)
-                }}>{a.annotationText}</button>)
-                )
-                ))}
-              </div>
-              <div>
-                {sScaleType == "factorLoading" && sScale && (sScaleItem ? (<button className='toolbar-button' style={{ width: "unset" }} onClick={() => {
-                  setSScaleItem("")
-                }}>量表item：{sScaleItem}</button>) : (item.getAnnotations().filter(f => f.hasTag("量表item") && f.annotationComment.includes(`*${sScale}*`)).map(a =>
-                (<button className='toolbar-button' style={{ width: "unset" }} onClick={() => {
-                  setSScaleItem(a.annotationText);
-                }}>{a.annotationText}</button>)
-                )
-                ))}
-              </div>
-              <div>{sScaleType != "" && sScale != "" && (sScaleType != "factor loading" || sScaleItem != "") && (<div style={{ display: "flex", flexWrap: "wrap" }}>
-                {["item", "CR", "CA", "AVE", "factorLoading", "reference", "description"]//.filter(f => f != sScaleType)
-                  .map(a => (<button className='toolbar-button' style={{ width: "unset", margin: "2px" }} onClick={() => {
-                    scaleAddAnnotation();
-                    setPref("sScaleType", a)
-                  }}>{sScaleType == a ? `【${a}】` : a}</button>))}
-              </div>)}</div>
+                }}>{sScaleType == a ? `【${a}】` : a}</button>))}
+            </div>)}</div>
 
 
-            </>)}
-          </div>)}
+          </>)}
+
+
         </>)}
         <div
           style={{
@@ -1552,7 +1558,7 @@ export function PopupRoot({
             </span>
           </div>
         </div>
-      </div >
+      </div>
     ),
     vars,
   );
