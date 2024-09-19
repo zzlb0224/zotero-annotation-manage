@@ -9,6 +9,7 @@ import {
   convertHtml,
   createTopDiv,
   getAnnotationContent,
+  getItem,
   getPublicationTags,
   memSVG,
   openAnnotation,
@@ -941,30 +942,46 @@ export async function exportNoteByType(type: _ZoteroTypes.Annotations.Annotation
   });
 }
 export async function exportScaleCsv(collectionOrItem: "collection" | "item") {
-
-  const pw = new ztoolkit.ProgressWindow("")
+  const pw = new ztoolkit.ProgressWindow("");
   // const ans2 = await convertHtml(ans, note, pw)
 
   const sData = await getScaleData(collectionOrItem);
-  const data = sData.map(a => [a.authorYear ? `${a.authorYear?.author || " "}(${a.authorYear?.year || " "})` : " ", `${a.authorYear?.title || " "}`, `${a.variable?.text || " "}`, `${a.scaleItem?.text || " "}`, `${a.scaleItem?.comment || " "}`, `${a.factorLoading?.text || " "}`, `${a.reference?.text || " "}`, `${a.CR?.text || " "}`, `${a.CA?.text || " "}`, `${a.AVE?.text || " "}`, `${a.description?.text || " "}`, `${a.description?.comment || " "}`]);
+  const data = sData.map((a) => [
+    a.authorYear?.author,
+    a.authorYear?.year || " ",
+    a.authorYear?.title || " ",
+    a.variable?.text || " ",
+    a.scaleItem?.text || " ",
+    a.scaleItem?.comment || " ",
+    a.factorLoading?.text || " ",
+    a.reference?.text || " ",
+    a.CR?.text || " ",
+    a.CA?.text || " ",
+    a.AVE?.text || " ",
+    a.description?.text || " ",
+    a.description?.comment || " ",
+  ]);
+  const csv_header = `author,year,title,variable,item,comment,factorLoading,reference,CR,CA,AVE,description,descriptionComment
+`
 
   const csv = [];
   const separator = ",";
   for (let i = 0; i < data.length; i++) {
-    const row = [], cols = data[i];
+    const row = [],
+      cols = data[i];
     for (let j = 0; j < cols.length; j++) {
-      let data = cols[j]?.replace(/(\r\n|\n|\r)/gm, '').replace(/(\s\s)/gm, ' ') || ""
+      let data = cols[j]?.replace(/(\r\n|\n|\r)/gm, "").replace(/(\s\s)/gm, " ") || "";
       data = data.replace(/"/g, '""');
       row.push('"' + data + '"');
     }
     csv.push(row.join(separator));
   }
-  const csv_string = csv.join('\n');
-  const classes = Components.classes as any
+  const csv_string = csv_header + csv.join("\n");
+  const classes = Components.classes as any;
   const nsIFilePicker = Components.interfaces.nsIFilePicker;
   const fp = classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
 
-  fp.defaultString = "EX - " + ZoteroPane.getSelectedCollection()?.name + ".csv";
+  fp.defaultString = "Scale - " + new Date().getTime() + ".csv";
   fp.init(window, "Save to file", nsIFilePicker.modeSave);
   fp.appendFilter("CSV (*.csv; *.txt)", "*.csv; *.txt");
   fp.defaultExtension = "csv";
@@ -978,13 +995,12 @@ export async function exportScaleCsv(collectionOrItem: "collection" | "item") {
     converter.close();
     outputStream.close();
   });
-
 }
 async function getScaleData(collectionOrItem: "collection" | "item") {
   const items = await getSelectedItems(collectionOrItem);
-  const ans = getAllAnnotations(items).filter(f => f.annotationTags.includes("量表"));
-  const pw = new ztoolkit.ProgressWindow("")
-  const ans2group = groupBy(ans, a => a.item.key)
+  const ans = getAllAnnotations(items).filter((f) => f.annotationTags.includes("量表"));
+  const pw = new ztoolkit.ProgressWindow("");
+  const ans2group = groupBy(ans, (a) => a.item.key);
   const title = `量表来自${ans2group.length}个条目`;
 
   const authorYear = "authorYear";
@@ -996,40 +1012,45 @@ async function getScaleData(collectionOrItem: "collection" | "item") {
   const scaleItem = "item";
   const factorLoading = "factorLoading";
   const description = "description";
-  const data = []
+  const data = [];
   // data.push({ authorYear, variable, factorLoading, scaleItem, reference, CR, CA, AVE, description });
   for (const item of ans2group) {
-    const vars = item.values.filter(f => f.tags.some(s => s.tag == "量表"))
-    const authorYear = item.values[0]
-    const getAns = (type: "AVE" | "CR" | "CA" | "reference" | "item" | "factorLoading" | "description" | "itemDescription", text: string = "**") => item.values.filter(f => f.tags.some(s => s.tag == "量表" + type) && f.comment.includes(`*${text}*`))
+    const vars = item.values.filter((f) => f.tags.some((s) => s.tag == "量表"));
+    const authorYear = item.values[0];
+    const getAns = (
+      type: "AVE" | "CR" | "CA" | "reference" | "item" | "factorLoading" | "description" | "itemDescription",
+      ann: Zotero.Item,
+    ) => item.values.filter((f) => f.tags.some((s) => s.tag == "量表" + type) && ann.relatedItems.includes(f.ann.key));
     for (const scale of vars) {
       const variable = scale;
-      const description = getAns("description", scale.text)?.[0]
-      const AVE = getAns("AVE", scale.text)?.[0];
-      const CA = getAns("CA", scale.text)?.[0]
-      const CR = getAns("CR", scale.text)?.[0]
-      const reference = getAns("reference", scale.text)?.[0]
+      const description = getAns("description", scale.ann)?.[0];
+      const AVE = getAns("AVE", scale.ann)?.[0];
+      const CA = getAns("CA", scale.ann)?.[0];
+      const CR = getAns("CR", scale.ann)?.[0];
+      const reference = getAns("reference", scale.ann)?.[0];
       data.push({ authorYear, variable, reference, CR, CA, AVE, description });
-      const scaleItems = item.values.filter(f => f.tags.some(s => s.tag == "量表item") && f.comment.includes(`*${scale.text}*`))
+      const scaleItems = getAns("item", scale.ann);
+
       for (const scaleItem1 of scaleItems) {
         const scaleItem = scaleItem1;
-        const description = getAns("itemDescription", scaleItem1.text)?.[0];
-        const factorLoading = getAns("factorLoading", scaleItem1.text)?.[0];
+        const description = getAns("itemDescription", scaleItem1.ann)?.[0];
+        const factorLoading = getAns("factorLoading", scaleItem1.ann)?.[0];
         data.push({ factorLoading, scaleItem, description });
       }
     }
   }
-  return data
+  return data;
 }
 export async function exportScaleNote(collectionOrItem: "collection" | "item") {
-  const items = await getSelectedItems(collectionOrItem);
-  const ans = getAllAnnotations(items).filter(f => f.annotationTags.includes("量表"));
-  const note = await createNote("")
-  const pw = new ztoolkit.ProgressWindow("")
-  const ans2 = await convertHtml(ans, note, pw)
-  const ans2group = groupBy(ans2, a => a.item.key)
-  const title = `量表来自${ans2group.length}个条目`;
 
+  const sd = await getScaleData(collectionOrItem);
+  // const items = await getSelectedItems(collectionOrItem);
+  // const ans = getAllAnnotations(items).filter((f) => f.annotationTags.includes("量表"));
+  const note = await createNote("");
+  const pw = new ztoolkit.ProgressWindow("");
+  // const ans2 = await convertHtml(ans, note, pw);
+  // const ans2group = groupBy(ans2, (a) => a.item.key);
+  const title = `量表导出`;
   let authorYear = "authorYear";
   let variable = "variable";
   let AVE = "AVE";
@@ -1040,38 +1061,24 @@ export async function exportScaleNote(collectionOrItem: "collection" | "item") {
   let factorLoading = "factorLoading";
   let description = "description";
   let res = `<h1>${title}</h1>
-  <table border="0" cellspacing="1"><tr><td>${authorYear}</td><td>${variable}</td><td>${factorLoading
-    }</td><td>${scaleItem
-    }</td><td>${reference}</td><td>${CR}</td><td>${CA}</td><td>${AVE}</td><td>${description}</td></tr>`
-  for (const item of ans2group) {
-    const vars = item.values.filter(f => f.tags.some(s => s.tag == "量表"))
-    authorYear = getCiteItemHtml(item.values[0].item)
-    const getAns = (type: "AVE" | "CR" | "CA" | "reference" | "item" | "factorLoading" | "description", text: string = "**") => item.values.filter(f => f.tags.some(s => s.tag == "量表" + type) && f.comment.includes(`*${text}*`))
-    for (const scale of vars) {
-      variable = scale.html;
-      description = getAns("description", scale.text)?.[0]?.text || "";
-      AVE = getAns("AVE", scale.text)?.[0]?.text || "";
-      CA = getAns("CA", scale.text)?.[0]?.text || "";
-      CR = getAns("CR", scale.text)?.[0]?.text || "";
-      reference = getAns("reference", scale.text)?.[0]?.text || "";
-      factorLoading = ""
-      res += `<tr><td>${authorYear}</td><td>${variable}</td><td>${scaleItem
-        }</td><td>${factorLoading
-        }</td><td>${reference}</td><td>${CR}</td><td>${CA}</td><td>${AVE}</td><td>${description}</td></tr>`
-      const scaleItems = item.values.filter(f => f.tags.some(s => s.tag == "量表item") && f.comment.includes(`*${scale.text}*`))
-      authorYear = variable = AVE = CA = CR = reference = "";
-      for (const scaleItem1 of scaleItems) {
-        scaleItem = scaleItem1.html;
-        description = getAns("description", scaleItem1.text)?.[0]?.text || "";
-        factorLoading = getAns("factorLoading", scaleItem1.text)?.[0]?.text || "";
-        res += `<tr><td>${authorYear}</td><td>${variable}</td><td>${factorLoading
-          }</td><td>${reference}</td><td>${CR}</td><td>${CA}</td><td>${AVE}</td><td>${description}</td></tr>`
-      }
-    }
+  <table border="0" cellspacing="1"><tr><td>${authorYear}</td><td>${variable}</td><td>${factorLoading}</td><td>${scaleItem
+    }</td><td>${reference}</td><td>${CR}</td><td>${CA}</td><td>${AVE}</td><td>${description}</td></tr>`;
+  for (const s of sd) {
+    authorYear = getCiteItemHtml(s.authorYear?.item);
+    description = s.description?.text || "";
+    AVE = s.AVE?.text || "";
+    CA = s.CA?.text || "";
+    CR = s.CR?.text || "";
+    reference = s.reference?.text || "";
+    scaleItem = s.scaleItem?.text || "";
+    factorLoading = s.factorLoading?.text || "";
+    variable = s.variable?.text || "";
+    res += `<tr><td>${authorYear}</td><td>${variable}</td><td>${scaleItem}</td><td>${factorLoading
+      }</td><td>${reference}</td><td>${CR}</td><td>${CA}</td><td>${AVE}</td><td>${description}</td></tr>`;
   }
-  res += "</table>"
-  ztoolkit.log(res)
-  await saveNote(note, res, pw)
+  res += "</table>";
+  ztoolkit.log(res);
+  await saveNote(note, res, pw);
 }
 export async function exportSingleNote(tag: string, collectionOrItem: "collection" | "item") {
   if (tag)

@@ -33,8 +33,8 @@ import { usePopover } from "react-tiny-popover";
 import { HexColorPicker } from "react-colorful";
 import { PopupRoot } from "../component/PopupRoot";
 import TagPopup from "../component/TagPopup";
-import { waitFor } from '../utils/wait';
-import { ScaleActionTypeArray, ScaleItemActionTypeArray } from '../component/Config';
+import { waitFor } from "../utils/wait";
+import { ScaleActionTypeArray, ScaleItemActionTypeArray } from "../component/Config";
 
 export class AnnotationPopup {
   reader?: _ZoteroTypes.ReaderInstance;
@@ -1251,35 +1251,34 @@ export async function saveAnnotationTags(
         //@ts-ignore 访问_onSetSelectionPopup 隐藏弹出框
         // reader?._primaryView?._onSetSelectionPopup?.(null);
         // openAnnotation(item, newAnn?.pageLabel || "", newAnn?.id || "")
-        const newAnnItem = await waitFor(() => getItem(newAnn?.id || ""))
+        const newAnnItem = await waitFor(() => getItem(newAnn?.id || ""));
         if (newAnnItem) {
-          ztoolkit.log("创建了一个新批注", newAnn, newAnnItem)
-          const lastScaleKey = getPref("lastScaleKey") as string
-          const lastScale = getItem(lastScaleKey)
-          const lastScaleItemKey = getPref("lastScaleItemKey") as string
-          const lastScaleItem = getItem(lastScaleItemKey)
-          if (tags.some(s => s.name == "量表")) {
-            setPref("lastScaleKey", newAnnItem.key)
-            setPref("lastScaleItemKey", "")
-          } else
-            if (lastScale) {
-              if (newAnnItem.parentKey == lastScale.parentKey) {
-                if (tags.some(s => ScaleActionTypeArray.map(a => "量表" + a).includes(s.name))) {
-                  new Relations(lastScale).addRelationsToItem(newAnnItem)
-                  if (tags.some(s => s.name == "量表item")) {
-                    setPref("lastScaleItemKey", newAnnItem.key)
-                  }
-                } else if (lastScaleItem.parentKey == newAnnItem.parentKey) {
-                  if (tags.some(s => ScaleItemActionTypeArray.map(a => "量表" + a).includes(s.name))) {
-                    new Relations(lastScale).addRelationsToItem(newAnnItem)
-                    new Relations(lastScaleItem).addRelationsToItem(newAnnItem)
-                  }
+          ztoolkit.log("创建了一个新批注", newAnn, newAnnItem);
+          const lastScaleKey = getPref("lastScaleKey") as string;
+          const lastScale = getItem(lastScaleKey);
+          const lastScaleItemKey = getPref("lastScaleItemKey") as string;
+          const lastScaleItem = getItem(lastScaleItemKey);
+          if (tags.some((s) => s.name == "量表")) {
+            setPref("lastScaleKey", newAnnItem.key);
+            setPref("lastScaleItemKey", "");
+          } else if (lastScale) {
+            if (newAnnItem.parentKey == lastScale.parentKey) {
+              if (tags.some((s) => ScaleActionTypeArray.map((a) => "量表" + a).includes(s.name))) {
+                new Relations(lastScale).addRelationsToItem(newAnnItem);
+                if (tags.some((s) => s.name == "量表item")) {
+                  setPref("lastScaleItemKey", newAnnItem.key);
+                }
+              } else if (lastScaleItem.parentKey == newAnnItem.parentKey) {
+                if (tags.some((s) => ScaleItemActionTypeArray.map((a) => "量表" + a).includes(s.name))) {
+                  new Relations(lastScale).addRelationsToItem(newAnnItem);
+                  new Relations(lastScaleItem).addRelationsToItem(newAnnItem);
                 }
               }
             }
+          }
           memoizeAsyncGroupAllTagsDB.replaceCacheByKey();
           memRelateTags.replaceCacheByArgs(item);
-          return [newAnnItem]
+          return [newAnnItem];
         }
       }
 

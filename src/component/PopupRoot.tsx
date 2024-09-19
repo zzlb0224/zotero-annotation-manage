@@ -138,28 +138,34 @@ export function PopupRoot({
   const [nFCLTop, setFCLTop] = useState(getPrefAs("nFCLTop", 0));
   const [selectionPopupSize, setSelectionPopupSize] = useState({ width: 0, height: 0 });
   const [configName, setConfigName] = useState(getPref("configName"));
-  const [exAction, setExAction] = useState(getPref("exAction") as string)
-  const [sScale, setSScale] = useState(getPref("sScale"))
-  const [sScaleAction, setSScaleAction] = useState<ScaleActionType | ScaleItemActionType | undefined>(getPref("sScaleAction") as ScaleActionType)
-  const [sScaleItem, setSScaleItem] = useState("")
+  const [exAction, setExAction] = useState(getPref("exAction") as string);
+  const [sScale, setSScale] = useState(getPref("sScale"));
+  const [sScaleAction, setSScaleAction] = useState<ScaleActionType | ScaleItemActionType | undefined>(
+    getPref("sScaleAction") as ScaleActionType,
+  );
+  const [sScaleItem, setSScaleItem] = useState("");
   useEffect(() => {
     if (sScale) {
-      if (item.getAnnotations().findIndex(f => f.hasTag("量表") && f.annotationText == sScale) == -1) {
-        setSScale("")
-        setPref("sScale", "")
-        setSScaleItem("")
-        setPref("sScaleItem", "")
+      if (item.getAnnotations().findIndex((f) => f.hasTag("量表") && f.annotationText == sScale) == -1) {
+        setSScale("");
+        setPref("sScale", "");
+        setSScaleItem("");
+        setPref("sScaleItem", "");
       } else {
-        if (item.getAnnotations().findIndex(f => f.hasTag("量表item") && f.annotationText == sScaleItem && f.annotationComment.includes(`*${sScale}*`)) == -1) {
-          setSScaleItem("")
-          setPref("sScaleItem", "")
+        if (
+          item
+            .getAnnotations()
+            .findIndex((f) => f.hasTag("量表item") && f.annotationText == sScaleItem && f.annotationComment.includes(`*${sScale}*`)) == -1
+        ) {
+          setSScaleItem("");
+          setPref("sScaleItem", "");
         }
       }
     } else {
-      setSScaleItem("")
-      setPref("sScaleItem", "")
+      setSScaleItem("");
+      setPref("sScaleItem", "");
     }
-  }, [])
+  }, []);
 
   const tagStyle = {
     marginLeft: btnMarginLR + "px",
@@ -187,10 +193,10 @@ export function PopupRoot({
   ) as HTMLDivElement;
   const parentElement = tabDiv;
   const boundaryElement = tabDiv;
-  const lastScaleKey = getPref("lastScaleKey") as string
-  const lastScale = getItem(lastScaleKey)
-  const lastScaleItemKey = getPref("lastScaleItemKey") as string
-  const lastScaleItem = getItem(lastScaleItemKey)
+  const lastScaleKey = getPref("lastScaleKey") as string;
+  const lastScale = getItem(lastScaleKey);
+  const lastScaleItemKey = getPref("lastScaleItemKey") as string;
+  const lastScaleItem = getItem(lastScaleItemKey);
 
   if (isDebug()) boundaryElement.style.border = "1px solid red";
 
@@ -1104,50 +1110,102 @@ export function PopupRoot({
           // background: "#f00",
         }}
       >
-        {!params.ids && lastScale && lastScale.parentKey == item.key && (<>
-          <span> 量表: {lastScale.annotationText.substring(0, 30)}</span>
-          <div style={{ maxWidth: (windowType == "FollowParent" && !params.ids ? selectionPopupSize.width - 16 : divMaxWidth) + "px", display: "flex", flexWrap: "wrap" }}>
-            {ScaleActionTypeArray
-              .map(a => (<button className='toolbar-button' style={{ width: "unset", margin: " 0 2px", height: "auto" }} onClick={() => {
-
-                setIsPopoverOpen(false);
-                saveAnnotationTags("量表" + a, selectedTags, delTags, reader, params, doc, undefined, `*${lastScale.annotationText}*` + comment)
-              }}>{a}</button>))
-            }
-          </div>
-          {lastScaleItem && lastScale.parentKey == item.key && (<>
-            <span>item:{lastScaleItem.annotationText.substring(0, 30)}</span>
-            <div style={{ maxWidth: (windowType == "FollowParent" && !params.ids ? selectionPopupSize.width - 16 : divMaxWidth) + "px", display: "flex", flexWrap: "wrap" }}> {ScaleItemActionTypeArray
-              .map(a => (<button className='toolbar-button' style={{ width: "unset", margin: " 0 2px", height: "auto" }} onClick={() => {
-                setIsPopoverOpen(false);
-                saveAnnotationTags("量表" + a, selectedTags, delTags, reader, params, doc, undefined, `*${lastScaleItem.annotationText}*` + comment)
-
-              }}>{a}</button>))
-            } </div>
-          </>)
-          }
-
-        </>)}
-        {
-          !params.ids && !lastScale && lastScale && (<>
-
+        {!params.ids && lastScale && lastScale.parentKey == item.key && (
+          <>
+            <span> 量表: {lastScale.annotationText.substring(0, 30)}</span>
+            <div
+              style={{
+                maxWidth: (windowType == "FollowParent" && !params.ids ? selectionPopupSize.width - 16 : divMaxWidth) + "px",
+                display: "flex",
+                flexWrap: "wrap",
+              }}
+            >
+              {ScaleActionTypeArray.map((a) => (
+                <button
+                  className="toolbar-button"
+                  style={{ width: "unset", margin: " 0 2px", height: "auto" }}
+                  onClick={() => {
+                    setIsPopoverOpen(false);
+                    saveAnnotationTags(
+                      "量表" + a,
+                      selectedTags,
+                      delTags,
+                      reader,
+                      params,
+                      doc,
+                      undefined,
+                      `*${lastScale.annotationText}*` + comment,
+                    );
+                  }}
+                >
+                  {a}
+                </button>
+              ))}
+            </div>
+            {lastScaleItem && lastScale.parentKey == item.key && (
+              <>
+                <span>item:{lastScaleItem.annotationText.substring(0, 30)}</span>
+                <div
+                  style={{
+                    maxWidth: (windowType == "FollowParent" && !params.ids ? selectionPopupSize.width - 16 : divMaxWidth) + "px",
+                    display: "flex",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  {" "}
+                  {ScaleItemActionTypeArray.map((a) => (
+                    <button
+                      className="toolbar-button"
+                      style={{ width: "unset", margin: " 0 2px", height: "auto" }}
+                      onClick={() => {
+                        setIsPopoverOpen(false);
+                        saveAnnotationTags(
+                          "量表" + a,
+                          selectedTags,
+                          delTags,
+                          reader,
+                          params,
+                          doc,
+                          undefined,
+                          `*${lastScaleItem.annotationText}*` + comment,
+                        );
+                      }}
+                    >
+                      {a}
+                    </button>
+                  ))}{" "}
+                </div>
+              </>
+            )}
+          </>
+        )}
+        {!params.ids && !lastScale && lastScale && (
+          <>
             <div style={{ display: "flex", flexWrap: "wrap" }}>
-              {["量表", "元"].filter(f => annotations.some(s => s.hasTag(f))).map(action => (<button className='toolbar-button' style={{ width: "unset", margin: "2px" }} onClick={() => {
-                if (exAction == action) {
-                  setExAction("")
-                  setPref("exAction", "")
-                }
-                else {
-                  setExAction(action)
-                  setPref("exAction", action)
-                }
-              }
-              }>{exAction == action ? `【${action}操作】` : action}</button>))}
-
+              {["量表", "元"]
+                .filter((f) => annotations.some((s) => s.hasTag(f)))
+                .map((action) => (
+                  <button
+                    className="toolbar-button"
+                    style={{ width: "unset", margin: "2px" }}
+                    onClick={() => {
+                      if (exAction == action) {
+                        setExAction("");
+                        setPref("exAction", "");
+                      } else {
+                        setExAction(action);
+                        setPref("exAction", action);
+                      }
+                    }}
+                  >
+                    {exAction == action ? `【${action}操作】` : action}
+                  </button>
+                ))}
             </div>
 
-            {exAction == "量表" && (<>
-              {/* <div style={{ display: "flex", flexWrap: "wrap" }}>
+            {exAction == "量表" && (
+              <>
+                {/* <div style={{ display: "flex", flexWrap: "wrap" }}>
               {sScaleAction ? (
                 <button className='toolbar-button' style={{ width: "unset" }} onClick={() => {
                   setSScaleAction("")
@@ -1157,42 +1215,88 @@ export function PopupRoot({
                 setPref("sScaleAction", a)
               }}>{a}</button>)))}
             </div> */}
-              <div>
-                {sScaleAction && (sScale ? (<button className='toolbar-button' style={{ width: "unset" }} onClick={() => {
-                  setSScale("")
-                }}>量表：{sScale}</button>) : (item.getAnnotations().filter(f => f.hasTag("量表")).map(a =>
-                (<button className='toolbar-button' style={{ width: "unset" }} onClick={() => {
-                  setSScale(a.annotationText);
-                  setPref("sScale", a.annotationText)
-                }}>{a.annotationText}</button>)
-                )
-                ))}
-              </div>
-              <div>
-                {(sScaleAction == "factorLoading" || sScaleAction == "itemDescription" || sScaleItem) && (sScaleItem ? (<button className='toolbar-button' style={{ width: "unset" }} onClick={() => {
-                  setSScaleItem("")
-                }}>量表item：{sScaleItem}</button>) : (item.getAnnotations().filter(f => f.hasTag("量表item") && f.annotationComment.includes(`*${sScale}*`)).map(a =>
-                (<button className='toolbar-button' style={{ width: "unset" }} onClick={() => {
-                  setSScaleItem(a.annotationText);
-                  setPref("sScaleItem", a.annotationText)
-                }}>{a.annotationText}</button>)
-                )
-                ))}
-              </div>
-              <div style={{ display: "flex", flexWrap: "wrap" }}>
-                {//["item", "CR", "CA", "AVE", "factorLoading", "reference", "description"]//.filter(f => f != sScaleAction)
-                  ScaleActionTypeArray
-                    .map(a => (<button className='toolbar-button' style={{ width: "unset", margin: "2px" }} onClick={() => {
-                      setSScaleAction(a)
-                      setPref("sScaleAction", a)
-                      scaleAddAnnotation(a);
-                    }}>{sScaleAction == a ? `【${a}】` : a}</button>))}
-              </div>
-            </>)}
-
-
-          </>)
-        }
+                <div>
+                  {sScaleAction &&
+                    (sScale ? (
+                      <button
+                        className="toolbar-button"
+                        style={{ width: "unset" }}
+                        onClick={() => {
+                          setSScale("");
+                        }}
+                      >
+                        量表：{sScale}
+                      </button>
+                    ) : (
+                      item
+                        .getAnnotations()
+                        .filter((f) => f.hasTag("量表"))
+                        .map((a) => (
+                          <button
+                            className="toolbar-button"
+                            style={{ width: "unset" }}
+                            onClick={() => {
+                              setSScale(a.annotationText);
+                              setPref("sScale", a.annotationText);
+                            }}
+                          >
+                            {a.annotationText}
+                          </button>
+                        ))
+                    ))}
+                </div>
+                <div>
+                  {(sScaleAction == "factorLoading" || sScaleAction == "itemDescription" || sScaleItem) &&
+                    (sScaleItem ? (
+                      <button
+                        className="toolbar-button"
+                        style={{ width: "unset" }}
+                        onClick={() => {
+                          setSScaleItem("");
+                        }}
+                      >
+                        量表item：{sScaleItem}
+                      </button>
+                    ) : (
+                      item
+                        .getAnnotations()
+                        .filter((f) => f.hasTag("量表item") && f.annotationComment.includes(`*${sScale}*`))
+                        .map((a) => (
+                          <button
+                            className="toolbar-button"
+                            style={{ width: "unset" }}
+                            onClick={() => {
+                              setSScaleItem(a.annotationText);
+                              setPref("sScaleItem", a.annotationText);
+                            }}
+                          >
+                            {a.annotationText}
+                          </button>
+                        ))
+                    ))}
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap" }}>
+                  {
+                    //["item", "CR", "CA", "AVE", "factorLoading", "reference", "description"]//.filter(f => f != sScaleAction)
+                    ScaleActionTypeArray.map((a) => (
+                      <button
+                        className="toolbar-button"
+                        style={{ width: "unset", margin: "2px" }}
+                        onClick={() => {
+                          setSScaleAction(a);
+                          setPref("sScaleAction", a);
+                          scaleAddAnnotation(a);
+                        }}
+                      >
+                        {sScaleAction == a ? `【${a}】` : a}
+                      </button>
+                    ))
+                  }
+                </div>
+              </>
+            )}
+          </>
+        )}
         <div
           style={{
             // marginTop: pFixedContentLocation || params.ids ? nFCLTop + "px" : "unset",
@@ -1226,7 +1330,6 @@ export function PopupRoot({
                 alignItems: "center",
               }}
             >
-
               {existTags.length > 0 && (
                 <span
                   style={{
@@ -1490,20 +1593,20 @@ export function PopupRoot({
                       ctrlAddOrSaveTags(isAdd, cTag);
                       return false;
                     }}
-                  // onMouseDown={(e) => {
-                  //   e.preventDefault();
-                  //   ztoolkit.log("onMouseDown 复制", e)
-                  //   return false
-                  // }}
-                  // onContextMenu={e => {
-                  //   e.preventDefault();
-                  //   ztoolkit.log("onContextMenu 复制", tag.key)
-                  //   new window.Clipboard().readText().then((text) => {
-                  //     ztoolkit.log("onContextMenu 复制", tag.key, text);
-                  //     (e.currentTarget as HTMLInputElement).value = text;
-                  //   })
-                  //   return false
-                  // }}
+                    // onMouseDown={(e) => {
+                    //   e.preventDefault();
+                    //   ztoolkit.log("onMouseDown 复制", e)
+                    //   return false
+                    // }}
+                    // onContextMenu={e => {
+                    //   e.preventDefault();
+                    //   ztoolkit.log("onContextMenu 复制", tag.key)
+                    //   new window.Clipboard().readText().then((text) => {
+                    //     ztoolkit.log("onContextMenu 复制", tag.key, text);
+                    //     (e.currentTarget as HTMLInputElement).value = text;
+                    //   })
+                    //   return false
+                    // }}
                   >
                     <span>[{tag.values.length}]</span>
                     <span>{tag.key}</span>
@@ -1602,7 +1705,7 @@ export function PopupRoot({
             </span>
           </div>
         </div>
-      </div >
+      </div>
     ),
     vars,
   );
@@ -1680,34 +1783,14 @@ export function PopupRoot({
     if (action == "factorLoading" || action == "itemDescription") {
       if (sScaleItem) {
         setIsPopoverOpen(false);
-        saveAnnotationTags(
-          "量表" + action,
-          [...selectedTags,],
-          [...delTags],
-          reader,
-          params,
-          doc,
-          undefined,
-          `*${sScaleItem}*`
-        );
+        saveAnnotationTags("量表" + action, [...selectedTags], [...delTags], reader, params, doc, undefined, `*${sScaleItem}*`);
       }
-    }
-    else {
+    } else {
       if (sScale) {
         setIsPopoverOpen(false);
-        saveAnnotationTags(
-          "量表" + action,
-          [...selectedTags,],
-          [...delTags],
-          reader,
-          params,
-          doc,
-          undefined,
-          `*${sScale}*`
-        );
+        saveAnnotationTags("量表" + action, [...selectedTags], [...delTags], reader, params, doc, undefined, `*${sScale}*`);
       }
     }
-
   }
 
   function ctrlAddOrSaveTags(onlyAdd: boolean, cTag: string) {

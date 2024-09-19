@@ -47,8 +47,7 @@ export class Relations {
     };
   }
   getLinkRelationItems() {
-    return this.getLinkRelations()
-      .map((toItemURI) => getItem(Zotero.URI.getURIItemID(toItemURI) || ""))
+    return this.getLinkRelations().map((toItemURI) => getItem(Zotero.URI.getURIItemID(toItemURI) || ""));
   }
   getLinkRelations() {
     try {
@@ -117,7 +116,7 @@ export class Relations {
   // addRelations(openPdfs: string[]) {
   //   const itemURIs= Relations.mapOpenPdf(openPdfs).map(a=>getItem(a.annotationKey)).map(a=>Zotero.URI.getItemURI( a))
   addRelationsToItem(rItem: Zotero.Item) {
-    this.addRelations([Zotero.URI.getItemURI(rItem)])
+    this.addRelations([Zotero.URI.getItemURI(rItem)]);
   }
   addRelations(itemURIs: string[]) {
     const annotation = this.item;

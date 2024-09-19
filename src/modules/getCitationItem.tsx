@@ -13,7 +13,6 @@ export function getCitationItem(parentItem?: Zotero.Item, pageLabel: string = ""
   return citationItem;
 }
 
-
 export function getCiteAnnotationHtml(annotation: Zotero.Item, text = "") {
   const attachmentItem = annotation.parentItem;
   if (!attachmentItem) return "";

@@ -4,7 +4,7 @@ import { sortValuesLength } from "../utils/sort";
 import { addCssFile, getItem, isDebug } from "../utils/zzlb";
 import { groupBy } from "../utils/groupBy";
 import { AnnotationPopup } from "./AnnotationPopup";
-import { Relations } from '../utils/Relations';
+import { Relations } from "../utils/Relations";
 // import { text2Ma } from "./readerTools";
 function register() {
   // if (!getPref("enable")) return;
@@ -112,20 +112,20 @@ function createAnnotationContextMenu(event: _ZoteroTypes.Reader.EventParams<"cre
     append({
       label: "指定为最近的量表",
       onCommand: () => {
-        setPref("lastScaleKey", currentAnnotations[0].key)
-        setPref("lastScaleItemKey", "")
+        setPref("lastScaleKey", currentAnnotations[0].key);
+        setPref("lastScaleItemKey", "");
       },
     });
   }
-  const lastScale = getItem(getPref("lastScaleKey") as string)
+  const lastScale = getItem(getPref("lastScaleKey") as string);
   if (currentAnnotations.length == 1 && currentAnnotations[0].hasTag("量表item") && lastScale.parentKey == reader._item.key) {
     append({
       label: "指定为最近的量表item",
       onCommand: () => {
-        const scale = new Relations(currentAnnotations[0]).getLinkRelationItems().find(f => f.hasTag("量表"))
+        const scale = new Relations(currentAnnotations[0]).getLinkRelationItems().find((f) => f.hasTag("量表"));
         if (scale) {
-          setPref("lastScaleKey", scale.key)
-          setPref("lastScaleItemKey", currentAnnotations[0].key)
+          setPref("lastScaleKey", scale.key);
+          setPref("lastScaleItemKey", currentAnnotations[0].key);
         }
       },
     });
