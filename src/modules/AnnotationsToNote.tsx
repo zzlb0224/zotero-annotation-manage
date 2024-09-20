@@ -971,30 +971,52 @@ export async function exportScaleCsv(collectionOrItem: "collection" | "item") {
       cols = data[i];
     for (let j = 0; j < cols.length; j++) {
       let data = cols[j]?.replace(/(\r\n|\n|\r)/gm, "").replace(/(\s\s)/gm, " ") || "";
-      data = data.replace(/"/g, '""');
+      data = data.replace(/"/g, '""').replaceAll("&#8296;", "").replaceAll("&#8297;", "");
       row.push('"' + data + '"');
     }
     csv.push(row.join(separator));
   }
   const csv_string = csv_header + csv.join("\n");
+  ztoolkit.log(csv_string)
   const classes = Components.classes as any;
   const nsIFilePicker = Components.interfaces.nsIFilePicker;
   const fp = classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
+
 
   fp.defaultString = "Scale - " + new Date().getTime() + ".csv";
   fp.init(window, "Save to file", nsIFilePicker.modeSave);
   fp.appendFilter("CSV (*.csv; *.txt)", "*.csv; *.txt");
   fp.defaultExtension = "csv";
 
+  // File file = new File("文件路径+文件名")
+  // OutputStreamWriter oStreamWriter = new OutputStreamWriter(new FileOutputStream(file), "utf-8");
+  //   //追加内容到文件中
+  //   oStreamWriter.append(str);
+  //   //写入文件到文件中
+  //   //oStreamWriter.write(sb.toString().replace("\n","\r\n"))
+  //   oStreamWriter.close();
+
+
   fp.open(function () {
     const outputStream = classes["@mozilla.org/network/file-output-stream;1"].createInstance(Components.interfaces.nsIFileOutputStream);
     outputStream.init(fp.file, 0x04 | 0x08 | 0x20, 420, 0);
     const converter = classes["@mozilla.org/intl/converter-output-stream;1"].createInstance(Components.interfaces.nsIConverterOutputStream);
-    converter.init(outputStream, "gb2312", 0, 0);
+    converter.init(outputStream, "gb2313", 0, 0);
     converter.writeString(csv_string);
     converter.close();
     outputStream.close();
+    ztoolkit.log(fp.file.path)
+    // Zotero.Utilities.Internal.exec("excel.exe", [
+    //   fp.file.path,
+    // ]);
   });
+  // setTimeout(() => {
+  //   ztoolkit.log(fp.file)
+  //   Zotero.Utilities.Internal.exec("excel", [
+  //     fp.file,
+  //   ]);
+  // }, 1000)
+
 }
 async function getScaleData(collectionOrItem: "collection" | "item") {
   const items = await getSelectedItems(collectionOrItem);

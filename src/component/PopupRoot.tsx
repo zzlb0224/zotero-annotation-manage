@@ -194,9 +194,9 @@ export function PopupRoot({
   const parentElement = tabDiv;
   const boundaryElement = tabDiv;
   const lastScaleKey = getPref("lastScaleKey") as string;
-  const lastScale = getItem(lastScaleKey);
+  const [lastScale, setLastScale] = useState<Zotero.Item | undefined>(getItem(lastScaleKey));
   const lastScaleItemKey = getPref("lastScaleItemKey") as string;
-  const lastScaleItem = getItem(lastScaleItemKey);
+  const [lastScaleItem, setLastScaleItem] = useState<Zotero.Item | undefined>(getItem(lastScaleItemKey));
 
   if (isDebug()) boundaryElement.style.border = "1px solid red";
 
@@ -431,6 +431,8 @@ export function PopupRoot({
   const clickMeButtonRef = React.useRef<HTMLElement | null>(null);
 
   const vars = [
+    lastScale,
+    lastScaleItem,
     exAction,
     sScale,
     sScaleAction,
@@ -1112,8 +1114,16 @@ export function PopupRoot({
       >
         {!params.ids && lastScale && lastScale.parentKey == item.key && (
           <>
-            <span> 量表: {lastScale.annotationText.substring(0, 30)}</span>
             <div
+              style={{
+                maxWidth: (windowType == "FollowParent" && !params.ids ? selectionPopupSize.width - 16 : divMaxWidth) + "px",
+                display: "flex",
+                flexWrap: "wrap",
+              }}
+            >   <button className="toolbar-button"
+              style={{ width: "unset", margin: " 0 2px", height: "auto" }}
+              onClick={() => { setLastScale(undefined); setPref("lastScaleKey", ""); setLastScaleItem(undefined); setPref("lastScaleItemKey", ""); }}>❌</button> <span>量表: {lastScale.annotationText.substring(0, 30)}</span>
+            </div> <div
               style={{
                 maxWidth: (windowType == "FollowParent" && !params.ids ? selectionPopupSize.width - 16 : divMaxWidth) + "px",
                 display: "flex",
@@ -1142,9 +1152,18 @@ export function PopupRoot({
                 </button>
               ))}
             </div>
-            {lastScaleItem && lastScale.parentKey == item.key && (
+            {lastScaleItem && lastScaleItem.parentKey == item.key && (
               <>
-                <span>item:{lastScaleItem.annotationText.substring(0, 30)}</span>
+                <div
+                  style={{
+                    maxWidth: (windowType == "FollowParent" && !params.ids ? selectionPopupSize.width - 16 : divMaxWidth) + "px",
+                    display: "flex",
+                    flexWrap: "wrap",
+                  }}
+                >    <button className="toolbar-button"
+                  style={{ width: "unset", margin: " 0 2px", height: "auto" }}
+                  onClick={() => { setLastScaleItem(undefined); setPref("lastScaleItemKey", ""); }}>❌</button>  <span>item:{lastScaleItem.annotationText.substring(0, 30)}</span>
+                </div>
                 <div
                   style={{
                     maxWidth: (windowType == "FollowParent" && !params.ids ? selectionPopupSize.width - 16 : divMaxWidth) + "px",
@@ -1152,7 +1171,7 @@ export function PopupRoot({
                     flexWrap: "wrap",
                   }}
                 >
-                  {" "}
+
                   {ScaleItemActionTypeArray.map((a) => (
                     <button
                       className="toolbar-button"
@@ -1593,20 +1612,20 @@ export function PopupRoot({
                       ctrlAddOrSaveTags(isAdd, cTag);
                       return false;
                     }}
-                    // onMouseDown={(e) => {
-                    //   e.preventDefault();
-                    //   ztoolkit.log("onMouseDown 复制", e)
-                    //   return false
-                    // }}
-                    // onContextMenu={e => {
-                    //   e.preventDefault();
-                    //   ztoolkit.log("onContextMenu 复制", tag.key)
-                    //   new window.Clipboard().readText().then((text) => {
-                    //     ztoolkit.log("onContextMenu 复制", tag.key, text);
-                    //     (e.currentTarget as HTMLInputElement).value = text;
-                    //   })
-                    //   return false
-                    // }}
+                  // onMouseDown={(e) => {
+                  //   e.preventDefault();
+                  //   ztoolkit.log("onMouseDown 复制", e)
+                  //   return false
+                  // }}
+                  // onContextMenu={e => {
+                  //   e.preventDefault();
+                  //   ztoolkit.log("onContextMenu 复制", tag.key)
+                  //   new window.Clipboard().readText().then((text) => {
+                  //     ztoolkit.log("onContextMenu 复制", tag.key, text);
+                  //     (e.currentTarget as HTMLInputElement).value = text;
+                  //   })
+                  //   return false
+                  // }}
                   >
                     <span>[{tag.values.length}]</span>
                     <span>{tag.key}</span>

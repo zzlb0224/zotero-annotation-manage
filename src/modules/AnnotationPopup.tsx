@@ -1261,18 +1261,16 @@ export async function saveAnnotationTags(
           if (tags.some((s) => s.name == "量表")) {
             setPref("lastScaleKey", newAnnItem.key);
             setPref("lastScaleItemKey", "");
-          } else if (lastScale) {
-            if (newAnnItem.parentKey == lastScale.parentKey) {
-              if (tags.some((s) => ScaleActionTypeArray.map((a) => "量表" + a).includes(s.name))) {
+          } else if (lastScale && newAnnItem.parentKey == lastScale.parentKey) {
+            if (tags.some((s) => ScaleActionTypeArray.map((a) => "量表" + a).includes(s.name))) {
+              new Relations(lastScale).addRelationsToItem(newAnnItem);
+              if (tags.some((s) => s.name == "量表item")) {
+                setPref("lastScaleItemKey", newAnnItem.key);
+              }
+            } else if (lastScaleItem && lastScaleItem.parentKey == newAnnItem.parentKey) {
+              if (tags.some((s) => ScaleItemActionTypeArray.map((a) => "量表" + a).includes(s.name))) {
                 new Relations(lastScale).addRelationsToItem(newAnnItem);
-                if (tags.some((s) => s.name == "量表item")) {
-                  setPref("lastScaleItemKey", newAnnItem.key);
-                }
-              } else if (lastScaleItem.parentKey == newAnnItem.parentKey) {
-                if (tags.some((s) => ScaleItemActionTypeArray.map((a) => "量表" + a).includes(s.name))) {
-                  new Relations(lastScale).addRelationsToItem(newAnnItem);
-                  new Relations(lastScaleItem).addRelationsToItem(newAnnItem);
-                }
+                new Relations(lastScaleItem).addRelationsToItem(newAnnItem);
               }
             }
           }

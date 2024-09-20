@@ -2,14 +2,19 @@ import { waitFor, waitUtilAsync } from "./wait";
 import { getItem } from "./zzlb";
 
 export class Relations {
-  item: Zotero.Item;
+  item!: Zotero.Item;
   constructor(itemOrKeyOrId: Zotero.Item | string | number) {
-    this.item = getItem(itemOrKeyOrId);
-    if (!this.item) {
+    const item = getItem(itemOrKeyOrId);
+    if (!item) {
       //修复新建item的时候getItem返回的false，需要等待才能获取的问题
-      setTimeout(() => {
-        waitUtilAsync(() => !!(this.item = getItem(itemOrKeyOrId)));
+      setTimeout(async () => {
+        const item = await waitFor(() => getItem(itemOrKeyOrId));
+        if (item) {
+          this.item = item
+        }
       });
+    } else {
+      this.item = item
     }
   }
   // static RelationsPredicate="link:annotation" as _ZoteroTypes.RelationsPredicate;
@@ -50,6 +55,7 @@ export class Relations {
     return this.getLinkRelations().map((toItemURI) => getItem(Zotero.URI.getURIItemID(toItemURI) || ""));
   }
   getLinkRelations() {
+    if (!this.item) return []
     try {
       const rs = this.item.getRelations() as any;
       return (rs[Relations.RelationsPredicate] as string[]) || [];
@@ -57,6 +63,7 @@ export class Relations {
       ztoolkit.log("新创建的item会触发getRelations错误，重新获取，再尝试一遍", error);
       try {
         this.item = getItem(this.item.key);
+        if (!this.item) return []
         const rs = this.item.getRelations() as any;
         return (rs[Relations.RelationsPredicate] as string[]) || [];
       } catch (error) {
@@ -76,6 +83,7 @@ export class Relations {
   //   this.setTag();}
   // }
   setRelationsTag() {
+    if (!this.item) return;
     if (this.getLinkRelations().length > 0) {
       if (!this.item.hasTag(Relations.RelationsTag)) this.item.addTag(Relations.RelationsTag, 1);
     } else {
@@ -84,11 +92,13 @@ export class Relations {
     // this.item.saveTx();
   }
   getOpenPdfURI() {
+    if (!this.item) return ``;
     return `zotero://open-pdf/library/items/${this.item.parentItemKey}?page=${this.item.annotationPageLabel}&annotation=${this.item.key}`;
   }
   // removeRelations(openPdfs: string[]) {
   //   const itemURIs= Relations.mapOpenPdf(openPdfs).map(a=>getItem(a.annotationKey)).map(a=>Zotero.URI.getItemURI(a))
   removeRelations(itemURIs: string[]) {
+    if (!this.item) return ``;
     const thisItemURI = Zotero.URI.getItemURI(this.item);
     const clearAll = itemURIs.includes(thisItemURI);
     // const itemURIs= Relations.mapOpenPdf(openPdfs).map(a=>getItem(a.annotationKey)).map(a=>Zotero.URI.getItemURI(a))
@@ -106,6 +116,7 @@ export class Relations {
       const id = Zotero.URI.getURIItemID(f);
       if (id) {
         const item = getItem(id);
+        if (!item) return ``;
         const r = new Relations(item);
         r.removeRelations([thisItemURI]);
       }

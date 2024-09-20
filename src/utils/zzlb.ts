@@ -243,12 +243,12 @@ const memAllTagsInLibraryAsync = memoize(async () => {
     );
   const itemTags = getPref("item-tags")
     ? items.flatMap((f) =>
-        f.getTags().map((a) => ({
-          tag: a.tag,
-          type: a.type,
-          dateModified: f.dateModified,
-        })),
-      )
+      f.getTags().map((a) => ({
+        tag: a.tag,
+        type: a.type,
+        dateModified: f.dateModified,
+      })),
+    )
     : [];
   return groupBy([...tags, ...itemTags], (t14) => t14.tag);
 });
@@ -337,7 +337,7 @@ export function isDebug() {
 }
 export function getItem(itemOrKeyOrId: Zotero.Item | string | number) {
   return typeof itemOrKeyOrId == "number"
-    ? Zotero.Items.get(itemOrKeyOrId)
+    ? (Zotero.Items.get(itemOrKeyOrId) as Zotero.Item)
     : typeof itemOrKeyOrId == "string"
       ? (Zotero.Items.getByLibraryAndKey(Zotero.Libraries.userLibraryID, itemOrKeyOrId) as Zotero.Item)
       : itemOrKeyOrId;
@@ -347,6 +347,7 @@ export async function openAnnotation(itemOrKeyOrId: Zotero.Item | string | numbe
   let pdfDoc: Document | undefined = undefined;
   const item = getItem(itemOrKeyOrId);
 
+  if (!item) return;
   await Zotero.FileHandlers.open(item, {
     location: {
       annotationID: annotationKey,
@@ -378,7 +379,7 @@ export async function openAnnotation(itemOrKeyOrId: Zotero.Item | string | numbe
   }
 }
 
-export async function injectCSSToReader() {}
+export async function injectCSSToReader() { }
 
 export const memSVG = memoize(
   async (href: string) => await getFileContent(href),
@@ -414,11 +415,11 @@ export async function injectCSS(doc: Document | HTMLDivElement, filename: string
       ignoreIfExists: true,
     },
     doc.querySelector("linkset") ||
-      doc.querySelector("head") ||
-      doc.querySelector("body") ||
-      doc.querySelector("div") ||
-      doc.children[0] ||
-      doc,
+    doc.querySelector("head") ||
+    doc.querySelector("body") ||
+    doc.querySelector("div") ||
+    doc.children[0] ||
+    doc,
   );
   // ztoolkit.log("加载css", d);
 }
