@@ -17,6 +17,7 @@ import {
   exportNote,
   exportScaleCsv,
   exportScaleNote,
+  exportScaleXls,
   getAllAnnotations,
 } from "./AnnotationsToNote";
 import { copyAnnotations, mergePdfs, pasteAnnotations } from "./BackupAnnotation";
@@ -338,6 +339,14 @@ function buildMenu(collectionOrItem: "collection" | "item") {
         icon: iconBaseUrl + "favicon.png",
         commandListener: async (ev: Event) => {
           exportScaleCsv(collectionOrItem);
+        },
+      },
+      {
+        tag: "menuitem",
+        label: "导出量表格式XLsx(测试中)",
+        icon: iconBaseUrl + "favicon.png",
+        commandListener: async (ev: Event) => {
+          exportScaleXls(collectionOrItem);
         },
       },
       {
