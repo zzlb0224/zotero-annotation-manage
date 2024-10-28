@@ -1252,6 +1252,7 @@ export async function saveAnnotationTags(
         // reader?._primaryView?._onSetSelectionPopup?.(null);
         // openAnnotation(item, newAnn?.pageLabel || "", newAnn?.id || "")
         const newAnnItem = await waitFor(() => getItem(newAnn?.id || ""));
+
         if (newAnnItem) {
           ztoolkit.log("创建了一个新批注", newAnn, newAnnItem);
           const lastScaleKey = getPref("lastScaleKey") as string;
