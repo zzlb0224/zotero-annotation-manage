@@ -21,7 +21,7 @@ export async function searchWords(item?: Zotero.Item, items?: Zotero.Item[]) {
       });
     }
     const findText = ["and", "of"];
-    const r = Zotero.Reader.getByTabID(Zotero_Tabs.selectedID);
+    const r = Zotero.Reader.getByTabID(Zotero.getMainWindow().Zotero_Tabs.selectedID);
 
     const pv = r._primaryView;
     //@ts-ignore _iframe

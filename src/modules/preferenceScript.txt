@@ -601,7 +601,7 @@ async function replaceTagsPreviewDiv(doc?: Document) {
       }
     }
     if (!ann) {
-      const sc = ZoteroPane.getSelectedCollection();
+      const sc = Zotero.getActiveZoteroPane().getSelectedCollection();
       if (sc) {
         const pdfs = sc
           .getChildItems(false, false)
@@ -619,7 +619,7 @@ async function replaceTagsPreviewDiv(doc?: Document) {
       }
     }
     if (!ann) {
-      const sc = ZoteroPane.getSelectedCollection();
+      const sc = Zotero.getActiveZoteroPane().getSelectedCollection();
       if (sc) {
         const pdfs = getChildCollections([sc])
           ?.flatMap((f) => f.getChildItems(false, false))

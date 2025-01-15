@@ -10,11 +10,11 @@ export class Relations {
       setTimeout(async () => {
         const item = await waitFor(() => getItem(itemOrKeyOrId));
         if (item) {
-          this.item = item
+          this.item = item;
         }
       });
     } else {
-      this.item = item
+      this.item = item;
     }
   }
   // static RelationsPredicate="link:annotation" as _ZoteroTypes.RelationsPredicate;
@@ -55,7 +55,7 @@ export class Relations {
     return this.getLinkRelations().map((toItemURI) => getItem(Zotero.URI.getURIItemID(toItemURI) || ""));
   }
   getLinkRelations() {
-    if (!this.item) return []
+    if (!this.item) return [];
     try {
       const rs = this.item.getRelations() as any;
       return (rs[Relations.RelationsPredicate] as string[]) || [];
@@ -63,7 +63,7 @@ export class Relations {
       ztoolkit.log("新创建的item会触发getRelations错误，重新获取，再尝试一遍", error);
       try {
         this.item = getItem(this.item.key);
-        if (!this.item) return []
+        if (!this.item) return [];
         const rs = this.item.getRelations() as any;
         return (rs[Relations.RelationsPredicate] as string[]) || [];
       } catch (error) {

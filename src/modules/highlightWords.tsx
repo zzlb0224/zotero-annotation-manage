@@ -151,7 +151,9 @@ function readerToolbarCallback(event: Parameters<_ZoteroTypes.Reader.EventHandle
 
     const { ss, ssr, getColor, getSpan } = getFormatStr();
 
-    for (const span of pdfDoc.querySelectorAll("span[role=presentation]")) {
+    for (const s of pdfDoc.querySelectorAll("span[role=presentation]")) {
+      const span = s as HTMLSpanElement;
+
       if (span.screenY < -height || span.screenY > height * 2) continue;
       let txt = span.getAttribute("data-text");
       if (!txt) {
@@ -223,7 +225,8 @@ function readerToolbarCallback(event: Parameters<_ZoteroTypes.Reader.EventHandle
   }
 
   function clearSearch() {
-    for (const span of pdfDoc.querySelectorAll("span[role=presentation]")) {
+    for (const s of pdfDoc.querySelectorAll("span[role=presentation]")) {
+      const span = s as HTMLSpanElement;
       const html = span.getAttribute("data-text");
       if (html) {
         span.textContent = html;
@@ -301,9 +304,10 @@ function readerToolbarCallback(event: Parameters<_ZoteroTypes.Reader.EventHandle
   function qqqq() {
     const win = doc.querySelector("iframe")?.contentWindow;
     if (win) {
-      Zotero.r_win = win;
-      Zotero.r_reader = reader;
-      Zotero.r_doc = doc;
+      if (__env__ === "development") {
+        //@ts-ignore Zotero.r_win
+        Zotero.r_win = { win, reader, doc };
+      }
       // win.setFindState()
       //const win =Zotero.r_win;
       // (async function () {

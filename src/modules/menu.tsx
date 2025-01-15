@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import { MenuitemOptions } from "zotero-plugin-toolkit/dist/managers/menu";
 import { TagElementProps } from "zotero-plugin-toolkit/dist/tools/ui";
 import { config } from "../../package.json";
-import { PickerColor } from "../component/PickerColor";
+// import { PickerColor } from "../component/PickerColor";
 import { groupBy } from "../utils/groupBy";
 import { getPref } from "../utils/prefs";
 import { sortBy, sortValuesLengthKeyAsc } from "../utils/sort";
@@ -71,94 +71,7 @@ function buildMenu(collectionOrItem: "collection" | "item") {
               funcCreateTab(items);
             },
           },
-          {
-            tag: "menuitem",
-            label: "测试 react popover",
-            icon: iconBaseUrl + "favicon.png",
-            id: "react_popover_root",
-            commandListener: async (ev: Event) => {
-              const tabDiv = Zotero_Tabs.deck.querySelector("#" + Zotero_Tabs.selectedID) as HTMLDivElement;
-              const react_popover_root =
-                (tabDiv.querySelector(".react_popover_root") as HTMLDivElement) ||
-                ztoolkit.UI.appendElement(
-                  {
-                    tag: "div",
-                    styles: {
-                      width: "calc(100% - 80px)",
-                      height: "calc(100% - 100px)",
-                      position: "fixed",
-                      left: "40px",
-                      top: "80px",
-                      zIndex: "99999",
-                      background: "#aaa",
-                    },
-                    classList: ["react_popover_root"],
-                    children: [
-                      {
-                        tag: "span",
-                        styles: {
-                          background: "#333",
-                          padding: "20px",
-                          margin: "20px",
-                        },
-                        properties: { textContent: "关闭" },
-                        listeners: [
-                          {
-                            type: "click",
-                            listener: () => {
-                              react_popover_root.remove();
-                            },
-                          },
-                        ],
-                      },
 
-                      {
-                        tag: "div",
-                        styles: {
-                          background: "#996",
-                          padding: "20px",
-                          margin: "20px",
-                        },
-                        properties: { textContent: "占位div" },
-                      },
-                    ],
-                  },
-                  tabDiv,
-                );
-              react_popover_root.querySelector(".react_popover_root_popover")?.remove();
-              const popover = ztoolkit.UI.appendElement(
-                {
-                  tag: "div",
-                  styles: {
-                    background: "#996",
-                    padding: "20px",
-                    margin: "20px",
-                  },
-                  properties: { textContent: "react_popover_root_popover" },
-                  classList: ["react_popover_root_popover"],
-                },
-                react_popover_root,
-              ) as HTMLDivElement;
-              ztoolkit.log(window, window.console);
-              // const parentElement = Object.assign(root, { ownerDocument: { body: root } })
-              createRoot(popover).render(
-                <>
-                  <PickerColor
-                    parentElement={react_popover_root}
-                    defaultColor="#aabbcc"
-                    onChange={(c) => {
-                      ztoolkit.log("ddddd", c);
-                    }}
-                  ></PickerColor>
-                </>,
-              );
-              // createRoot(root.querySelector(".react_popover_root_popover")!).render(
-              //   <>
-              //     <div>{new Date().toLocaleTimeString()}</div>
-              //   </>,
-              // );
-            },
-          },
           {
             tag: "menuitem",
             label: "测试弹出窗口",
@@ -238,7 +151,7 @@ function buildMenu(collectionOrItem: "collection" | "item") {
           const mainWindow = Zotero.getMainWindow();
           let header = "";
           if (collectionOrItem == "collection") {
-            header = `collection:${ZoteroPane.getSelectedCollection()?.name}`;
+            header = `collection:${Zotero.getActiveZoteroPane().getSelectedCollection()?.name}`;
           } else if (items.length == 1) {
             header = `单条目:${items[0].getDisplayTitle()}`;
           } else {
@@ -373,7 +286,7 @@ function buildMenu(collectionOrItem: "collection" | "item") {
           const mainWindow = Zotero.getMainWindow();
           let header = "";
           if (collectionOrItem == "collection") {
-            header = `collection:${ZoteroPane.getSelectedCollection()?.name}`;
+            header = `collection:${Zotero.getActiveZoteroPane().getSelectedCollection()?.name}`;
           } else if (items.length == 1) {
             header = `单条目:${items[0].getDisplayTitle()}`;
           } else {
@@ -693,6 +606,7 @@ async function funcCreateTab(items: Zotero.Item[]) {
                                 const z = Zotero.Items.get(a.item.getAttachments()).filter((f) => f.isPDFAttachment())[0];
                                 if (z) {
                                   ztoolkit.log("打开", z.getDisplayTitle(), z);
+                                  //@ts-ignore Zotero.FileHandlers.open
                                   Zotero.FileHandlers.open(z);
                                 }
                                 return true;
@@ -801,7 +715,7 @@ export function createActionTag(
 export async function getSelectedItems(isCollectionOrItem: boolean | "collection" | "item") {
   let items: Zotero.Item[] = [];
   if (isCollectionOrItem === true || isCollectionOrItem === "collection") {
-    const selected = ZoteroPane.getSelectedCollection();
+    const selected = Zotero.getActiveZoteroPane().getSelectedCollection();
     ztoolkit.log(isCollectionOrItem, selected);
     if (selected) {
       const cs = uniqueBy([selected, ...getChildCollections([selected])], (u) => u.key);

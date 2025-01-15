@@ -1,5 +1,5 @@
 (async function () {
-  const reader = Zotero.Reader.getByTabID(Zotero_Tabs.selectedID);
+  const reader = Zotero.Reader.getByTabID(Zotero.getMainWindow().Zotero_Tabs.selectedID);
   const PDFViewerApplication = reader._iframeWindow?.wrappedJSObject.PDFViewerApplication;
   await PDFViewerApplication.pdfLoadingTask.promise;
   await PDFViewerApplication.pdfViewer.pagesPromise;

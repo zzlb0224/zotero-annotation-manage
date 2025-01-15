@@ -60,13 +60,17 @@ export async function funcTranslateAnnotations(isCollectionOrItem: boolean | "co
     const text = an.ann.annotationText;
     let r = "";
     if (an.item.getField("language")?.includes("en")) {
-      const result = (
-        await Zotero.PDFTranslate.api.translate(text, {
-          langto: "zh",
-          itemID: an.item.id,
-          pluginID: config.addonID,
-        })
-      ).result;
+      //@ts-ignore Zotero.PDFTranslate
+      const translate = Zotero.PDFTranslate.api.translate
+
+      const result =
+        (
+          await translate(text, {
+            langto: "zh",
+            itemID: an.item.id,
+            pluginID: config.addonID,
+          })
+        ).result as string;
       r = "🔤" + result + "🔤";
     }
     if (!an.ann.annotationComment) {

@@ -87,6 +87,7 @@ export async function pasteAnnotations(items: Zotero.Item[], md5Equal = false, f
             continue;
           }
           ztoolkit.log("开始保存", an);
+          //@ts-ignore Zotero.DataObjectUtilities.generateKey
           an.annotationJson.key = Zotero.DataObjectUtilities.generateKey();
           //ts-ignore annotationType
           // an.annotationJson.annotationType = an.annotationJson.type
@@ -186,6 +187,7 @@ export async function mergePdfs(items: Zotero.Item[], fileSizeEqual = true, md5E
             // await annotation.saveTx();
             const annotationJson = await parseAnnotationJSON(annotation);
             if (annotationJson) {
+              //@ts-ignore Zotero.DataObjectUtilities.generateKey
               annotationJson.key = Zotero.DataObjectUtilities.generateKey();
               const savedAnnotation = await Zotero.Annotations.saveFromJSON(masterPdf, annotationJson);
               await savedAnnotation.saveTx();

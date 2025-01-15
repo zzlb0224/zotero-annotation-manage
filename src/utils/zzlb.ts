@@ -108,7 +108,7 @@ export const memFixedColor = memoize(
 export const memFixedTagColors = memoize(getFixedTagColors, getCollectionKey);
 
 function getCollectionKey(collectionKey: string | undefined = undefined) {
-  return collectionKey === undefined ? ZoteroPane.getSelectedCollection()?.key || "" : collectionKey;
+  return collectionKey === undefined ? Zotero.getActiveZoteroPane().getSelectedCollection()?.key || "" : collectionKey;
 }
 
 function getFixedTagColors(collectionKey: string | undefined = undefined) {
@@ -243,12 +243,12 @@ const memAllTagsInLibraryAsync = memoize(async () => {
     );
   const itemTags = getPref("item-tags")
     ? items.flatMap((f) =>
-      f.getTags().map((a) => ({
-        tag: a.tag,
-        type: a.type,
-        dateModified: f.dateModified,
-      })),
-    )
+        f.getTags().map((a) => ({
+          tag: a.tag,
+          type: a.type,
+          dateModified: f.dateModified,
+        })),
+      )
     : [];
   return groupBy([...tags, ...itemTags], (t14) => t14.tag);
 });
@@ -256,9 +256,11 @@ export async function asyncGetAllTagsFromDB() {
   //使用异步查询优化性能
   const rows = await Zotero.DB.queryAsync(
     "select name as tag,type,ann.dateModified from itemTags it join tags t on it.tagID=t.tagID join items ann on it.itemID=ann.itemID",
+    null,
   );
+  if (!rows || rows.length < 1) return [];
   const lines: { tag: string; type: number; dateModified: string }[] = [];
-  for (const row of rows) {
+  for (const row of rows as any[]) {
     lines.push({
       tag: row.tag,
       type: row.type,
@@ -267,6 +269,7 @@ export async function asyncGetAllTagsFromDB() {
   }
   return lines;
 }
+
 export const memoizeAsyncGroupAllTagsDB = memoize(async () => {
   const lines = await asyncGetAllTagsFromDB();
   return groupBy(lines, (t15) => t15.tag);
@@ -286,7 +289,7 @@ function getItemRelateCollections(item?: Zotero.Item): Zotero.Collection[] {
   const prefSelectedCollection = !!getPref("selected-collection");
   const prefCurrentCollection = !!getPref("current-collection");
   if (prefSelectedCollection) {
-    const selectedCollectionId = ZoteroPane.getSelectedCollection(true);
+    const selectedCollectionId = Zotero.getActiveZoteroPane().getSelectedCollection(true);
     if (selectedCollectionId) allCollectionIds.push(selectedCollectionId);
   }
   if (prefCurrentCollection) {
@@ -309,7 +312,7 @@ function getTagsInCollections(collections: Zotero.Collection[]) {
     .flatMap((a) => a.getAttachments(false)); //为啥会出现
   const pdfItems = Zotero.Items.get(pdfIds).filter((f) => f.isFileAttachment() && f.isAttachment());
   const annotations = pdfItems.flatMap((f) => f.getAnnotations(false));
-  return annotations.flatMap((f) => f.getTags().map((a) => ({ tag: a.tag, type: a.type, dateModified: f.dateModified })));
+  return annotations.flatMap((f) => f.getTags().map((a) => ({ tag: a.tag, type: a.type || 0, dateModified: f.dateModified })));
 }
 export function ReTest(reStr: string) {
   const txtRegExp = str2RegExps(reStr);
@@ -348,6 +351,7 @@ export async function openAnnotation(itemOrKeyOrId: Zotero.Item | string | numbe
   const item = getItem(itemOrKeyOrId);
 
   if (!item) return;
+  //@ts-ignore Zotero.FileHandlers.open
   await Zotero.FileHandlers.open(item, {
     location: {
       annotationID: annotationKey,
@@ -355,12 +359,12 @@ export async function openAnnotation(itemOrKeyOrId: Zotero.Item | string | numbe
     },
   });
   if (!annotationKey) return;
-  const tabId = Zotero_Tabs.getTabIDByItemID(item.id);
+  const tabId = Zotero.getMainWindow().Zotero_Tabs.getTabIDByItemID(item.id);
   let times = 400;
   getDoc();
   function getDoc() {
     if (times-- < 0) return;
-    const b = Zotero_Tabs.deck.querySelector(`[id^=${tabId}].deck-selected browser`) as any;
+    const b = Zotero.getMainWindow().Zotero_Tabs.deck.querySelector(`[id^=${tabId}].deck-selected browser`) as any;
     doc = b?.contentDocument || undefined;
     if (doc && doc.querySelector("div,span")) getPdfDoc();
     else setTimeout(getDoc, 50);
@@ -379,7 +383,7 @@ export async function openAnnotation(itemOrKeyOrId: Zotero.Item | string | numbe
   }
 }
 
-export async function injectCSSToReader() { }
+export async function injectCSSToReader() {}
 
 export const memSVG = memoize(
   async (href: string) => await getFileContent(href),
@@ -415,11 +419,11 @@ export async function injectCSS(doc: Document | HTMLDivElement, filename: string
       ignoreIfExists: true,
     },
     doc.querySelector("linkset") ||
-    doc.querySelector("head") ||
-    doc.querySelector("body") ||
-    doc.querySelector("div") ||
-    doc.children[0] ||
-    doc,
+      doc.querySelector("head") ||
+      doc.querySelector("body") ||
+      doc.querySelector("div") ||
+      doc.children[0] ||
+      doc,
   );
   // ztoolkit.log("加载css", d);
 }
@@ -671,10 +675,10 @@ async function getImageFromReader(an: AnnotationRes) {
   // if(await waitFor(()=>getImageCount==0)){
   //   getImageCount++
   await openAnnotation(an.pdf, an.page, an.ann.key);
-  const tabId = Zotero_Tabs.getTabIDByItemID(an.pdf.id);
+  const tabId = Zotero.getMainWindow().Zotero_Tabs.getTabIDByItemID(an.pdf.id);
   const reader = Zotero.Reader.getByTabID(tabId);
   const image = await waitFor(() => reader?._internalReader?._annotationManager?._annotations?.find((f) => f.id == an.ann.key));
-  Zotero_Tabs.select("zotero-pane");
+  Zotero.getMainWindow().Zotero_Tabs.select("zotero-pane");
   // Zotero_Tabs.close(tabId)
   // getImageCount--
   ztoolkit.log("预览 reader", reader, image);
@@ -774,6 +778,7 @@ export async function createDialog(title: string, children: TagElementProps[]) {
   return dialogHelper.window;
 }
 export async function getAnnotationContent(ann: Zotero.Item) {
+  //@ts-ignore Zotero.BetterNotes
   let html = (await Zotero.BetterNotes.api.convert.annotations2html([ann], {
     noteItem: undefined,
   })) as string;
@@ -810,13 +815,16 @@ export function getPublicationTags(topItem: Zotero.Item | undefined) {
   if (!topItem) {
     return "";
   }
+
   while (topItem.parentItem) topItem = topItem.parentItem;
-  if (!Zotero.ZoteroStyle) {
+  //@ts-ignore ZoteroStyle
+  const ZoteroStyle = Zotero.ZoteroStyle as any;
+  if (!ZoteroStyle) {
     return "";
   }
   const space = " ㅤㅤ ㅤㅤ";
   return Array.prototype.map
-    .call(Zotero.ZoteroStyle.api.renderCell(topItem, "publicationTags").childNodes, (e) => {
+    .call(ZoteroStyle.api.renderCell(topItem, "publicationTags").childNodes, (e) => {
       e.innerText = space + e.innerText + space;
       return e.outerHTML;
     })
@@ -874,7 +882,7 @@ export function clearChild(ele: Element | null) {
 }
 export function stopPropagation(e: Event) {
   const win = (e.target as any).ownerGlobal;
-  e = e || win?.event || window.event;
+  e = e || win?.event || Zotero.getMainWindow().event;
   if (e.stopPropagation) {
     e.stopPropagation(); //W3C阻止冒泡方法
   } else {

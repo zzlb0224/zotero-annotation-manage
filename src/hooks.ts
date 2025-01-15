@@ -24,72 +24,35 @@ async function onStartup() {
 
   BasicExampleFactory.registerPrefs();
 
-  // BasicExampleFactory.registerNotifier();
-
-  // KeyExampleFactory.registerShortcuts();
-
-  // await UIExampleFactory.registerExtraColumn();
-
-  // await UIExampleFactory.registerExtraColumnWithCustomCell();
-
-  // UIExampleFactory.registerItemPaneSection();
-
-  // UIExampleFactory.registerReaderItemPaneSection();
-
-  await onMainWindowLoad(window);
+  await Promise.all(Zotero.getMainWindows().map((win) => onMainWindowLoad(win)));
   // self = window;
 }
 
 async function onMainWindowLoad(win: Window): Promise<void> {
+  await new Promise((resolve) => {
+    if (win.document.readyState !== "complete") {
+      win.document.addEventListener("readystatechange", () => {
+        if (win.document.readyState === "complete") {
+          resolve(void 0);
+        }
+      });
+    }
+    resolve(void 0);
+  });
+
+  await Promise.all([Zotero.initializationPromise, Zotero.unlockPromise, Zotero.uiReadyPromise]);
+
+  // Services.scriptloader.loadSubScript(
+  //   `chrome://${config.addonRef}/content/scripts/customElements.js`,
+  //   win,
+  // );
+
+  (win as any).MozXULElement.insertFTLIfNeeded(`${config.addonRef}-mainWindow.ftl`);
+
   // Create ztoolkit for every window
   addon.data.ztoolkit = createZToolkit();
   win.console.log("onMainWindowLoad");
 
-  // @ts-ignore This is a moz feature
-  // window.MozXULElement.insertFTLIfNeeded(`${config.addonRef}-mainWindow.ftl`);
-
-  // const popupWin = new ztoolkit.ProgressWindow(config.addonName, {
-  //   closeOnClick: true,
-  //   closeTime: -1,
-  // })
-  //   .createLine({
-  //     text: getString("startup-begin"),
-  //     type: "default",
-  //     progress: 0,
-  //   })
-  //   .show();
-
-  // await Zotero.Promise.delay(1000);
-  // popupWin.changeLine({
-  //   progress: 30,
-  //   text: `[30%] ${getString("startup-begin")}`,
-  // });
-
-  // UIExampleFactory.registerStyleSheet();
-
-  // UIExampleFactory.registerRightClickMenuItem();
-
-  // UIExampleFactory.registerRightClickMenuPopup();
-
-  // UIExampleFactory.registerWindowMenuWithSeparator();
-
-  // await UIExampleFactory.registerCustomItemBoxRow();
-
-  // PromptExampleFactory.registerNormalCommandExample();
-
-  // PromptExampleFactory.registerAnonymousCommandExample();
-
-  // PromptExampleFactory.registerConditionalCommandExample();
-
-  // await Zotero.Promise.delay(1000);
-
-  // popupWin.changeLine({
-  //   progress: 100,
-  //   text: `[100%] ${getString("startup-finish")}`,
-  // });
-  // popupWin.startCloseTimer(5000);
-
-  // addon.hooks.onDialogEvents("dialogExample");
   Annotations.register();
   AnnotationsToNote.register();
   RelationHeader.register();
@@ -109,6 +72,7 @@ async function onMainWindowUnload(win: Window): Promise<void> {
   // unregisteredID_showAnnotations()
   ztoolkit.unregisterAll();
   addon.data.dialog?.window?.close();
+  win.document.querySelector(`[href="${config.addonRef}-mainWindow.ftl"]`)?.remove();
 }
 
 function onShutdown(): void {
@@ -117,6 +81,7 @@ function onShutdown(): void {
   addon.data.dialog?.window?.close();
   // Remove addon object
   addon.data.alive = false;
+  // @ts-ignore - Plugin instance is not typed
   delete Zotero[config.addonInstance];
 }
 

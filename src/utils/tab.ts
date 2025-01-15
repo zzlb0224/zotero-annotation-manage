@@ -16,22 +16,22 @@ export class Tab {
   }
   close() {
     if (this.tab) {
-      Zotero_Tabs.close(this.tab.id);
+      Zotero.getMainWindow().Zotero_Tabs.close(this.tab.id);
       this.tab = undefined;
     }
   }
   constructor(url: string, title: string, onLoad?: (doc: Document) => void) {
     this.onLoad = onLoad;
     if (this.tab) {
-      const index = Zotero_Tabs._getTab(this.tab.id)?.tabIndex;
+      const index = Zotero.getMainWindow().Zotero_Tabs._getTab(this.tab.id)?.tabIndex;
       if (index) {
-        Zotero_Tabs._tabs[index]["title"] = "new Tab - " + title;
+        Zotero.getMainWindow().Zotero_Tabs._tabs[index]["title"] = "new Tab - " + title;
         this.browser.loadURI(url, {
           triggeringPrincipal: Services.scriptSecurityManager.getSystemPrincipal(),
         });
       }
     } else {
-      this.tab = Zotero_Tabs.add({
+      this.tab = Zotero.getMainWindow().Zotero_Tabs.add({
         type: config.addonInstance,
         title: title,
         data: {},
@@ -62,7 +62,7 @@ export class Tab {
 
       // ztoolkit.log("333");
     }
-    Zotero_Tabs.select(this.tab.id);
+    Zotero.getMainWindow().Zotero_Tabs.select(this.tab.id);
   }
   private loaded(n = 100) {
     // ztoolkit.log("tab加载检测");

@@ -375,7 +375,7 @@ function bindFixedColors(doc: Document) {
   async function showCurrentCollection() {
     if (!currentCollection) return;
     currentCollection.innerHTML = "固定标签配置";
-    const selectedCollection = ZoteroPane.getSelectedCollection(false);
+    const selectedCollection = Zotero.getActiveZoteroPane().getSelectedCollection(false);
     if (selectedCollection) {
       collectionKey = selectedCollection.key;
       ztoolkit.UI.appendElement(
@@ -538,7 +538,7 @@ async function replaceTagsPreviewDiv(doc?: Document) {
   const getAnn = async () => {
     let ann: Zotero.Item | undefined = undefined;
     let from = "";
-    const selected = ZoteroPane.getSelectedItems()?.[0];
+    const selected = Zotero.getActiveZoteroPane().getSelectedItems()?.[0];
     if (selected) {
       const item = selected.parentItem ? selected.parentItem : selected;
       ztoolkit.log(item);
@@ -552,7 +552,7 @@ async function replaceTagsPreviewDiv(doc?: Document) {
       }
     }
     if (!ann) {
-      const sc = ZoteroPane.getSelectedCollection();
+      const sc = Zotero.getActiveZoteroPane().getSelectedCollection();
       if (sc) {
         const pdfs = sc.getChildItems(false, false).flatMap((f) => f.getAttachments());
         if (pdfs) {
@@ -568,7 +568,7 @@ async function replaceTagsPreviewDiv(doc?: Document) {
       }
     }
     if (!ann) {
-      const sc = ZoteroPane.getSelectedCollection();
+      const sc = Zotero.getActiveZoteroPane().getSelectedCollection();
       if (sc) {
         const pdfs = getChildCollections([sc])
           ?.flatMap((f) => f.getChildItems(false, false))

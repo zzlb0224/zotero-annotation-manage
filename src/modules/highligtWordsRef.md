@@ -4,11 +4,11 @@ Zotero.Reader 是 PDF 阅读器的接口，但对于阅读器中诸如选中、�
 源码位置：chrome/content/Zotero/xpcom/reader.js
 
 基本使用
-通过 Zotero.Reader._readers 访问当前的 ReaderInstance 对象，每个对象有_iframeWindow 属性，可对其执行界面操作。
+通过 Zotero.Reader.\_readers 访问当前的 ReaderInstance 对象，每个对象有\_iframeWindow 属性，可对其执行界面操作。
 
 ```javascript
 Zotero.Reader.getByTabID(Zotero_Tabs.selectedID);
-javascript
+javascript;
 const cont = document.getElementById(`${Zotero_Tabs.selectedID}-context`);
 const box = cont.querySelector("tabbox");
 box.tabs.append(tab);
@@ -16,9 +16,9 @@ box.tabpanels.append(panel);
 ```
 
 调用 pdf.js 接口
-ReaderInstance 对象的 _iframeWindow 属性是阅读器的 window 对象，也就是在网页版所看到的内容，它包含了整个 pdf 阅读器的 document 对象与 wrappedJSObject 字段。
+ReaderInstance 对象的 \_iframeWindow 属性是阅读器的 window 对象，也就是在网页版所看到的内容，它包含了整个 pdf 阅读器的 document 对象与 wrappedJSObject 字段。
 
-通过调用 ._iframeWindow.wrappedJSObject 可在阅读器命名空间外访问其局部变量，其中的方法有 zoteroCopyImage 和 zoteroSaveImageAs 等。同时他包含了 PDFViewerApplication 对象.
+通过调用 .\_iframeWindow.wrappedJSObject 可在阅读器命名空间外访问其局部变量，其中的方法有 zoteroCopyImage 和 zoteroSaveImageAs 等。同时他包含了 PDFViewerApplication 对象.
 
 该部分源码在 pdf-reader/src at master · Zotero/pdf-reader
 
@@ -31,12 +31,11 @@ ReaderInstance 对象的 _iframeWindow 属性是阅读器的 window 对象，也
 案例
 
 1. 获取 pdf 指定页面所有文字
-以第一页为例，索引为 0：
+   以第一页为例，索引为 0：
 
 ```typescript
 const reader = Zotero.Reader.getByTabID(Zotero_Tabs.selectedID);
-const PDFViewerApplication =
-  reader._iframeWindow.wrappedJSObject.PDFViewerApplication;
+const PDFViewerApplication = reader._iframeWindow.wrappedJSObject.PDFViewerApplication;
 await PDFViewerApplication.pdfLoadingTask.promise;
 await PDFViewerApplication.pdfViewer.pagesPromise;
 let pages = PDFViewerApplication.pdfViewer._pages;

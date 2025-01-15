@@ -29,8 +29,8 @@ import { Relations } from "../utils/Relations";
 import { createRoot } from "react-dom/client";
 import { IntlProvider } from "react-intl";
 import * as React from "react";
-import { usePopover } from "react-tiny-popover";
-import { HexColorPicker } from "react-colorful";
+// import { usePopover } from "react-tiny-popover";
+// import { HexColorPicker } from "react-colorful";
 import { PopupRoot } from "../component/PopupRoot";
 import TagPopup from "../component/TagPopup";
 import { waitFor } from "../utils/wait";
@@ -107,8 +107,10 @@ export class AnnotationPopup {
   }
   public async createDiv() {
     if (!this.doc) return;
-    Zotero.test_doc = this.doc;
-    Zotero.test_params = this.params;
+    if (__env__ === "development") {
+      //@ts-ignore Zotero.test_doc
+      Zotero.test_doc = { doc: this.doc, params: this.params };
+    }
     this.clearDiv();
     //
 
@@ -264,6 +266,8 @@ export class AnnotationPopup {
     const rr = ztoolkit.UI.appendElement({ tag: "div", classList: ["reactRoot"], id: reactRootID }, root) as HTMLDivElement;
     ztoolkit.log("root和rr", root, rr);
     // if (isDebug())
+    const window = Zotero.getMainWindow()
+
     setTimeout(() => {
       createRoot(rr).render(
         <IntlProvider
@@ -1076,7 +1080,7 @@ export class AnnotationPopup {
         fontSize: this.fontSize,
       },
       properties: {
-        textContent: this.searchTag ? "搜索中" : `${ZoteroPane.getSelectedCollection()?.name || ""}`,
+        textContent: this.searchTag ? "搜索中" : `${Zotero.getActiveZoteroPane().getSelectedCollection()?.name || ""}`,
       },
       children,
     };
@@ -1161,7 +1165,7 @@ export class AnnotationPopup {
   getViewerPadding() {
     const pvDoc = this.getPrimaryViewDoc1();
     const viewer = pvDoc?.querySelector("#viewer") as HTMLElement;
-    return parseFloat(ztoolkit.getGlobal("getComputedStyle")(viewer).paddingLeft) || 0;
+    return parseFloat(ztoolkit.getGlobal("getComputedStyle")(viewer)?.paddingLeft || "") || 0;
   }
   getClientWidthWithoutSlider() {
     const clientWidthWithoutSlider = this.getPrimaryViewDoc1()?.querySelector("#viewerContainer")?.clientWidth || 0;

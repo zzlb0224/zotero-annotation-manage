@@ -609,6 +609,7 @@ export function createSearchAnnContent(dialogWindow: Window | undefined, popupDi
   async function updatePageContent() {
     if (!doc) return;
     const docCss = ztoolkit.getGlobal("getComputedStyle")(doc);
+    if (!docCss) return;
     const docWidth = parseFloat(docCss.width);
     const docHeight = parseFloat(docCss.height);
     ztoolkit.log("画布宽度", docWidth, "高度", docHeight);
@@ -723,13 +724,14 @@ export function createSearchAnnContent(dialogWindow: Window | undefined, popupDi
                   display: bShowRank || bShowTag ? "" : "none",
                 },
                 properties: {
-                  innerHTML: `${bShowTag
-                    ? anTo
-                      .getTags()
-                      .map((a) => a.tag)
-                      .join(",")
-                    : ""
-                    } ${bShowRank ? getPublicationTags(anTo) : ""}`,
+                  innerHTML: `${
+                    bShowTag
+                      ? anTo
+                          .getTags()
+                          .map((a) => a.tag)
+                          .join(",")
+                      : ""
+                  } ${bShowRank ? getPublicationTags(anTo) : ""}`,
                 },
               },
             ],
@@ -962,7 +964,7 @@ export async function exportScaleCsv(collectionOrItem: "collection" | "item") {
     a.description?.comment || " ",
   ]);
   const csv_header = `author,year,title,variable,item,comment,factorLoading,reference,CR,CA,AVE,description,descriptionComment
-`
+`;
 
   const csv = [];
   const separator = ",";
@@ -977,12 +979,11 @@ export async function exportScaleCsv(collectionOrItem: "collection" | "item") {
     csv.push(row.join(separator));
   }
   const csv_string = csv_header + csv.join("\n");
-  ztoolkit.log(csv_string)
+  ztoolkit.log(csv_string);
 
   const classes = Components.classes as any;
   const nsIFilePicker = Components.interfaces.nsIFilePicker;
   const fp = classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker) as nsIFilePicker;
-
 
   fp.defaultString = "Scale - " + new Date().getTime() + ".csv";
   fp.init(window as any, "Save to file", nsIFilePicker.modeSave);
@@ -991,11 +992,17 @@ export async function exportScaleCsv(collectionOrItem: "collection" | "item") {
 
   fp.open(function () {
     // IOUtils.writeUTF8(fp.file.path, csv_string)
-    const outputStream = classes["@mozilla.org/network/file-output-stream;1"].createInstance(Components.interfaces.nsIFileOutputStream) as nsIFileOutputStream;
+    const outputStream = classes["@mozilla.org/network/file-output-stream;1"].createInstance(
+      Components.interfaces.nsIFileOutputStream,
+    ) as nsIFileOutputStream;
     outputStream.init(fp.file, 0x04 | 0x08 | 0x20, 420, 0);
-    const converter2 = classes["@mozilla.org/intl/converter-input-stream;1"].createInstance(Components.interfaces.nsIConverterInputStream) as nsIConverterInputStream;
+    const converter2 = classes["@mozilla.org/intl/converter-input-stream;1"].createInstance(
+      Components.interfaces.nsIConverterInputStream,
+    ) as nsIConverterInputStream;
 
-    const converter = classes["@mozilla.org/intl/converter-output-stream;1"].createInstance(Components.interfaces.nsIConverterOutputStream) as nsIConverterOutputStream;
+    const converter = classes["@mozilla.org/intl/converter-output-stream;1"].createInstance(
+      Components.interfaces.nsIConverterOutputStream,
+    ) as nsIConverterOutputStream;
     converter.init(outputStream, "gb2312");
     converter.writeString(csv_string);
     converter.close();
@@ -1007,7 +1014,6 @@ export async function exportScaleCsv(collectionOrItem: "collection" | "item") {
   //     fp.file,
   //   ]);
   // }, 1000)
-
 }
 async function getScaleData(collectionOrItem: "collection" | "item") {
   const items = await getSelectedItems(collectionOrItem);
@@ -1055,7 +1061,6 @@ async function getScaleData(collectionOrItem: "collection" | "item") {
   return data;
 }
 export async function exportScaleNote(collectionOrItem: "collection" | "item") {
-
   const sd = await getScaleData(collectionOrItem);
   // const items = await getSelectedItems(collectionOrItem);
   // const ans = getAllAnnotations(items).filter((f) => f.annotationTags.includes("量表"));
@@ -1085,8 +1090,9 @@ export async function exportScaleNote(collectionOrItem: "collection" | "item") {
     scaleItem = s.scaleItem?.text || "";
     factorLoading = s.factorLoading?.text || "";
     variable = s.variable?.text || "";
-    res += `<tr><td>${authorYear}</td><td>${variable}</td><td>${scaleItem}</td><td>${factorLoading
-      }</td><td>${reference}</td><td>${CR}</td><td>${CA}</td><td>${AVE}</td><td>${description}</td></tr>`;
+    res += `<tr><td>${authorYear}</td><td>${variable}</td><td>${scaleItem}</td><td>${
+      factorLoading
+    }</td><td>${reference}</td><td>${CR}</td><td>${CA}</td><td>${AVE}</td><td>${description}</td></tr>`;
   }
   res += "</table>";
   ztoolkit.log(res);
@@ -1095,24 +1101,23 @@ export async function exportScaleNote(collectionOrItem: "collection" | "item") {
 //导出excel
 function toExcel(exportFileContent: string) {
   //window.location.href='<%=basePath%>pmb/excelShowInfo.do';
-  //获取表格 
+  //获取表格
   //设置格式为Excel，表格内容通过btoa转化为base64，此方法只在文件较小时使用(小于1M)
   //exportFileContent=window.btoa(unescape(encodeURIComponent(exportFileContent)));
   //var link = "data:"+MIMEType+";base64," + exportFileContent;
   //使用Blob
-  let blob = new Blob([exportFileContent], { type: "text/plain;charset=utf-8" });     	//解决中文乱码问题
-  blob = new Blob([String.fromCharCode(0xFEFF), blob], { type: blob.type });
+  let blob = new Blob([exportFileContent], { type: "text/plain;charset=utf-8" }); //解决中文乱码问题
+  blob = new Blob([String.fromCharCode(0xfeff), blob], { type: blob.type });
   //设置链接
   const link = window.URL.createObjectURL(blob);
-  const a = document.createElement("a");    //创建a标签
-  a.download = "企业反映问题诉求汇总表.xls";  //设置被下载的超链接目标（文件名）
-  a.href = link;                            //设置a标签的链接
-  document.documentElement.appendChild(a);            //a标签添加到页面
-  a.click();                                //设置a标签触发单击事件
-  document.documentElement.removeChild(a);            //移除a标签
+  const a = document.createElement("a"); //创建a标签
+  a.download = "企业反映问题诉求汇总表.xls"; //设置被下载的超链接目标（文件名）
+  a.href = link; //设置a标签的链接
+  document.documentElement.appendChild(a); //a标签添加到页面
+  a.click(); //设置a标签触发单击事件
+  document.documentElement.removeChild(a); //移除a标签
 }
 export async function exportScaleXls(collectionOrItem: "collection" | "item") {
-
   const sd = await getScaleData(collectionOrItem);
   const pw = new ztoolkit.ProgressWindow("");
   const title = `量表导出`;
@@ -1136,8 +1141,9 @@ export async function exportScaleXls(collectionOrItem: "collection" | "item") {
     scaleItem = s.scaleItem?.text || "";
     factorLoading = s.factorLoading?.text || "";
     variable = s.variable?.text || "";
-    res += `<tr><td>${authorYear}</td><td>${variable}</td><td>${scaleItem}</td><td>${factorLoading
-      }</td><td>${reference}</td><td>${CR}</td><td>${CA}</td><td>${AVE}</td><td>${description}</td></tr>`;
+    res += `<tr><td>${authorYear}</td><td>${variable}</td><td>${scaleItem}</td><td>${
+      factorLoading
+    }</td><td>${reference}</td><td>${CR}</td><td>${CA}</td><td>${AVE}</td><td>${description}</td></tr>`;
   }
   res += "</table>";
 
@@ -1145,14 +1151,13 @@ export async function exportScaleXls(collectionOrItem: "collection" | "item") {
   const nsIFilePicker = Components.interfaces.nsIFilePicker;
   const fp = classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker) as nsIFilePicker;
 
-
   fp.defaultString = "Scale - " + new Date().getTime() + ".xls";
   fp.init(window as any, "Save to file", nsIFilePicker.modeSave);
   fp.appendFilter("xls (*.xls)", "*.xls");
   fp.defaultExtension = "xls";
 
   fp.open(function () {
-    IOUtils.writeUTF8(fp.file.path, res)
+    IOUtils.writeUTF8(fp.file.path, res);
     // const outputStream = classes["@mozilla.org/network/file-output-stream;1"].createInstance(Components.interfaces.nsIFileOutputStream) as nsIFileOutputStream;
     // outputStream.init(fp.file, 0x04 | 0x08 | 0x20, 420, 0);
     // const converter2 = classes["@mozilla.org/intl/converter-input-stream;1"].createInstance(Components.interfaces.nsIConverterInputStream) as nsIConverterInputStream;
@@ -1274,6 +1279,7 @@ export async function exportNote({
   await saveNote(note, `${title}${txt}`);
 }
 export async function saveNote(targetNoteItem: Zotero.Item, txt: string, pw: ProgressWindowHelper | undefined = undefined) {
+  //@ts-ignore Zotero.BetterNotes.api
   await Zotero.BetterNotes.api.note.insert(targetNoteItem, txt, -1);
   // const editor= await Zotero.BetterNotes.api.editor.getEditorInstance(targetNoteItem.id)
   // await Zotero.BetterNotes.api.editor.replace(editor,0,1e3,txt)
@@ -1298,7 +1304,10 @@ export async function createNote(txt = "", pw: ProgressWindowHelper | undefined 
     // targetNoteItem.setCollections([c.key]);
   }
 
-  if (txt) await Zotero.BetterNotes.api.note.insert(targetNoteItem, txt, -1);
+  if (txt) {
+    //@ts-ignore Zotero.BetterNotes.api
+    await Zotero.BetterNotes.api.note.insert(targetNoteItem, txt, -1);
+  }
   targetNoteItem.addTag(`${config.addonRef}: 生成的笔记`, 0);
   //必须保存后面才能保存图片
   await targetNoteItem.saveTx();
@@ -1317,7 +1326,7 @@ export function createAnnotationMatrix(dialogWindow: Window | undefined, popupDi
   const isWin = dialogWindow != undefined;
   const doc = dialogWindow?.document.documentElement || popupDiv;
   if (!doc) return;
-  dialogWindow?.addEventListener("resize", (e) => { });
+  dialogWindow?.addEventListener("resize", (e) => {});
 
   const content = doc.querySelector(".content") as HTMLElement;
   const query = doc.querySelector(".query") as HTMLElement;

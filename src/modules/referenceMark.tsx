@@ -101,7 +101,8 @@ function readerToolbarCallback(event: Parameters<_ZoteroTypes.Reader.EventHandle
 async function createPanel(p: HTMLDivElement, item: Zotero.Item) {
   const refRows = p.querySelectorAll(".reference-row");
   for (const refRow of refRows as NodeListOf<HTMLDivElement>) {
-    updateRefRow(refRow, item);
+    const ref = refRow as HTMLDivElement;
+    updateRefRow(ref, item);
   }
 }
 function updateRefRow(refRow: HTMLDivElement, item: Zotero.Item) {
@@ -140,7 +141,7 @@ function updateRefRow(refRow: HTMLDivElement, item: Zotero.Item) {
 
 async function changeFromText(text: string, panel: HTMLDivElement, item: Zotero.Item) {
   panel.innerHTML = ""; //清空panel
-  for (const c of panel.childNodes) c.remove();
+  for (const c of panel.childNodes) (c as HTMLElement)?.remove();
 
   const m = ruleSearch(text);
   {

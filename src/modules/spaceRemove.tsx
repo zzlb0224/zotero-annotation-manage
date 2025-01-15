@@ -128,7 +128,10 @@ function readerToolbarCallback(event: Parameters<_ZoteroTypes.Reader.EventHandle
     popDiv.textContent = getString("spaceRemove-Cleaning"); //"正在清理";
     let firstSpan: HTMLSpanElement | undefined = undefined;
     let str = "";
-    for (const span of pdfDoc.querySelectorAll("span[role=presentation]") as NodeListOf<HTMLSpanElement>) {
+    for (const s of pdfDoc.querySelectorAll("span[role=presentation]")) {
+      const span = s as HTMLSpanElement;
+      if (!span) continue;
+
       if (span.screenY < -height || span.screenY > height * 2) continue;
       if (span.dataset["text"]) continue;
       if (!span.textContent || span.textContent == " ") {

@@ -32,7 +32,7 @@ function renderTextSelectionPopup(event: _ZoteroTypes.Reader.EventParams<"render
   const filename = "annotation.css";
   addCssFile(doc, filename, true);
   // ztoolkit.log("addCssFile doc", doc)
-  addCssFile(ZoteroPane.document, filename, true);
+  addCssFile(Zotero.getActiveZoteroPane().document, filename, true);
   addCssFile(reader?._window?.document, filename, true);
   // doc.documentElement.addEventListener("contextmenu", e => {
   //   ztoolkit.log("右键contextmenu", e.buttons, e.button, e.currentTarget, e)
@@ -42,10 +42,11 @@ function renderTextSelectionPopup(event: _ZoteroTypes.Reader.EventParams<"render
   //   ztoolkit.log("右键click", e.buttons, e.button, e.currentTarget, e)
   // })
   const item = Zotero.Items.get(reader.itemID!).parentItem; //ZoteroPane.getSelectedItems()[0]
-  const publicationTitle = item?.getField("publicationTitle")
-  Zotero.ref_item = item;
-  Zotero.ref_params = params;
-
+  const publicationTitle = item?.getField("publicationTitle");
+  if (__env__ === "development") {
+    //@ts-ignore  Zotero.ref_item
+    Zotero.ref_item = { item, params };
+  }
   if (item) {
     //@ts-ignore IF11
     ztoolkit.log(
@@ -57,9 +58,14 @@ function renderTextSelectionPopup(event: _ZoteroTypes.Reader.EventParams<"render
       ztoolkit.ExtraField.getExtraField(item, "IF"),
     );
   }
-  Zotero.ref_reader = reader;
-  Zotero.ref_reader_annotationManager = reader._annotationManager;
-  Zotero.ref_reader_keyboardManager = reader._keyboardManager;
+  if (__env__ === "development") {
+    //@ts-ignore  Zotero.ref_reader
+    Zotero.ref_reader = reader;
+    //@ts-ignore  Zotero.ref_reader
+    Zotero.ref_reader_annotationManager = reader._annotationManager;
+    //@ts-ignore  Zotero.ref_reader
+    Zotero.ref_reader_keyboardManager = reader._keyboardManager;
+  }
 
   if (getPref("hide-in-selection-popup")) {
     return;

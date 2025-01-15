@@ -220,7 +220,11 @@ function refTest() {
 function ruleTestLast() {
   return ruleTestInner(rules.length - 1);
 }
-Zotero.ref_test = { refTest, ruleTestInner, ruleTestCross, ruleTestSingle, ruleTestLast };
+
+if (__env__ === "development") {
+  //@ts-ignore Zotero.ref_test
+  Zotero.ref_test = { refTest, ruleTestInner, ruleTestCross, ruleTestSingle, ruleTestLast };
+}
 
 export function refSearch(str: string, log = false) {
   for (let index = 0; index < regexps.length; index++) {
@@ -274,8 +278,8 @@ export async function createItemByZotero(doi: string) {
     const translators = await translate.getTranslators();
     translate.setTranslator(translators);
     ztoolkit.log("identifiers", identifiers, translators);
-    const libraryID = ZoteroPane.getSelectedLibraryID();
-    const collections = [ZoteroPane.getSelectedCollection(true)];
+    const libraryID = Zotero.getActiveZoteroPane().getSelectedLibraryID();
+    const collections = [Zotero.getActiveZoteroPane().getSelectedCollection(true)];
     return (
       await translate.translate({
         libraryID,

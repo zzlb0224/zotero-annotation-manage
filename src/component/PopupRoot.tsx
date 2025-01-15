@@ -26,8 +26,8 @@ import * as React from "react";
 import { useEffect, useRef, useState } from "react";
 import { getString } from "../utils/locale";
 import { useImmer } from "use-immer";
-import { ArrowContainer, Popover, PopoverPosition, PopoverState, usePopover } from "react-tiny-popover";
-import { ChangeColor } from "./ChangeColor";
+// import { ArrowContainer, Popover, PopoverPosition, PopoverState, usePopover } from "react-tiny-popover";
+// import { ChangeColor } from "./ChangeColor";
 import { saveAnnotationTags } from "../modules/AnnotationPopup";
 import { type } from "os";
 import { config } from "process";
@@ -113,7 +113,7 @@ export function PopupRoot({
   const [displayTags, updateDisplayTags] = useImmer([] as { key: string; values: { tag: string }[]; color?: string }[]);
   const [selectedTags, updateSelectedTags] = useState([] as { tag: string; color: string }[]);
   const [searchTag, setSearchTag] = useState("");
-  const [currentPosition, setCurrentPosition] = useState(ZoteroPane.getSelectedCollection()?.name || "我的文库");
+  const [currentPosition, setCurrentPosition] = useState(Zotero.getActiveZoteroPane().getSelectedCollection()?.name || "我的文库");
   const [searchResultLength, setSearchResultLength] = useState(0);
   const [showTagsLength, setShowTagsLength] = useState(getPrefAs("showTagsLength", 20));
 
@@ -132,7 +132,7 @@ export function PopupRoot({
   const [pPadding, setPPadding] = useState(getPrefAs("pPadding", 0));
   const [pBoundaryInset, setPBoundaryInset] = useState(getPrefAs("pBoundaryInset", 40));
   const [pArrowSize, setPArrowSize] = useState(getPrefAs("pArrowSize", 0));
-  const [pPositions, updatePPositions] = useImmer(getPrefAs("pPositions", "bottom,left,top,right").split(",") as PopoverPosition[]);
+  // const [pPositions, updatePPositions] = useImmer(getPrefAs("pPositions", "bottom,left,top,right").split(",") as PopoverPosition[]);
   const [bAutoFocus, setBAutoFocus] = useState(getPrefAs("bAutoFocus", false));
   const [pFCLLeft, setFCLLeft] = useState(getPrefAs("pFCLLeft", 0));
   const [nFCLTop, setFCLTop] = useState(getPrefAs("nFCLTop", 0));
@@ -186,7 +186,7 @@ export function PopupRoot({
     },
   };
   const configItemStyle = { display: "inline-block", margin: "0 5px" };
-  const tabDiv = Zotero_Tabs.deck.querySelector("#" + Zotero_Tabs.selectedID) as HTMLDivElement;
+  const tabDiv = Zotero.getMainWindow().Zotero_Tabs.deck.querySelector("#" + Zotero.getMainWindow().Zotero_Tabs.selectedID) as HTMLDivElement;
   const readerUiDiv = (tabDiv.querySelector("browser") as HTMLIFrameElement).contentDocument?.querySelector("#reader-ui") as HTMLDivElement;
   const primaryViewDiv = (tabDiv.querySelector(".reader") as HTMLIFrameElement)?.contentDocument?.querySelector(
     "#split-view #primary-view",
@@ -270,7 +270,7 @@ export function PopupRoot({
           setCurrentPosition("搜索中");
         }
       } else {
-        setCurrentPosition(ZoteroPane.getSelectedCollection()?.name || "我的文库");
+        setCurrentPosition(Zotero.getActiveZoteroPane().getSelectedCollection()?.name || "我的文库");
       }
       setSearchResultLength(searchResult.length);
       updateDisplayTags(searchResult.slice(0, showTagsLength).map((a) => Object.assign({}, a, { color: memFixedColor(a.key, "") })));
@@ -451,7 +451,7 @@ export function PopupRoot({
     configName,
     // pSingleWindow,
     isPopoverOpen,
-    pPositions,
+    // pPositions,
     pPadding,
     // pFixedContentLocation,
     displayTags,
@@ -534,7 +534,7 @@ export function PopupRoot({
                   )}
                 </span>
                 <span style={configItemStyle}>
-                  <ChangeColor
+                  {/* <ChangeColor
                     color={bgColor}
                     onChange={(e) => {
                       setBgColor(e);
@@ -551,7 +551,7 @@ export function PopupRoot({
                       }}
                     ></span>
                     <span>调整背景颜色 </span>
-                  </ChangeColor>
+                  </ChangeColor> */}
                 </span>
                 {/* <label style={configItemStyle}>
                   <input
@@ -782,7 +782,7 @@ export function PopupRoot({
                       }}
                     />
                   </span> */}
-                  <span style={configItemStyle}>
+                  {/* <span style={configItemStyle}>
                     优先默认位置:
                     {("bottom,left,top,right".split(",") as PopoverPosition[]).sort(sortFixed(pPositions)).map((a, i) => (
                       <span key={a} style={configItemStyle}>
@@ -829,7 +829,7 @@ export function PopupRoot({
                         ]
                       </span>
                     ))}
-                  </span>
+                  </span> */}
                 </>
               </div>
             )}
@@ -1120,10 +1120,23 @@ export function PopupRoot({
                 display: "flex",
                 flexWrap: "wrap",
               }}
-            >   <button className="toolbar-button"
-              style={{ width: "unset", margin: " 0 2px", height: "auto" }}
-              onClick={() => { setLastScale(undefined); setPref("lastScaleKey", ""); setLastScaleItem(undefined); setPref("lastScaleItemKey", ""); }}>❌</button> <span>量表: {lastScale.annotationText.substring(0, 30)}</span>
-            </div> <div
+            >
+              {" "}
+              <button
+                className="toolbar-button"
+                style={{ width: "unset", margin: " 0 2px", height: "auto" }}
+                onClick={() => {
+                  setLastScale(undefined);
+                  setPref("lastScaleKey", "");
+                  setLastScaleItem(undefined);
+                  setPref("lastScaleItemKey", "");
+                }}
+              >
+                ❌
+              </button>{" "}
+              <span>量表: {lastScale.annotationText.substring(0, 30)}</span>
+            </div>{" "}
+            <div
               style={{
                 maxWidth: (windowType == "FollowParent" && !params.ids ? selectionPopupSize.width - 16 : divMaxWidth) + "px",
                 display: "flex",
@@ -1160,9 +1173,19 @@ export function PopupRoot({
                     display: "flex",
                     flexWrap: "wrap",
                   }}
-                >    <button className="toolbar-button"
-                  style={{ width: "unset", margin: " 0 2px", height: "auto" }}
-                  onClick={() => { setLastScaleItem(undefined); setPref("lastScaleItemKey", ""); }}>❌</button>  <span>item:{lastScaleItem.annotationText.substring(0, 30)}</span>
+                >
+                  {" "}
+                  <button
+                    className="toolbar-button"
+                    style={{ width: "unset", margin: " 0 2px", height: "auto" }}
+                    onClick={() => {
+                      setLastScaleItem(undefined);
+                      setPref("lastScaleItemKey", "");
+                    }}
+                  >
+                    ❌
+                  </button>{" "}
+                  <span>item:{lastScaleItem.annotationText.substring(0, 30)}</span>
                 </div>
                 <div
                   style={{
@@ -1171,7 +1194,6 @@ export function PopupRoot({
                     flexWrap: "wrap",
                   }}
                 >
-
                   {ScaleItemActionTypeArray.map((a) => (
                     <button
                       className="toolbar-button"
@@ -1728,34 +1750,22 @@ export function PopupRoot({
     ),
     vars,
   );
-  const handleConfigAndContent = React.useCallback(
-    (popoverState: PopoverState) => (
-      // <ArrowContainer // if you'd like an arrow, you can import the ArrowContainer!
-      //   {...popoverState}
-      //   // position={popoverState.position}
-      //   // childRect={popoverState.childRect}
-      //   // popoverRect={popoverState.popoverRect}
-      //   arrowColor={"#aaaaaa"}
-      //   arrowSize={pArrowSize}
-      //   arrowStyle={{
-      //     opacity: 0.9,
-      //     marginTop: "42px",
-      //   }}
-      // >
-      <>
-        {handleConfigDiv()}
-        {handleContentDiv()}
-      </>
-      // </ArrowContainer> //ArrowContainer
-    ),
-    vars,
-  );
+  // const handleConfigAndContent = React.useCallback(
+  //   (popoverState: PopoverState) => (
+
+  //     <>
+  //       {handleConfigDiv()}
+  //       {handleContentDiv()}
+  //     </>
+  //   ),
+  //   vars,
+  // );
 
   return (
     <>
       {/* {JSON.stringify(vars)} */}
       {windowType == "FollowParent" && handleContentDiv()}
-      <Popover
+      {/* <Popover
         parentElement={parentElement}
         boundaryElement={boundaryElement}
         isOpen={isPopoverOpen}
@@ -1793,7 +1803,21 @@ export function PopupRoot({
             zIndex: "-1",
           }}
         ></div>
-      </Popover>
+      </Popover> */}
+
+      <div
+        ref={refPopoverDiv}
+        className="popoverHolder"
+        style={{
+          width: "100%",
+          // width: "600px",
+          position: "absolute",
+          height: (selectionPopupSize?.height || 120) + "px",
+          top: "0",
+          // background: "#f00", opacity: "0",
+          zIndex: "-1",
+        }}
+      ></div>
     </>
   );
 
@@ -1884,7 +1908,7 @@ export function PopupRoot({
     setPArrowSize(config.pArrowSize);
     setPref("pArrowSize", config.pArrowSize);
 
-    updatePPositions((pPositions) => config.pPositions);
+    // updatePPositions((pPositions) => config.pPositions);
     setPref("pPositions", config.pPositions);
 
     setShowSelectedPopupColorsTag(config.isShowSelectedPopupColorsTag);

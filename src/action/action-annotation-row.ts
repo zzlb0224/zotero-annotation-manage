@@ -166,7 +166,7 @@ export function init() {
   }
 
   async function getHtml() {
-    const selectedItems = ZoteroPane.getSelectedItems();
+    const selectedItems = Zotero.getActiveZoteroPane().getSelectedItems();
     const item = selectedItems[0];
     //if (!item) return null; // 提前退出，如果没有选中的项
     const attachments = Zotero.Items.get(item.getAttachments()).filter(

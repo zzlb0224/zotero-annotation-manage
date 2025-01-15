@@ -1,15 +1,28 @@
-import ZoteroToolkit from "zotero-plugin-toolkit";
+import {
+  BasicTool,
+  UITool,
+  ExtraFieldTool,
+  FieldHookManager,
+  KeyboardManager,
+  MenuManager,
+  PromptManager,
+  DialogHelper,
+  ProgressWindowHelper,
+  ClipboardHelper,
+  makeHelperTool,
+  unregister,
+} from "zotero-plugin-toolkit";
 import { config } from "../../package.json";
 
 export { createZToolkit };
 
 function createZToolkit() {
-  const _ztoolkit = new ZoteroToolkit();
+  // const _ztoolkit = new ZoteroToolkit();
   /**
    * Alternatively, import toolkit modules you use to minify the plugin size.
    * You can add the modules under the `MyToolkit` class below and uncomment the following line.
    */
-  // const _ztoolkit = new MyToolkit();
+  const _ztoolkit = new MyToolkit();
   initZToolkit(_ztoolkit);
   return _ztoolkit;
 }
@@ -25,18 +38,28 @@ function initZToolkit(_ztoolkit: ReturnType<typeof createZToolkit>) {
   _ztoolkit.ProgressWindow.setIconURI("default", `chrome://${config.addonRef}/content/icons/favicon.png`);
 }
 
-import { BasicTool, unregister } from "zotero-plugin-toolkit/dist/basic";
-import { UITool } from "zotero-plugin-toolkit/dist/tools/ui";
-// import { PreferencePaneManager } from "zotero-plugin-toolkit/dist/managers/preferencePane";
-
-class MyToolkit extends BasicTool {
+export class MyToolkit extends BasicTool {
   UI: UITool;
-  // PreferencePane: PreferencePaneManager;
+  ExtraField: ExtraFieldTool;
+  FieldHook: FieldHookManager;
+  Keyboard: KeyboardManager;
+  Menu: MenuManager;
+  Prompt: PromptManager;
+  Dialog: typeof DialogHelper;
+  ProgressWindow: typeof ProgressWindowHelper;
+  Clipboard: typeof ClipboardHelper;
 
   constructor() {
     super();
     this.UI = new UITool(this);
-    // this.PreferencePane = new PreferencePaneManager(this);
+    this.ExtraField = new ExtraFieldTool(this);
+    this.FieldHook = new FieldHookManager(this);
+    this.Keyboard = new KeyboardManager(this);
+    this.Menu = new MenuManager(this);
+    this.Prompt = new PromptManager(this);
+    this.Dialog = makeHelperTool(DialogHelper, this);
+    this.ProgressWindow = makeHelperTool(ProgressWindowHelper, this);
+    this.Clipboard = makeHelperTool(ClipboardHelper, this);
   }
 
   unregisterAll() {

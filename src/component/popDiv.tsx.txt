@@ -2,7 +2,6 @@ import { getPrefAs } from "../utils/prefs";
 import * as React from "react";
 import { useEffect, useRef, useState } from "react";
 import { useImmer } from "use-immer";
-import { ArrowContainer, Popover } from "react-tiny-popover";
 import { PopupRoot } from "./PopupRoot";
 
 export function popDiv({

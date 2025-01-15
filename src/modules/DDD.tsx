@@ -108,6 +108,7 @@ export async function DDDTagSet(collectionOrItem: "collection" | "item") {
       extractedPages = 0,
       totalPages = 0;
     try {
+      //@ts-ignore Zotero.PDFWorker.getFullText
       const r = await Zotero.PDFWorker.getFullText(pdf.id, 3, true);
       text = r.text;
       extractedPages = r.extractedPages;

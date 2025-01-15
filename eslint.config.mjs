@@ -8,8 +8,23 @@ export default tseslint.config(
     ignores: ["build/**", "dist/**", "node_modules/**", "scripts/"],
   },
   {
+    files: ["**/*.ts"],
     extends: [eslint.configs.recommended, ...tseslint.configs.recommended],
     rules: {
+      "no-restricted-globals": [
+        "error",
+        { message: "Use `Zotero.getMainWindow()` instead.", name: "window" },
+        {
+          message: "Use `Zotero.getMainWindow().document` instead.",
+          name: "document",
+        },
+        {
+          message: "Use `Zotero.getActiveZoteroPane()` instead.",
+          name: "ZoteroPane",
+        },
+        "Zotero_Tabs",
+      ],
+
       "@typescript-eslint/ban-ts-comment": [
         "warn",
         {
@@ -27,6 +42,20 @@ export default tseslint.config(
         },
       ],
       "@typescript-eslint/no-non-null-assertion": "off",
+    },
+  },
+  {
+    // allow to use the `document` and `window` globals directly in CEs
+    files: ["src/elements/*.ts"],
+    rules: {
+      "no-restricted-globals": [
+        "error",
+        {
+          message: "Use `Zotero.getActiveZoteroPane()` instead.",
+          name: "ZoteroPane",
+        },
+        "Zotero_Tabs",
+      ],
     },
   },
 );
