@@ -1139,6 +1139,7 @@ export class AnnotationPopup {
   }
 
   private async saveAnnotationTags() {
+
     const selectedTags = [...this.selectedTags];
     const searchTag = this.searchTag;
     const delTags = [...this.delTags];
@@ -1241,7 +1242,7 @@ export async function saveAnnotationTags(
       } else {
         const color = selectedTags.map((a) => a.color).filter((f) => f)[0] || memFixedColor(tagsRequire[0], undefined);
         const tags = tagsRequire.map((a) => ({ name: a }));
-
+        Zotero.API.r_reader = reader
         //@ts-ignore 访问textSelectionAnnotationMode
         const _annotationType = reader?._state?.textSelectionAnnotationMode || "highlight";
         // 因为线程不一样，不能采用直接修改params.annotation的方式，所以直接采用新建的方式保存笔记

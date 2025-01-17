@@ -243,20 +243,19 @@ const memAllTagsInLibraryAsync = memoize(async () => {
     );
   const itemTags = getPref("item-tags")
     ? items.flatMap((f) =>
-        f.getTags().map((a) => ({
-          tag: a.tag,
-          type: a.type,
-          dateModified: f.dateModified,
-        })),
-      )
+      f.getTags().map((a) => ({
+        tag: a.tag,
+        type: a.type,
+        dateModified: f.dateModified,
+      })),
+    )
     : [];
   return groupBy([...tags, ...itemTags], (t14) => t14.tag);
 });
 export async function asyncGetAllTagsFromDB() {
   //使用异步查询优化性能
   const rows = await Zotero.DB.queryAsync(
-    "select name as tag,type,ann.dateModified from itemTags it join tags t on it.tagID=t.tagID join items ann on it.itemID=ann.itemID",
-    null,
+    "select name as tag,type,ann.dateModified from itemTags it join tags t on it.tagID=t.tagID join items ann on it.itemID=ann.itemID"
   );
   if (!rows || rows.length < 1) return [];
   const lines: { tag: string; type: number; dateModified: string }[] = [];
@@ -383,7 +382,7 @@ export async function openAnnotation(itemOrKeyOrId: Zotero.Item | string | numbe
   }
 }
 
-export async function injectCSSToReader() {}
+export async function injectCSSToReader() { }
 
 export const memSVG = memoize(
   async (href: string) => await getFileContent(href),
@@ -419,11 +418,11 @@ export async function injectCSS(doc: Document | HTMLDivElement, filename: string
       ignoreIfExists: true,
     },
     doc.querySelector("linkset") ||
-      doc.querySelector("head") ||
-      doc.querySelector("body") ||
-      doc.querySelector("div") ||
-      doc.children[0] ||
-      doc,
+    doc.querySelector("head") ||
+    doc.querySelector("body") ||
+    doc.querySelector("div") ||
+    doc.children[0] ||
+    doc,
   );
   // ztoolkit.log("加载css", d);
 }
