@@ -32,7 +32,6 @@ import * as React from "react";
 // import { usePopover } from "react-tiny-popover";
 // import { HexColorPicker } from "react-colorful";
 import { PopupRoot } from "../component/PopupRoot";
-import TagPopup from "../component/TagPopup";
 import { waitFor } from "../utils/wait";
 import { ScaleActionTypeArray, ScaleItemActionTypeArray } from "../component/Config";
 
@@ -280,7 +279,6 @@ export class AnnotationPopup {
             })
           }
         >
-          {/* <TagPopup></TagPopup> */}
           <PopupRoot
             key={`PopupRoot${itemKey}`}
             reader={this.reader!}

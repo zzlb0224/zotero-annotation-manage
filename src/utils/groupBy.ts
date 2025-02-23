@@ -1,4 +1,3 @@
-import { Function, isEqual } from "lodash";
 import { sortAsc } from "./sort";
 function stringify(value: any): string {
   switch (typeof value) {

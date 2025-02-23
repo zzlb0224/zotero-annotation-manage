@@ -29,9 +29,7 @@ import { useImmer } from "use-immer";
 // import { ArrowContainer, Popover, PopoverPosition, PopoverState, usePopover } from "react-tiny-popover";
 // import { ChangeColor } from "./ChangeColor";
 import { saveAnnotationTags } from "../modules/AnnotationPopup";
-import { type } from "os";
-import { config } from "process";
-import TagPopup from "./TagPopup";
+
 import {
   Config,
   ConfigTab,
@@ -49,6 +47,11 @@ import {
 } from "./Config";
 import "./tagStyle.css";
 import styles from "./tagStyle.css";
+// import { Popover } from '@radix-ui/react-popover';
+import FixedPopup from './FixedPopup';
+// import { Popover, PopoverPosition, PopoverState } from 'react-tiny-popover';
+// import Sketch from '@uiw/react-color-sketch';
+// import { ColorPicker, useColor } from 'react-color-palette';
 // console.log(styles.tagButton)
 
 export function PopupRoot({
@@ -128,11 +131,12 @@ export function PopupRoot({
 
   const [isPopoverOpen, setIsPopoverOpen] = useState(true);
   const [bgColor, setBgColor] = useState(getPrefAs("bgColor", "#fff"));
+  // const [color, setColor] = useColor("rgb(86 30 203)");
   const [blockHightLightUnderLineToggle, setBlockHightLightUnderLineToggle] = useState(getPrefAs("blockHUToggle", false)); //屏蔽 Zotero 高亮/下划线切换按钮
   const [pPadding, setPPadding] = useState(getPrefAs("pPadding", 0));
   const [pBoundaryInset, setPBoundaryInset] = useState(getPrefAs("pBoundaryInset", 40));
   const [pArrowSize, setPArrowSize] = useState(getPrefAs("pArrowSize", 0));
-  // const [pPositions, updatePPositions] = useImmer(getPrefAs("pPositions", "bottom,left,top,right").split(",") as PopoverPosition[]);
+  const [pPositions, updatePPositions] = useImmer(getPrefAs("pPositions", "bottom,left,top,right").split(","));
   const [bAutoFocus, setBAutoFocus] = useState(getPrefAs("bAutoFocus", false));
   const [pFCLLeft, setFCLLeft] = useState(getPrefAs("pFCLLeft", 0));
   const [nFCLTop, setFCLTop] = useState(getPrefAs("nFCLTop", 0));
@@ -199,6 +203,7 @@ export function PopupRoot({
   const [lastScaleItem, setLastScaleItem] = useState<Zotero.Item | undefined>(getItem(lastScaleItemKey));
 
   if (isDebug()) boundaryElement.style.border = "1px solid red";
+  // setWindowType("FollowParent") //!Fix 目前改为只跟随窗口  
 
   useEffect(() => {
     //加载当前item的标签
@@ -451,7 +456,7 @@ export function PopupRoot({
     configName,
     // pSingleWindow,
     isPopoverOpen,
-    // pPositions,
+    pPositions,
     pPadding,
     // pFixedContentLocation,
     displayTags,
@@ -489,6 +494,7 @@ export function PopupRoot({
             <div style={{ display: "flex", flexWrap: "wrap" }}>
               {ConfigTabArray.map((a) => (
                 <span
+                  key={a}
                   style={{
                     margin: "0px",
                     padding: "0 5px",
@@ -516,6 +522,7 @@ export function PopupRoot({
                     (config) =>
                       config && (
                         <button
+                          key={config.configName}
                           className="btn"
                           style={{
                             ...tagStyle,
@@ -619,13 +626,14 @@ export function PopupRoot({
                 </label>
 
                 <div>
-                  窗口显示样式：
-                  {WindowTypeArray.map((a) => (
-                    <label>
+                  窗口显示样式： {getString("popupRoot-WindowType-FollowParent")}
+                  {/* {WindowTypeArray.map((a) => (
+                    <label key={a}>
+
                       <input type="radio" value={a} checked={windowType === a} onChange={handleInput("windowType", setWindowType)} />
                       {getString("popupRoot-WindowType-" + a)}
                     </label>
-                  ))}
+                  ))} */}
                 </div>
 
                 <span style={configItemStyle}>
@@ -1050,7 +1058,7 @@ export function PopupRoot({
                 <div>
                   排序规则：
                   {SortTypeArray.map((a) => (
-                    <label>
+                    <label key={a}>
                       <input type="radio" value={a} checked={sortType === a} onChange={handleInput("sortType", setSortType)} />
                       {getString("popupRoot-SortType-" + a)}
                     </label>
@@ -1144,7 +1152,7 @@ export function PopupRoot({
               }}
             >
               {ScaleActionTypeArray.map((a) => (
-                <button
+                <button key={a}
                   className="toolbar-button"
                   style={{ width: "unset", margin: " 0 2px", height: "auto" }}
                   onClick={() => {
@@ -1195,7 +1203,7 @@ export function PopupRoot({
                   }}
                 >
                   {ScaleItemActionTypeArray.map((a) => (
-                    <button
+                    <button key={a}
                       className="toolbar-button"
                       style={{ width: "unset", margin: " 0 2px", height: "auto" }}
                       onClick={() => {
@@ -1226,7 +1234,7 @@ export function PopupRoot({
               {["量表", "元"]
                 .filter((f) => annotations.some((s) => s.hasTag(f)))
                 .map((action) => (
-                  <button
+                  <button key={action}
                     className="toolbar-button"
                     style={{ width: "unset", margin: "2px" }}
                     onClick={() => {
@@ -1273,7 +1281,7 @@ export function PopupRoot({
                         .getAnnotations()
                         .filter((f) => f.hasTag("量表"))
                         .map((a) => (
-                          <button
+                          <button key={a.key}
                             className="toolbar-button"
                             style={{ width: "unset" }}
                             onClick={() => {
@@ -1303,7 +1311,7 @@ export function PopupRoot({
                         .getAnnotations()
                         .filter((f) => f.hasTag("量表item") && f.annotationComment.includes(`*${sScale}*`))
                         .map((a) => (
-                          <button
+                          <button key={a.key}
                             className="toolbar-button"
                             style={{ width: "unset" }}
                             onClick={() => {
@@ -1320,7 +1328,7 @@ export function PopupRoot({
                   {
                     //["item", "CR", "CA", "AVE", "factorLoading", "reference", "description"]//.filter(f => f != sScaleAction)
                     ScaleActionTypeArray.map((a) => (
-                      <button
+                      <button key={a}
                         className="toolbar-button"
                         style={{ width: "unset", margin: "2px" }}
                         onClick={() => {
@@ -1386,8 +1394,8 @@ export function PopupRoot({
                     .sort(sortValuesLength)
                     .map((a) => (
                       <button
-                        className="btn"
                         key={a.key}
+                        className="btn"
                         style={{
                           ...tagStyle,
                           whiteSpace: "nowrap",
@@ -1449,19 +1457,30 @@ export function PopupRoot({
                   )}
                 </>
               )}
-              <button
-                className="btn"
-                style={{
+
+              <FixedPopup defaultIsOpen={isShowConfig} openText={getString("popupRoot-setup")} top={'100px'} left={'100px'} width={''} height={''}
+                onOpenChanged={(isOpen) => {
+                  setPref("showConfig", isOpen);
+                  setShowConfig(isOpen);
+                }}
+                openButtonStyle={{
                   ...tagStyle,
                   background: isShowConfig ? "#00990030" : "#99000030",
                 }}
-                onClick={() => {
-                  setPref("showConfig", !isShowConfig);
-                  setShowConfig(!isShowConfig);
-                }}
-              >
-                {getString("popupRoot-setup")}
-              </button>
+
+              >{handleConfigDiv()}</FixedPopup>
+              {/* {color.rgb}
+              <ColorPicker color={color} onChange={setColor} /> */}
+              {/* <div>
+                <Sketch
+                  style={{ marginLeft: 20 }}
+                  color={bgColor}
+                  disableAlpha={false}
+                  onChange={(color) => {
+                    setBgColor(color.hex);
+                  }}
+                />
+              </div> */}
 
               {bComment && !params.ids && (
                 <input
@@ -1716,6 +1735,7 @@ export function PopupRoot({
 
               {displayTags.map((tag) => (
                 <button
+                  key={tag.key}
                   className="btn tagButton"
                   tabIndex={-1}
                   onContextMenu={(e) => {
@@ -1750,20 +1770,20 @@ export function PopupRoot({
     ),
     vars,
   );
-  // const handleConfigAndContent = React.useCallback(
-  //   (popoverState: PopoverState) => (
-
-  //     <>
-  //       {handleConfigDiv()}
-  //       {handleContentDiv()}
-  //     </>
-  //   ),
-  //   vars,
-  // );
+  const handleConfigAndContent = React.useCallback(
+    (popoverState: any) => (
+      <>
+        {handleConfigDiv()}
+        {handleContentDiv()}
+      </>
+    ),
+    vars,
+  );
 
   return (
     <>
       {/* {JSON.stringify(vars)} */}
+
       {windowType == "FollowParent" && handleContentDiv()}
       {/* <Popover
         parentElement={parentElement}
