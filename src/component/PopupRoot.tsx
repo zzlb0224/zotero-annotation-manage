@@ -88,7 +88,9 @@ export function PopupRoot({
   const [comment, setComment] = useState("");
   const [configTab, setConfigTab] = useState<ConfigTab>(getPrefAs("configTab", "PanelConfig"));
   //取代固定窗口和单独窗口
-  const [windowType, setWindowType] = useState<WindowType>(getPrefAs("windowType", "FollowParent"));
+  // const [windowType, setWindowType] = useState<WindowType>(getPrefAs("windowType", "FollowParent"));
+  const [windowType, setWindowType] = useState<WindowType>("FollowParent");
+
   // const [pSingleWindow, setPSingleWindow] = useState(getPrefAs("pSingleWindow", false));
   // const [pFixedContentLocation, setPFixedContentLocation] = useState(getPrefAs("pFixedContentLocation", false));
   const [isShowSelectedPopupColorsTag, setShowSelectedPopupColorsTag] = useState(getPrefAs("show-selected-popup-colors-tag", false));
