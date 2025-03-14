@@ -943,6 +943,25 @@ export async function exportNoteByType(type: _ZoteroTypes.Annotations.Annotation
     },
   });
 }
+export async function exportNoteByColor(color: string, collectionOrItem: "collection" | "item") {
+  exportNote({
+    toText: (annotations) =>
+      groupBy(annotations, (a) => a.pdfTitle)
+        .flatMap((pdfTitle, index, aa) => [
+          // `<h1> (${index + 1}/${aa.length}) ${pdfTitle.key} ${getCiteItemHtml(pdfTitle.values[0]?.item)}  (${pdfTitle.values.length})</h1>`,
+          `<h1>(${index + 1}/${aa.length}) ${getCiteItemHtmlWithPage(pdfTitle.values[0].ann)} ${getPublicationTags(pdfTitle.values[0]?.item)}</h1>`,
+          `${pdfTitle.key}`,
+          ...pdfTitle.values.flatMap((b) => [b.html ? b.html : getCiteAnnotationHtml(b.ann)]),
+        ])
+        .join("\n"),
+    items: await getSelectedItems(collectionOrItem),
+    filter: (annotations) => {
+      annotations = annotations.filter((f) => f.color == color);
+      // ztoolkit.log(annotations)
+      return uniqueBy(annotations, (a) => a.ann.key);
+    },
+  });
+}
 export async function exportScaleCsv(collectionOrItem: "collection" | "item") {
   const pw = new ztoolkit.ProgressWindow("");
   // const ans2 = await convertHtml(ans, note, pw)
@@ -1289,8 +1308,8 @@ export async function saveNote(targetNoteItem: Zotero.Item, txt: string, pw: Pro
 }
 export async function createNote(txt = "", pw: ProgressWindowHelper | undefined = undefined) {
   const targetNoteItem = new Zotero.Item("note");
-  targetNoteItem.libraryID = ZoteroPane.getSelectedLibraryID();
-  const selected = ZoteroPane.getSelectedCollection(true);
+  targetNoteItem.libraryID = Zotero.getActiveZoteroPane().getSelectedLibraryID();
+  const selected = Zotero.getActiveZoteroPane().getSelectedCollection(true);
   if (selected) targetNoteItem.setCollections([selected]);
   else {
     // 这个会破坏用户数据结构，不是必须的

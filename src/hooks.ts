@@ -14,7 +14,7 @@ import { exportNoteByType, exportSingleNote, getAllAnnotations } from "./modules
 import { groupBy } from "./utils/groupBy";
 import { sortFixedTags10ValuesLength, sortValuesLength } from "./utils/sort";
 // import { TagElementProps } from "zotero-plugin-toolkit/dist/tools/ui";
-import { annotationToNoteTags, annotationToNoteType } from "./hooksMenuEvent";
+import { annotationToNoteTags, annotationToNoteType, annotationToNoteColor } from "./hooksMenuEvent";
 import { createZToolkit } from "./utils/ztoolkit";
 
 async function onStartup() {
@@ -128,13 +128,16 @@ function onShortcuts(type: string) {
   }
 }
 
-async function onMenuEvent(type: "annotationToNoteTags" | "annotationToNoteType", data: { [key: string]: any }) {
+async function onMenuEvent(type: "annotationToNoteTags" | "annotationToNoteType" | "annotationToNoteColor", data: { [key: string]: any }) {
   switch (type) {
     case "annotationToNoteTags":
       annotationToNoteTags(data.window, data.type);
       break;
     case "annotationToNoteType":
       annotationToNoteType(data.window, data.type);
+      break;
+    case "annotationToNoteColor":
+      annotationToNoteColor(data.window, data.type);
       break;
     default:
       return;

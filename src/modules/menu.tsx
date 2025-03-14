@@ -239,6 +239,16 @@ function buildMenu(collectionOrItem: "collection" | "item") {
         tag: "menuseparator",
       },
       {
+        tag: "menu",
+        label: "选择单个Color导出",
+        icon: iconBaseUrl + "favicon.png",
+        popupId: `${config.addonRef}-create-note-color-popup-${collectionOrItem}`,
+        onpopupshowing: `Zotero.${config.addonInstance}.hooks.onMenuEvent("annotationToNoteColor", { window,type:"${collectionOrItem}" })`,
+      },
+      {
+        tag: "menuseparator",
+      },
+      {
         tag: "menuitem",
         label: "导出量表格式Note(测试中)",
         icon: iconBaseUrl + "favicon.png",
@@ -727,7 +737,7 @@ export async function getSelectedItems(isCollectionOrItem: boolean | "collection
       items = itemsAll.filter((f) => itemTypes.includes(f.itemType));
     }
   } else {
-    items = ZoteroPane.getSelectedItems();
+    items = Zotero.getActiveZoteroPane().getSelectedItems();
   }
   return items;
 }
