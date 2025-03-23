@@ -158,6 +158,21 @@ async function changeFromText(text: string, panel: HTMLDivElement, item: Zotero.
         title: m.groups.title,
         year: m.groups.year,
       });
+      ztoolkit.UI.appendElement(
+        {
+          tag: "span",
+          properties: {
+            textContent: `${m.groups.author}${m.groups.year || m.groups.doi || m.groups.title}`, // "",
+          },
+          styles: {
+            backgroundColor: "#ef497150",
+            // color: "#ef4971",
+            margin: "5px",
+            borderRadius: "5px",
+            cursor: "pointer",
+          },
+        },
+        panel)
       if (searchedItem?.key) {
         ztoolkit.UI.appendElement(
           {
