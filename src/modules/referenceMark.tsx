@@ -162,10 +162,10 @@ async function changeFromText(text: string, panel: HTMLDivElement, item: Zotero.
         {
           tag: "span",
           properties: {
-            textContent: `${m.groups.author}${m.groups.year || m.groups.doi || m.groups.title}`, // "",
+            textContent: `${m.groups.author}${m.groups.year || m.groups.doi || m.groups.title}${m.groups.yearaz}`, // "",
           },
           styles: {
-            backgroundColor: "#ef497150",
+            // backgroundColor: "#ef497150",
             // color: "#ef4971",
             margin: "5px",
             borderRadius: "5px",
