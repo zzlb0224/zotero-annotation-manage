@@ -1,7 +1,7 @@
 import { config } from "../../package.json";
 import { refSearch, createItemByZotero, searchItem, ruleSearch, ruleTestSingle, showInLibrary } from "../utils/cite";
 import { getPrefAs, setPref } from "../utils/prefs";
-import { addCssFile, isDebug, openAnnotation } from "../utils/zzlb";
+import { addCssFile, getPublicationTags, isDebug, openAnnotation } from "../utils/zzlb";
 function register() {
   Zotero.Reader.registerEventListener("renderToolbar", readerToolbarCallback, config.addonID);
 }
@@ -173,6 +173,23 @@ async function changeFromText(text: string, panel: HTMLDivElement, item: Zotero.
           },
         },
         panel)
+      if (searchedItem || m.groups.journal) {
+        ztoolkit.UI.appendElement(
+          {
+            tag: "span",
+            properties: {
+              innerHTML: getPublicationTags(searchedItem || m.groups.journal),
+            },
+            styles: {
+              margin: "5px",
+              borderRadius: "5px",
+              cursor: "pointer",
+            },
+          },
+          panel)
+      }
+
+
       if (searchedItem?.key) {
         ztoolkit.UI.appendElement(
           {

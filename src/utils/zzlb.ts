@@ -810,17 +810,24 @@ export async function getAnnotationContent(ann: Zotero.Item) {
   else html = getString("text-empty");
   return html.replace(/<br\s*>/g, "<br/>");
 }
-export function getPublicationTags(topItem: Zotero.Item | undefined) {
+export function getPublicationTags(topItem: Zotero.Item | string | undefined) {
   if (!topItem) {
     return "";
   }
-
-  while (topItem.parentItem) topItem = topItem.parentItem;
+  if (topItem instanceof String) {
+    //@ts-ignore getField
+    topItem = { getField: () => { return topItem }, objectType: "item" };
+  }
+  if (topItem instanceof Zotero.Item) {
+    while (topItem.parentItem) topItem = topItem.parentItem;
+  }
   //@ts-ignore ZoteroStyle
   const ZoteroStyle = Zotero.ZoteroStyle as any;
   if (!ZoteroStyle) {
     return "";
   }
+  //const a = { getField: () => { return "Plos one" },objectType:"item" }
+
   const space = " ㅤㅤ ㅤㅤ";
   return Array.prototype.map
     .call(ZoteroStyle.api.renderCell(topItem, "publicationTags").childNodes, (e) => {
