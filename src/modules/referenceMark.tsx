@@ -1,5 +1,5 @@
 import { config } from "../../package.json";
-import { refSearch, createItemByZotero, searchItem, ruleSearch, ruleTestSingle, showInLibrary } from "../utils/cite";
+import { createItemByZotero, searchItem, ruleSearch, ruleTestSingle, showInLibrary } from "../utils/cite";
 import { getPrefAs, setPref } from "../utils/prefs";
 import { addCssFile, getPublicationTags, isDebug, openAnnotation } from "../utils/zzlb";
 function register() {
@@ -173,6 +173,7 @@ async function changeFromText(text: string, panel: HTMLDivElement, item: Zotero.
           },
         },
         panel)
+
       if (searchedItem || m.groups.journal) {
         ztoolkit.UI.appendElement(
           {
@@ -188,6 +189,7 @@ async function changeFromText(text: string, panel: HTMLDivElement, item: Zotero.
           },
           panel)
       }
+      ztoolkit.log("参考文献查询", searchedItem, m.groups.journal)
 
 
       if (searchedItem?.key) {

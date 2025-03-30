@@ -1,13 +1,19 @@
 import { getItem } from "./zzlb";
 
 interface Rule {
-  title: string;
-  re: RegExp;
+  title?: string;
   rStr: string;
-  examples: string[];
+  examples?: string[];
 }
 const space = "[\\s\u00a0\u0020]*";
 const num = `(?:${space}\\[\\d+\\]${space})?`;
+const quote = `[“"”']`
+const quote_space = `${space}${quote}${space}`;
+const comma = `,`
+const comma_space = `${space}${comma}${space}`
+const dot = `\\.`
+const dot_space = `${space}${dot}${space}`
+
 const author0 = `${space}(?<author>.+)${space}`;
 const author1 = `${space}(?<author>[^\\.]+?)${space}`;
 const author2 = `${space}(?<author>[^\\d]+?)${space}`;
@@ -19,116 +25,112 @@ const journal0 = `${space}(?<journal>.+?)${space}`;
 const journal1 = `${space}(?<journal>[^?]+?)${space}`;
 const journal2 = `${space}(?<journal>In Proceedings of.+?)${space}`;
 const year0 = `${space}(?<year>[\\d]+)(?<yearaz>[a-z]?)${space}`;
-const year1 = `${space}\\(${space}(?<year>[\\d]+)(?<yearaz>[a-z]?)${space}\\)${space}`;
+const year_brackets = `${space}\\(${space}(?<year>[\\d]+)(?<yearaz>[a-z]?)${space}\\)${space}`;
+
 const page0 = `${space}(?<page>[\\d–-]+)${space}`;
 const page1 = `${space}(?<page>[\\d–-\\s]+)${space}`;
-const issue = `${space}(?<issue>[\\d]*)${space}`;
-const volume = `${space}(?<volume>[\\d]*)${space}`;
-const volume1 = `${space}\\(${space}(?<volume>[\\d]*)${space}\\)${space}`;
-const doi0 = `${space}(?:doi:|DOI:|https://doi.org/|https://${space}doi.org/)${space}(?<doi>.*)[\\.]?${space}`;
-const doi1 = `${space}(?:doi:|DOI:|https://doi.org/|https://${space}doi.org/)${space}(?<doi>.*)?[\\.]?${space}`;
-const nn = new RegExp(`${author2},${year0}\\.${title1}\\.${journal0}${issue},${page0}\\.`);
+const issue0 = `${space}(?<issue>[\\d]*)${space}`;
+const volume0 = `${space}(?<volume>[\\d]*)${space}`;
+const volume_brackets = `${space}\\(${space}(?<volume>[\\d]*)${space}\\)${space}`;
+const series = `${space}(?<series>[\\d]*)${space}`;
+const series_brackets = `${space}\\(${space}(?<series>[\\d]*)${space}\\)${space}`;
+const doi = `${space}(?:doi:|DOI:|https://doi.org/|https://${space}doi.org/)${space}(?<doi>.*)[\\.]?${space}`;
 
-const apa_doi0 =
-  /\s*(?<author>[^(]+)\(\s*(?<year>[\d]+)[a-f]?\s*\)\.\s*(?<title>.+?)\s*\.\s*(?<journal>.+?)\s*(?<volume>[\d]*)\s*(?:\((?<series>[\s\d]+)\))?,\s*(?<page>[\s\d–-]+)\.\s*doi:\s*(?<doi>.*)/;
-const apa1 =
-  /\s*(?<author>[^(]+)\(\s*(?<year>[\d]+)[a-f]?\s*\)\.\s*(?<title>.+?)\s*\.\s*(?<journal>.+?),\s*(?<volume>[\s\d]*)(?:\((?<series>[\s\d]+)\))?,\s*(?<page>[\s\d–-]+)\./;
-
-const apa2 =
-  /\s*(?<author>.+)\.\s*(?<title>.+?)\s*\.\s*(?<journal>.+?)\.\s*(?<volume>[\d]*)\s*(?:\((?<series>[\s\d]+)\))?,\s*(?<page>[\s\d–-]+),\s*(?<year>\d{4}[a-f]?)\./;
-
-const apa3 = new RegExp(
-  `${num}${author1}\\.${title0}\\.${space}(?:In Proc\\.)?${journal0}\\,${space}\\w*[\\.]?${space}${year0},${space}pp\\.${page0}\\.${doi0}`,
-);
-const apa4 = new RegExp(`${author1}${year1}${title0}\\.${journal0}${volume}:${page0}\\.${doi0}`);
-const a5 = new RegExp(`${author0},${year0}\\.${title1}\\.${journal0}${issue}${volume1},${page0}\\.${doi1}`);
-const a6 = new RegExp(`${author0},${year0}\\.${title1}\\.${journal0}${issue}${volume1},${page0}\\.`);
-const a7Str = `${author0},${year0}${title1}\\.${journal0}${issue},${page0}\\.${doi0}`;
-const a7 = new RegExp(a7Str);
-const a8 = new RegExp(`${author2},${year0}\\.${title1}\\.${journal0}${issue},${page0}\\.`);
-const regexps = [apa_doi0, apa1, apa2, apa3, apa4, a5, a6, a7, a8];
 const rules: Rule[] = [
   {
-    title: "",
-    rStr: "",
-    re: /\s*(?<author>[^(]+)\(\s*(?<year>[\d]+)[a-f]?\s*\)\.\s*(?<title>.+?)\s*\.\s*(?<journal>.+?)\s*(?<volume>[\d]*)\s*(?:\((?<series>[\s\d]+)\))?,\s*(?<page>[\s\d–-]+)\.\s*doi:\s*(?<doi>.*)/,
-    examples: [] as string[],
+    rStr: `${author0}${year_brackets}${dot}${title0}${dot}${journal0}${volume0}${series_brackets}${comma}${page0}${dot}${doi}`,
   },
   {
-    re: apa1,
+    rStr: `${author0}${year_brackets}${dot_space}${title0}${dot_space}${journal0}${comma_space}(.*?)${doi}`
+    // re: /\s*(?<author>[^(]+)\(\s*(?<year>[\d]+)[a-f]?\s*\)\.\s*(?<title>.+?)\s*\.\s*(?<journal>.+?),\s*(?<volume>[\s\d]*)(?:\((?<series>[\s\d]+)\))?,\s*(?<page>[\s\d–-]+)\./,
   },
   {
-    re: apa2,
+    rStr: `${author0}${dot_space}${title0}${dot_space}${journal0}${dot_space}${volume0}${series_brackets}${comma_space}${page0}${year0}`,
+    // re: /\s*(?<author>.+)\.\s*(?<title>.+?)\s*\.\s*(?<journal>.+?)\.\s*(?<volume>[\d]*)\s*(?:\((?<series>[\s\d]+)\))?,\s*(?<page>[\s\d–-]+),\s*(?<year>\d{4}[a-f]?)\./,
   },
   {
-    re: apa3,
+    rStr: `${num}${author1}\\.${title0}\\.${space}(?:In Proc\\.)?${journal0}\\,${space}\\w*[\\.]?${space}${year0},${space}pp\\.${page0}\\.${doi}`
   },
   {
-    re: apa4,
+    rStr: `${author1}${year_brackets}${title0}\\.${journal0}${volume0}:${page0}\\.${doi}`,
   },
   {
-    re: a5,
+    rStr: `${author0},${year0}\\.${title1}\\.${journal0}${issue0}${volume_brackets},${page0}\\.${doi}`,
   },
   {
-    re: a6,
+    rStr: `${author0},${year0}\\.${title1}\\.${journal0}${issue0}${volume_brackets},${page0}\\.`,
   },
   {
-    rStr: `${author0},${year0}${title1}\\.${journal0}${issue},${page0}\\.${doi0}`,
+    rStr: `${author0},${year0}${title1}\\.${journal0}${issue0},${page0}\\.${doi}`,
   },
   {
-    rStr: `${author2},${year0}\\.${title1}\\.${journal0}${issue},${page0}\\.`,
+    rStr: `${author2},${year0}\\.${title1}\\.${journal0}${issue0},${page0}\\.`,
   },
   {
     title: "apa page前面带Article，标题还带了个问号结尾",
-    re: new RegExp(`${author3}\\(${year0}\\)${space}\\.${title0}[\\.?]${journal1},${issue},${space}Article${page0}\\.`),
+    rStr: `${author3}\\(${year0}\\)${space}\\.${title0}[\\.?]${journal1},${issue0},${space}Article${page0}\\.`,
     examples: [
       "Moore, K., Buchmann, A., Månsson, M., & Fisher, D. (2021). Authenticity in tourism theory and experience. Practically indispensable and theoretically mischievous? Annals of Tourism Research, 89, Article 103208.",
     ],
   },
   {
     title: "apa DOI",
-    re: new RegExp(`${author3}\\(${year0}\\)${space}\\.${title0}[\\.?]${journal1},${issue},${page0}\\.${doi0}`),
+    rStr: `${author3}${year_brackets}${space}${dot_space}${title0}${dot_space}${journal1}${comma_space}${issue0}{comma_space}${page0}${dot_space}${doi}`,
     examples: [
       "Balakrishnan, J., & Dwivedi, Y. K. (2021). Conversational commerce: Entering the next stage of AI-powered digital assistants. Annals of Operations Research, 1–35. https:// doi.org/10.1007/s10479-021-04049-5",
     ],
   },
   {
     title: "apa vol no",
-    re: new RegExp(`${author0}${year1},${title2},${journal1},${space}Vol\\.${volume}No\\.${issue},${space}pp\\.${page1}\\.${doi0}`),
+    rStr: `${author0}${year_brackets},${title2},${journal1},${space}Vol${dot_space}${volume0}No${dot_space}${issue0},${space}pp${dot_space}${page1}${dot_space}${doi}`,
     examples: [
       "Wood, R.and Zaichkowsky, J.L. (2004), “Attitudes and trading behavior of stock market investors: a segmentation approach”, Journal of Behavioral Finance, Vol. 5 No. 3, pp. 170 - 179.",
     ],
   },
   {
     title: "a",
-    re: new RegExp(`${author0}${year1}\\.${title1}\\.${journal0}\\.${space}\\d+\\,${space}pp\\.${page1}\\.`),
+    rStr: `${author0}${year_brackets}${dot}${title1}${dot}${journal0}${dot_space}\\d+${comma_space}pp${dot_space}${page1}${dot}`,
     examples: [
       "Lindman, J., Rossi, M. and Tuunainen, V.K. (2017). Opportunities and Risks of Blockchain Technologies in Payments: A Research Agenda. The 50th Hawaii International Conference on System Sciences. 2017, pp. 1533-1542.",
     ],
   },
   {
-    re: new RegExp(`${author0}${year1},${title2},${journal0},${space}Vol\\.${volume}No\\.${issue},${space}pp\\.${page1}\\.`),
+    rStr: `${author0}${year_brackets},${title2},${journal0},${space}Vol${dot_space}${volume0}No${dot_space}${issue0},${space}pp${dot_space}${page1}${dot_space}`,
     examples: [
       "Hauser, D.J.and Schwartz, N. (2016), “Attentive Turkers: MTurk participants perform better on online attention checks than do subject pool participants”, Behavior Research Methods, Vol. 48 No. 1, pp. 400 - 407.",
     ],
   },
   {
-    re: new RegExp(`${author0}${year1}\\.${title1}\\.${journal2},`),
+    rStr: `${author0}${year_brackets}${dot}${title1}${dot}${journal2},`,
     examples: [
       "Huotari, K., & Hamari, J. (2012). Deﬁning gamiﬁcation – A service marketing perspective. In Proceedings of the 16th international academic MindTrek conference Tampere, Finland, 3–5 October, 2012, (pp. 17–22).",
     ],
   },
-].map((a) =>
-  Object.assign(a, {
-    re: a.re ?? new RegExp(a.rStr),
-    rStr: a.rStr ?? a.re + "",
-  }),
-);
+  {
+    rStr: `${author0}${comma}${year_brackets}${comma}${space}${quote}${title1}${quote}${space}${comma}${journal2}${comma}`,
+    examples: [
+      "Lee, R.G. and Dale, B.G. (1998), “Business process management: a review and evaluation”, Business Process Management Journal, Vol. 4 No. 3, pp. 214-225, doi: 10.1108/14637159810224322.",
+    ],
+  },
+];
+const o = {
+  re: new RegExp(`${author0},${year_brackets},${space}${quote}${title1}${quote}${space},${journal2},`),
+  examples: [
+    "Lee, R.G. and Dale, B.G. (1998), “Business process management: a review and evaluation”, Business Process Management Journal, Vol. 4 No. 3, pp. 214-225, doi: 10.1108/14637159810224322.",
+  ],
+}
+
+function test(re = /.*/, examples = [""]) {
+  for (const ex of examples) {
+    console.log(ex, ex.match(re))
+  }
+}
+test(o.re, o.examples);
 
 export function ruleSearch(str: string) {
   for (let index = 0; index < rules.length; index++) {
     const rule = rules[index];
-    const m = str.match(rule.re);
+    const m = str.match(new RegExp(rule.rStr));
     if (m) {
       // ztoolkit.log(rStr, m);
       const groups = m.groups;
@@ -145,7 +147,7 @@ export function ruleTestInner(index: number | undefined = undefined) {
     const rule = rules[i];
     if (rule.examples) {
       for (const str of rule.examples) {
-        const m = str.match(rule.re);
+        const m = str.match(new RegExp(rule.rStr));
         if (m) {
           ztoolkit.log("OK", i, str, m.groups);
         } else {
@@ -165,7 +167,7 @@ export function ruleTestCross() {
       const e = rules[ei];
       if (e.examples) {
         for (const str of e.examples) {
-          const m = str.match(rule.re);
+          const m = str.match(new RegExp(rule.rStr));
           if (m) {
             if (ei == index) {
               ztoolkit.log("OK", index, str);
@@ -187,7 +189,7 @@ export function ruleTestSingle(str: string) {
   for (let index = 0; index < rules.length; index++) {
     const rule = rules[index];
 
-    const m = str.match(rule.re);
+    const m = str.match(new RegExp(rule.rStr));
     if (m) {
       ztoolkit.log("OK", index, str);
     } else {
@@ -196,27 +198,6 @@ export function ruleTestSingle(str: string) {
   }
 }
 
-function refTest() {
-  const rrr = [
-    `Sharabati, A.-A.A., Naji Jawad, S., Bontis, N., 2010. Intellectual capital and business performance in the pharmaceutical sector of Jordan. Manag. Decis. 48 (1), 105–131.`,
-    a6,
-    `Yook, K.H., Choi, J.H., Suresh, N.C., 2018. Linking green purchasing capabilities to environmental and economic performance: the moderating role of firm size. J. Purch. Supply Manag. 24, 326–337. https://doi.org/10.1016/j. pursup.2017.09.001.`,
-    a7,
-    `Yu, C., Moslehpour, M., Tran, T.K., et al., 2023. Impact of non-renewable energy and natural resources on economic recovery: empirical evidence from selected developing economies. Resour. Policy 80, 103221. Yue, P., Korkmaz, A.G., Yin, Z., et al., 2022. The rise of digital finance: financial inclusion or debt trap? Financ. Res. Lett. 47, 102604. Zhang, J., Mishra, A.K., Zhu, P., et al., 2020. Land rental market and agricultural labor productivity in rural China: a mediation analysis. World Dev. 135, 105089.`,
-    a8,
-  ];
-  for (let i = 0; i < rrr.length; i += 2) {
-    const str = rrr[i] as string;
-    const rStr = rrr[i + 1] as RegExp;
-    const a = refSearch(str);
-    if (a?.rStr == rStr) {
-      ztoolkit.log(i / 2 + 1, "refTest", a.index, "ok");
-    } else {
-      refSearch(str, true);
-      // ztoolkit.log(i, ind, a)
-    }
-  }
-}
 function ruleTestLast() {
   return ruleTestInner(rules.length - 1);
 }
@@ -226,22 +207,6 @@ if (__env__ === "development") {
   Zotero.ref_test = { refTest, ruleTestInner, ruleTestCross, ruleTestSingle, ruleTestLast };
 }
 
-export function refSearch(str: string, log = false) {
-  for (let index = 0; index < regexps.length; index++) {
-    const rStr = regexps[index];
-    const m = str.match(rStr);
-    if (log) {
-      ztoolkit.log(index, `"${str}".match(${rStr})`);
-    }
-    if (m) {
-      // ztoolkit.log(rStr, m);
-      const groups = m.groups;
-      if (groups) {
-        return { index, rStr, r: rStr + "", groups };
-      }
-    }
-  }
-}
 
 export async function searchItem(info: { doi: string; title: string; year: string }) {
   if (!info) return;
