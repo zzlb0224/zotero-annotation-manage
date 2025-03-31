@@ -113,19 +113,19 @@ const rules: Rule[] = [
     ],
   },
 ];
-const o = {
-  re: new RegExp(`${author0},${year_brackets},${space}${quote}${title1}${quote}${space},${journal2},`),
-  examples: [
-    "Lee, R.G. and Dale, B.G. (1998), “Business process management: a review and evaluation”, Business Process Management Journal, Vol. 4 No. 3, pp. 214-225, doi: 10.1108/14637159810224322.",
-  ],
-}
+// const o = {
+//   re: new RegExp(`${author0},${year_brackets},${space}${quote}${title1}${quote}${space},${journal2},`),
+//   examples: [
+//     "Lee, R.G. and Dale, B.G. (1998), “Business process management: a review and evaluation”, Business Process Management Journal, Vol. 4 No. 3, pp. 214-225, doi: 10.1108/14637159810224322.",
+//   ],
+// }
 
-function test(re = /.*/, examples = [""]) {
-  for (const ex of examples) {
-    console.log(ex, ex.match(re))
-  }
-}
-test(o.re, o.examples);
+// function test(re = /.*/, examples = [""]) {
+//   for (const ex of examples) {
+//     console.log(ex, ex.match(re))
+//   }
+// }
+// test(o.re, o.examples);
 
 export function ruleSearch(str: string) {
   for (let index = 0; index < rules.length; index++) {
