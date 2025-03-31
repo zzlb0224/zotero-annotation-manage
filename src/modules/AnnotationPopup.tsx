@@ -265,9 +265,15 @@ export class AnnotationPopup {
     const rr = ztoolkit.UI.appendElement({ tag: "div", classList: ["reactRoot"], id: reactRootID }, root) as HTMLDivElement;
     ztoolkit.log("root和rr", root, rr);
     // if (isDebug())
-    const window = Zotero.getMainWindow()
+
 
     setTimeout(() => {
+
+      const window = Zotero.getMainWindow()
+      //@ts-ignore window 类型问题
+      globalThis.window = window
+      globalThis.document = window.document;
+
       createRoot(rr).render(
         <IntlProvider
           locale={window.navigator.language}
@@ -289,6 +295,7 @@ export class AnnotationPopup {
           />
         </IntlProvider>,
       );
+
     });
   }
 

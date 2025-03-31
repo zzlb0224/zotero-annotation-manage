@@ -204,7 +204,7 @@ function ruleTestLast() {
 
 if (__env__ === "development") {
   //@ts-ignore Zotero.ref_test
-  Zotero.ref_test = { refTest, ruleTestInner, ruleTestCross, ruleTestSingle, ruleTestLast };
+  // Zotero.ref_test = { refTest, ruleTestInner, ruleTestCross, ruleTestSingle, ruleTestLast };
 }
 
 
