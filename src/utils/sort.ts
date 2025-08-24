@@ -94,7 +94,7 @@ export function sortBy<T>(keyFunc: (a: T) => string, asc: boolean = true) {
     const bb = keyFunc(b);
     if (aa == bb) return 0;
     if (asc) return aa < bb ? -1 : 1;
-    return aa < aa ? -1 : 1;
+    return aa < bb ? 1 : -1;
   };
 }
 /**
