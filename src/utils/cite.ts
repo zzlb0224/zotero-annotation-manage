@@ -1,6 +1,7 @@
 import { getItem } from "./zzlb";
 
 interface Rule {
+  re: RegExp
   title?: string;
   rStr: string;
   examples?: string[];
@@ -15,12 +16,12 @@ const dot = `\\.`
 const dot_space = `${space}${dot}${space}`
 
 const author0 = `${space}(?<author>.+)${space}`;
-const author1 = `${space}(?<author>[^\\.]+?)${space}`;
-const author2 = `${space}(?<author>[^\\d]+?)${space}`;
-const author3 = `${space}(?<author>[^\\(]+?)${space}`;
+const author_no_dot = `${space}(?<author>[^\\.]+?)${space}`;
+const author_no_num = `${space}(?<author>[^\\d]+?)${space}`;
+const author_no_quote = `${space}(?<author>[^\\(]+?)${space}`;
 const title0 = `${space}(?<title>.+?)${space}`;
-const title1 = `${space}(?<title>[^\\.]+?)${space}`;
-const title2 = `${space}["“]+${space}(?<title>.+?)${space}["”]+${space}`;
+const title_no_dot = `${space}(?<title>[^\\.]+?)${space}`;
+const title_quote = `${space}["“]+${space}(?<title>.+?)${space}["”]+${space}`;
 const journal0 = `${space}(?<journal>.+?)${space}`;
 const journal1 = `${space}(?<journal>[^?]+?)${space}`;
 const journal2 = `${space}(?<journal>In Proceedings of.+?)${space}`;
@@ -49,70 +50,70 @@ const rules: Rule[] = [
     // re: /\s*(?<author>.+)\.\s*(?<title>.+?)\s*\.\s*(?<journal>.+?)\.\s*(?<volume>[\d]*)\s*(?:\((?<series>[\s\d]+)\))?,\s*(?<page>[\s\d–-]+),\s*(?<year>\d{4}[a-f]?)\./,
   },
   {
-    rStr: `${num}${author1}\\.${title0}\\.${space}(?:In Proc\\.)?${journal0}\\,${space}\\w*[\\.]?${space}${year0},${space}pp\\.${page0}\\.${doi}`
+    rStr: `${num}${author_no_dot}\\.${title0}\\.${space}(?:In Proc\\.)?${journal0}\\,${space}\\w*[\\.]?${space}${year0},${space}pp\\.${page0}\\.${doi}`
   },
   {
-    rStr: `${author1}${year_brackets}${title0}\\.${journal0}${volume0}:${page0}\\.${doi}`,
+    rStr: `${author_no_dot}${year_brackets}${title0}\\.${journal0}${volume0}:${page0}\\.${doi}`,
   },
   {
-    rStr: `${author0},${year0}\\.${title1}\\.${journal0}${issue0}${volume_brackets},${page0}\\.${doi}`,
+    rStr: `${author0},${year0}\\.${title_no_dot}\\.${journal0}${issue0}${volume_brackets},${page0}\\.${doi}`,
   },
   {
-    rStr: `${author0},${year0}\\.${title1}\\.${journal0}${issue0}${volume_brackets},${page0}\\.`,
+    rStr: `${author0},${year0}\\.${title_no_dot}\\.${journal0}${issue0}${volume_brackets},${page0}\\.`,
   },
   {
-    rStr: `${author0},${year0}${title1}\\.${journal0}${issue0},${page0}\\.${doi}`,
+    rStr: `${author0},${year0}${title_no_dot}\\.${journal0}${issue0},${page0}\\.${doi}`,
   },
   {
-    rStr: `${author2},${year0}\\.${title1}\\.${journal0}${issue0},${page0}\\.`,
+    rStr: `${author_no_num},${year0}\\.${title_no_dot}\\.${journal0}${issue0},${page0}\\.`,
   },
   {
     title: "apa page前面带Article，标题还带了个问号结尾",
-    rStr: `${author3}\\(${year0}\\)${space}\\.${title0}[\\.?]${journal1},${issue0},${space}Article${page0}\\.`,
+    rStr: `${author_no_quote}\\(${year0}\\)${space}\\.${title0}[\\.?]${journal1},${issue0},${space}Article${page0}\\.`,
     examples: [
       "Moore, K., Buchmann, A., Månsson, M., & Fisher, D. (2021). Authenticity in tourism theory and experience. Practically indispensable and theoretically mischievous? Annals of Tourism Research, 89, Article 103208.",
     ],
   },
   {
     title: "apa DOI",
-    rStr: `${author3}${year_brackets}${space}${dot_space}${title0}${dot_space}${journal1}${comma_space}${issue0}{comma_space}${page0}${dot_space}${doi}`,
+    rStr: `${author_no_quote}${year_brackets}${space}${dot_space}${title0}${dot_space}${journal1}${comma_space}${issue0}{comma_space}${page0}${dot_space}${doi}`,
     examples: [
       "Balakrishnan, J., & Dwivedi, Y. K. (2021). Conversational commerce: Entering the next stage of AI-powered digital assistants. Annals of Operations Research, 1–35. https:// doi.org/10.1007/s10479-021-04049-5",
     ],
   },
   {
     title: "apa vol no",
-    rStr: `${author0}${year_brackets},${title2},${journal1},${space}Vol${dot_space}${volume0}No${dot_space}${issue0},${space}pp${dot_space}${page1}${dot_space}${doi}`,
+    rStr: `${author0}${year_brackets},${title_quote},${journal1},${space}Vol${dot_space}${volume0}No${dot_space}${issue0},${space}pp${dot_space}${page1}${dot_space}${doi}`,
     examples: [
       "Wood, R.and Zaichkowsky, J.L. (2004), “Attitudes and trading behavior of stock market investors: a segmentation approach”, Journal of Behavioral Finance, Vol. 5 No. 3, pp. 170 - 179.",
     ],
   },
   {
     title: "a",
-    rStr: `${author0}${year_brackets}${dot}${title1}${dot}${journal0}${dot_space}\\d+${comma_space}pp${dot_space}${page1}${dot}`,
+    rStr: `${author0}${year_brackets}${dot}${title_no_dot}${dot}${journal0}${dot_space}\\d+${comma_space}pp${dot_space}${page1}${dot}`,
     examples: [
       "Lindman, J., Rossi, M. and Tuunainen, V.K. (2017). Opportunities and Risks of Blockchain Technologies in Payments: A Research Agenda. The 50th Hawaii International Conference on System Sciences. 2017, pp. 1533-1542.",
     ],
   },
   {
-    rStr: `${author0}${year_brackets},${title2},${journal0},${space}Vol${dot_space}${volume0}No${dot_space}${issue0},${space}pp${dot_space}${page1}${dot_space}`,
+    rStr: `${author0}${year_brackets},${title_quote},${journal0},${space}Vol${dot_space}${volume0}No${dot_space}${issue0},${space}pp${dot_space}${page1}${dot_space}`,
     examples: [
       "Hauser, D.J.and Schwartz, N. (2016), “Attentive Turkers: MTurk participants perform better on online attention checks than do subject pool participants”, Behavior Research Methods, Vol. 48 No. 1, pp. 400 - 407.",
     ],
   },
   {
-    rStr: `${author0}${year_brackets}${dot}${title1}${dot}${journal2},`,
+    rStr: `${author0}${year_brackets}${dot}${title_no_dot}${dot}${journal2},`,
     examples: [
       "Huotari, K., & Hamari, J. (2012). Deﬁning gamiﬁcation – A service marketing perspective. In Proceedings of the 16th international academic MindTrek conference Tampere, Finland, 3–5 October, 2012, (pp. 17–22).",
     ],
   },
   {
-    rStr: `${author0}${comma}${year_brackets}${comma}${space}${quote}${title1}${quote}${space}${comma}${journal2}${comma}`,
+    rStr: `${author0}${comma}${year_brackets}${comma}${space}${quote}${title_no_dot}${quote}${space}${comma}${journal2}${comma}`,
     examples: [
       "Lee, R.G. and Dale, B.G. (1998), “Business process management: a review and evaluation”, Business Process Management Journal, Vol. 4 No. 3, pp. 214-225, doi: 10.1108/14637159810224322.",
     ],
   },
-];
+].map(a => Object.assign({}, a, { re: new RegExp(a.rStr), }))
 // const o = {
 //   re: new RegExp(`${author0},${year_brackets},${space}${quote}${title1}${quote}${space},${journal2},`),
 //   examples: [
@@ -128,9 +129,14 @@ const rules: Rule[] = [
 // test(o.re, o.examples);
 
 export function ruleSearch(str: string) {
+  if (__env__ === "development") {
+    const r = rules.map(a => Object.assign({}, a, { m: str.match(a.rStr) })).map(a => Object.assign(a, { groups: a.m?.groups }))
+    ztoolkit.log("cite 识别结果", str, r)
+    return Object.assign({}, r.filter(a => a.m)[0], { all: r })
+  }
   for (let index = 0; index < rules.length; index++) {
     const rule = rules[index];
-    const m = str.match(new RegExp(rule.rStr));
+    const m = str.match(rule.re);
     if (m) {
       // ztoolkit.log(rStr, m);
       const groups = m.groups;
@@ -147,7 +153,7 @@ export function ruleTestInner(index: number | undefined = undefined) {
     const rule = rules[i];
     if (rule.examples) {
       for (const str of rule.examples) {
-        const m = str.match(new RegExp(rule.rStr));
+        const m = str.match(rule.re);
         if (m) {
           ztoolkit.log("OK", i, str, m.groups);
         } else {
@@ -167,7 +173,7 @@ export function ruleTestCross() {
       const e = rules[ei];
       if (e.examples) {
         for (const str of e.examples) {
-          const m = str.match(new RegExp(rule.rStr));
+          const m = str.match(rule.re);
           if (m) {
             if (ei == index) {
               ztoolkit.log("OK", index, str);
@@ -189,7 +195,7 @@ export function ruleTestSingle(str: string) {
   for (let index = 0; index < rules.length; index++) {
     const rule = rules[index];
 
-    const m = str.match(new RegExp(rule.rStr));
+    const m = str.match(rule.re);
     if (m) {
       ztoolkit.log("OK", index, str);
     } else {
