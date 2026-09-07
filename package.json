@@ -26,9 +26,10 @@
     "lint:check": "prettier --check . && eslint .",
     "lint:fix": "prettier --write . && eslint . --fix",
     "release": "zotero-plugin release",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --test test/unit/*.test.mjs",
     "update-deps": "npm update --save",
-    "postinstall": "node -e \"const fs = require('fs'); const path = require('path'); ['react', 'react-dom'].forEach(dir => { const src = path.join(__dirname, 'patches', dir); const dest = path.join(__dirname, 'node_modules', dir); if (fs.existsSync(src)) { fs.cpSync(src, dest, { recursive: true, force: true }); } });\""
+    "postinstall": "node -e \"const fs = require('fs'); const path = require('path'); ['react', 'react-dom'].forEach(dir => { const src = path.join(__dirname, 'patches', dir); const dest = path.join(__dirname, 'node_modules', dir); if (fs.existsSync(src)) { fs.cpSync(src, dest, { recursive: true, force: true }); } });\"",
+    "test:integration": "zotero-plugin test --no-watch"
   },
   "dependencies": {
     "@types/react": "^18.3.27",

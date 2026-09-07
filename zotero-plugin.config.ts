@@ -13,6 +13,11 @@ export default defineConfig({
   }`,
   xpiDownloadLink: "https://github.com/{{owner}}/{{repo}}/releases/download/v{{version}}/{{xpiName}}.xpi",
 
+  test: {
+    entries: "test/integration",
+    mocha: { timeout: 30000 },
+  },
+
   server: {
     asProxy: true,
   },

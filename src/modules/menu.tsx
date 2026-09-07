@@ -1,3 +1,4 @@
+import { getSelectedCollectionItems, getSelectedCollectionNames } from "../utils/selection";
 import * as React from "react";
 import { createRoot } from "react-dom/client";
 // import { MenuitemOptions } from "zotero-plugin-toolkit/dist/managers/menu";
@@ -152,7 +153,7 @@ function buildMenu(collectionOrItem: "collection" | "item") {
           const mainWindow = Zotero.getMainWindow();
           let header = "";
           if (collectionOrItem == "collection") {
-            header = `collection:${Zotero.getActiveZoteroPane().getSelectedCollection()?.name}`;
+            header = `collection:${getSelectedCollectionNames()}`;
           } else if (items.length == 1) {
             header = `单条目:${items[0].getDisplayTitle()}`;
           } else {
@@ -297,7 +298,7 @@ function buildMenu(collectionOrItem: "collection" | "item") {
           const mainWindow = Zotero.getMainWindow();
           let header = "";
           if (collectionOrItem == "collection") {
-            header = `collection:${Zotero.getActiveZoteroPane().getSelectedCollection()?.name}`;
+            header = `collection:${getSelectedCollectionNames()}`;
           } else if (items.length == 1) {
             header = `单条目:${items[0].getDisplayTitle()}`;
           } else {
@@ -724,23 +725,10 @@ export function createActionTag(
   ];
 }
 export async function getSelectedItems(isCollectionOrItem: boolean | "collection" | "item") {
-  let items: Zotero.Item[] = [];
   if (isCollectionOrItem === true || isCollectionOrItem === "collection") {
-    const selected = Zotero.getActiveZoteroPane().getSelectedCollection();
-    ztoolkit.log(isCollectionOrItem, selected);
-    if (selected) {
-      const cs = uniqueBy([selected, ...getChildCollections([selected])], (u) => u.key);
-      items = cs.flatMap((f) => f.getChildItems(false, false));
-      // ztoolkit.log("getSelectedItems",items,cs)
-    } else {
-      const itemsAll = await Zotero.Items.getAll(1, false, false, false);
-      const itemTypes = ["journalArticle", "thesis"]; //期刊和博硕论文
-      items = itemsAll.filter((f) => itemTypes.includes(f.itemType));
-    }
-  } else {
-    items = Zotero.getActiveZoteroPane().getSelectedItems();
+    return getSelectedCollectionItems();
   }
-  return items;
+  return Zotero.getActiveZoteroPane().getSelectedItems();
 }
 
 export function getColorTags(tags: string[]) {

@@ -1,3 +1,4 @@
+import { getSelectedCollectionNames } from "../utils/selection";
 import { getPref, getPrefAs, setPref } from "../utils/prefs";
 import {
   sortAsc,
@@ -118,7 +119,7 @@ export function PopupRoot({
   const [displayTags, updateDisplayTags] = useImmer([] as { key: string; values: { tag: string }[]; color?: string }[]);
   const [selectedTags, updateSelectedTags] = useState([] as { tag: string; color: string }[]);
   const [searchTag, setSearchTag] = useState("");
-  const [currentPosition, setCurrentPosition] = useState(Zotero.getActiveZoteroPane().getSelectedCollection()?.name || "我的文库");
+  const [currentPosition, setCurrentPosition] = useState(getSelectedCollectionNames() || "我的文库");
   const [searchResultLength, setSearchResultLength] = useState(0);
   const [showTagsLength, setShowTagsLength] = useState(getPrefAs("showTagsLength", 20));
 
@@ -279,7 +280,7 @@ export function PopupRoot({
           setCurrentPosition("搜索中");
         }
       } else {
-        setCurrentPosition(Zotero.getActiveZoteroPane().getSelectedCollection()?.name || "我的文库");
+        setCurrentPosition(getSelectedCollectionNames() || "我的文库");
       }
       setSearchResultLength(searchResult.length);
       updateDisplayTags(searchResult.slice(0, showTagsLength).map((a) => Object.assign({}, a, { color: memFixedColor(a.key, "") })));

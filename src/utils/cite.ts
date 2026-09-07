@@ -1,3 +1,4 @@
+import { getSelectionWriteTarget } from "./selection";
 import { getItem } from "./zzlb";
 
 interface Rule {
@@ -248,8 +249,7 @@ export async function createItemByZotero(doi: string) {
     const translators = await translate.getTranslators();
     translate.setTranslator(translators);
     ztoolkit.log("identifiers", identifiers, translators);
-    const libraryID = Zotero.getActiveZoteroPane().getSelectedLibraryID();
-    const collections = [Zotero.getActiveZoteroPane().getSelectedCollection(true)];
+    const { libraryID, collectionIDs: collections } = getSelectionWriteTarget();
     return (
       await translate.translate({
         libraryID,

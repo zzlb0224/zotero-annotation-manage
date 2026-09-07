@@ -1,3 +1,4 @@
+import { getSelectedCollections, getSelectedCollectionNames, getSingleSelectedCollection } from "../utils/selection";
 // import React = require("react");
 // import { createRoot } from "react-dom/client";
 import { config } from "../../package.json";
@@ -375,7 +376,8 @@ function bindFixedColors(doc: Document) {
   async function showCurrentCollection() {
     if (!currentCollection) return;
     currentCollection.innerHTML = "固定标签配置";
-    const selectedCollection = Zotero.getActiveZoteroPane().getSelectedCollection(false);
+    const selectedCollection = getSingleSelectedCollection();
+    collectionKey = selectedCollection?.key || "";
     if (selectedCollection) {
       collectionKey = selectedCollection.key;
       ztoolkit.UI.appendElement(
@@ -552,9 +554,9 @@ async function replaceTagsPreviewDiv(doc?: Document) {
       }
     }
     if (!ann) {
-      const sc = Zotero.getActiveZoteroPane().getSelectedCollection();
-      if (sc) {
-        const pdfs = sc.getChildItems(false, false).flatMap((f) => f.getAttachments());
+      const collections = getSelectedCollections();
+      if (collections.length) {
+        const pdfs = collections.flatMap((collection) => collection.getChildItems(false, false)).flatMap((f) => f.getAttachments());
         if (pdfs) {
           ann = Zotero.Items.get(pdfs)
             .filter((f) => f.isPDFAttachment())
@@ -562,15 +564,15 @@ async function replaceTagsPreviewDiv(doc?: Document) {
             .filter((f) => f.getTags().length > 0)
             .sort(sortModified)[0];
           if (ann) {
-            from = `当前文件夹[${sc.name}]的标签`;
+            from = `当前文件夹[${getSelectedCollectionNames()}]的标签`;
           }
         }
       }
     }
     if (!ann) {
-      const sc = Zotero.getActiveZoteroPane().getSelectedCollection();
-      if (sc) {
-        const pdfs = getChildCollections([sc])
+      const collections = getSelectedCollections();
+      if (collections.length) {
+        const pdfs = getChildCollections(collections)
           ?.flatMap((f) => f.getChildItems(false, false))
           .flatMap((f) => f.getAttachments());
         ann = Zotero.Items.get(pdfs)
@@ -579,7 +581,7 @@ async function replaceTagsPreviewDiv(doc?: Document) {
           .filter((f) => f.getTags().length > 0)
           .sort(sortModified)[0];
         if (ann) {
-          from = `当前文件夹[${sc.name}]的子文件夹标签`;
+          from = `当前文件夹[${getSelectedCollectionNames()}]的子文件夹标签`;
         }
       }
     }

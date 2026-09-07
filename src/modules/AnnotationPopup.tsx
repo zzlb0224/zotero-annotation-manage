@@ -1,3 +1,4 @@
+import { getSelectedCollectionNames } from "../utils/selection";
 // import { TagElementProps } from "zotero-plugin-toolkit/dist/tools/ui";
 import { config } from "../../package.json";
 import { getPref, setPref } from "../utils/prefs";
@@ -1080,7 +1081,7 @@ export class AnnotationPopup {
         fontSize: this.fontSize,
       },
       properties: {
-        textContent: this.searchTag ? "搜索中" : `${Zotero.getActiveZoteroPane().getSelectedCollection()?.name || ""}`,
+        textContent: this.searchTag ? "搜索中" : `${getSelectedCollectionNames() || ""}`,
       },
       children,
     };

@@ -1,3 +1,4 @@
+import { getSelectedCollections, getSingleSelectedCollection } from "./selection";
 // import { memoize } from "./Memoize";
 import { getPref, setPref } from "./prefs";
 import memoize from "./memoize2";
@@ -109,7 +110,7 @@ export const memFixedColor = memoize(
 export const memFixedTagColors = memoize(getFixedTagColors, getCollectionKey);
 
 function getCollectionKey(collectionKey: string | undefined = undefined) {
-  return collectionKey === undefined ? Zotero.getActiveZoteroPane().getSelectedCollection()?.key || "" : collectionKey;
+  return collectionKey === undefined ? getSingleSelectedCollection()?.key || "" : collectionKey;
 }
 
 function getFixedTagColors(collectionKey: string | undefined = undefined) {
@@ -289,8 +290,7 @@ function getItemRelateCollections(item?: Zotero.Item): Zotero.Collection[] {
   const prefSelectedCollection = !!getPref("selected-collection");
   const prefCurrentCollection = !!getPref("current-collection");
   if (prefSelectedCollection) {
-    const selectedCollectionId = Zotero.getActiveZoteroPane().getSelectedCollection(true);
-    if (selectedCollectionId) allCollectionIds.push(selectedCollectionId);
+    allCollectionIds.push(...getSelectedCollections().map((collection) => collection.id));
   }
   if (prefCurrentCollection) {
     const currentCollectionIds = item.parentItem ? item.parentItem.getCollections() : item.getCollections();
