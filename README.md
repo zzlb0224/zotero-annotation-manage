@@ -1,6 +1,6 @@
 # ![笔记标签整Zotero的笔记整理理](addon/chrome/content/icons/favicon.png)Zotero的笔记整理
 
-[![zotero target version](https://img.shields.io/badge/Zotero-7-green?style=flat-square&logo=zotero&logoColor=CC2936)](https://www.zotero.org)
+[![zotero target version](https://img.shields.io/badge/Zotero-8%E2%80%9310-green?style=flat-square&logo=zotero&logoColor=CC2936)](https://www.zotero.org)
 [![Using Zotero Plugin Template](https://img.shields.io/badge/Using-Zotero%20Plugin%20Template-blue?style=flat-square&logo=github)](https://github.com/windingwind/zotero-plugin-template)
 
 一个tag管理工具，方便自己管理annotation和tag，进行各种汇总统计，让笔记不白做。
@@ -26,7 +26,8 @@
 ## 注意
 
 - 需要安装 [@windingwind](https://github.com/windingwind)的[BetterNotes](https://github.com/windingwind/zotero-better-notes/releases/) 才能使用导出功能。
-- 支持Zotero 8.0。
+- 支持 Zotero 8 至 10.0.x；兼容改动已在 Zotero 10.0.1（Linux）完成原生测试。
+- 多选分类导出会合并子分类并去重；创建条目或笔记时只允许单一目标文库，避免跨文库错误写入。
 - node 版本 22.22.0
 
 ## 功能介绍
