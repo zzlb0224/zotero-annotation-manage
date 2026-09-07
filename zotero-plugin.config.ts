@@ -13,6 +13,12 @@ export default defineConfig({
   }`,
   xpiDownloadLink: "https://github.com/{{owner}}/{{repo}}/releases/download/v{{version}}/{{xpiName}}.xpi",
 
+  test: {
+    entries: "test/integration",
+    prefs: process.env.BETTER_NOTES_XPI ? { "extensions.zotero.annotationmanage.test-better-notes-xpi": process.env.BETTER_NOTES_XPI } : {},
+    mocha: { timeout: 30000 },
+  },
+
   server: {
     asProxy: true,
   },

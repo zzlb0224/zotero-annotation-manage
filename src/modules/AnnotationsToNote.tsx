@@ -1,3 +1,4 @@
+import { getSelectionWriteTarget } from "../utils/selection";
 import { config } from "../../package.json";
 // import { TagElementProps } from "zotero-plugin-toolkit/dist/tools/ui";
 import { getPref, setPref } from "../utils/prefs";
@@ -1306,10 +1307,10 @@ export async function saveNote(targetNoteItem: Zotero.Item, txt: string, pw: Pro
   pw?.createLine({ text: `笔记更新完成`, type: "default" });
 }
 export async function createNote(txt = "", pw: ProgressWindowHelper | undefined = undefined) {
+  const { libraryID, collectionIDs } = getSelectionWriteTarget();
   const targetNoteItem = new Zotero.Item("note");
-  targetNoteItem.libraryID = Zotero.getActiveZoteroPane().getSelectedLibraryID();
-  const selected = Zotero.getActiveZoteroPane().getSelectedCollection(true);
-  if (selected) targetNoteItem.setCollections([selected]);
+  targetNoteItem.libraryID = libraryID;
+  if (collectionIDs.length) targetNoteItem.setCollections(collectionIDs);
   else {
     // 这个会破坏用户数据结构，不是必须的
     // let c = Zotero.Collections.getByLibrary(1, true).find(
